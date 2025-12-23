@@ -3,6 +3,7 @@ import { PORT } from "./src/configs/env.js";
 import pool from "./src/configs/database.js";
 import userRouter from "./src/routes/user.routes.js";
 import errorHandling from "./src/middleware/errorHandler.js";
+import initModels from "./src/models/index.js";
 const app = express();
 
 // Middleware
@@ -15,7 +16,7 @@ app.use("/api", userRouter);
 app.use(errorHandling);
 
 // Create Tables
-// createUserTable();
+// await initModels(pool);
 
 // Test postgre connection
 app.get("/", async (req, res) => {
