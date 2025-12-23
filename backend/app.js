@@ -14,6 +14,9 @@ app.use("/api", userRouter);
 // Error handling Middleware
 app.use(errorHandling);
 
+// Create Tables
+// createUserTable();
+
 // Test postgre connection
 app.get("/", async (req, res) => {
   const result = await pool.query("SELECT current_database()");
