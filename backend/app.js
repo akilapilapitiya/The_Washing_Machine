@@ -1,7 +1,6 @@
 import express from "express";
 import { PORT } from "./src/configs/env.js";
 import pool from "./src/configs/database.js";
-import authRouter from "./src/routes/auth.routes.js";
 import userRouter from "./src/routes/user.routes.js";
 import errorHandling from "./src/middleware/errorHandler.js";
 const app = express();
