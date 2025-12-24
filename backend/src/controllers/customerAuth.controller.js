@@ -4,18 +4,14 @@ export const customerSignUp = async (req, res, next) => {
   try {
     const { name, email, password, telephone } = req.body;
 
-    const customer = await signUp({
+    const result = await signUp({
       name,
       email,
       password,
       telephone,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Customer registered successfully",
-      customer,
-    });
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

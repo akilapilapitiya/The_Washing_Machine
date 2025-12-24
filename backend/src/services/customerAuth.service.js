@@ -1,6 +1,7 @@
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS } from "../configs/env.js";
+import { generateToken } from "../utils/generateToken.util.js";
 
 // Signup function
 export const signUp = async ({ name, email, password, telephone }) => {
@@ -8,13 +9,17 @@ export const signUp = async ({ name, email, password, telephone }) => {
     "SELECT cusid FROM customer WHERE cusemail = $1",
     [email]
   );
+
   if (existing.rowCount > 0) {
     throw new Error("Customer already exists");
   }
+
   if (password.length < 8) {
     throw new Error("Password must be at least 8 characters");
   }
+
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
   const result = await pool.query(
     `
     INSERT INTO customer (cusname, cusemail, custel, password_hash)
@@ -23,11 +28,23 @@ export const signUp = async ({ name, email, password, telephone }) => {
     `,
     [name, email, telephone, passwordHash]
   );
+  const customer = result.rows[0];
+  const token = generateToken(customer.cusid);
 
-  return result.rows[0];
+  return {
+    status: "success",
+    message: "Customer registered successfully",
+    customer: {
+      id: customer.cusid,
+      name: customer.cusname,
+      email: customer.cusemail,
+      telephone: customer.custel,
+    },
+    token,
+  };
 };
 
-/* ================= SIGN IN ================= */
+//Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
     `
@@ -48,14 +65,16 @@ export const signIn = async ({ email, password }) => {
   if (!isMatch) {
     throw new Error("Invalid email or password");
   }
-
-  // ⚠ Token generation comes later
+  // Token Generation
+  const token = generateToken(customer.cusid);
   return {
+    status: "success",
     message: "Login successful",
     customer: {
       id: customer.cusid,
       name: customer.cusname,
       email: customer.cusemail,
     },
+    token,
   };
 };
