@@ -18,7 +18,7 @@ export const signUp = async ({ name, email, password, telephone }) => {
     throw new Error("Password must be at least 8 characters");
   }
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const passwordHash = await bcrypt.hash(password, Number(SALT_ROUNDS));
 
   const result = await pool.query(
     `
@@ -28,23 +28,14 @@ export const signUp = async ({ name, email, password, telephone }) => {
     `,
     [name, email, telephone, passwordHash]
   );
+
   const customer = result.rows[0];
   const token = generateToken(customer.cusid);
 
-  return {
-    status: "success",
-    message: "Customer registered successfully",
-    customer: {
-      id: customer.cusid,
-      name: customer.cusname,
-      email: customer.cusemail,
-      telephone: customer.custel,
-    },
-    token,
-  };
+  return { customer, token };
 };
 
-//Signin function
+// Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
     `
@@ -60,21 +51,11 @@ export const signIn = async ({ email, password }) => {
   }
 
   const customer = result.rows[0];
-
   const isMatch = await bcrypt.compare(password, customer.password_hash);
   if (!isMatch) {
     throw new Error("Invalid email or password");
   }
-  // Token Generation
+
   const token = generateToken(customer.cusid);
-  return {
-    status: "success",
-    message: "Login successful",
-    customer: {
-      id: customer.cusid,
-      name: customer.cusname,
-      email: customer.cusemail,
-    },
-    token,
-  };
+  return { customer, token };
 };

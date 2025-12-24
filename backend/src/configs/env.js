@@ -16,3 +16,4 @@ export const {
 } = process.env;
 
 export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
+export const COOKIE_AGE = Number(process.env.COOKIE_AGE);
