@@ -69,15 +69,27 @@ export const createBookingService = async ({
 
     const bookingId = bookingResult.rows[0].bookingid;
 
-    // Insert into servicesbooked (many-to-many)
-    for (const serviceId of services) {
-      await client.query(
-        `
-        INSERT INTO servicesbooked (bookingid, serviceid)
-        VALUES ($1, $2)
-        `,
-        [bookingId, serviceId]
+    // Validate services exist before inserting
+    if (services && services.length > 0) {
+      const servicesCheck = await client.query(
+        "SELECT serviceid FROM service WHERE serviceid = ANY($1)",
+        [services]
       );
+
+      if (servicesCheck.rowCount !== services.length) {
+        throw new Error("One or more service IDs do not exist");
+      }
+
+      // Insert into servicesbooked (many-to-many)
+      for (const serviceId of services) {
+        await client.query(
+          `
+          INSERT INTO servicesbooked (bookingid, serviceid)
+          VALUES ($1, $2)
+          `,
+          [bookingId, serviceId]
+        );
+      }
     }
 
     await client.query("COMMIT");

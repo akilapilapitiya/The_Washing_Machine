@@ -1,0 +1,24 @@
+import { Router } from "express";
+import {
+  createService,
+  getAllServices,
+  getService,
+  updateService,
+  deleteService
+} from "../controllers/service.controller.js";
+import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
+
+const serviceRouter = Router();
+
+// GET services (public - no auth required)
+serviceRouter.get("/", getAllServices);
+serviceRouter.get("/:serviceid", getService);
+
+// POST, PUT, DELETE - only employees can manage services
+serviceRouter.use(authMiddleware, restrictTo('employee'));
+
+serviceRouter.post("/", createService);
+serviceRouter.put("/:serviceid", updateService);
+serviceRouter.delete("/:serviceid", deleteService);
+
+export default serviceRouter;

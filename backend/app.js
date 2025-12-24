@@ -9,6 +9,7 @@ import testRouter from "./src/routes/test.route.js";
 import customerAuthRouter from "./src/routes/customerAuth.route.js";
 import bookingRouter from "./src/routes/booking.route.js";
 import vehicleRouter from "./src/routes/vehicle.route.js";
+import serviceRouter from "./src/routes/service.routes.js";
 const app = express();
 
 // Middleware
@@ -33,6 +34,7 @@ app.use("/api/employee", employeeAuthRouter);
 app.use("/api/customer", customerAuthRouter);
 app.use("/api/booking", bookingRouter);
 app.use("/api/vehicle", vehicleRouter);
+app.use("/api/service", serviceRouter);
 
 // Error handling Middleware
 app.use(errorHandling);
