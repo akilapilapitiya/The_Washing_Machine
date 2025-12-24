@@ -38,11 +38,7 @@ export const signUp = async ({ name, email, password, telephone }) => {
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    `
-    SELECT cusid, cusname, cusemail, password_hash
-    FROM customer
-    WHERE cusemail = $1
-    `,
+    "SELECT cusid, cusname, cusemail, password_hash FROM customer WHERE cusemail = $1",
     [email]
   );
 
