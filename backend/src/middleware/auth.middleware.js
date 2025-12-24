@@ -6,7 +6,10 @@ export const authMiddleware = async (req, res, next) => {
   let token;
   
   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1];
+    const parts = req.headers.authorization.split(" ");
+    if (parts.length === 2) {
+      token = parts[1];
+    }
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
@@ -26,7 +29,7 @@ export const authMiddleware = async (req, res, next) => {
       role: decoded.role // 'customer' or 'employee'
     };
     
-    // Optionally verify user still exists in database
+    // Verify user still exists in database
     let userExists;
     if (decoded.role === 'customer') {
       const result = await pool.query("SELECT cusid FROM customer WHERE cusid = $1", [decoded.id]);

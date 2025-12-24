@@ -8,18 +8,31 @@ import employeeAuthRouter from "./src/routes/employeeAuth.route.js";
 import testRouter from "./src/routes/test.route.js";
 import customerAuthRouter from "./src/routes/customerAuth.route.js";
 import bookingRouter from "./src/routes/booking.route.js";
+import vehicleRouter from "./src/routes/vehicle.route.js";
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb', strict: false }));
 app.use(express.urlencoded({extended:false}));
-app.use(cookieParser())
+app.use(cookieParser());
+
+// Body parser error handling
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      status: "error",
+      message: "Invalid JSON in request body"
+    });
+  }
+  next(err);
+});
 
 // Routes
 app.use("/api", testRouter);
 app.use("/api/employee", employeeAuthRouter);
 app.use("/api/customer", customerAuthRouter);
-app.use("/api/booking", bookingRouter),
+app.use("/api/booking", bookingRouter);
+app.use("/api/vehicle", vehicleRouter);
 
 // Error handling Middleware
 app.use(errorHandling);
