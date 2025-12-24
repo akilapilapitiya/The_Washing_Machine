@@ -1,10 +1,11 @@
-export const employeeSignUp = async(requestAnimationFrame, res, next) =>{
+export const employeeSignUp = async(req, res, next) =>{
+    res.json({ message: "Employee sign up" });
 }
 
-export const employeeSignIn = async(requestAnimationFrame, res, next) =>{
-    
+export const employeeSignIn = async(req, res, next) =>{
+    res.json({ message: "Employee sign in" });
 }
 
-export const employeeSignOut = async(requestAnimationFrame, res, next) =>{
-    
+export const employeeSignOut = async(req, res, next) =>{
+    res.json({ message: "Employee sign out" });
 }

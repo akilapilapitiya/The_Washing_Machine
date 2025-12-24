@@ -12,7 +12,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
-app.use(cookieParser)
+app.use(cookieParser())
 
 // Routes
 app.use("/api", testRouter);
@@ -23,7 +23,7 @@ app.use("/api/customer", customerAuthRouter);
 app.use(errorHandling);
 
 // Create Tables
-await initModels(pool);
+// await initModels(pool);
 
 // Server Running
 app.listen(PORT, () => {

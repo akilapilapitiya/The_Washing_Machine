@@ -14,3 +14,5 @@ export const {
   JWT_SECRET,
   JWT_EXPIRES_IN,
 } = process.env;
+
+export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
