@@ -30,7 +30,7 @@ export const signUp = async ({ name, email, password, telephone }) => {
   );
 
   const customer = result.rows[0];
-  const token = generateToken(customer.cusid);
+  const token = generateToken(customer.cusid, 'customer');
 
   return { customer, token };
 };
@@ -52,6 +52,6 @@ export const signIn = async ({ email, password }) => {
     throw new Error("Invalid email or password");
   }
 
-  const token = generateToken(customer.cusid);
+  const token = generateToken(customer.cusid, 'customer');
   return { customer, token };
 };

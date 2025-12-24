@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import employeeAuthRouter from "./src/routes/employeeAuth.route.js";
 import testRouter from "./src/routes/test.route.js";
 import customerAuthRouter from "./src/routes/customerAuth.route.js";
+import bookingRouter from "./src/routes/booking.route.js";
 const app = express();
 
 // Middleware
@@ -18,6 +19,7 @@ app.use(cookieParser())
 app.use("/api", testRouter);
 app.use("/api/employee", employeeAuthRouter);
 app.use("/api/customer", customerAuthRouter);
+app.use("/api/booking", bookingRouter),
 
 // Error handling Middleware
 app.use(errorHandling);

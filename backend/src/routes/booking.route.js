@@ -1,0 +1,15 @@
+import { Router } from "express";
+import { createBooking, deleteBooking, updateBooking } from "../controllers/booking.controller.js";
+import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
+
+const bookingRouter = Router();
+
+// All routes require authentication
+bookingRouter.use(authMiddleware);
+
+// Both customers and employees can create, update, and delete bookings
+bookingRouter.post("/", restrictTo('customer', 'employee'), createBooking);
+bookingRouter.put("/:id", restrictTo('customer', 'employee'), updateBooking);
+bookingRouter.delete("/:id", restrictTo('customer', 'employee'), deleteBooking);
+
+export default bookingRouter;
