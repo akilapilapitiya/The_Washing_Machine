@@ -4,9 +4,9 @@ import pool from "./src/configs/database.js";
 import errorHandling from "./src/middleware/error.middleware.js";
 import initModels from "./src/models/index.js";
 import cookieParser from "cookie-parser";
-import employeeAuthRouter from "./src/routes/employeeAuth.routes.js";
-import testRouter from "./src/routes/test.routes.js";
-import customerAuthRouter from "./src/routes/customerAuth.routes.js";
+import employeeAuthRouter from "./src/routes/employeeAuth.route.js";
+import testRouter from "./src/routes/test.route.js";
+import customerAuthRouter from "./src/routes/customerAuth.route.js";
 const app = express();
 
 // Middleware
