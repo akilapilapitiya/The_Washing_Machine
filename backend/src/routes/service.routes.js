@@ -4,7 +4,7 @@ import {
   getAllServices,
   getService,
   updateService,
-  deleteService
+  deleteService,
 } from "../controllers/service.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
@@ -15,7 +15,7 @@ serviceRouter.get("/", getAllServices);
 serviceRouter.get("/:serviceid", getService);
 
 // POST, PUT, DELETE - only employees can manage services
-serviceRouter.use(authMiddleware, restrictTo('employee'));
+serviceRouter.use(authMiddleware, restrictTo("employee"));
 
 serviceRouter.post("/", createService);
 serviceRouter.put("/:serviceid", updateService);

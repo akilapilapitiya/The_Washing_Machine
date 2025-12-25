@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { createPayment, deletePayment, getAllPayments, getPayment, updatePayment } from "../controllers/payment.controller.js";
+import {
+  createPayment,
+  deletePayment,
+  getAllPayments,
+  getPayment,
+  updatePayment,
+} from "../controllers/payment.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const paymentRouter = Router();

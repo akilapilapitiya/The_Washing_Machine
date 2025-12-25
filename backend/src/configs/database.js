@@ -8,7 +8,7 @@ const pool = new Pool({
   host: DB_HOST,
   database: DB_NAME,
   password: DB_PASSWORD,
-  port: Number(DB_PORT), 
+  port: Number(DB_PORT),
 });
 
 pool.on("connect", () => {

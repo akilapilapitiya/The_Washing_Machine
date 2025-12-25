@@ -6,7 +6,7 @@ export const createVehicleService = async ({
   vehid,
   vehmileage,
   vehbrand,
-  vehmodel
+  vehmodel,
 }) => {
   const result = await pool.query(
     `
@@ -103,8 +103,5 @@ export const deleteVehicleService = async (vehid, customerId) => {
     throw new Error("You can only delete your own vehicles");
   }
 
-  await pool.query(
-    "DELETE FROM vehicle WHERE vehid = $1",
-    [vehid]
-  );
+  await pool.query("DELETE FROM vehicle WHERE vehid = $1", [vehid]);
 };

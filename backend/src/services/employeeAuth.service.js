@@ -37,7 +37,7 @@ export const signUp = async ({
   );
 
   const employee = result.rows[0];
-  const token = generateToken(employee.empid, 'employee');
+  const token = generateToken(employee.empid, "employee");
 
   return { employee, token };
 };
@@ -60,6 +60,6 @@ export const signIn = async ({ email, password }) => {
     throw new Error("Invalid email or password");
   }
 
-  const token = generateToken(employee.empid, 'employee');
+  const token = generateToken(employee.empid, "employee");
   return { employee, token };
 };

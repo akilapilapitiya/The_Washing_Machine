@@ -3,29 +3,24 @@ import {
   getAllServicesService,
   getServiceService,
   updateServiceService,
-  deleteServiceService
+  deleteServiceService,
 } from "../services/service.service.js";
 
 export const createService = async (req, res, next) => {
   try {
-    const {
-      servicename,
-      servicetime,
-      serviceprice,
-      servicedetails
-    } = req.body;
+    const { servicename, servicetime, serviceprice, servicedetails } = req.body;
 
     const service = await createServiceService({
       servicename,
       servicetime,
       serviceprice,
-      servicedetails
+      servicedetails,
     });
 
     res.status(201).json({
       status: "success",
       message: "Service created successfully",
-      service
+      service,
     });
   } catch (error) {
     next(error);
@@ -39,7 +34,7 @@ export const getAllServices = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Services retrieved successfully",
-      services
+      services,
     });
   } catch (error) {
     next(error);
@@ -55,7 +50,7 @@ export const getService = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Service retrieved successfully",
-      service
+      service,
     });
   } catch (error) {
     next(error);
@@ -72,7 +67,7 @@ export const updateService = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Service updated successfully",
-      service
+      service,
     });
   } catch (error) {
     next(error);
@@ -87,7 +82,7 @@ export const deleteService = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      message: "Service deleted successfully"
+      message: "Service deleted successfully",
     });
   } catch (error) {
     next(error);

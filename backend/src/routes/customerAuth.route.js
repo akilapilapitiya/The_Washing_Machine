@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { customerSignIn, customerSignOut, customerSignUp } from "../controllers/customerAuth.controller.js";
+import {
+  customerSignIn,
+  customerSignOut,
+  customerSignUp,
+} from "../controllers/customerAuth.controller.js";
 
 const customerAuthRouter = Router();
 

@@ -17,8 +17,8 @@ import paymentRouter from "./src/routes/payment.route.js";
 const app = express();
 
 // Middleware
-app.use(express.json({ limit: '10mb', strict: false }));
-app.use(express.urlencoded({extended:false}));
+app.use(express.json({ limit: "10mb", strict: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Body parser error handling

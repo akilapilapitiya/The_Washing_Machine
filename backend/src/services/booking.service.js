@@ -74,7 +74,7 @@ export const createBookingService = async ({
   locationLongitude,
   vehicleId,
   services,
-  userRole
+  userRole,
 }) => {
   const client = await pool.connect();
 
@@ -86,20 +86,22 @@ export const createBookingService = async ({
       "SELECT vehid, cusid FROM vehicle WHERE vehid = $1",
       [vehicleId]
     );
-    
+
     if (vehicleCheck.rowCount === 0) {
       throw new Error("Vehicle not found");
     }
-    
+
     // If the user is a customer, verify they own the vehicle
-    if (userRole === 'customer' && vehicleCheck.rows[0].cusid !== customerId) {
+    if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
       throw new Error("You can only book with your own vehicles");
     }
 
     // Validate status
-    const validStatuses = ['pending', 'inProgress', 'completed', 'paid'];
+    const validStatuses = ["pending", "inProgress", "completed", "paid"];
     if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+      throw new Error(
+        `Invalid status. Must be one of: ${validStatuses.join(", ")}`
+      );
     }
 
     // Validate the date meets the constraint
@@ -107,7 +109,7 @@ export const createBookingService = async ({
       "SELECT $1::date >= CURRENT_DATE as is_valid",
       [date]
     );
-    
+
     if (!dateCheck.rows[0].is_valid) {
       throw new Error("Booking date must be today or in the future");
     }
@@ -127,7 +129,7 @@ export const createBookingService = async ({
         endTime,
         locationLatitude,
         locationLongitude,
-        vehicleId
+        vehicleId,
       ]
     );
 
@@ -171,13 +173,7 @@ export const createBookingService = async ({
  * UPDATE BOOKING
  */
 export const updateBookingService = async (bookingId, updates) => {
-  const {
-    status,
-    date,
-    startTime,
-    endTime,
-    services
-  } = updates;
+  const { status, date, startTime, endTime, services } = updates;
 
   const client = await pool.connect();
 
@@ -196,9 +192,11 @@ export const updateBookingService = async (bookingId, updates) => {
 
     // Validate status if provided
     if (status) {
-      const validStatuses = ['pending', 'inProgress', 'completed', 'paid'];
+      const validStatuses = ["pending", "inProgress", "completed", "paid"];
       if (!validStatuses.includes(status)) {
-        throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+        throw new Error(
+          `Invalid status. Must be one of: ${validStatuses.join(", ")}`
+        );
       }
     }
 
@@ -247,7 +245,9 @@ export const updateBookingService = async (bookingId, updates) => {
     if (updateFields.length > 0) {
       updateValues.push(bookingId);
       await client.query(
-        `UPDATE booking SET ${updateFields.join(', ')} WHERE bookingid = $${paramIndex}`,
+        `UPDATE booking SET ${updateFields.join(
+          ", "
+        )} WHERE bookingid = $${paramIndex}`,
         updateValues
       );
     }
@@ -263,10 +263,9 @@ export const updateBookingService = async (bookingId, updates) => {
         throw new Error("One or more service IDs do not exist");
       }
 
-      await client.query(
-        "DELETE FROM servicesbooked WHERE bookingid = $1",
-        [bookingId]
-      );
+      await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
+        bookingId,
+      ]);
 
       for (const serviceId of services) {
         await client.query(
@@ -299,15 +298,11 @@ export const deleteBookingService = async (bookingId) => {
   try {
     await client.query("BEGIN");
 
-    await client.query(
-      "DELETE FROM servicesbooked WHERE bookingid = $1",
-      [bookingId]
-    );
+    await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
+      bookingId,
+    ]);
 
-    await client.query(
-      "DELETE FROM booking WHERE bookingid = $1",
-      [bookingId]
-    );
+    await client.query("DELETE FROM booking WHERE bookingid = $1", [bookingId]);
 
     await client.query("COMMIT");
   } catch (error) {

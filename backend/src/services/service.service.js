@@ -7,7 +7,7 @@ export const createServiceService = async ({
   servicename,
   servicetime,
   serviceprice,
-  servicedetails
+  servicedetails,
 }) => {
   const result = await pool.query(
     `
@@ -87,10 +87,9 @@ export const updateServiceService = async (serviceid, updates) => {
  * DELETE SERVICE
  */
 export const deleteServiceService = async (serviceid) => {
-  const result = await pool.query(
-    "DELETE FROM service WHERE serviceid = $1",
-    [serviceid]
-  );
+  const result = await pool.query("DELETE FROM service WHERE serviceid = $1", [
+    serviceid,
+  ]);
 
   if (result.rowCount === 0) {
     throw new Error("Service not found");

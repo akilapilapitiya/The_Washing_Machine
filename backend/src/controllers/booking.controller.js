@@ -1,4 +1,10 @@
-import {createBookingService, updateBookingService, deleteBookingService, getAllBookingsService, getBookingService} from "../services/booking.service.js";
+import {
+  createBookingService,
+  updateBookingService,
+  deleteBookingService,
+  getAllBookingsService,
+  getBookingService,
+} from "../services/booking.service.js";
 
 export const getAllBookings = async (req, res, next) => {
   try {
@@ -7,7 +13,7 @@ export const getAllBookings = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Bookings retrieved successfully",
-      bookings
+      bookings,
     });
   } catch (error) {
     next(error);
@@ -23,7 +29,7 @@ export const getBooking = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Booking retrieved successfully",
-      booking
+      booking,
     });
   } catch (error) {
     next(error);
@@ -42,7 +48,7 @@ export const createBooking = async (req, res, next) => {
       locationLatitude,
       locationLongitude,
       vehicleId,
-      services // array of service IDs
+      services, // array of service IDs
     } = req.body;
 
     const booking = await createBookingService({
@@ -55,13 +61,13 @@ export const createBooking = async (req, res, next) => {
       locationLongitude,
       vehicleId,
       services,
-      userRole
+      userRole,
     });
 
     res.status(201).json({
       status: "success",
       message: "Booking created successfully",
-      booking
+      booking,
     });
   } catch (error) {
     next(error);
@@ -78,7 +84,7 @@ export const updateBooking = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Booking updated successfully",
-      booking
+      booking,
     });
   } catch (error) {
     next(error);
@@ -93,7 +99,7 @@ export const deleteBooking = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      message: "Booking deleted successfully"
+      message: "Booking deleted successfully",
     });
   } catch (error) {
     next(error);
