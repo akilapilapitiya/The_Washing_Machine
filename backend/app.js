@@ -10,6 +10,7 @@ import customerAuthRouter from "./src/routes/customerAuth.route.js";
 import bookingRouter from "./src/routes/booking.route.js";
 import vehicleRouter from "./src/routes/vehicle.route.js";
 import serviceRouter from "./src/routes/service.routes.js";
+import { bodyParser } from "./src/middleware/bodyParser.middleware.js";
 const app = express();
 
 // Middleware
@@ -18,15 +19,7 @@ app.use(express.urlencoded({extended:false}));
 app.use(cookieParser());
 
 // Body parser error handling
-app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({
-      status: "error",
-      message: "Invalid JSON in request body"
-    });
-  }
-  next(err);
-});
+app.use(bodyParser);
 
 // Routes
 app.use("/api", testRouter);

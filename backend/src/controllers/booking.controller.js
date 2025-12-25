@@ -1,4 +1,35 @@
-import {createBookingService, updateBookingService, deleteBookingService} from "../services/booking.service.js";
+import {createBookingService, updateBookingService, deleteBookingService, getAllBookingsService, getBookingService} from "../services/booking.service.js";
+
+export const getAllBookings = async (req, res, next) => {
+  try {
+    const bookings = await getAllBookingsService();
+
+    res.status(200).json({
+      status: "success",
+      message: "Bookings retrieved successfully",
+      bookings
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await getBookingService(id);
+
+    res.status(200).json({
+      status: "success",
+      message: "Booking retrieved successfully",
+      booking
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createBooking = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
@@ -39,10 +70,10 @@ export const createBooking = async (req, res, next) => {
 
 export const updateBooking = async (req, res, next) => {
   try {
-    const { bookingId } = req.params;
+    const { id } = req.params;
     const updates = req.body;
 
-    const booking = await updateBookingService(bookingId, updates);
+    const booking = await updateBookingService(id, updates);
 
     res.status(200).json({
       status: "success",
@@ -56,9 +87,9 @@ export const updateBooking = async (req, res, next) => {
 
 export const deleteBooking = async (req, res, next) => {
   try {
-    const { bookingId } = req.params;
+    const { id } = req.params;
 
-    await deleteBookingService(bookingId);
+    await deleteBookingService(id);
 
     res.status(200).json({
       status: "success",

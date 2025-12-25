@@ -25,10 +25,10 @@ export async function cleanAllData(client = pool) {
     await conn.query("BEGIN");
     await conn.query(sql);
     await conn.query("COMMIT");
-    console.log("[DEBUG] Database clean completed successfully.");
+    console.log("Database clean completed successfully.");
   } catch (err) {
     await conn.query("ROLLBACK");
-    console.error("[DEBUG] Database clean failed:", err);
+    console.error("Database clean failed:", err);
     throw err;
   } finally {
     conn.release();
