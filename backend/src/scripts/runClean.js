@@ -1,5 +1,5 @@
 import pool from "../configs/database.js";
-import { cleanAllData } from "./dataClean.debug.js";
+import { cleanAllData } from "./dataClean.script.js";
 
 async function main() {
   console.log("Running db clean via script...");

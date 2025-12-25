@@ -11,6 +11,9 @@ import bookingRouter from "./src/routes/booking.route.js";
 import vehicleRouter from "./src/routes/vehicle.route.js";
 import serviceRouter from "./src/routes/service.routes.js";
 import { bodyParser } from "./src/middleware/bodyParser.middleware.js";
+import employeeRouter from "./src/routes/employee.route.js";
+import customerRouter from "./src/routes/customer.route.js";
+import paymentRouter from "./src/routes/payment.route.js";
 const app = express();
 
 // Middleware
@@ -23,11 +26,14 @@ app.use(bodyParser);
 
 // Routes
 app.use("/api", testRouter);
-app.use("/api/employee", employeeAuthRouter);
-app.use("/api/customer", customerAuthRouter);
+app.use("/api/authemployee", employeeAuthRouter);
+app.use("/api/authcustomer", customerAuthRouter);
 app.use("/api/booking", bookingRouter);
 app.use("/api/vehicle", vehicleRouter);
 app.use("/api/service", serviceRouter);
+app.use("/api/employee", employeeRouter);
+app.use("/api/customer", customerRouter);
+app.use("/api/payment", paymentRouter);
 
 // Error handling Middleware
 app.use(errorHandling);
