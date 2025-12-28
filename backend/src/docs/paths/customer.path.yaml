@@ -1,0 +1,181 @@
+/customer:
+  get:
+    tags:
+      - Customer
+    summary: Get All Customers
+    description: Returns a list of customers.
+    operationId: getAllCustomers
+    responses:
+      '200':
+        description: Customers retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Customers retrieved successfully
+                customers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      cusid:
+                        type: integer
+                        example: 1
+                      cusname:
+                        type: string
+                        example: Jane Doe
+                      cusemail:
+                        type: string
+                        format: email
+                        example: customer@development.com
+                      custel:
+                        type: string
+                        example: "+0123456789"
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-01T10:00:00Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-02T12:00:00Z"
+
+/customer/{cusid}:
+  parameters:
+    - in: path
+      name: cusid
+      required: true
+      schema:
+        type: integer
+      description: Customer ID
+  get:
+    tags:
+      - Customer
+    summary: Get Customer By ID
+    description: Returns a single customer by `cusid`.
+    operationId: getCustomer
+    responses:
+      '200':
+        description: Customer retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Customer retrieved successfully
+                customer:
+                  type: object
+                  properties:
+                    cusid:
+                      type: integer
+                      example: 1
+                    cusname:
+                      type: string
+                      example: Jane Doe
+                    cusemail:
+                      type: string
+                      format: email
+                      example: customer@development.com
+                    custel:
+                      type: string
+                      example: "+0123456789"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-01T10:00:00Z"
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-02T12:00:00Z"
+  put:
+    tags:
+      - Customer
+    summary: Update Customer
+    description: Updates fields of the customer with the given `cusid`.
+    operationId: updateCustomer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              cusname:
+                type: string
+                example: Jane Doe
+              cusemail:
+                type: string
+                format: email
+                example: jane.doe@development.com
+              custel:
+                type: string
+                example: "+0987654321"
+    responses:
+      '200':
+        description: Customer updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Customer updated successfully
+                customer:
+                  type: object
+                  properties:
+                    cusid:
+                      type: integer
+                      example: 1
+                    cusname:
+                      type: string
+                      example: Jane Doe
+                    cusemail:
+                      type: string
+                      format: email
+                      example: jane.doe@development.com
+                    custel:
+                      type: string
+                      example: "+0987654321"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-01T10:00:00Z"
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-03T08:00:00Z"
+  delete:
+    tags:
+      - Customer
+    summary: Delete Customer
+    description: Deletes the customer with the given `cusid`.
+    operationId: deleteCustomer
+    responses:
+      '200':
+        description: Customer deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Customer deleted successfully
