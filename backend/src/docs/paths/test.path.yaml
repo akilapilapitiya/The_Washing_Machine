@@ -1,0 +1,27 @@
+/db:
+  get:
+    tags:
+      - Test # Logical grouping in Swagger UI
+    summary: Test database connection
+    description: Checks whether the backend can successfully connect to the database.
+    operationId: testDatabaseConnection
+    responses:
+      "200":
+        description: Database connection successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Database connected successfully
+      "500":
+        description: Database connection failed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"

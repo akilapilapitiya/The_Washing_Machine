@@ -1,0 +1,277 @@
+/booking:
+  get:
+    tags:
+      - Booking
+    summary: Get All Bookings
+    description: Returns a list of bookings.
+    operationId: getAllBookings
+    responses:
+      "200":
+        description: Bookings retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Bookings retrieved successfully
+                bookings:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bookingid:
+                        type: integer
+                        example: 101
+                      bookingstatus:
+                        type: string
+                        example: pending
+                      bookingdate:
+                        type: string
+                        format: date
+                        example: "2025-01-15"
+                      bookingstarttime:
+                        type: string
+                        example: "09:00"
+                      bookingendtime:
+                        type: string
+                        example: "10:00"
+                      bookinglocationlatitude:
+                        type: number
+                        format: float
+                        example: 6.9271
+                      bookinglocationlongitude:
+                        type: number
+                        format: float
+                        example: 79.8612
+                      vehid:
+                        type: integer
+                        example: 55
+                      services:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            serviceId:
+                              type: integer
+                              example: 3
+                            serviceName:
+                              type: string
+                              example: Exterior Wash
+
+/booking/{id}:
+  parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      description: Booking ID
+  get:
+    tags:
+      - Booking
+    summary: Get Booking By ID
+    description: Returns a single booking by `id`.
+    operationId: getBooking
+    responses:
+      "200":
+        description: Booking retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Booking retrieved successfully
+                booking:
+                  type: object
+                  properties:
+                    bookingid:
+                      type: integer
+                      example: 101
+                    bookingstatus:
+                      type: string
+                      example: pending
+                    bookingdate:
+                      type: string
+                      format: date
+                      example: "2025-01-15"
+                    bookingstarttime:
+                      type: string
+                      example: "09:00"
+                    bookingendtime:
+                      type: string
+                      example: "10:00"
+                    bookinglocationlatitude:
+                      type: number
+                      format: float
+                      example: 6.9271
+                    bookinglocationlongitude:
+                      type: number
+                      format: float
+                      example: 79.8612
+                    vehid:
+                      type: integer
+                      example: 55
+                    services:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          serviceId:
+                            type: integer
+                            example: 3
+                          serviceName:
+                            type: string
+                            example: Exterior Wash
+  post:
+    tags:
+      - Booking
+    summary: Create Booking
+    description: Creates a new booking.
+    operationId: createBooking
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+              - date
+              - startTime
+              - endTime
+              - locationLatitude
+              - locationLongitude
+              - vehicleId
+            properties:
+              status:
+                type: string
+                enum: [pending, inProgress, completed, paid]
+                example: pending
+              date:
+                type: string
+                format: date
+                example: "2025-01-15"
+              startTime:
+                type: string
+                example: "09:00"
+              endTime:
+                type: string
+                example: "10:00"
+              locationLatitude:
+                type: number
+                format: float
+                example: 6.9271
+              locationLongitude:
+                type: number
+                format: float
+                example: 79.8612
+              vehicleId:
+                type: integer
+                example: 55
+              services:
+                type: array
+                items:
+                  type: integer
+                example: [1, 2, 3]
+    responses:
+      "201":
+        description: Booking created successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Booking created successfully
+                booking:
+                  type: object
+                  properties:
+                    bookingId:
+                      type: integer
+                      example: 101
+  put:
+    tags:
+      - Booking
+    summary: Update Booking
+    description: Updates fields of the booking with the given `id`.
+    operationId: updateBooking
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [pending, inProgress, completed, paid]
+                example: inProgress
+              date:
+                type: string
+                format: date
+                example: "2025-01-16"
+              startTime:
+                type: string
+                example: "11:00"
+              endTime:
+                type: string
+                example: "12:00"
+              services:
+                type: array
+                items:
+                  type: integer
+                example: [2, 4]
+    responses:
+      "200":
+        description: Booking updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Booking updated successfully
+                booking:
+                  type: object
+                  properties:
+                    bookingId:
+                      type: integer
+                      example: 101
+  delete:
+    tags:
+      - Booking
+    summary: Delete Booking
+    description: Deletes the booking with the given `id`.
+    operationId: deleteBooking
+    responses:
+      "200":
+        description: Booking deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Booking deleted successfully

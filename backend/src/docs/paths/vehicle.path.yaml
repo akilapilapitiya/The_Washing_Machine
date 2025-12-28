@@ -1,0 +1,240 @@
+/vehicle:
+  get:
+    tags:
+      - Vehicle
+    summary: Get Customer Vehicles
+    description: Returns vehicles for the authenticated customer.
+    operationId: getCustomerVehicles
+    responses:
+      "200":
+        description: Vehicles retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Vehicles retrieved successfully
+                vehicles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      vehid:
+                        type: integer
+                        example: 12345
+                      vehmileage:
+                        type: integer
+                        example: 45000
+                      vehbrand:
+                        type: string
+                        example: Toyota
+                      vehmodel:
+                        type: string
+                        example: Corolla
+                      cusid:
+                        type: integer
+                        example: 1
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-15T09:30:00.000Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-15T09:30:00.000Z"
+  post:
+    tags:
+      - Vehicle
+    summary: Create Vehicle
+    description: Creates a new vehicle for the authenticated customer.
+    operationId: createVehicle
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - vehid
+              - vehmileage
+              - vehbrand
+              - vehmodel
+            properties:
+              vehid:
+                type: integer
+                example: 12345
+              vehmileage:
+                type: integer
+                example: 45000
+              vehbrand:
+                type: string
+                example: Toyota
+              vehmodel:
+                type: string
+                example: Corolla
+    responses:
+      "201":
+        description: Vehicle created successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Vehicle created successfully
+                vehicle:
+                  type: object
+                  properties:
+                    vehid:
+                      type: integer
+                      example: 12345
+                    vehmileage:
+                      type: integer
+                      example: 45000
+                    vehbrand:
+                      type: string
+                      example: Toyota
+                    vehmodel:
+                      type: string
+                      example: Corolla
+                    cusid:
+                      type: integer
+                      example: 1
+
+/vehicle/{vehid}:
+  parameters:
+    - in: path
+      name: vehid
+      required: true
+      schema:
+        type: integer
+      description: Vehicle ID
+  get:
+    tags:
+      - Vehicle
+    summary: Get Vehicle By ID
+    description: Returns a single vehicle by `vehid`.
+    operationId: getVehicle
+    responses:
+      "200":
+        description: Vehicle retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Vehicle retrieved successfully
+                vehicle:
+                  type: object
+                  properties:
+                    vehid:
+                      type: integer
+                      example: 12345
+                    vehmileage:
+                      type: integer
+                      example: 45000
+                    vehbrand:
+                      type: string
+                      example: Toyota
+                    vehmodel:
+                      type: string
+                      example: Corolla
+                    cusid:
+                      type: integer
+                      example: 1
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-15T09:30:00.000Z"
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-15T09:30:00.000Z"
+  put:
+    tags:
+      - Vehicle
+    summary: Update Vehicle
+    description: Updates fields of the vehicle with the given `vehid`.
+    operationId: updateVehicle
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              vehmileage:
+                type: integer
+                example: 47000
+              vehbrand:
+                type: string
+                example: Toyota
+              vehmodel:
+                type: string
+                example: Corolla Altis
+    responses:
+      "200":
+        description: Vehicle updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Vehicle updated successfully
+                vehicle:
+                  type: object
+                  properties:
+                    vehid:
+                      type: integer
+                      example: 12345
+                    vehmileage:
+                      type: integer
+                      example: 47000
+                    vehbrand:
+                      type: string
+                      example: Toyota
+                    vehmodel:
+                      type: string
+                      example: Corolla Altis
+                    cusid:
+                      type: integer
+                      example: 1
+  delete:
+    tags:
+      - Vehicle
+    summary: Delete Vehicle
+    description: Deletes the vehicle with the given `vehid`.
+    operationId: deleteVehicle
+    responses:
+      "200":
+        description: Vehicle deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Vehicle deleted successfully

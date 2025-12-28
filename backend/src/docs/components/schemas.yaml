@@ -1,0 +1,12 @@
+ErrorResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: false
+    message:
+      type: string
+      example: "Database connection failed"
+    errorCode:
+      type: string
+      example: "DB_CONN_ERROR"

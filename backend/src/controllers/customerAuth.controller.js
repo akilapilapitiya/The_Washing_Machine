@@ -37,6 +37,12 @@ export const customerSignIn = async (req, res, next) => {
 
     const { customer, token } = await signIn({ email, password });
 
+    const safeCustomer = {
+      cusid: customer.cusid,
+      cusname: customer.cusname,
+      cusemail: customer.cusemail,
+    };
+
     // Set cookie
     res.cookie("jwt", token, {
       httpOnly: true,
@@ -48,7 +54,7 @@ export const customerSignIn = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Login successful",
-      customer,
+      customer: safeCustomer,
       token,
     });
   } catch (error) {

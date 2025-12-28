@@ -1,0 +1,205 @@
+/employee:
+  get:
+    tags:
+      - Employee
+    summary: Get All Employees
+    description: Returns a list of employees.
+    operationId: getAllEmployees
+    responses:
+      "200":
+        description: Employees retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Employees retrieved successfully
+                employees:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      empid:
+                        type: integer
+                        example: 1
+                      empname:
+                        type: string
+                        example: John Doe
+                      email:
+                        type: string
+                        format: email
+                        example: employee@development.com
+                      emptel:
+                        type: string
+                        example: "+0123456789"
+                      emptype:
+                        type: string
+                        example: manager
+                      empnic:
+                        type: string
+                        example: "212345678901"
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-01T10:00:00Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-02T12:00:00Z"
+
+/employee/{empid}:
+  parameters:
+    - in: path
+      name: empid
+      required: true
+      schema:
+        type: integer
+      description: Employee ID
+  get:
+    tags:
+      - Employee
+    summary: Get Employee By ID
+    description: Returns a single employee by `empid`.
+    operationId: getEmployee
+    responses:
+      "200":
+        description: Employee retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Employee retrieved successfully
+                employee:
+                  type: object
+                  properties:
+                    empid:
+                      type: integer
+                      example: 1
+                    empname:
+                      type: string
+                      example: John Doe
+                    email:
+                      type: string
+                      format: email
+                      example: employee@development.com
+                    emptel:
+                      type: string
+                      example: "+0123456789"
+                    emptype:
+                      type: string
+                      example: manager
+                    empnic:
+                      type: string
+                      example: "212345678901"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-01T10:00:00Z"
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-02T12:00:00Z"
+  put:
+    tags:
+      - Employee
+    summary: Update Employee
+    description: Updates fields of the employee with the given `empid`.
+    operationId: updateEmployee
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              empname:
+                type: string
+                example: Jane Doe
+              email:
+                type: string
+                format: email
+                example: jane.doe@development.com
+              emptel:
+                type: string
+                example: "+0987654321"
+              emptype:
+                type: string
+                example: supervisor
+              empnic:
+                type: string
+                example: "312345678901"
+    responses:
+      "200":
+        description: Employee updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Employee updated successfully
+                employee:
+                  type: object
+                  properties:
+                    empid:
+                      type: integer
+                      example: 1
+                    empname:
+                      type: string
+                      example: Jane Doe
+                    email:
+                      type: string
+                      format: email
+                      example: jane.doe@development.com
+                    emptel:
+                      type: string
+                      example: "+0987654321"
+                    emptype:
+                      type: string
+                      example: supervisor
+                    empnic:
+                      type: string
+                      example: "312345678901"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-01T10:00:00Z"
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-03T08:00:00Z"
+  delete:
+    tags:
+      - Employee
+    summary: Delete Employee
+    description: Deletes the employee with the given `empid`.
+    operationId: deleteEmployee
+    responses:
+      "200":
+        description: Employee deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Employee deleted successfully

@@ -1,0 +1,148 @@
+/authcustomer/signup:
+  post:
+    tags:
+      - Customer Authentication
+    summary: Customer Sign Up
+    description: Registers a new customer and returns JWT token in cookie and response.
+    operationId: customerSignUp
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - password
+              - telephone
+            properties:
+              name:
+                type: string
+                example: Customer
+              email:
+                type: string
+                format: email
+                example: customer@development.com
+              password:
+                type: string
+                format: password
+                example: Password123
+              telephone:
+                type: string
+                example: "0123456789"
+    responses:
+      "201":
+        description: Customer registered successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Customer registered successfully
+                customer:
+                  type: object
+                  properties:
+                    cusid:
+                      type: integer
+                      example: 1
+                    cusname:
+                      type: string
+                      example: Customer
+                    cusemail:
+                      type: string
+                      format: email
+                      example: customer@development.com
+                    custel:
+                      type: string
+                      example: "+0123456789"
+                token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      "400":
+        $ref: "#/components/responses/BadRequest"
+
+/authcustomer/signin:
+  post:
+    tags:
+      - Customer Authentication
+    summary: Customer Sign In
+    description: Authenticates a customer and returns JWT token in cookie and response.
+    operationId: customerSignIn
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: customer@development.com
+              password:
+                type: string
+                format: password
+                example: Password123
+    responses:
+      "200":
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Login successful
+                customer:
+                  type: object
+                  properties:
+                    cusid:
+                      type: integer
+                      example: 1
+                    cusname:
+                      type: string
+                      example: Customer
+                    cusemail:
+                      type: string
+                      format: email
+                      example: customer@development.com
+                    custel:
+                      type: string
+                      example: "+0123456789"
+                token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      "401":
+        $ref: "#/components/responses/Unauthorized"
+
+/authcustomer/signout:
+  post:
+    tags:
+      - Customer Authentication
+    summary: Customer Sign Out
+    description: Logs out the customer by clearing the JWT cookie.
+    operationId: customerSignOut
+    responses:
+      "200":
+        description: Customer signed out successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Customer signed out
