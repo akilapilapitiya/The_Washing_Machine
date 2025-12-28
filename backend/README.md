@@ -138,6 +138,29 @@ npm run dev
 npm start
 ```
 
+## API Docs (Swagger)
+
+Interactive API documentation is available via Swagger UI in non-production environments.
+
+- Access: http://localhost:5000/api-docs (replace `5000` with your `PORT`)
+- Availability: Disabled when `NODE_ENV=production`
+- Source files:
+  - Base spec: [src/docs/openapi.yaml](src/docs/openapi.yaml)
+  - Path specs (auto-merged): [src/docs/paths](src/docs/paths)
+  - Components (schemas/responses/security): [src/docs/components](src/docs/components)
+  - Loader/merger: [src/configs/swagger.js](src/configs/swagger.js)
+
+Quick start to view docs:
+
+```bash
+npm run dev
+# then open http://localhost:$PORT/api-docs (default PORT=5000)
+```
+
+Notes:
+- Paths are defined as separate YAML files under `src/docs/paths` and are merged at startup.
+- If your server runs on a different port than shown in the Swagger `servers` section, use your actual base URL for requests.
+
 ### Database Scripts
 
 Clean database (removes all data, keeps schema):
