@@ -6,7 +6,7 @@
     description: Returns a list of customers.
     operationId: getAllCustomers
     responses:
-      '200':
+      "200":
         description: Customers retrieved successfully
         content:
           application/json:
@@ -61,7 +61,7 @@
     description: Returns a single customer by `cusid`.
     operationId: getCustomer
     responses:
-      '200':
+      "200":
         description: Customer retrieved successfully
         content:
           application/json:
@@ -122,7 +122,7 @@
                 type: string
                 example: "+0987654321"
     responses:
-      '200':
+      "200":
         description: Customer updated successfully
         content:
           application/json:
@@ -166,7 +166,7 @@
     description: Deletes the customer with the given `cusid`.
     operationId: deleteCustomer
     responses:
-      '200':
+      "200":
         description: Customer deleted successfully
         content:
           application/json:

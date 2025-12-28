@@ -6,7 +6,7 @@
     description: Returns a list of employees.
     operationId: getAllEmployees
     responses:
-      '200':
+      "200":
         description: Employees retrieved successfully
         content:
           application/json:
@@ -67,7 +67,7 @@
     description: Returns a single employee by `empid`.
     operationId: getEmployee
     responses:
-      '200':
+      "200":
         description: Employee retrieved successfully
         content:
           application/json:
@@ -140,7 +140,7 @@
                 type: string
                 example: "312345678901"
     responses:
-      '200':
+      "200":
         description: Employee updated successfully
         content:
           application/json:
@@ -190,7 +190,7 @@
     description: Deletes the employee with the given `empid`.
     operationId: deleteEmployee
     responses:
-      '200':
+      "200":
         description: Employee deleted successfully
         content:
           application/json:

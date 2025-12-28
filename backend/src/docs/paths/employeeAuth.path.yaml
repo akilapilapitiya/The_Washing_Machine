@@ -41,7 +41,7 @@
                 example: "212345678901"
 
     responses:
-      '201':
+      "201":
         description: Employee registered successfully
         content:
           application/json:
@@ -79,8 +79,8 @@
                 token:
                   type: string
                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-      '400':
-        $ref: '#/components/responses/BadRequest'
+      "400":
+        $ref: "#/components/responses/BadRequest"
 
 /signin:
   post:
@@ -108,7 +108,7 @@
                 format: password
                 example: Password123
     responses:
-      '200':
+      "200":
         description: Login successful
         content:
           application/json:
@@ -137,8 +137,8 @@
                 token:
                   type: string
                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-      '401':
-        $ref: '#/components/responses/Unauthorized'
+      "401":
+        $ref: "#/components/responses/Unauthorized"
 
 /signout:
   post:
@@ -148,7 +148,7 @@
     description: Logs out the employee by clearing the JWT cookie.
     operationId: employeeSignOut
     responses:
-      '200':
+      "200":
         description: Employee signed out successfully
         content:
           application/json:

@@ -6,7 +6,7 @@
     description: Returns vehicles for the authenticated customer.
     operationId: getCustomerVehicles
     responses:
-      '200':
+      "200":
         description: Vehicles retrieved successfully
         content:
           application/json:
@@ -78,7 +78,7 @@
                 type: string
                 example: Corolla
     responses:
-      '201':
+      "201":
         description: Vehicle created successfully
         content:
           application/json:
@@ -125,7 +125,7 @@
     description: Returns a single vehicle by `vehid`.
     operationId: getVehicle
     responses:
-      '200':
+      "200":
         description: Vehicle retrieved successfully
         content:
           application/json:
@@ -187,7 +187,7 @@
                 type: string
                 example: Corolla Altis
     responses:
-      '200':
+      "200":
         description: Vehicle updated successfully
         content:
           application/json:
@@ -225,7 +225,7 @@
     description: Deletes the vehicle with the given `vehid`.
     operationId: deleteVehicle
     responses:
-      '200':
+      "200":
         description: Vehicle deleted successfully
         content:
           application/json:

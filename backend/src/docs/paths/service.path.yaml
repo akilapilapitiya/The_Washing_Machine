@@ -6,7 +6,7 @@
     description: Returns a list of services.
     operationId: getAllServices
     responses:
-      '200':
+      "200":
         description: Services retrieved successfully
         content:
           application/json:
@@ -81,7 +81,7 @@
                 type: string
                 example: Deep interior cleaning and conditioning
     responses:
-      '201':
+      "201":
         description: Service created successfully
         content:
           application/json:
@@ -129,7 +129,7 @@
     description: Returns a single service by `serviceid`.
     operationId: getService
     responses:
-      '200':
+      "200":
         description: Service retrieved successfully
         content:
           application/json:
@@ -198,7 +198,7 @@
                 type: string
                 example: Exterior wash with wax
     responses:
-      '200':
+      "200":
         description: Service updated successfully
         content:
           application/json:
@@ -237,7 +237,7 @@
     description: Deletes the service with the given `serviceid`. Employees only.
     operationId: deleteService
     responses:
-      '200':
+      "200":
         description: Service deleted successfully
         content:
           application/json:
@@ -250,4 +250,3 @@
                 message:
                   type: string
                   example: Service deleted successfully
-

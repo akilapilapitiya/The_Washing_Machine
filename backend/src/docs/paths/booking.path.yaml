@@ -6,7 +6,7 @@
     description: Returns a list of bookings.
     operationId: getAllBookings
     responses:
-      '200':
+      "200":
         description: Bookings retrieved successfully
         content:
           application/json:
@@ -78,7 +78,7 @@
     description: Returns a single booking by `id`.
     operationId: getBooking
     responses:
-      '200':
+      "200":
         description: Booking retrieved successfully
         content:
           application/json:
@@ -184,7 +184,7 @@
                   type: integer
                 example: [1, 2, 3]
     responses:
-      '201':
+      "201":
         description: Booking created successfully
         content:
           application/json:
@@ -236,7 +236,7 @@
                   type: integer
                 example: [2, 4]
     responses:
-      '200':
+      "200":
         description: Booking updated successfully
         content:
           application/json:
@@ -262,7 +262,7 @@
     description: Deletes the booking with the given `id`.
     operationId: deleteBooking
     responses:
-      '200':
+      "200":
         description: Booking deleted successfully
         content:
           application/json:
