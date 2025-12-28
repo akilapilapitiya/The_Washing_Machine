@@ -1,4 +1,4 @@
-/signup:
+/authcustomer/signup:
   post:
     tags:
       - Customer Authentication
@@ -56,6 +56,7 @@
                       example: Customer
                     cusemail:
                       type: string
+                      format: email
                       example: customer@development.com
                     custel:
                       type: string
@@ -66,7 +67,7 @@
       '400':
         $ref: '#/components/responses/BadRequest'
 
-/signin:
+/authcustomer/signin:
   post:
     tags:
       - Customer Authentication
@@ -116,17 +117,18 @@
                       example: Customer
                     cusemail:
                       type: string
-                      example: cunstomer@development.com
+                      format: email
+                      example: customer@development.com
                     custel:
                       type: string
-                      example: "0123456789"
+                      example: "+0123456789"
                 token:
                   type: string
                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       '401':
         $ref: '#/components/responses/Unauthorized'
 
-/signout:
+/authcustomer/signout:
   post:
     tags:
       - Customer Authentication
