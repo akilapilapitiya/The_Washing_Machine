@@ -14,6 +14,7 @@ import { bodyParser } from "./src/middleware/bodyParser.middleware.js";
 import employeeRouter from "./src/routes/employee.route.js";
 import customerRouter from "./src/routes/customer.route.js";
 import paymentRouter from "./src/routes/payment.route.js";
+import setupSwagger from "./src/configs/swagger.js";
 const app = express();
 
 // Middleware
@@ -37,6 +38,9 @@ app.use("/api/payment", paymentRouter);
 
 // Error handling Middleware
 app.use(errorHandling);
+
+//Swagger Documentation
+setupSwagger(app);
 
 // Create Tables
 // await initModels(pool);

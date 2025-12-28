@@ -1,0 +1,52 @@
+openapi: 3.0.3
+
+info:
+  title: The Washing Machine API
+  description: Backend API for Vehicle Service Management System
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5500/api
+    description: Development server
+
+# Tags for logical grouping in Swagger UI
+tags:
+  - name: Test
+    description: Test routes for development purposes
+  - name: Customer
+    description: Customer-related endpoints
+  - name: Auth
+    description: Authentication endpoints
+  - name: Employee
+    description: Employee management endpoints
+
+paths: {}   # empty, will be dynamically merged from paths/*.yaml
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Database connection failed"
+        errorCode:
+          type: string
+          example: "DB_CONN_ERROR"
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
