@@ -9,17 +9,25 @@ servers:
   - url: http://localhost:5500/api
     description: Development server
 
-# Tags for logical grouping in Swagger UI
 tags:
   - name: Test
-    description: Test routes for development purposes
-  - name: Customer
-    description: Customer-related endpoints
-  - name: Auth
-    description: Authentication endpoints
+    description: Test routes for checking connections and health
+  - name: Customer Authentication
+    description: Customer Authentication endpoints
+  - name: Employee Authentication
+    description: Employee Authentication endpoints
   - name: Employee
     description: Employee management endpoints
-
+  - name: Customer
+    description: Customer management endpoints
+  - name: Booking
+    description: Booking management endpoints
+  - name: Payment
+    description: Payment processing endpoints
+  - name: Vehicle
+    description: Vehicle management endpoints
+  - name: Service
+    description: Service management endpoints
 paths: {}   # empty, will be dynamically merged from paths/*.yaml
 
 components:
