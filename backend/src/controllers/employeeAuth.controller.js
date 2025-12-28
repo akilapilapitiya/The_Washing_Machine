@@ -39,6 +39,12 @@ export const employeeSignIn = async (req, res, next) => {
 
     const { employee, token } = await signIn({ email, password });
 
+    const safeEmployee = {
+      empid: employee.empid,
+      empname: employee.empname,
+      email: employee.email,
+    };
+
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: NODE_ENV === "production",
@@ -49,7 +55,7 @@ export const employeeSignIn = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Employee signed in successfully",
-      employee,
+      employee: safeEmployee,
       token,
     });
   } catch (error) {

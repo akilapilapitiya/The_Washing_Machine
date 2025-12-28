@@ -53,13 +53,14 @@ export const signIn = async ({ email, password }) => {
     throw new Error("Invalid email or password");
   }
 
-  const employee = result.rows[0];
-  const isMatch = await bcrypt.compare(password, employee.password_hash);
+  const row = result.rows[0];
+  const isMatch = await bcrypt.compare(password, row.password_hash);
 
   if (!isMatch) {
     throw new Error("Invalid email or password");
   }
 
-  const token = generateToken(employee.empid, "employee");
+  const employee = { empid: row.empid, empname: row.empname, email: row.email };
+  const token = generateToken(row.empid, "employee");
   return { employee, token };
 };

@@ -1,0 +1,160 @@
+/signup:
+  post:
+    tags:
+      - Employee Authentication
+    summary: Employee Sign Up
+    description: Registers a new employee and returns a JWT token in a cookie and response.
+    operationId: employeeSignUp
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - password
+              - telephone
+              - type
+              - nic
+            properties:
+              name:
+                type: string
+                example: Employee
+              email:
+                type: string
+                format: email
+                example: employee@development.com
+              password:
+                type: string
+                format: password
+                example: Password123
+              telephone:
+                type: string
+                example: "0123456789"
+              type:
+                type: string
+                example: manager
+              nic:
+                type: string
+                example: "212345678901"
+
+    responses:
+      '201':
+        description: Employee registered successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Employee registered successfully
+                employee:
+                  type: object
+                  properties:
+                    empid:
+                      type: integer
+                      example: 1
+                    empname:
+                      type: string
+                      example: Employee
+                    email:
+                      type: string
+                      format: email
+                      example: employee@development.com
+                    emptel:
+                      type: string
+                      example: "+0123456789"
+                    emptype:
+                      type: string
+                      example: manager
+                    empnic:
+                      type: string
+                      example: "212345678901"
+                token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      '400':
+        $ref: '#/components/responses/BadRequest'
+
+/signin:
+  post:
+    tags:
+      - Employee Authentication
+    summary: Employee Sign In
+    description: Authenticates an employee and returns a JWT token in a cookie and response.
+    operationId: employeeSignIn
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+                example: employee@development.com
+              password:
+                type: string
+                format: password
+                example: Password123
+    responses:
+      '200':
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Employee signed in successfully
+                employee:
+                  type: object
+                  properties:
+                    empid:
+                      type: integer
+                      example: 1
+                    empname:
+                      type: string
+                      example: Employee
+                    email:
+                      type: string
+                      format: email
+                      example: employee@development.com
+                token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      '401':
+        $ref: '#/components/responses/Unauthorized'
+
+/signout:
+  post:
+    tags:
+      - Employee Authentication
+    summary: Employee Sign Out
+    description: Logs out the employee by clearing the JWT cookie.
+    operationId: employeeSignOut
+    responses:
+      '200':
+        description: Employee signed out successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Employee signed out
