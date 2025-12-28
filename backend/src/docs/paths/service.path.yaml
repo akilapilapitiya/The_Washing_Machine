@@ -1,0 +1,253 @@
+/service:
+  get:
+    tags:
+      - Service
+    summary: Get All Services
+    description: Returns a list of services.
+    operationId: getAllServices
+    responses:
+      '200':
+        description: Services retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Services retrieved successfully
+                services:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      serviceid:
+                        type: integer
+                        example: 10
+                      servicename:
+                        type: string
+                        example: Exterior Wash
+                      servicetime:
+                        type: integer
+                        description: Duration in minutes
+                        example: 45
+                      serviceprice:
+                        type: number
+                        format: float
+                        example: 1500.00
+                      servicedetails:
+                        type: string
+                        example: Full exterior wash including wheels and windows
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-15T09:30:00.000Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-15T09:30:00.000Z"
+  post:
+    tags:
+      - Service
+    summary: Create Service
+    description: Creates a new service. Employees only.
+    operationId: createService
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - servicename
+              - servicetime
+              - serviceprice
+            properties:
+              servicename:
+                type: string
+                example: Interior Detailing
+              servicetime:
+                type: integer
+                description: Duration in minutes
+                example: 60
+              serviceprice:
+                type: number
+                format: float
+                example: 2500.00
+              servicedetails:
+                type: string
+                example: Deep interior cleaning and conditioning
+    responses:
+      '201':
+        description: Service created successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Service created successfully
+                service:
+                  type: object
+                  properties:
+                    serviceid:
+                      type: integer
+                      example: 11
+                    servicename:
+                      type: string
+                      example: Interior Detailing
+                    servicetime:
+                      type: integer
+                      example: 60
+                    serviceprice:
+                      type: number
+                      format: float
+                      example: 2500.00
+                    servicedetails:
+                      type: string
+                      example: Deep interior cleaning and conditioning
+
+/service/{serviceid}:
+  parameters:
+    - in: path
+      name: serviceid
+      required: true
+      schema:
+        type: integer
+      description: Service ID
+  get:
+    tags:
+      - Service
+    summary: Get Service By ID
+    description: Returns a single service by `serviceid`.
+    operationId: getService
+    responses:
+      '200':
+        description: Service retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Service retrieved successfully
+                service:
+                  type: object
+                  properties:
+                    serviceid:
+                      type: integer
+                      example: 10
+                    servicename:
+                      type: string
+                      example: Exterior Wash
+                    servicetime:
+                      type: integer
+                      description: Duration in minutes
+                      example: 45
+                    serviceprice:
+                      type: number
+                      format: float
+                      example: 1500.00
+                    servicedetails:
+                      type: string
+                      example: Full exterior wash including wheels and windows
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-15T09:30:00.000Z"
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: "2025-01-15T09:30:00.000Z"
+  put:
+    tags:
+      - Service
+    summary: Update Service
+    description: Updates fields of the service with the given `serviceid`. Employees only.
+    operationId: updateService
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              servicename:
+                type: string
+                example: Exterior Wash Plus
+              servicetime:
+                type: integer
+                description: Duration in minutes
+                example: 50
+              serviceprice:
+                type: number
+                format: float
+                example: 1700.00
+              servicedetails:
+                type: string
+                example: Exterior wash with wax
+    responses:
+      '200':
+        description: Service updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Service updated successfully
+                service:
+                  type: object
+                  properties:
+                    serviceid:
+                      type: integer
+                      example: 10
+                    servicename:
+                      type: string
+                      example: Exterior Wash Plus
+                    servicetime:
+                      type: integer
+                      example: 50
+                    serviceprice:
+                      type: number
+                      format: float
+                      example: 1700.00
+                    servicedetails:
+                      type: string
+                      example: Exterior wash with wax
+  delete:
+    tags:
+      - Service
+    summary: Delete Service
+    description: Deletes the service with the given `serviceid`. Employees only.
+    operationId: deleteService
+    responses:
+      '200':
+        description: Service deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Service deleted successfully
+
