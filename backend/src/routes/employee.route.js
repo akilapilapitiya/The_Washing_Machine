@@ -12,9 +12,9 @@ const employeeRouter = Router();
 // Protect all employee routes; employees only
 employeeRouter.use(authMiddleware, restrictTo("employee"));
 
-employeeRouter.get("/", getAllEmployees);
+employeeRouter.get("/", restrictTo('owner'), getAllEmployees); // PROTECTED ROUTE - Owner only
 employeeRouter.get("/:empid", getEmployee);
 employeeRouter.put("/:empid", updateEmployee);
-employeeRouter.delete("/:empid", deleteEmployee);
+employeeRouter.delete("/:empid", restrictTo('owner'), deleteEmployee); // PROTECTED ROUTE - Owner only
 
 export default employeeRouter;
