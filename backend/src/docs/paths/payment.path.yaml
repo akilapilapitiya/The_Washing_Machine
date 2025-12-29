@@ -11,45 +11,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Payments retrieved successfully
-                payments:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      paymentid:
-                        type: integer
-                        example: 2001
-                      paymentdate:
-                        type: string
-                        format: date
-                        example: "2025-01-15"
-                      paymenttype:
-                        type: string
-                        enum: [cash, card, online]
-                        example: card
-                      paymentamount:
-                        type: number
-                        format: float
-                        example: 1250.00
-                      bookingid:
-                        type: integer
-                        example: 101
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payments:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Payment"
   post:
     tags:
       - Payment
@@ -90,43 +62,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Payment created successfully
-                payment:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    paymentid:
-                      type: integer
-                      example: 2002
-                    paymentdate:
-                      type: string
-                      format: date
-                      example: "2025-01-15"
-                    paymenttype:
-                      type: string
-                      enum: [cash, card, online]
-                      example: cash
-                    paymentamount:
-                      type: number
-                      format: float
-                      example: 1250.00
-                    bookingid:
-                      type: integer
-                      example: 101
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
+                    data:
+                      type: object
+                      properties:
+                        payment:
+                          $ref: "#/components/schemas/Payment"
 
 /payment/my:
   get:
@@ -141,45 +85,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Payments retrieved successfully
-                payments:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      paymentid:
-                        type: integer
-                        example: 2001
-                      paymentdate:
-                        type: string
-                        format: date
-                        example: "2025-01-15"
-                      paymenttype:
-                        type: string
-                        enum: [cash, card, online]
-                        example: card
-                      paymentamount:
-                        type: number
-                        format: float
-                        example: 1250.00
-                      bookingid:
-                        type: integer
-                        example: 101
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payments:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Payment"
 
 /payment/{paymentid}:
   parameters:
@@ -201,43 +117,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Payment retrieved successfully
-                payment:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    paymentid:
-                      type: integer
-                      example: 2001
-                    paymentdate:
-                      type: string
-                      format: date
-                      example: "2025-01-15"
-                    paymenttype:
-                      type: string
-                      enum: [cash, card, online]
-                      example: card
-                    paymentamount:
-                      type: number
-                      format: float
-                      example: 1250.00
-                    bookingid:
-                      type: integer
-                      example: 101
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
+                    data:
+                      type: object
+                      properties:
+                        payment:
+                          $ref: "#/components/schemas/Payment"
   put:
     tags:
       - Payment
@@ -270,43 +158,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Payment updated successfully
-                payment:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    paymentid:
-                      type: integer
-                      example: 2001
-                    paymentdate:
-                      type: string
-                      format: date
-                      example: "2025-01-16"
-                    paymenttype:
-                      type: string
-                      enum: [cash, card, online]
-                      example: online
-                    paymentamount:
-                      type: number
-                      format: float
-                      example: 1500.00
-                    bookingid:
-                      type: integer
-                      example: 101
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-16T10:00:00.000Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-16T10:00:00.000Z"
+                    data:
+                      type: object
+                      properties:
+                        payment:
+                          $ref: "#/components/schemas/Payment"
   delete:
     tags:
       - Payment
@@ -319,11 +179,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Payment deleted successfully
+              $ref: "#/components/schemas/SuccessResponse"

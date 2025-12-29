@@ -11,42 +11,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicles retrieved successfully
-                vehicles:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      vehid:
-                        type: string
-                        example: "ABC-1234"
-                      vehmileage:
-                        type: integer
-                        example: 45000
-                      vehbrand:
-                        type: string
-                        example: Toyota
-                      vehmodel:
-                        type: string
-                        example: Corolla
-                      cusid:
-                        type: integer
-                        example: 1
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        vehicles:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Vehicle"
   post:
     tags:
       - Vehicle
@@ -83,32 +58,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle created successfully
-                vehicle:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    vehid:
-                      type: string
-                      example: "ABC-1234"
-                    vehmileage:
-                      type: integer
-                      example: 45000
-                    vehbrand:
-                      type: string
-                      example: Toyota
-                    vehmodel:
-                      type: string
-                      example: Corolla
-                    cusid:
-                      type: integer
-                      example: 1
+                    data:
+                      type: object
+                      properties:
+                        vehicle:
+                          $ref: "#/components/schemas/Vehicle"
 
 /vehicle/{vehid}:
   parameters:
@@ -130,40 +88,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle retrieved successfully
-                vehicle:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    vehid:
-                      type: string
-                      example: "ABC-1234"
-                    vehmileage:
-                      type: integer
-                      example: 45000
-                    vehbrand:
-                      type: string
-                      example: Toyota
-                    vehmodel:
-                      type: string
-                      example: Corolla
-                    cusid:
-                      type: integer
-                      example: 1
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
+                    data:
+                      type: object
+                      properties:
+                        vehicle:
+                          $ref: "#/components/schemas/Vehicle"
   put:
     tags:
       - Vehicle
@@ -188,32 +121,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle updated successfully
-                vehicle:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    vehid:
-                      type: string
-                      example: "ABC-1234"
-                    vehmileage:
-                      type: integer
-                      example: 47000
-                    vehbrand:
-                      type: string
-                      example: Toyota
-                    vehmodel:
-                      type: string
-                      example: Corolla Altis
-                    cusid:
-                      type: integer
-                      example: 1
+                    data:
+                      type: object
+                      properties:
+                        vehicle:
+                          $ref: "#/components/schemas/Vehicle"
   delete:
     tags:
       - Vehicle
@@ -226,11 +142,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle deleted successfully
+              $ref: "#/components/schemas/SuccessResponse"

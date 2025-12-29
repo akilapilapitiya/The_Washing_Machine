@@ -11,46 +11,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Employees retrieved successfully
-                employees:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      empid:
-                        type: integer
-                        example: 1
-                      empname:
-                        type: string
-                        example: John Doe
-                      email:
-                        type: string
-                        format: email
-                        example: employee@development.com
-                      emptel:
-                        type: string
-                        example: "+0123456789"
-                      emptype:
-                        type: string
-                        example: manager
-                      empnic:
-                        type: string
-                        example: "212345678901"
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-01T10:00:00Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-02T12:00:00Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        employees:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Employee"
 
 /employee/{empid}:
   parameters:
@@ -72,44 +43,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Employee retrieved successfully
-                employee:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    empid:
-                      type: integer
-                      example: 1
-                    empname:
-                      type: string
-                      example: John Doe
-                    email:
-                      type: string
-                      format: email
-                      example: employee@development.com
-                    emptel:
-                      type: string
-                      example: "+0123456789"
-                    emptype:
-                      type: string
-                      example: manager
-                    empnic:
-                      type: string
-                      example: "212345678901"
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-01T10:00:00Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-02T12:00:00Z"
+                    data:
+                      type: object
+                      properties:
+                        employee:
+                          $ref: "#/components/schemas/Employee"
   put:
     tags:
       - Employee
@@ -123,66 +65,34 @@
           schema:
             type: object
             properties:
-              empname:
+              name:
                 type: string
                 example: Jane Doe
               email:
                 type: string
                 format: email
                 example: jane.doe@development.com
-              emptel:
+              telephone:
                 type: string
                 example: "+0987654321"
-              emptype:
+              job:
                 type: string
                 example: supervisor
-              empnic:
-                type: string
-                example: "312345678901"
     responses:
       "200":
         description: Employee updated successfully
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Employee updated successfully
-                employee:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    empid:
-                      type: integer
-                      example: 1
-                    empname:
-                      type: string
-                      example: Jane Doe
-                    email:
-                      type: string
-                      format: email
-                      example: jane.doe@development.com
-                    emptel:
-                      type: string
-                      example: "+0987654321"
-                    emptype:
-                      type: string
-                      example: supervisor
-                    empnic:
-                      type: string
-                      example: "312345678901"
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-01T10:00:00Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-03T08:00:00Z"
+                    data:
+                      type: object
+                      properties:
+                        employee:
+                          $ref: "#/components/schemas/Employee"
   delete:
     tags:
       - Employee
@@ -195,11 +105,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Employee deleted successfully
+              $ref: "#/components/schemas/SuccessResponse"

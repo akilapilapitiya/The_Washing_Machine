@@ -1,3 +1,17 @@
+Success:
+  description: Request processed successfully
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/SuccessResponse"
+
+Created:
+  description: Resource created successfully
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/SuccessResponse"
+
 BadRequest:
   description: Invalid request
   content:

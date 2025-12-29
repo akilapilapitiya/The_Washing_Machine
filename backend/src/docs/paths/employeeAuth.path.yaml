@@ -46,39 +46,18 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Employee registered successfully
-                employee:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    empid:
-                      type: integer
-                      example: 1
-                    empname:
-                      type: string
-                      example: Employee
-                    email:
-                      type: string
-                      format: email
-                      example: employee@development.com
-                    emptel:
-                      type: string
-                      example: "+0123456789"
-                    emptype:
-                      type: string
-                      example: manager
-                    empnic:
-                      type: string
-                      example: "212345678901"
-                token:
-                  type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    data:
+                      type: object
+                      properties:
+                        employee:
+                          $ref: "#/components/schemas/Employee"
+                        token:
+                          type: string
+                          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       "400":
         $ref: "#/components/responses/BadRequest"
 
@@ -113,30 +92,18 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Employee signed in successfully
-                employee:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    empid:
-                      type: integer
-                      example: 1
-                    empname:
-                      type: string
-                      example: Employee
-                    email:
-                      type: string
-                      format: email
-                      example: employee@development.com
-                token:
-                  type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    data:
+                      type: object
+                      properties:
+                        employee:
+                          $ref: "#/components/schemas/Employee"
+                        token:
+                          type: string
+                          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       "401":
         $ref: "#/components/responses/Unauthorized"
 
@@ -153,8 +120,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: Employee signed out
+              $ref: "#/components/schemas/SuccessResponse"

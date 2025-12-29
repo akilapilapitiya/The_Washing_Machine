@@ -37,33 +37,18 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Customer registered successfully
-                customer:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    cusid:
-                      type: integer
-                      example: 1
-                    cusname:
-                      type: string
-                      example: Customer
-                    cusemail:
-                      type: string
-                      format: email
-                      example: customer@development.com
-                    custel:
-                      type: string
-                      example: "+0123456789"
-                token:
-                  type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    data:
+                      type: object
+                      properties:
+                        customer:
+                          $ref: "#/components/schemas/Customer"
+                        token:
+                          type: string
+                          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       "400":
         $ref: "#/components/responses/BadRequest"
 
@@ -98,33 +83,18 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Login successful
-                customer:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    cusid:
-                      type: integer
-                      example: 1
-                    cusname:
-                      type: string
-                      example: Customer
-                    cusemail:
-                      type: string
-                      format: email
-                      example: customer@development.com
-                    custel:
-                      type: string
-                      example: "+0123456789"
-                token:
-                  type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    data:
+                      type: object
+                      properties:
+                        customer:
+                          $ref: "#/components/schemas/Customer"
+                        token:
+                          type: string
+                          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       "401":
         $ref: "#/components/responses/Unauthorized"
 
@@ -141,8 +111,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: Customer signed out
+              $ref: "#/components/schemas/SuccessResponse"

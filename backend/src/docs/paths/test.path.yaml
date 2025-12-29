@@ -11,14 +11,16 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: true
-                message:
-                  type: string
-                  example: Database connected successfully
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        database:
+                          type: string
+                          example: the_washing_machine_db
       "500":
         description: Database connection failed
         content:
