@@ -24,6 +24,8 @@ This backend is a RESTful API built using Node.js and Express. It powers a vehic
 - **HTTP Parsing:** Body-parser, cookie-parser
 - **Validation:** Joi (for request validation)
 - **Error Handling:** Centralized middleware with typed errors (AppError, Validation/Unauthorized/Forbidden/NotFound)
+- **Security:** Helmet (security headers), CORS, Rate Limiting, Response Compression
+- **API Documentation:** Swagger/OpenAPI
 
 ## Project Architecture
 
@@ -56,9 +58,13 @@ src/
 │   ├── test.controller.js
 │   └── vehicle.controller.js
 ├── middleware/
-│   ├── auth.middleware.js        # JWT verification & role-based access
-│   ├── bodyParser.middleware.js  # Request body validation
-│   └── error.middleware.js       # Centralized error handling
+│   ├── auth.middleware.js           # JWT verification & role-based access
+│   ├── bodyParser.middleware.js     # Request body validation
+│   ├── compression.middleware.js    # Response compression (gzip)
+│   ├── cors.middleware.js           # Cross-Origin Resource Sharing
+│   ├── error.middleware.js          # Centralized error handling
+│   ├── helmet.middleware.js         # Security headers
+│   └── rateLimit.middleware.js      # Rate limiting & abuse prevention
 ├── models/
 │   ├── booking.model.js
 │   ├── customer.model.js
@@ -121,12 +127,19 @@ Create environment files for your deployment:
 Required variables:
 ```
 PORT=5000
+NODE_ENV=development
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=washing_machine
 DB_USER=postgres
 DB_PASSWORD=your_password
 JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=1d
+SALT_ROUNDS=12
+COOKIE_AGE=7
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_AUTH_MAX=5
 ```
 
 ### Running the Application
@@ -325,14 +338,20 @@ router.get('/', getAllEmployees); // Only authenticated employees
 
 ## Security Measures
 
-- **Password Hashing:** bcryptjs with salt rounds
-- **JWT Authentication:** Stateless token-based auth
+- **Password Hashing:** bcryptjs with salt rounds (configurable)
+- **JWT Authentication:** Stateless token-based auth with HTTP-only cookies
 - **HTTP-Only Cookies:** Tokens stored securely (XSS protection)
+- **CORS:** Cross-origin resource sharing with configurable allowed origins
+- **Security Headers:** Helmet.js for CSP, HSTS, frameguard, and more
+- **Rate Limiting:** DDoS protection with:
+  - General endpoints: 100 requests/15 min
+  - Authentication endpoints: 5 attempts/15 min (stricter)
+  - Disabled in development for easier testing
+- **Response Compression:** gzip compression for optimized bandwidth usage
 - **Role-Based Access Control (RBAC):** Granular permission enforcement
 - **SQL Injection Prevention:** Parameterized queries throughout
 - **Centralized Error Handling:** Consistent error response format
 - **Database Validation:** Constraints, indexes, foreign keys
-- **Request Validation:** Input validation at middleware and service layers
 
 ## Request/Response Format
 

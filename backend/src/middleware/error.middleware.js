@@ -75,10 +75,16 @@ const errorHandling = (err, req, res, next) => {
     } else if (err.message.includes("already exists")) {
       status = 409;
       message = err.message;
-    } else if (err.message.includes("unauthorized") || err.message.includes("not authorized")) {
+    } else if (
+      err.message.includes("unauthorized") ||
+      err.message.includes("not authorized")
+    ) {
       status = 401;
       message = err.message;
-    } else if (err.message.includes("invalid") || err.message.includes("Invalid")) {
+    } else if (
+      err.message.includes("invalid") ||
+      err.message.includes("Invalid")
+    ) {
       status = 400;
       message = err.message;
     } else {

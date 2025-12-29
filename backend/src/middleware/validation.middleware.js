@@ -1,6 +1,6 @@
-import Joi from 'joi';
+import Joi from "joi";
 
-export const validateSchema = (schema, dataToValidate = 'body') => {
+export const validateSchema = (schema, dataToValidate = "body") => {
   return (req, res, next) => {
     // Determine where to get data from (body, query, params, etc.)
     const { error, value } = schema.validate(req[dataToValidate], {
@@ -12,13 +12,13 @@ export const validateSchema = (schema, dataToValidate = 'body') => {
     if (error) {
       // Format error messages
       const errorDetails = error.details.map((detail) => ({
-        field: detail.path.join('.'),
+        field: detail.path.join("."),
         message: detail.message,
       }));
 
       return res.status(400).json({
         success: false,
-        message: 'Validation Error',
+        message: "Validation Error",
         errors: errorDetails,
       });
     }

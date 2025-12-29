@@ -79,7 +79,7 @@ export const restrictTo = (...roles) => {
 
     // Determine user's actual role for checking
     let userRole = req.user.role;
-    
+
     // If it's an employee with emptype, check if emptype-based role is in allowed roles
     if (req.user.role === "employee" && req.user.emptype) {
       userRole = req.user.emptype;

@@ -25,7 +25,8 @@ export const authLimiter = rateLimit({
   max: RATE_LIMIT_AUTH_MAX, // Configurable via env (default: 5)
   message: {
     status: "error",
-    message: "Too many authentication attempts, please try again after 15 minutes.",
+    message:
+      "Too many authentication attempts, please try again after 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
