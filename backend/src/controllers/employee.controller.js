@@ -21,7 +21,9 @@ export const getAllEmployees = async (req, res, next) => {
   try {
     const employees = await getAllEmployeesService();
 
-    successResponse(res, 200, "Employees retrieved successfully", { employees });
+    successResponse(res, 200, "Employees retrieved successfully", {
+      employees,
+    });
   } catch (error) {
     next(error);
   }

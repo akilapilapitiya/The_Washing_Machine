@@ -35,7 +35,14 @@ export const updateEmployeeService = async (empid, updates) => {
   const { name, email, telephone, type, nic, password } = updates;
 
   // Service-layer guard: ensure at least one updatable field
-  assertAtLeastOneField(updates, ["name", "email", "telephone", "type", "nic", "password"]);
+  assertAtLeastOneField(updates, [
+    "name",
+    "email",
+    "telephone",
+    "type",
+    "nic",
+    "password",
+  ]);
 
   // Build dynamic UPDATE query to only update provided fields
   const updateFields = [];

@@ -5,7 +5,11 @@ import {
   assertRequiredFields,
   validationError,
 } from "../utils/validation.util.js";
-import { ForbiddenError, NotFoundError, ValidationError } from "../utils/errors.util.js";
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "../utils/errors.util.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -247,7 +251,13 @@ export const updateBookingService = async (
 ) => {
   const { status, date, startTime, endTime, services } = updates;
 
-  assertAtLeastOneField(updates, ["status", "date", "startTime", "endTime", "services"]);
+  assertAtLeastOneField(updates, [
+    "status",
+    "date",
+    "startTime",
+    "endTime",
+    "services",
+  ]);
   assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
   if (startTime && endTime && startTime >= endTime) {
     throw validationError("End time must be after start time", [
@@ -302,7 +312,9 @@ export const updateBookingService = async (
       );
 
       if (!dateCheck.rows[0].is_valid) {
-        throw new ValidationError("Booking date must be today or in the future");
+        throw new ValidationError(
+          "Booking date must be today or in the future"
+        );
       }
     }
 

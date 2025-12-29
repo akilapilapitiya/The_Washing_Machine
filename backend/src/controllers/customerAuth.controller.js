@@ -25,7 +25,10 @@ export const customerSignUp = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    successResponse(res, 201, "Customer registered successfully", { customer, token });
+    successResponse(res, 201, "Customer registered successfully", {
+      customer,
+      token,
+    });
   } catch (error) {
     next(error);
   }
@@ -51,7 +54,10 @@ export const customerSignIn = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    successResponse(res, 200, "Login successful", { customer: safeCustomer, token });
+    successResponse(res, 200, "Login successful", {
+      customer: safeCustomer,
+      token,
+    });
   } catch (error) {
     next(error);
   }

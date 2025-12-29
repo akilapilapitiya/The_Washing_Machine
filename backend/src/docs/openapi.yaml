@@ -28,7 +28,7 @@ tags:
     description: Vehicle management endpoints
   - name: Service
     description: Service management endpoints
-paths: {}   # empty, will be dynamically merged from paths/*.yaml
+paths: {} # empty, will be dynamically merged from paths/*.yaml
 
 components:
   schemas:
@@ -79,22 +79,22 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SuccessResponse'
+            $ref: "#/components/schemas/SuccessResponse"
     Created:
       description: Resource created successfully
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SuccessResponse'
+            $ref: "#/components/schemas/SuccessResponse"
     BadRequest:
       description: Invalid request
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
       description: Authentication required
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"

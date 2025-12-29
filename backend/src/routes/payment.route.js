@@ -20,11 +20,24 @@ paymentRouter.use(authMiddleware);
 paymentRouter.get("/my", restrictTo("customer"), getMyPayments);
 
 // Shared access
-paymentRouter.get("/:paymentid", restrictTo("customer", "manager", "owner"), getPayment);
+paymentRouter.get(
+  "/:paymentid",
+  restrictTo("customer", "manager", "owner"),
+  getPayment
+);
 
 // Manager/Owner only
-paymentRouter.delete("/:paymentid", restrictTo("manager", "owner"), deletePayment);
-paymentRouter.put("/:paymentid", restrictTo("manager", "owner"), validateSchema(paymentValidator.updatePayment), updatePayment);
+paymentRouter.delete(
+  "/:paymentid",
+  restrictTo("manager", "owner"),
+  deletePayment
+);
+paymentRouter.put(
+  "/:paymentid",
+  restrictTo("manager", "owner"),
+  validateSchema(paymentValidator.updatePayment),
+  updatePayment
+);
 paymentRouter.post("/", restrictTo("manager", "owner"), createPayment);
 paymentRouter.get("/", restrictTo("manager", "owner"), getAllPayments);
 

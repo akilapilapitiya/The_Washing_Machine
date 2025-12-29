@@ -20,8 +20,16 @@ serviceRouter.get("/:serviceid", getService);
 serviceRouter.use(authMiddleware, restrictTo("manager", "owner"));
 
 // PROTECTED ROUTE - Manager/Owner only
-serviceRouter.post("/", validateSchema(serviceValidator.createService), createService);
-serviceRouter.put("/:serviceid", validateSchema(serviceValidator.updateService), updateService);
+serviceRouter.post(
+  "/",
+  validateSchema(serviceValidator.createService),
+  createService
+);
+serviceRouter.put(
+  "/:serviceid",
+  validateSchema(serviceValidator.updateService),
+  updateService
+);
 serviceRouter.delete("/:serviceid", deleteService);
 
 export default serviceRouter;

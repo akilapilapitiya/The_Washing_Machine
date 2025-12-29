@@ -27,7 +27,10 @@ export const employeeSignUp = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    successResponse(res, 201, "Employee registered successfully", { employee, token });
+    successResponse(res, 201, "Employee registered successfully", {
+      employee,
+      token,
+    });
   } catch (error) {
     next(error);
   }
@@ -52,7 +55,10 @@ export const employeeSignIn = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    successResponse(res, 200, "Employee signed in successfully", { employee: safeEmployee, token });
+    successResponse(res, 200, "Employee signed in successfully", {
+      employee: safeEmployee,
+      token,
+    });
   } catch (error) {
     next(error);
   }

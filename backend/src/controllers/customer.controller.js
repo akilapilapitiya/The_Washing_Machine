@@ -21,7 +21,9 @@ export const getAllCustomers = async (req, res, next) => {
   try {
     const customers = await getAllCustomersService();
 
-    successResponse(res, 200, "Customers retrieved successfully", { customers });
+    successResponse(res, 200, "Customers retrieved successfully", {
+      customers,
+    });
   } catch (error) {
     next(error);
   }

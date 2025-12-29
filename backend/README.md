@@ -12,6 +12,7 @@ This backend is a RESTful API built using Node.js and Express. It powers a vehic
 - Employee and customer profile management
 - Role-based access control (RBAC)
 - JWT-based authentication with HTTP-only cookies
+- Centralized validation and typed error handling with consistent API envelopes
 
 ## Tech Stack
 
@@ -22,6 +23,7 @@ This backend is a RESTful API built using Node.js and Express. It powers a vehic
 - **Password Hashing:** bcryptjs
 - **HTTP Parsing:** Body-parser, cookie-parser
 - **Validation:** Joi (for request validation)
+- **Error Handling:** Centralized middleware with typed errors (AppError, Validation/Unauthorized/Forbidden/NotFound)
 
 ## Project Architecture
 
@@ -34,6 +36,7 @@ The backend follows a layered architecture for scalability, maintainability, and
 - **Models:** Database schema definitions
 - **Configs:** Environment and database pool configuration
 - **Utils:** Shared utilities (JWT token generation, helpers)
+  - `utils/errors.util.js` for typed errors and `utils/validation.util.js` for service-layer guards
 
 ## Folder Structure
 
@@ -336,20 +339,31 @@ router.get('/', getAllEmployees); // Only authenticated employees
 ### Success Response
 ```json
 {
-  "status": "success",
+  "success": true,
   "message": "Operation completed",
-  "data": { }
+  "data": {}
 }
 ```
 
 ### Error Response
 ```json
 {
-  "status": 500,
-  "message": "Something went wrong",
-  "error": "Error description"
+  "success": false,
+  "message": "Resource not found",
+  "errors": [
+    {
+      "field": "email",
+      "message": "This field is required"
+    }
+  ],
+  "debug": {
+    "error": "Internal stack/message (non-production only)",
+    "stack": "..."
+  }
 }
 ```
+
+- Errors thrown from services/controllers use typed errors (`AppError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError`), which the error middleware maps to appropriate HTTP status codes and the envelope above.
 
 ## Example Usage
 

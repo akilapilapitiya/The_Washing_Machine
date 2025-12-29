@@ -2,7 +2,12 @@ import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS } from "../configs/env.js";
 import { generateToken } from "../utils/generateToken.util.js";
-import { AppError, NotFoundError, UnauthorizedError, ValidationError } from "../utils/errors.util.js";
+import {
+  AppError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "../utils/errors.util.js";
 
 // Signup function
 export const signUp = async ({ name, email, password, telephone }) => {

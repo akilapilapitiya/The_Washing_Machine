@@ -18,7 +18,12 @@ export const getAllPaymentsService = async () => {
   return result.rows;
 };
 
-export const getPaymentService = async (paymentid, userId, userRole, userEmptype) => {
+export const getPaymentService = async (
+  paymentid,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const result = await pool.query(
     `
 		SELECT p.paymentid, p.paymentdate, p.paymenttype, p.paymentamount, p.bookingid, p.created_at, p.updated_at,
@@ -49,7 +54,11 @@ export const getPaymentService = async (paymentid, userId, userRole, userEmptype
   }
 
   // If role is employee (non manager/owner) block access
-  if (userRole === "employee" && effectiveRole !== "manager" && effectiveRole !== "owner") {
+  if (
+    userRole === "employee" &&
+    effectiveRole !== "manager" &&
+    effectiveRole !== "owner"
+  ) {
     throw new ForbiddenError("You do not have permission to view this payment");
   }
 
@@ -79,10 +88,11 @@ export const createPaymentService = async ({
   bookingid,
 }) => {
   const validTypes = ["cash", "card", "online"];
-  assertRequiredFields(
-    { paymentamount, bookingid, paymenttype },
-    ["paymentamount", "bookingid", "paymenttype"]
-  );
+  assertRequiredFields({ paymentamount, bookingid, paymenttype }, [
+    "paymentamount",
+    "bookingid",
+    "paymenttype",
+  ]);
   assertEnum(paymenttype, "paymenttype", validTypes);
   assertPositiveNumber(paymentamount, "paymentamount");
 
@@ -131,7 +141,11 @@ export const createPaymentService = async ({
 export const updatePaymentService = async (paymentid, updates) => {
   const { paymentdate, paymenttype, paymentamount } = updates;
   const validTypes = ["cash", "card", "online"];
-  assertAtLeastOneField(updates, ["paymentdate", "paymenttype", "paymentamount"]);
+  assertAtLeastOneField(updates, [
+    "paymentdate",
+    "paymenttype",
+    "paymentamount",
+  ]);
   assertEnum(paymenttype, "paymenttype", validTypes);
   assertPositiveNumber(paymentamount, "paymentamount");
 

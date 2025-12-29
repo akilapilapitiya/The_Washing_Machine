@@ -3,7 +3,11 @@ import {
   assertNonNegativeNumber,
   assertRequiredFields,
 } from "../utils/validation.util.js";
-import { ForbiddenError, NotFoundError, ValidationError } from "../utils/errors.util.js";
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "../utils/errors.util.js";
 
 // Create a vehicle
 export const createVehicleService = async ({
@@ -13,10 +17,12 @@ export const createVehicleService = async ({
   vehbrand,
   vehmodel,
 }) => {
-  assertRequiredFields(
-    { customerId, vehid, vehbrand, vehmodel },
-    ["customerId", "vehid", "vehbrand", "vehmodel"]
-  );
+  assertRequiredFields({ customerId, vehid, vehbrand, vehmodel }, [
+    "customerId",
+    "vehid",
+    "vehbrand",
+    "vehmodel",
+  ]);
   assertNonNegativeNumber(vehmileage, "vehmileage");
   const result = await pool.query(
     `

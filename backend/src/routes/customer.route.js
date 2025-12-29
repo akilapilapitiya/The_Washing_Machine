@@ -16,7 +16,11 @@ customerRouter.use(authMiddleware, restrictTo("employee"));
 
 customerRouter.get("/", getAllCustomers);
 customerRouter.get("/:cusid", getCustomer);
-customerRouter.put("/:cusid", validateSchema(customerValidator.updateCustomer), updateCustomer);
+customerRouter.put(
+  "/:cusid",
+  validateSchema(customerValidator.updateCustomer),
+  updateCustomer
+);
 customerRouter.delete("/:cusid", deleteCustomer);
 
 export default customerRouter;

@@ -15,7 +15,12 @@ export const getPayment = async (req, res, next) => {
     const userRole = req.user.role;
     const userEmptype = req.user.emptype;
 
-    const payment = await getPaymentService(paymentid, userId, userRole, userEmptype);
+    const payment = await getPaymentService(
+      paymentid,
+      userId,
+      userRole,
+      userEmptype
+    );
 
     successResponse(res, 200, "Payment retrieved successfully", { payment });
   } catch (error) {

@@ -78,7 +78,13 @@ export const updateBooking = async (req, res, next) => {
     const userRole = req.user.role;
     const userEmptype = req.user.emptype;
 
-    const booking = await updateBookingService(id, updates, userId, userRole, userEmptype);
+    const booking = await updateBookingService(
+      id,
+      updates,
+      userId,
+      userRole,
+      userEmptype
+    );
 
     successResponse(res, 200, "Booking updated successfully", { booking });
   } catch (error) {

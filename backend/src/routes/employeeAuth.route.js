@@ -11,9 +11,13 @@ import { employeeValidator } from "../validators/index.js";
 
 const employeeAuthRouter = Router();
 
-employeeAuthRouter.post("/signin", validateSchema(employeeValidator.loginEmployee), employeeSignIn);
+employeeAuthRouter.post(
+  "/signin",
+  validateSchema(employeeValidator.loginEmployee),
+  employeeSignIn
+);
 employeeAuthRouter.post("/signout", employeeSignOut);
-employeeAuthRouter.put("/passwordreset", passwordReset)
+employeeAuthRouter.put("/passwordreset", passwordReset);
 // PROTECTED ROUTE - Owner only
 employeeAuthRouter.post(
   "/signup",
@@ -23,8 +27,6 @@ employeeAuthRouter.post(
   employeeSignUp
 );
 export default employeeAuthRouter;
-
-
 
 /*
 STRUCTURRE OF EMPLOYEE ROUTES

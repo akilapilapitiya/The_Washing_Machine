@@ -15,10 +15,11 @@ export const createServiceService = async ({
   serviceprice,
   servicedetails,
 }) => {
-  assertRequiredFields(
-    { servicename, servicetime, serviceprice },
-    ["servicename", "servicetime", "serviceprice"]
-  );
+  assertRequiredFields({ servicename, servicetime, serviceprice }, [
+    "servicename",
+    "servicetime",
+    "serviceprice",
+  ]);
   assertPositiveNumber(serviceprice, "serviceprice");
   assertPositiveNumber(servicetime, "servicetime");
 
@@ -75,7 +76,12 @@ export const getServiceService = async (serviceid) => {
 export const updateServiceService = async (serviceid, updates) => {
   const { servicename, servicetime, serviceprice, servicedetails } = updates;
 
-  assertAtLeastOneField(updates, ["servicename", "servicetime", "serviceprice", "servicedetails"]);
+  assertAtLeastOneField(updates, [
+    "servicename",
+    "servicetime",
+    "serviceprice",
+    "servicedetails",
+  ]);
   assertPositiveNumber(serviceprice, "serviceprice");
   assertPositiveNumber(servicetime, "servicetime");
 

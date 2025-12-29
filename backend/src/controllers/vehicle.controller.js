@@ -72,7 +72,9 @@ export const updateVehicle = async (req, res, next) => {
 
     const vehicle = await updateVehicleService(vehid, vehmileage);
 
-    successResponse(res, 200, "Vehicle mileage updated successfully", { vehicle });
+    successResponse(res, 200, "Vehicle mileage updated successfully", {
+      vehicle,
+    });
   } catch (error) {
     next(error);
   }
