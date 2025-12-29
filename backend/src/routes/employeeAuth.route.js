@@ -8,9 +8,20 @@ import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const employeeAuthRouter = Router();
 
-// PROTECTED ROUTE - Owner only: Create new employee accounts
-employeeAuthRouter.post("/signup", authMiddleware, restrictTo('owner'), employeeSignUp);
 employeeAuthRouter.post("/signin", employeeSignIn);
 employeeAuthRouter.post("/signout", employeeSignOut);
-
+// PROTECTED ROUTE - Owner only
+employeeAuthRouter.post(
+  "/signup",
+  authMiddleware,
+  restrictTo("owner"),
+  employeeSignUp
+);
 export default employeeAuthRouter;
+
+
+
+/*
+STRUCTURRE OF EMPLOYEE ROUTES
+Only the Owner Can Sign Up New Employees
+ */
