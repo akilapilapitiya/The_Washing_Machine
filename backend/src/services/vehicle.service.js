@@ -106,13 +106,18 @@ export const getVehicleService = async (vehid, userId, userRole, userEmptype) =>
   return vehicle;
 };
 
-// Update a vehicle
-export const updateVehicleService = async (vehid, customerId, updates) => {
-  const { vehmileage, vehbrand, vehmodel } = updates;
+// Update a vehicle mileage (employees only)
+export const updateVehicleService = async (vehid, vehmileage) => {
+  if (vehmileage === undefined || vehmileage === null) {
+    throw new Error("Mileage is required");
+  }
 
-  // First verify the vehicle belongs to the customer
+  if (vehmileage < 0) {
+    throw new Error("Mileage cannot be negative");
+  }
+
   const vehicleCheck = await pool.query(
-    "SELECT cusid FROM vehicle WHERE vehid = $1",
+    "SELECT vehid FROM vehicle WHERE vehid = $1",
     [vehid]
   );
 
@@ -120,21 +125,15 @@ export const updateVehicleService = async (vehid, customerId, updates) => {
     throw new Error("Vehicle not found");
   }
 
-  if (vehicleCheck.rows[0].cusid !== customerId) {
-    throw new Error("You can only update your own vehicles");
-  }
-
   const result = await pool.query(
     `
     UPDATE vehicle
-    SET vehmileage = COALESCE($1, vehmileage),
-        vehbrand = COALESCE($2, vehbrand),
-        vehmodel = COALESCE($3, vehmodel),
+    SET vehmileage = $1,
         updated_at = NOW()
-    WHERE vehid = $4
+    WHERE vehid = $2
     RETURNING vehid, vehmileage, vehbrand, vehmodel, cusid
     `,
-    [vehmileage, vehbrand, vehmodel, vehid]
+    [vehmileage, vehid]
   );
 
   return result.rows[0];

@@ -14,8 +14,9 @@ vehicleRouter.use(authMiddleware);
 vehicleRouter.get("/:vehid", getVehicle);
 //Customer only routes
 vehicleRouter.post("/", restrictTo("customer"), createVehicle);
-vehicleRouter.put("/:vehid", restrictTo("customer"), updateVehicle);
 vehicleRouter.delete("/:vehid", restrictTo("customer"), deleteVehicle);
+//Employee only routes - Update mileage
+vehicleRouter.put("/:vehid", restrictTo("employee"), updateVehicle);
 //Customer owner and Manager Routes
 vehicleRouter.get("/", restrictTo("customer", "manager", "owner"), getCustomerVehicles);
 

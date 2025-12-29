@@ -69,15 +69,14 @@ export const getVehicle = async (req, res, next) => {
 
 export const updateVehicle = async (req, res, next) => {
   try {
-    const customerId = req.user.id; // from auth middleware
     const { vehid } = req.params;
-    const updates = req.body;
+    const { vehmileage } = req.body;
 
-    const vehicle = await updateVehicleService(vehid, customerId, updates);
+    const vehicle = await updateVehicleService(vehid, vehmileage);
 
     res.status(200).json({
       status: "success",
-      message: "Vehicle updated successfully",
+      message: "Vehicle mileage updated successfully",
       vehicle,
     });
   } catch (error) {
