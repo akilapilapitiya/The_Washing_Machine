@@ -1,11 +1,13 @@
 import pool from "../configs/database.js";
 
-export const getAllBookingsService = async () => {
+export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
 
   try {
-    const result = await client.query(
-      `
+    // Determine effective role
+    const effectiveRole = userEmptype || userRole;
+
+    let query = `
       SELECT 
         b.bookingid,
         b.bookingstatus,
@@ -15,24 +17,40 @@ export const getAllBookingsService = async () => {
         b.bookinglocationlatitude,
         b.bookinglocationlongitude,
         b.vehid,
+        v.cusid,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
-      GROUP BY b.bookingid
-      `
-    );
+      LEFT JOIN vehicle v ON b.vehid = v.vehid
+    `;
 
+    let queryParams = [];
+
+    // If customer, show only their bookings
+    if (userRole === "customer") {
+      query += ` WHERE v.cusid = $1`;
+      queryParams.push(userId);
+    }
+    // If employee (any type), show all bookings
+    // No WHERE clause needed - they can see everything
+
+    query += ` GROUP BY b.bookingid, v.cusid`;
+
+    const result = await client.query(query, queryParams);
     return result.rows;
   } finally {
     client.release();
   }
 };
 
-export const getBookingService = async (bookingId) => {
+export const getBookingService = async (bookingId, userId, userRole, userEmptype) => {
   const client = await pool.connect();
 
   try {
+    // Determine effective role
+    const effectiveRole = userEmptype || userRole;
+
     const result = await client.query(
       `
       SELECT 
@@ -44,12 +62,14 @@ export const getBookingService = async (bookingId) => {
         b.bookinglocationlatitude,
         b.bookinglocationlongitude,
         b.vehid,
+        v.cusid,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
+      LEFT JOIN vehicle v ON b.vehid = v.vehid
       WHERE b.bookingid = $1
-      GROUP BY b.bookingid
+      GROUP BY b.bookingid, v.cusid
       `,
       [bookingId]
     );
@@ -58,7 +78,18 @@ export const getBookingService = async (bookingId) => {
       throw new Error("Booking not found");
     }
 
-    return result.rows[0];
+    const booking = result.rows[0];
+
+    // Authorization checks
+    if (userRole === "customer") {
+      // Customer can only see their own bookings
+      if (booking.cusid !== userId) {
+        throw new Error("You can only view your own bookings");
+      }
+    }
+    // Employees can view any booking
+
+    return booking;
   } finally {
     client.release();
   }

@@ -8,7 +8,11 @@ import {
 
 export const getAllBookings = async (req, res, next) => {
   try {
-    const bookings = await getAllBookingsService();
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
+
+    const bookings = await getAllBookingsService(userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",
@@ -23,8 +27,11 @@ export const getAllBookings = async (req, res, next) => {
 export const getBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const booking = await getBookingService(id);
+    const booking = await getBookingService(id, userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",
