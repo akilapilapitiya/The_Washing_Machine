@@ -168,6 +168,19 @@ Clean database (removes all data, keeps schema):
 npm run db:clean
 ```
 
+Seed initial owner account (required for first-time setup or after cleaning database):
+```bash
+npm run db:seed-owner
+```
+
+**Important:** After running `db:clean`, you must run `db:seed-owner` to create an owner account. This owner can then sign in and create other employees.
+
+**Default Owner Credentials:**
+- Email: `owner@washingmachine.com`
+- Password: `Owner@123`
+
+**Security Note:** Change these credentials immediately in production environments!
+
 ## API Endpoints
 
 All endpoints (except public service GET) require JWT authentication via `Authorization: Bearer <token>` header or `jwt` cookie.
@@ -184,7 +197,7 @@ All endpoints (except public service GET) require JWT authentication via `Author
 #### Employee Authentication
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| POST | `/api/authemployee/signup` | Employee registration | ❌ | - |
+| POST | `/api/authemployee/signup` | Employee registration | ✅ | Owner |
 | POST | `/api/authemployee/signin` | Employee login | ❌ | - |
 | POST | `/api/authemployee/signout` | Employee logout | ✅ | Employee |
 
@@ -201,10 +214,10 @@ All endpoints (except public service GET) require JWT authentication via `Author
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/employee` | Get all employees | ✅ | Employee |
+| GET | `/api/employee` | Get all employees | ✅ | Owner |
 | GET | `/api/employee/:empid` | Get single employee | ✅ | Employee |
 | PUT | `/api/employee/:empid` | Update employee profile | ✅ | Employee |
-| DELETE | `/api/employee/:empid` | Delete employee | ✅ | Employee |
+| DELETE | `/api/employee/:empid` | Delete employee | ✅ | Owner |
 
 ### Vehicle Management (Protected - Customers Only)
 
@@ -232,21 +245,41 @@ All endpoints (except public service GET) require JWT authentication via `Author
 |--------|----------|-------------|------|------|
 | GET | `/api/service` | Get all services | ❌ | - |
 | GET | `/api/service/:serviceid` | Get single service | ❌ | - |
-| POST | `/api/service` | Create service | ✅ | Employee |
-| PUT | `/api/service/:serviceid` | Update service | ✅ | Employee |
-| DELETE | `/api/service/:serviceid` | Delete service | ✅ | Employee |
+| POST | `/api/service` | Create service | ✅ | Manager/Owner |
+| PUT | `/api/service/:serviceid` | Update service | ✅ | Manager/Owner |
+| DELETE | `/api/service/:serviceid` | Delete service | ✅ | Manager/Owner |
 
-### Payment Management (Protected - Employees Only)
+### Payment Management (Protected - Manager/Owner Only)
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/payment` | Get all payments | ✅ | Employee |
-| GET | `/api/payment/:paymentid` | Get single payment | ✅ | Employee |
-| POST | `/api/payment` | Create payment | ✅ | Employee |
-| PUT | `/api/payment/:paymentid` | Update payment | ✅ | Employee |
-| DELETE | `/api/payment/:paymentid` | Delete payment | ✅ | Employee |
+| GET | `/api/payment` | Get all payments | ✅ | Manager/Owner |
+| GET | `/api/payment/:paymentid` | Get single payment | ✅ | Manager/Owner |
+| POST | `/api/payment` | Create payment | ✅ | Manager/Owner |
+| PUT | `/api/payment/:paymentid` | Update payment | ✅ | Manager/Owner |
+| DELETE | `/api/payment/:paymentid` | Delete payment | ✅ | Manager/Owner |
 
 ## Authentication & Authorization
+
+### Role-Based Access Control (RBAC)
+
+The system implements a 4-tier role-based access control:
+
+1. **Customer** - Can manage their own vehicles and bookings
+2. **Employee** (normal) - Can view employee/customer data and manage bookings
+3. **Manager** - Can create/update/delete services and payments, plus all employee permissions
+4. **Owner** - Full system access including creating/deleting employees, plus all manager permissions
+
+**Role Hierarchy:**
+```
+Owner (highest privilege)
+  ↓
+Manager
+  ↓
+Employee
+  ↓
+Customer (lowest privilege)
+```
 
 ### Authentication Design
 
@@ -256,10 +289,20 @@ All endpoints (except public service GET) require JWT authentication via `Author
 
 ### JWT Payload
 
+**Customer Token:**
 ```json
 {
   "id": 1,
-  "role": "customer" // or "employee"
+  "role": "customer"
+}
+```
+
+**Employee Token (includes emptype):**
+```json
+{
+  "id": 1,
+  "role": "employee",
+  "emptype": "owner" // or "manager", "employee", etc.
 }
 ```
 

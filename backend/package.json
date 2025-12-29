@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "db:clean": "node src/scripts/runClean.js"
+    "db:clean": "node src/scripts/runClean.js",
+    "db:seed-owner": "node src/scripts/addOwner.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
