@@ -1,6 +1,7 @@
 import {
   getPaymentService,
   getAllPaymentsService,
+  getCustomerPaymentsService,
   createPaymentService,
   updatePaymentService,
   deletePaymentService,
@@ -9,7 +10,11 @@ import {
 export const getPayment = async (req, res, next) => {
   try {
     const { paymentid } = req.params;
-    const payment = await getPaymentService(paymentid);
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
+
+    const payment = await getPaymentService(paymentid, userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",
@@ -24,6 +29,21 @@ export const getPayment = async (req, res, next) => {
 export const getAllPayments = async (req, res, next) => {
   try {
     const payments = await getAllPaymentsService();
+
+    res.status(200).json({
+      status: "success",
+      message: "Payments retrieved successfully",
+      payments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyPayments = async (req, res, next) => {
+  try {
+    const customerId = req.user.id;
+    const payments = await getCustomerPaymentsService(customerId);
 
     res.status(200).json({
       status: "success",

@@ -11,12 +11,15 @@ export const getAllPaymentsService = async () => {
   return result.rows;
 };
 
-export const getPaymentService = async (paymentid) => {
+export const getPaymentService = async (paymentid, userId, userRole, userEmptype) => {
   const result = await pool.query(
     `
-		SELECT paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
-		FROM payment
-		WHERE paymentid = $1
+		SELECT p.paymentid, p.paymentdate, p.paymenttype, p.paymentamount, p.bookingid, p.created_at, p.updated_at,
+           v.cusid
+		FROM payment p
+      JOIN booking b ON p.bookingid = b.bookingid
+      JOIN vehicle v ON b.vehid = v.vehid
+		WHERE p.paymentid = $1
 		`,
     [paymentid]
   );
@@ -25,7 +28,41 @@ export const getPaymentService = async (paymentid) => {
     throw new Error("Payment not found");
   }
 
-  return result.rows[0];
+  const payment = result.rows[0];
+  const effectiveRole = userEmptype || userRole;
+
+  // Customers can only view their own payments
+  if (userRole === "customer" && payment.cusid !== userId) {
+    throw new Error("You can only view your own payments");
+  }
+
+  // Managers/Owners (and any other elevated roles) can view all
+  if (effectiveRole === "manager" || effectiveRole === "owner") {
+    return payment;
+  }
+
+  // If role is employee (non manager/owner) block access
+  if (userRole === "employee" && effectiveRole !== "manager" && effectiveRole !== "owner") {
+    throw new Error("You do not have permission to view this payment");
+  }
+
+  return payment;
+};
+
+export const getCustomerPaymentsService = async (customerId) => {
+  const result = await pool.query(
+    `
+    SELECT p.paymentid, p.paymentdate, p.paymenttype, p.paymentamount, p.bookingid, p.created_at, p.updated_at
+    FROM payment p
+    JOIN booking b ON p.bookingid = b.bookingid
+    JOIN vehicle v ON b.vehid = v.vehid
+    WHERE v.cusid = $1
+    ORDER BY p.created_at DESC
+    `,
+    [customerId]
+  );
+
+  return result.rows;
 };
 
 export const createPaymentService = async ({
@@ -86,6 +123,7 @@ export const createPaymentService = async ({
   }
 };
 
+// Customer-facing payment creation with ownership check
 export const updatePaymentService = async (paymentid, updates) => {
   const { paymentdate, paymenttype, paymentamount } = updates;
 

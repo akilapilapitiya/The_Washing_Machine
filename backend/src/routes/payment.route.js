@@ -4,21 +4,26 @@ import {
   deletePayment,
   getAllPayments,
   getPayment,
+  getMyPayments,
   updatePayment,
 } from "../controllers/payment.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const paymentRouter = Router();
 
-// Protect all payment routes; managers and owners only
-paymentRouter.use(authMiddleware, restrictTo("manager", "owner"));
+// Protect all payment routes
+paymentRouter.use(authMiddleware);
 
-paymentRouter.get("/:paymentid", getPayment);
+// Customer self-service
+paymentRouter.get("/my", restrictTo("customer"), getMyPayments);
 
-// PROTECTED ROUTE - Manager/Owner only
-paymentRouter.delete("/:paymentid", deletePayment);
-paymentRouter.put("/:paymentid", updatePayment);
-paymentRouter.post("/", createPayment);
-paymentRouter.get("/", getAllPayments);
+// Shared access
+paymentRouter.get("/:paymentid", restrictTo("customer", "manager", "owner"), getPayment);
+
+// Manager/Owner only
+paymentRouter.delete("/:paymentid", restrictTo("manager", "owner"), deletePayment);
+paymentRouter.put("/:paymentid", restrictTo("manager", "owner"), updatePayment);
+paymentRouter.post("/", restrictTo("manager", "owner"), createPayment);
+paymentRouter.get("/", restrictTo("manager", "owner"), getAllPayments);
 
 export default paymentRouter;
