@@ -17,7 +17,6 @@ const createCustomerTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Customer table created");
 };
 
 export default createCustomerTable;

@@ -12,7 +12,6 @@ const createServiceTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Service table created");
 };
 
 export default createServiceTable;

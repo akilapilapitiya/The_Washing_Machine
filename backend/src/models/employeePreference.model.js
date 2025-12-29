@@ -21,7 +21,6 @@ const createEmployeePreferenceTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("EmployeePreference table created");
 };
 
 export default createEmployeePreferenceTable;

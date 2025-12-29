@@ -43,7 +43,7 @@ app.use(errorHandling);
 setupSwagger(app);
 
 // Create Tables
-// await initModels(pool);
+await initModels(pool);
 
 // Server Running
 app.listen(PORT, () => {

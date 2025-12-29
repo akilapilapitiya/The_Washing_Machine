@@ -21,7 +21,6 @@ const createServicesBookedTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("ServicesBooked table created");
 };
 
 export default createServicesBookedTable;

@@ -26,7 +26,6 @@ const createFeedbackTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Feedback table created");
 };
 
 export default createFeedbackTable;
