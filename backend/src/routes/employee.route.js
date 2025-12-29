@@ -6,13 +6,15 @@ import {
   updateEmployee,
 } from "../controllers/employee.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
+import { validateSchema } from "../middleware/validation.middleware.js";
+import { employeeValidator } from "../validators/index.js";
 
 const employeeRouter = Router();
 
 // Protect all employee routes; employees only
 employeeRouter.use(authMiddleware, restrictTo("employee"));
 employeeRouter.get("/:empid", getEmployee);
-employeeRouter.put("/:empid", updateEmployee);
+employeeRouter.put("/:empid", validateSchema(employeeValidator.updateEmployee), updateEmployee);
 
 // PROTECTED ROUTES - Owner only
 employeeRouter.get("/", restrictTo('owner'), getAllEmployees); 

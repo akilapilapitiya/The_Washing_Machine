@@ -6,6 +6,8 @@ import {
   updateCustomer,
 } from "../controllers/customer.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
+import { validateSchema } from "../middleware/validation.middleware.js";
+import { customerValidator } from "../validators/index.js";
 
 const customerRouter = Router();
 
@@ -14,7 +16,7 @@ customerRouter.use(authMiddleware, restrictTo("employee"));
 
 customerRouter.get("/", getAllCustomers);
 customerRouter.get("/:cusid", getCustomer);
-customerRouter.put("/:cusid", updateCustomer);
+customerRouter.put("/:cusid", validateSchema(customerValidator.updateCustomer), updateCustomer);
 customerRouter.delete("/:cusid", deleteCustomer);
 
 export default customerRouter;

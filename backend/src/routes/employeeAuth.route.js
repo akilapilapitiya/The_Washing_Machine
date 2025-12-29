@@ -6,10 +6,12 @@ import {
   passwordReset,
 } from "../controllers/employeeAuth.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
+import { validateSchema } from "../middleware/validation.middleware.js";
+import { employeeValidator } from "../validators/index.js";
 
 const employeeAuthRouter = Router();
 
-employeeAuthRouter.post("/signin", employeeSignIn);
+employeeAuthRouter.post("/signin", validateSchema(employeeValidator.loginEmployee), employeeSignIn);
 employeeAuthRouter.post("/signout", employeeSignOut);
 employeeAuthRouter.put("/passwordreset", passwordReset)
 // PROTECTED ROUTE - Owner only
@@ -17,6 +19,7 @@ employeeAuthRouter.post(
   "/signup",
   authMiddleware,
   restrictTo("owner"),
+  validateSchema(employeeValidator.createEmployee),
   employeeSignUp
 );
 export default employeeAuthRouter;
