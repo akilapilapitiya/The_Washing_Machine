@@ -224,7 +224,7 @@ All endpoints (except public service GET) require JWT authentication via `Author
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
 | GET | `/api/vehicle` | Get vehicles (customers see their own; managers/owners see all) | ✅ | Customer/Manager/Owner |
-| GET | `/api/vehicle/:vehid` | Get vehicle by ID (customers own only; employees/managers/owners any) | ✅ | All authenticated |
+| GET | `/api/vehicle/:vehid` | Get vehicle by ID (customers can only see their own vehicle; employees/managers/owners can see any) | ✅ | All authenticated |
 | POST | `/api/vehicle` | Create new vehicle | ✅ | Customer |
 | PUT | `/api/vehicle/:vehid` | Update vehicle mileage only | ✅ | Employee |
 | DELETE | `/api/vehicle/:vehid` | Delete vehicle (owner customer) | ✅ | Customer |

@@ -208,7 +208,13 @@ export const createBookingService = async ({
 /**
  * UPDATE BOOKING
  */
-export const updateBookingService = async (bookingId, updates) => {
+export const updateBookingService = async (
+  bookingId,
+  updates,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const { status, date, startTime, endTime, services } = updates;
 
   const client = await pool.connect();
@@ -216,15 +222,29 @@ export const updateBookingService = async (bookingId, updates) => {
   try {
     await client.query("BEGIN");
 
-    // Check if booking exists
+    // Check if booking exists and get ownership
     const bookingCheck = await client.query(
-      "SELECT bookingid FROM booking WHERE bookingid = $1",
+      `
+      SELECT b.bookingid, v.cusid
+      FROM booking b
+      JOIN vehicle v ON b.vehid = v.vehid
+      WHERE b.bookingid = $1
+      `,
       [bookingId]
     );
 
     if (bookingCheck.rowCount === 0) {
       throw new Error("Booking not found");
     }
+
+    const bookingOwnerId = bookingCheck.rows[0].cusid;
+    const effectiveRole = userEmptype || userRole;
+
+    // Ownership/authorization: customers may only update their own bookings
+    if (userRole === "customer" && bookingOwnerId !== userId) {
+      throw new Error("You can only update your own bookings");
+    }
+    // Employees/managers/owners allowed
 
     // Validate status if provided
     if (status) {
@@ -328,11 +348,39 @@ export const updateBookingService = async (bookingId, updates) => {
 /**
  * DELETE BOOKING
  */
-export const deleteBookingService = async (bookingId) => {
+export const deleteBookingService = async (
+  bookingId,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
+
+    // Check ownership
+    const bookingCheck = await client.query(
+      `
+      SELECT b.bookingid, v.cusid
+      FROM booking b
+      JOIN vehicle v ON b.vehid = v.vehid
+      WHERE b.bookingid = $1
+      `,
+      [bookingId]
+    );
+
+    if (bookingCheck.rowCount === 0) {
+      throw new Error("Booking not found");
+    }
+
+    const bookingOwnerId = bookingCheck.rows[0].cusid;
+    const effectiveRole = userEmptype || userRole;
+
+    if (userRole === "customer" && bookingOwnerId !== userId) {
+      throw new Error("You can only delete your own bookings");
+    }
+    // Employees/managers/owners allowed
 
     await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
       bookingId,

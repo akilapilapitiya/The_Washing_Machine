@@ -85,8 +85,11 @@ export const updateBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updates = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const booking = await updateBookingService(id, updates);
+    const booking = await updateBookingService(id, updates, userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",
@@ -101,8 +104,11 @@ export const updateBooking = async (req, res, next) => {
 export const deleteBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    await deleteBookingService(id);
+    await deleteBookingService(id, userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",
