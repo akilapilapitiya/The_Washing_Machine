@@ -70,7 +70,10 @@ export const updateEmployeeService = async (empid, updates) => {
   if (password !== undefined) {
     const bcrypt = await import("bcryptjs");
     const { SALT_ROUNDS } = await import("../configs/env.js");
-    const passwordHash = await bcrypt.default.hash(password, Number(SALT_ROUNDS));
+    const passwordHash = await bcrypt.default.hash(
+      password,
+      Number(SALT_ROUNDS)
+    );
     updateFields.push(`password_hash = $${paramIndex}`);
     updateValues.push(passwordHash);
     paramIndex++;

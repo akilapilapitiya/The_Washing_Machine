@@ -52,7 +52,11 @@ export const signIn = async ({ email, password }) => {
     throw new Error("Invalid email or password");
   }
 
-  const customer = { cusid: row.cusid, cusname: row.cusname, cusemail: row.cusemail };
+  const customer = {
+    cusid: row.cusid,
+    cusname: row.cusname,
+    cusemail: row.cusemail,
+  };
   const token = generateToken(row.cusid, "customer");
   return { customer, token };
 };

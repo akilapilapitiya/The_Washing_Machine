@@ -1,4 +1,8 @@
-import { signUp, signIn, resetPassword } from "../services/customerAuth.service.js";
+import {
+  signUp,
+  signIn,
+  resetPassword,
+} from "../services/customerAuth.service.js";
 import { NODE_ENV, COOKIE_AGE } from "../configs/env.js";
 
 export const customerSignUp = async (req, res, next) => {

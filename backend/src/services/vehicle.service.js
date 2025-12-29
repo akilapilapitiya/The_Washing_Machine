@@ -36,7 +36,11 @@ export const getCustomerVehiclesService = async (customerId) => {
 };
 
 // Get all Vehicles based on user role
-export const getAllVehiclesByRoleService = async (userId, userRole, userEmptype) => {
+export const getAllVehiclesByRoleService = async (
+  userId,
+  userRole,
+  userEmptype
+) => {
   // Determine effective role
   const effectiveRole = userEmptype || userRole;
 
@@ -71,7 +75,12 @@ export const getAllVehiclesByRoleService = async (userId, userRole, userEmptype)
 };
 
 // Get a vehicle by ID based on user role
-export const getVehicleService = async (vehid, userId, userRole, userEmptype) => {
+export const getVehicleService = async (
+  vehid,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const result = await pool.query(
     `
     SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at

@@ -36,7 +36,11 @@ export const getCustomerVehicles = async (req, res, next) => {
     const userRole = req.user.role;
     const userEmptype = req.user.emptype;
 
-    const vehicles = await getAllVehiclesByRoleService(userId, userRole, userEmptype);
+    const vehicles = await getAllVehiclesByRoleService(
+      userId,
+      userRole,
+      userEmptype
+    );
 
     res.status(200).json({
       status: "success",
@@ -55,7 +59,12 @@ export const getVehicle = async (req, res, next) => {
     const userRole = req.user.role;
     const userEmptype = req.user.emptype;
 
-    const vehicle = await getVehicleService(vehid, userId, userRole, userEmptype);
+    const vehicle = await getVehicleService(
+      vehid,
+      userId,
+      userRole,
+      userEmptype
+    );
 
     res.status(200).json({
       status: "success",

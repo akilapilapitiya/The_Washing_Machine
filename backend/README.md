@@ -219,22 +219,22 @@ All endpoints (except public service GET) require JWT authentication via `Author
 | PUT | `/api/employee/:empid` | Update employee profile | ✅ | Employee |
 | DELETE | `/api/employee/:empid` | Delete employee | ✅ | Owner |
 
-### Vehicle Management (Protected - Customers Only)
+### Vehicle Management
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/vehicle` | Get customer's vehicles | ✅ | Customer |
-| GET | `/api/vehicle/:vehid` | Get single vehicle | ✅ | Customer |
+| GET | `/api/vehicle` | Get vehicles (customers see their own; managers/owners see all) | ✅ | Customer/Manager/Owner |
+| GET | `/api/vehicle/:vehid` | Get vehicle by ID (customers own only; employees/managers/owners any) | ✅ | All authenticated |
 | POST | `/api/vehicle` | Create new vehicle | ✅ | Customer |
-| PUT | `/api/vehicle/:vehid` | Update vehicle | ✅ | Customer |
-| DELETE | `/api/vehicle/:vehid` | Delete vehicle | ✅ | Customer |
+| PUT | `/api/vehicle/:vehid` | Update vehicle mileage only | ✅ | Employee |
+| DELETE | `/api/vehicle/:vehid` | Delete vehicle (owner customer) | ✅ | Customer |
 
 ### Booking Management (Protected - Customers & Employees)
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/booking` | Get all bookings | ✅ | Customer/Employee |
-| GET | `/api/booking/:id` | Get single booking | ✅ | Customer/Employee |
+| GET | `/api/booking` | Employees see all bookings; customers see their own | ✅ | Customer/Employee |
+| GET | `/api/booking/:id` | Employees can view any; customers only their own booking | ✅ | Customer/Employee |
 | POST | `/api/booking` | Create booking | ✅ | Customer/Employee |
 | PUT | `/api/booking/:id` | Update booking | ✅ | Customer/Employee |
 | DELETE | `/api/booking/:id` | Delete booking | ✅ | Customer/Employee |

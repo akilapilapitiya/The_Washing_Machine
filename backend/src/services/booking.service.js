@@ -44,7 +44,12 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   }
 };
 
-export const getBookingService = async (bookingId, userId, userRole, userEmptype) => {
+export const getBookingService = async (
+  bookingId,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const client = await pool.connect();
 
   try {

@@ -1,5 +1,9 @@
 import { COOKIE_AGE, NODE_ENV } from "../configs/env.js";
-import { signUp, signIn, resetPassword } from "../services/employeeAuth.service.js";
+import {
+  signUp,
+  signIn,
+  resetPassword,
+} from "../services/employeeAuth.service.js";
 
 export const employeeSignUp = async (req, res, next) => {
   try {
