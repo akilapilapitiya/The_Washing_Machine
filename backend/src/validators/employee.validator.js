@@ -2,7 +2,7 @@ import Joi from 'joi';
 
 export const employeeValidator = {
   createEmployee: Joi.object({
-    empname: Joi.string()
+    name: Joi.string()
       .min(1)
       .max(100)
       .trim()
@@ -12,14 +12,14 @@ export const employeeValidator = {
         'string.max': 'Employee name must not exceed 100 characters',
         'any.required': 'Employee name is required',
       }),
-    empemail: Joi.string()
+    email: Joi.string()
       .email()
       .required()
       .messages({
         'string.email': 'Must be a valid email address',
         'any.required': 'Email is required',
       }),
-    emptel: Joi.string()
+    telephone: Joi.string()
       .regex(/^[0-9]{10}$/)
       .required()
       .messages({
@@ -33,7 +33,7 @@ export const employeeValidator = {
         'string.min': 'Password must be at least 6 characters',
         'any.required': 'Password is required',
       }),
-    empjob: Joi.string()
+    job: Joi.string()
       .max(100)
       .required()
       .messages({
@@ -42,26 +42,26 @@ export const employeeValidator = {
   }),
 
   updateEmployee: Joi.object({
-    empname: Joi.string()
+    name: Joi.string()
       .min(1)
       .max(100)
       .trim(),
-    empemail: Joi.string()
+    email: Joi.string()
       .email()
       .messages({
         'string.email': 'Must be a valid email address',
       }),
-    emptel: Joi.string()
+    telephone: Joi.string()
       .regex(/^[0-9]{10}$/)
       .messages({
         'string.pattern.base': 'Phone number must be exactly 10 digits',
       }),
-    empjob: Joi.string()
+    job: Joi.string()
       .max(100),
   }).min(1),
 
   loginEmployee: Joi.object({
-    empemail: Joi.string()
+    email: Joi.string()
       .email()
       .required()
       .messages({

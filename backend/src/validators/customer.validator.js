@@ -2,7 +2,7 @@ import Joi from 'joi';
 
 export const customerValidator = {
   createCustomer: Joi.object({
-    cusname: Joi.string()
+    name: Joi.string()
       .min(1)
       .max(100)
       .trim()
@@ -12,14 +12,14 @@ export const customerValidator = {
         'string.max': 'Customer name must not exceed 100 characters',
         'any.required': 'Customer name is required',
       }),
-    cusemail: Joi.string()
+    email: Joi.string()
       .email()
       .required()
       .messages({
         'string.email': 'Must be a valid email address',
         'any.required': 'Email is required',
       }),
-    custel: Joi.string()
+    telephone: Joi.string()
       .regex(/^[0-9]{10}$/)
       .required()
       .messages({
@@ -36,7 +36,7 @@ export const customerValidator = {
   }),
 
   updateCustomer: Joi.object({
-    cusname: Joi.string()
+    name: Joi.string()
       .min(1)
       .max(100)
       .trim()
@@ -44,12 +44,12 @@ export const customerValidator = {
         'string.empty': 'Customer name cannot be empty',
         'string.max': 'Customer name must not exceed 100 characters',
       }),
-    cusemail: Joi.string()
+    email: Joi.string()
       .email()
       .messages({
         'string.email': 'Must be a valid email address',
       }),
-    custel: Joi.string()
+    telephone: Joi.string()
       .regex(/^[0-9]{10}$/)
       .messages({
         'string.pattern.base': 'Phone number must be exactly 10 digits',
@@ -57,7 +57,7 @@ export const customerValidator = {
   }).min(1),
 
   loginCustomer: Joi.object({
-    cusemail: Joi.string()
+    email: Joi.string()
       .email()
       .required()
       .messages({
