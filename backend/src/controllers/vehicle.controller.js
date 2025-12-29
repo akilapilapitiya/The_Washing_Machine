@@ -2,6 +2,7 @@ import {
   createVehicleService,
   getCustomerVehiclesService,
   getVehicleService,
+  getAllVehiclesByRoleService,
   updateVehicleService,
   deleteVehicleService,
 } from "../services/vehicle.service.js";
@@ -31,9 +32,11 @@ export const createVehicle = async (req, res, next) => {
 
 export const getCustomerVehicles = async (req, res, next) => {
   try {
-    const customerId = req.user.id; // from auth middleware
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const vehicles = await getCustomerVehiclesService(customerId);
+    const vehicles = await getAllVehiclesByRoleService(userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",
@@ -48,8 +51,11 @@ export const getCustomerVehicles = async (req, res, next) => {
 export const getVehicle = async (req, res, next) => {
   try {
     const { vehid } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const vehicle = await getVehicleService(vehid);
+    const vehicle = await getVehicleService(vehid, userId, userRole, userEmptype);
 
     res.status(200).json({
       status: "success",

@@ -35,8 +35,43 @@ export const getCustomerVehiclesService = async (customerId) => {
   return result.rows;
 };
 
-// Get a vehicle
-export const getVehicleService = async (vehid) => {
+// Get all Vehicles based on user role
+export const getAllVehiclesByRoleService = async (userId, userRole, userEmptype) => {
+  // Determine effective role
+  const effectiveRole = userEmptype || userRole;
+
+  // If customer, show only their vehicles
+  if (userRole === "customer") {
+    const result = await pool.query(
+      `
+      SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      FROM vehicle
+      WHERE cusid = $1
+      ORDER BY created_at DESC
+      `,
+      [userId]
+    );
+    return result.rows;
+  }
+
+  // If manager or owner, show all vehicles
+  if (effectiveRole === "manager" || effectiveRole === "owner") {
+    const result = await pool.query(
+      `
+      SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      FROM vehicle
+      ORDER BY created_at DESC
+      `
+    );
+    return result.rows;
+  }
+
+  // Normal employee - throw error (they should only get by ID)
+  throw new Error("Employees can only view vehicles by ID");
+};
+
+// Get a vehicle by ID based on user role
+export const getVehicleService = async (vehid, userId, userRole, userEmptype) => {
   const result = await pool.query(
     `
     SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
@@ -50,7 +85,25 @@ export const getVehicleService = async (vehid) => {
     throw new Error("Vehicle not found");
   }
 
-  return result.rows[0];
+  const vehicle = result.rows[0];
+
+  // Determine effective role
+  const effectiveRole = userEmptype || userRole;
+
+  // Authorization checks
+  if (userRole === "customer") {
+    // Customer can only see their own vehicles
+    if (vehicle.cusid !== userId) {
+      throw new Error("You can only view your own vehicles");
+    }
+  } else if (userRole === "employee") {
+    // Employee can access if they are manager/owner, or if they're viewing a vehicle by ID (normal employee access)
+    if (effectiveRole !== "manager" && effectiveRole !== "owner") {
+      // Normal employee - allowed to view any vehicle by ID
+    }
+  }
+
+  return vehicle;
 };
 
 // Update a vehicle
