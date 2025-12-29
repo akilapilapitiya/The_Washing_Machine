@@ -3,7 +3,7 @@
     tags:
       - Payment
     summary: Get All Payments
-    description: Returns a list of payments.
+    description: Managers/Owners can view all payments.
     operationId: getAllPayments
     responses:
       "200":
@@ -54,7 +54,7 @@
     tags:
       - Payment
     summary: Create Payment
-    description: Creates a new payment for a booking.
+    description: Managers/Owners can create a new payment for a booking.
     operationId: createPayment
     requestBody:
       required: true
@@ -128,6 +128,59 @@
                       format: date-time
                       example: "2025-01-15T09:30:00.000Z"
 
+/payment/my:
+  get:
+    tags:
+      - Payment
+    summary: Get My Payments
+    description: Customers can view their own payments.
+    operationId: getMyPayments
+    responses:
+      "200":
+        description: Payments retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: success
+                message:
+                  type: string
+                  example: Payments retrieved successfully
+                payments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      paymentid:
+                        type: integer
+                        example: 2001
+                      paymentdate:
+                        type: string
+                        format: date
+                        example: "2025-01-15"
+                      paymenttype:
+                        type: string
+                        enum: [cash, card, online]
+                        example: card
+                      paymentamount:
+                        type: number
+                        format: float
+                        example: 1250.00
+                      bookingid:
+                        type: integer
+                        example: 101
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-15T09:30:00.000Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: "2025-01-15T09:30:00.000Z"
+
 /payment/{paymentid}:
   parameters:
     - in: path
@@ -140,7 +193,7 @@
     tags:
       - Payment
     summary: Get Payment By ID
-    description: Returns a single payment by `paymentid`.
+    description: Customers can view their own payment; managers/owners can view any payment by `paymentid`.
     operationId: getPayment
     responses:
       "200":
@@ -189,7 +242,7 @@
     tags:
       - Payment
     summary: Update Payment
-    description: Updates fields of the payment with the given `paymentid`.
+    description: Managers/Owners can update fields of the payment with the given `paymentid`.
     operationId: updatePayment
     requestBody:
       required: true
@@ -258,7 +311,7 @@
     tags:
       - Payment
     summary: Delete Payment
-    description: Deletes the payment with the given `paymentid`.
+    description: Managers/Owners can delete the payment with the given `paymentid`.
     operationId: deletePayment
     responses:
       "200":

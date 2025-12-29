@@ -236,8 +236,8 @@ All endpoints (except public service GET) require JWT authentication via `Author
 | GET | `/api/booking` | Employees see all bookings; customers see their own | ✅ | Customer/Employee |
 | GET | `/api/booking/:id` | Employees can view any; customers only their own booking | ✅ | Customer/Employee |
 | POST | `/api/booking` | Create booking | ✅ | Customer/Employee |
-| PUT | `/api/booking/:id` | Update booking | ✅ | Customer/Employee |
-| DELETE | `/api/booking/:id` | Delete booking | ✅ | Customer/Employee |
+| PUT | `/api/booking/:id` | Employees can update any; customers only their own booking | ✅ | Customer/Employee |
+| DELETE | `/api/booking/:id` | Employees can delete any; customers only their own booking | ✅ | Customer/Employee |
 
 ### Service Management
 
@@ -249,12 +249,13 @@ All endpoints (except public service GET) require JWT authentication via `Author
 | PUT | `/api/service/:serviceid` | Update service | ✅ | Manager/Owner |
 | DELETE | `/api/service/:serviceid` | Delete service | ✅ | Manager/Owner |
 
-### Payment Management (Protected - Manager/Owner Only)
+### Payment Management
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
 | GET | `/api/payment` | Get all payments | ✅ | Manager/Owner |
-| GET | `/api/payment/:paymentid` | Get single payment | ✅ | Manager/Owner |
+| GET | `/api/payment/my` | Get my payments | ✅ | Customer |
+| GET | `/api/payment/:paymentid` | Get single payment (customers own only; managers/owners any) | ✅ | Customer/Manager/Owner |
 | POST | `/api/payment` | Create payment | ✅ | Manager/Owner |
 | PUT | `/api/payment/:paymentid` | Update payment | ✅ | Manager/Owner |
 | DELETE | `/api/payment/:paymentid` | Delete payment | ✅ | Manager/Owner |
