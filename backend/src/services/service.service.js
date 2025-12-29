@@ -4,6 +4,7 @@ import {
   assertPositiveNumber,
   assertRequiredFields,
 } from "../utils/validation.util.js";
+import { NotFoundError } from "../utils/errors.util.js";
 
 /**
  * CREATE SERVICE
@@ -62,7 +63,7 @@ export const getServiceService = async (serviceid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Service not found");
+    throw new NotFoundError("Service not found");
   }
 
   return result.rows[0];
@@ -93,7 +94,7 @@ export const updateServiceService = async (serviceid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Service not found");
+    throw new NotFoundError("Service not found");
   }
 
   return result.rows[0];
@@ -108,6 +109,6 @@ export const deleteServiceService = async (serviceid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Service not found");
+    throw new NotFoundError("Service not found");
   }
 };

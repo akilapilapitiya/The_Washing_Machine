@@ -5,6 +5,7 @@ import {
   assertPositiveNumber,
   assertRequiredFields,
 } from "../utils/validation.util.js";
+import { NotFoundError, ForbiddenError } from "../utils/errors.util.js";
 
 export const getAllPaymentsService = async () => {
   const result = await pool.query(
@@ -31,7 +32,7 @@ export const getPaymentService = async (paymentid, userId, userRole, userEmptype
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Payment not found");
+    throw new NotFoundError("Payment not found");
   }
 
   const payment = result.rows[0];
@@ -39,7 +40,7 @@ export const getPaymentService = async (paymentid, userId, userRole, userEmptype
 
   // Customers can only view their own payments
   if (userRole === "customer" && payment.cusid !== userId) {
-    throw new Error("You can only view your own payments");
+    throw new ForbiddenError("You can only view your own payments");
   }
 
   // Managers/Owners (and any other elevated roles) can view all
@@ -49,7 +50,7 @@ export const getPaymentService = async (paymentid, userId, userRole, userEmptype
 
   // If role is employee (non manager/owner) block access
   if (userRole === "employee" && effectiveRole !== "manager" && effectiveRole !== "owner") {
-    throw new Error("You do not have permission to view this payment");
+    throw new ForbiddenError("You do not have permission to view this payment");
   }
 
   return payment;
@@ -95,7 +96,7 @@ export const createPaymentService = async ({
       [parseInt(bookingid)]
     );
     if (bookingCheck.rowCount === 0) {
-      throw new Error("Related booking not found");
+      throw new NotFoundError("Related booking not found");
     }
 
     // Ensure not already paid for booking (bookingid unique in payment)
@@ -104,7 +105,7 @@ export const createPaymentService = async ({
       [parseInt(bookingid)]
     );
     if (existing.rowCount > 0) {
-      throw new Error("Payment already exists for this booking");
+      throw new ForbiddenError("Payment already exists for this booking");
     }
 
     const result = await client.query(
@@ -148,7 +149,7 @@ export const updatePaymentService = async (paymentid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Payment not found");
+    throw new NotFoundError("Payment not found");
   }
 
   return result.rows[0];
@@ -160,6 +161,6 @@ export const deletePaymentService = async (paymentid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Payment not found");
+    throw new NotFoundError("Payment not found");
   }
 };

@@ -3,6 +3,7 @@ import {
   assertNonNegativeNumber,
   assertRequiredFields,
 } from "../utils/validation.util.js";
+import { ForbiddenError, NotFoundError, ValidationError } from "../utils/errors.util.js";
 
 // Create a vehicle
 export const createVehicleService = async ({
@@ -80,7 +81,7 @@ export const getAllVehiclesByRoleService = async (
   }
 
   // Normal employee - throw error (they should only get by ID)
-  throw new Error("Employees can only view vehicles by ID");
+  throw new ForbiddenError("Employees can only view vehicles by ID");
 };
 
 // Get a vehicle by ID based on user role
@@ -100,7 +101,7 @@ export const getVehicleService = async (
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Vehicle not found");
+    throw new NotFoundError("Vehicle not found");
   }
 
   const vehicle = result.rows[0];
@@ -112,7 +113,7 @@ export const getVehicleService = async (
   if (userRole === "customer") {
     // Customer can only see their own vehicles
     if (vehicle.cusid !== userId) {
-      throw new Error("You can only view your own vehicles");
+      throw new ForbiddenError("You can only view your own vehicles");
     }
   } else if (userRole === "employee") {
     // Employee can access if they are manager/owner, or if they're viewing a vehicle by ID (normal employee access)
@@ -127,11 +128,11 @@ export const getVehicleService = async (
 // Update a vehicle mileage (employees only)
 export const updateVehicleService = async (vehid, vehmileage) => {
   if (vehmileage === undefined || vehmileage === null) {
-    throw new Error("Mileage is required");
+    throw new ValidationError("Mileage is required");
   }
 
   if (vehmileage < 0) {
-    throw new Error("Mileage cannot be negative");
+    throw new ValidationError("Mileage cannot be negative");
   }
 
   const vehicleCheck = await pool.query(
@@ -140,7 +141,7 @@ export const updateVehicleService = async (vehid, vehmileage) => {
   );
 
   if (vehicleCheck.rowCount === 0) {
-    throw new Error("Vehicle not found");
+    throw new NotFoundError("Vehicle not found");
   }
 
   const result = await pool.query(
@@ -166,11 +167,11 @@ export const deleteVehicleService = async (vehid, customerId) => {
   );
 
   if (vehicleCheck.rowCount === 0) {
-    throw new Error("Vehicle not found");
+    throw new NotFoundError("Vehicle not found");
   }
 
   if (vehicleCheck.rows[0].cusid !== customerId) {
-    throw new Error("You can only delete your own vehicles");
+    throw new ForbiddenError("You can only delete your own vehicles");
   }
 
   await pool.query("DELETE FROM vehicle WHERE vehid = $1", [vehid]);

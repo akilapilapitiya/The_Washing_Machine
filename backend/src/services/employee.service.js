@@ -1,5 +1,6 @@
 import pool from "../configs/database.js";
 import { assertAtLeastOneField } from "../utils/validation.util.js";
+import { NotFoundError } from "../utils/errors.util.js";
 
 export const getAllEmployeesService = async () => {
   const result = await pool.query(
@@ -23,7 +24,7 @@ export const getEmployeeService = async (empid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Employee not found");
+    throw new NotFoundError("Employee not found");
   }
 
   return result.rows[0];
@@ -96,7 +97,7 @@ export const updateEmployeeService = async (empid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Employee not found");
+    throw new NotFoundError("Employee not found");
   }
 
   return result.rows[0];
@@ -108,6 +109,6 @@ export const deleteEmployeeService = async (empid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Employee not found");
+    throw new NotFoundError("Employee not found");
   }
 };

@@ -1,11 +1,6 @@
-export const validationError = (message, details = []) => {
-  const err = new Error(message);
-  err.name = "ValidationError";
-  if (details.length) {
-    err.details = details;
-  }
-  return err;
-};
+import { ValidationError } from "./errors.util.js";
+
+export const validationError = (message, details = []) => new ValidationError(message, details);
 
 export const assertRequiredFields = (payload, requiredFields) => {
   const missing = requiredFields.filter(

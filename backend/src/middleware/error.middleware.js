@@ -6,8 +6,14 @@ const errorHandling = (err, req, res, next) => {
   // Log full error for debugging
   console.error(`[${new Date().toISOString()}] Error:`, err);
 
+  // Custom application errors with explicit status codes
+  if (err.statusCode) {
+    status = err.statusCode;
+    message = err.message || message;
+    errors = err.details || err.errors || errors;
+  }
   // PostgreSQL Database Errors
-  if (err.code) {
+  else if (err.code) {
     // Unique constraint violation
     if (err.code === "23505") {
       status = 409;
@@ -55,6 +61,10 @@ const errorHandling = (err, req, res, next) => {
   } else if (err.name === "ForbiddenError") {
     status = 403;
     message = err.message || "Forbidden";
+  } else if (err.name === "ValidationError") {
+    status = 400;
+    message = err.message || "Validation Error";
+    errors = err.details || errors;
   }
   // Generic Error Messages
   else if (err.message) {

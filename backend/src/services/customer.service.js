@@ -1,5 +1,6 @@
 import pool from "../configs/database.js";
 import { assertAtLeastOneField } from "../utils/validation.util.js";
+import { NotFoundError } from "../utils/errors.util.js";
 
 export const getAllCustomersService = async () => {
   const result = await pool.query(
@@ -23,7 +24,7 @@ export const getCustomerService = async (cusid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Customer not found");
+    throw new NotFoundError("Customer not found");
   }
 
   return result.rows[0];
@@ -71,7 +72,7 @@ export const updateCustomerService = async (cusid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Customer not found");
+    throw new NotFoundError("Customer not found");
   }
 
   return result.rows[0];
@@ -83,6 +84,6 @@ export const deleteCustomerService = async (cusid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Customer not found");
+    throw new NotFoundError("Customer not found");
   }
 };

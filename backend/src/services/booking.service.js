@@ -5,6 +5,7 @@ import {
   assertRequiredFields,
   validationError,
 } from "../utils/validation.util.js";
+import { ForbiddenError, NotFoundError, ValidationError } from "../utils/errors.util.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -86,7 +87,7 @@ export const getBookingService = async (
     );
 
     if (result.rowCount === 0) {
-      throw new Error("Booking not found");
+      throw new NotFoundError("Booking not found");
     }
 
     const booking = result.rows[0];
@@ -95,7 +96,7 @@ export const getBookingService = async (
     if (userRole === "customer") {
       // Customer can only see their own bookings
       if (booking.cusid !== userId) {
-        throw new Error("You can only view your own bookings");
+        throw new ForbiddenError("You can only view your own bookings");
       }
     }
     // Employees can view any booking
@@ -161,12 +162,12 @@ export const createBookingService = async ({
     );
 
     if (vehicleCheck.rowCount === 0) {
-      throw new Error("Vehicle not found");
+      throw new NotFoundError("Vehicle not found");
     }
 
     // If the user is a customer, verify they own the vehicle
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
-      throw new Error("You can only book with your own vehicles");
+      throw new ForbiddenError("You can only book with your own vehicles");
     }
 
     // Validate the date meets the constraint
@@ -176,7 +177,7 @@ export const createBookingService = async ({
     );
 
     if (!dateCheck.rows[0].is_valid) {
-      throw new Error("Booking date must be today or in the future");
+      throw new ValidationError("Booking date must be today or in the future");
     }
 
     // Insert booking
@@ -208,7 +209,7 @@ export const createBookingService = async ({
       );
 
       if (servicesCheck.rowCount !== services.length) {
-        throw new Error("One or more service IDs do not exist");
+        throw new NotFoundError("One or more service IDs do not exist");
       }
 
       // Insert into servicesbooked (many-to-many)
@@ -271,7 +272,7 @@ export const updateBookingService = async (
     );
 
     if (bookingCheck.rowCount === 0) {
-      throw new Error("Booking not found");
+      throw new NotFoundError("Booking not found");
     }
 
     const bookingOwnerId = bookingCheck.rows[0].cusid;
@@ -279,7 +280,7 @@ export const updateBookingService = async (
 
     // Ownership/authorization: customers may only update their own bookings
     if (userRole === "customer" && bookingOwnerId !== userId) {
-      throw new Error("You can only update your own bookings");
+      throw new ForbiddenError("You can only update your own bookings");
     }
     // Employees/managers/owners allowed
 
@@ -287,7 +288,7 @@ export const updateBookingService = async (
     if (status) {
       const validStatuses = ["pending", "inProgress", "completed", "paid"];
       if (!validStatuses.includes(status)) {
-        throw new Error(
+        throw new ValidationError(
           `Invalid status. Must be one of: ${validStatuses.join(", ")}`
         );
       }
@@ -301,7 +302,7 @@ export const updateBookingService = async (
       );
 
       if (!dateCheck.rows[0].is_valid) {
-        throw new Error("Booking date must be today or in the future");
+        throw new ValidationError("Booking date must be today or in the future");
       }
     }
 
@@ -353,7 +354,7 @@ export const updateBookingService = async (
       );
 
       if (servicesCheck.rowCount !== services.length) {
-        throw new Error("One or more service IDs do not exist");
+        throw new NotFoundError("One or more service IDs do not exist");
       }
 
       await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
@@ -408,14 +409,14 @@ export const deleteBookingService = async (
     );
 
     if (bookingCheck.rowCount === 0) {
-      throw new Error("Booking not found");
+      throw new NotFoundError("Booking not found");
     }
 
     const bookingOwnerId = bookingCheck.rows[0].cusid;
     const effectiveRole = userEmptype || userRole;
 
     if (userRole === "customer" && bookingOwnerId !== userId) {
-      throw new Error("You can only delete your own bookings");
+      throw new ForbiddenError("You can only delete your own bookings");
     }
     // Employees/managers/owners allowed
 
