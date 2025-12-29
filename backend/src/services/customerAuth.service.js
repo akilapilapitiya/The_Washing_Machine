@@ -56,3 +56,36 @@ export const signIn = async ({ email, password }) => {
   const token = generateToken(row.cusid, "customer");
   return { customer, token };
 };
+
+// Reset password
+export const resetPassword = async ({ email, newPassword }) => {
+  if (!email || !newPassword) {
+    throw new Error("Email and new password are required");
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters");
+  }
+
+  const existing = await pool.query(
+    "SELECT cusid FROM customer WHERE cusemail = $1",
+    [email]
+  );
+
+  if (existing.rowCount === 0) {
+    throw new Error("Customer not found");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, Number(SALT_ROUNDS));
+
+  await pool.query(
+    `
+    UPDATE customer
+    SET password_hash = $1, updated_at = NOW()
+    WHERE cusemail = $2
+    `,
+    [passwordHash, email]
+  );
+
+  return { message: "Password reset successful" };
+};

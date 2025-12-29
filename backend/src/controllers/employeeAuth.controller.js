@@ -1,5 +1,5 @@
 import { COOKIE_AGE, NODE_ENV } from "../configs/env.js";
-import { signUp, signIn } from "../services/employeeAuth.service.js";
+import { signUp, signIn, resetPassword } from "../services/employeeAuth.service.js";
 
 export const employeeSignUp = async (req, res, next) => {
   try {
@@ -71,4 +71,18 @@ export const employeeSignOut = async (req, res, next) => {
     secure: NODE_ENV === "production",
   });
   res.status(200).json({ message: "Employee signed out" });
+};
+export const passwordReset = async (req, res, next) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    const result = await resetPassword({ email, newPassword });
+
+    res.status(200).json({
+      status: "success",
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
