@@ -17,3 +17,6 @@ export const {
 
 export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
 export const COOKIE_AGE = Number(process.env.COOKIE_AGE);
+export const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS) || 900000;
+export const RATE_LIMIT_MAX_REQUESTS = Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100;
+export const RATE_LIMIT_AUTH_MAX = Number(process.env.RATE_LIMIT_AUTH_MAX) || 5;

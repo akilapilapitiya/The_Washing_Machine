@@ -16,6 +16,8 @@ import customerRouter from "./src/routes/customer.route.js";
 import paymentRouter from "./src/routes/payment.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import corsMiddleware from "./src/middleware/cors.middleware.js";
+import helmetConfig from "./src/middleware/helmet.middleware.js";
+import compressionConfig from "./src/middleware/compression.middleware.js";
 import {
   generalLimiter,
   authLimiter,
@@ -25,8 +27,14 @@ const app = express();
 // CORS Middleware
 app.use(corsMiddleware);
 
+// Security Headers Middleware
+app.use(helmetConfig);
+
+// Response Compression Middleware
+app.use(compressionConfig);
+
 // Rate Limiting
-app.use(generalLimiter);
+// app.use(generalLimiter);
 
 // Middleware
 app.use(express.json({ limit: "10mb", strict: false }));

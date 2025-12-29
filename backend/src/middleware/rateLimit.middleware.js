@@ -1,10 +1,15 @@
 import rateLimit from "express-rate-limit";
-import { NODE_ENV } from "../configs/env.js";
+import {
+  NODE_ENV,
+  RATE_LIMIT_WINDOW_MS,
+  RATE_LIMIT_MAX_REQUESTS,
+  RATE_LIMIT_AUTH_MAX,
+} from "../configs/env.js";
 
 // General API rate limiter
 export const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: RATE_LIMIT_WINDOW_MS, // Configurable via env (default: 15 minutes)
+  max: RATE_LIMIT_MAX_REQUESTS, // Configurable via env (default: 100)
   message: {
     status: "error",
     message: "Too many requests from this IP, please try again later.",
@@ -16,8 +21,8 @@ export const generalLimiter = rateLimit({
 
 // Stricter rate limiter for authentication routes
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login/signup attempts per windowMs
+  windowMs: RATE_LIMIT_WINDOW_MS, // Configurable via env (default: 15 minutes)
+  max: RATE_LIMIT_AUTH_MAX, // Configurable via env (default: 5)
   message: {
     status: "error",
     message: "Too many authentication attempts, please try again after 15 minutes.",
@@ -30,8 +35,8 @@ export const authLimiter = rateLimit({
 
 // More lenient rate limiter for public routes (like service listing)
 export const publicLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Higher limit for public routes
+  windowMs: RATE_LIMIT_WINDOW_MS, // Configurable via env (default: 15 minutes)
+  max: RATE_LIMIT_MAX_REQUESTS * 2, // Double the general limit for public routes
   message: {
     status: "error",
     message: "Too many requests, please try again later.",
