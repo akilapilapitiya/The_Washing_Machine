@@ -5,6 +5,7 @@ import {
   getAllBookingsService,
   getBookingService,
 } from "../services/booking.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const getAllBookings = async (req, res, next) => {
   try {
@@ -14,11 +15,7 @@ export const getAllBookings = async (req, res, next) => {
 
     const bookings = await getAllBookingsService(userId, userRole, userEmptype);
 
-    res.status(200).json({
-      status: "success",
-      message: "Bookings retrieved successfully",
-      bookings,
-    });
+    successResponse(res, 200, "Bookings retrieved successfully", { bookings });
   } catch (error) {
     next(error);
   }
@@ -33,11 +30,7 @@ export const getBooking = async (req, res, next) => {
 
     const booking = await getBookingService(id, userId, userRole, userEmptype);
 
-    res.status(200).json({
-      status: "success",
-      message: "Booking retrieved successfully",
-      booking,
-    });
+    successResponse(res, 200, "Booking retrieved successfully", { booking });
   } catch (error) {
     next(error);
   }
@@ -71,11 +64,7 @@ export const createBooking = async (req, res, next) => {
       userRole,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Booking created successfully",
-      booking,
-    });
+    successResponse(res, 201, "Booking created successfully", { booking });
   } catch (error) {
     next(error);
   }
@@ -91,11 +80,7 @@ export const updateBooking = async (req, res, next) => {
 
     const booking = await updateBookingService(id, updates, userId, userRole, userEmptype);
 
-    res.status(200).json({
-      status: "success",
-      message: "Booking updated successfully",
-      booking,
-    });
+    successResponse(res, 200, "Booking updated successfully", { booking });
   } catch (error) {
     next(error);
   }
@@ -110,10 +95,7 @@ export const deleteBooking = async (req, res, next) => {
 
     await deleteBookingService(id, userId, userRole, userEmptype);
 
-    res.status(200).json({
-      status: "success",
-      message: "Booking deleted successfully",
-    });
+    successResponse(res, 200, "Booking deleted successfully");
   } catch (error) {
     next(error);
   }

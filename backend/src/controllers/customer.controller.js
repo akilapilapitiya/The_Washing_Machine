@@ -4,17 +4,14 @@ import {
   updateCustomerService,
   deleteCustomerService,
 } from "../services/customer.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const getCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
     const customer = await getCustomerService(cusid);
 
-    res.status(200).json({
-      status: "success",
-      message: "Customer retrieved successfully",
-      customer,
-    });
+    successResponse(res, 200, "Customer retrieved successfully", { customer });
   } catch (error) {
     next(error);
   }
@@ -24,11 +21,7 @@ export const getAllCustomers = async (req, res, next) => {
   try {
     const customers = await getAllCustomersService();
 
-    res.status(200).json({
-      status: "success",
-      message: "Customers retrieved successfully",
-      customers,
-    });
+    successResponse(res, 200, "Customers retrieved successfully", { customers });
   } catch (error) {
     next(error);
   }
@@ -48,11 +41,7 @@ export const updateCustomer = async (req, res, next) => {
 
     const customer = await updateCustomerService(cusid, updates);
 
-    res.status(200).json({
-      status: "success",
-      message: "Customer updated successfully",
-      customer,
-    });
+    successResponse(res, 200, "Customer updated successfully", { customer });
   } catch (error) {
     next(error);
   }
@@ -63,10 +52,7 @@ export const deleteCustomer = async (req, res, next) => {
     const { cusid } = req.params;
     await deleteCustomerService(cusid);
 
-    res.status(200).json({
-      status: "success",
-      message: "Customer deleted successfully",
-    });
+    successResponse(res, 200, "Customer deleted successfully");
   } catch (error) {
     next(error);
   }

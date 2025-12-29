@@ -4,6 +4,7 @@ import {
   resetPassword,
 } from "../services/customerAuth.service.js";
 import { NODE_ENV, COOKIE_AGE } from "../configs/env.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const customerSignUp = async (req, res, next) => {
   try {
@@ -24,12 +25,7 @@ export const customerSignUp = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Customer registered successfully",
-      customer,
-      token,
-    });
+    successResponse(res, 201, "Customer registered successfully", { customer, token });
   } catch (error) {
     next(error);
   }
@@ -55,12 +51,7 @@ export const customerSignIn = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "Login successful",
-      customer: safeCustomer,
-      token,
-    });
+    successResponse(res, 200, "Login successful", { customer: safeCustomer, token });
   } catch (error) {
     next(error);
   }
@@ -74,7 +65,7 @@ export const customerSignOut = async (req, res, next) => {
     secure: NODE_ENV === "production",
   });
 
-  res.status(200).json({ message: "Customer signed out" });
+  successResponse(res, 200, "Customer signed out");
 };
 export const passwordReset = async (req, res, next) => {
   try {
@@ -82,10 +73,7 @@ export const passwordReset = async (req, res, next) => {
 
     const result = await resetPassword({ email, newPassword });
 
-    res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
+    successResponse(res, 200, result.message);
   } catch (error) {
     next(error);
   }
