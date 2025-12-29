@@ -15,7 +15,11 @@ import employeeRouter from "./src/routes/employee.route.js";
 import customerRouter from "./src/routes/customer.route.js";
 import paymentRouter from "./src/routes/payment.route.js";
 import setupSwagger from "./src/configs/swagger.js";
+import corsMiddleware from "./src/middleware/cors.middleware.js";
 const app = express();
+
+// CORS Middleware
+app.use(corsMiddleware);
 
 // Middleware
 app.use(express.json({ limit: "10mb", strict: false }));
