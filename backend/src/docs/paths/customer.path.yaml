@@ -11,40 +11,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Customers retrieved successfully
-                customers:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      cusid:
-                        type: integer
-                        example: 1
-                      cusname:
-                        type: string
-                        example: Jane Doe
-                      cusemail:
-                        type: string
-                        format: email
-                        example: customer@development.com
-                      custel:
-                        type: string
-                        example: "+0123456789"
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-01T10:00:00Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-02T12:00:00Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        customers:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Customer"
 
 /customer/{cusid}:
   parameters:
@@ -66,38 +43,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Customer retrieved successfully
-                customer:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    cusid:
-                      type: integer
-                      example: 1
-                    cusname:
-                      type: string
-                      example: Jane Doe
-                    cusemail:
-                      type: string
-                      format: email
-                      example: customer@development.com
-                    custel:
-                      type: string
-                      example: "+0123456789"
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-01T10:00:00Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-02T12:00:00Z"
+                    data:
+                      type: object
+                      properties:
+                        customer:
+                          $ref: "#/components/schemas/Customer"
   put:
     tags:
       - Customer
@@ -111,14 +65,14 @@
           schema:
             type: object
             properties:
-              cusname:
+              name:
                 type: string
                 example: Jane Doe
-              cusemail:
+              email:
                 type: string
                 format: email
                 example: jane.doe@development.com
-              custel:
+              telephone:
                 type: string
                 example: "+0987654321"
     responses:
@@ -127,38 +81,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Customer updated successfully
-                customer:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    cusid:
-                      type: integer
-                      example: 1
-                    cusname:
-                      type: string
-                      example: Jane Doe
-                    cusemail:
-                      type: string
-                      format: email
-                      example: jane.doe@development.com
-                    custel:
-                      type: string
-                      example: "+0987654321"
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-01T10:00:00Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-03T08:00:00Z"
+                    data:
+                      type: object
+                      properties:
+                        customer:
+                          $ref: "#/components/schemas/Customer"
   delete:
     tags:
       - Customer
@@ -171,11 +102,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Customer deleted successfully
+              $ref: "#/components/schemas/SuccessResponse"

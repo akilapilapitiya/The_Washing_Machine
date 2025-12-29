@@ -1,4 +1,13 @@
 import pool from "../configs/database.js";
+import {
+  assertNonNegativeNumber,
+  assertRequiredFields,
+} from "../utils/validation.util.js";
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "../utils/errors.util.js";
 
 // Create a vehicle
 export const createVehicleService = async ({
@@ -8,6 +17,13 @@ export const createVehicleService = async ({
   vehbrand,
   vehmodel,
 }) => {
+  assertRequiredFields({ customerId, vehid, vehbrand, vehmodel }, [
+    "customerId",
+    "vehid",
+    "vehbrand",
+    "vehmodel",
+  ]);
+  assertNonNegativeNumber(vehmileage, "vehmileage");
   const result = await pool.query(
     `
     INSERT INTO vehicle (vehid, vehmileage, vehbrand, vehmodel, cusid)
@@ -35,8 +51,52 @@ export const getCustomerVehiclesService = async (customerId) => {
   return result.rows;
 };
 
-// Get a vehicle
-export const getVehicleService = async (vehid) => {
+// Get all Vehicles based on user role
+export const getAllVehiclesByRoleService = async (
+  userId,
+  userRole,
+  userEmptype
+) => {
+  // Determine effective role
+  const effectiveRole = userEmptype || userRole;
+
+  // If customer, show only their vehicles
+  if (userRole === "customer") {
+    const result = await pool.query(
+      `
+      SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      FROM vehicle
+      WHERE cusid = $1
+      ORDER BY created_at DESC
+      `,
+      [userId]
+    );
+    return result.rows;
+  }
+
+  // If manager or owner, show all vehicles
+  if (effectiveRole === "manager" || effectiveRole === "owner") {
+    const result = await pool.query(
+      `
+      SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      FROM vehicle
+      ORDER BY created_at DESC
+      `
+    );
+    return result.rows;
+  }
+
+  // Normal employee - throw error (they should only get by ID)
+  throw new ForbiddenError("Employees can only view vehicles by ID");
+};
+
+// Get a vehicle by ID based on user role
+export const getVehicleService = async (
+  vehid,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const result = await pool.query(
     `
     SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
@@ -47,41 +107,58 @@ export const getVehicleService = async (vehid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Vehicle not found");
+    throw new NotFoundError("Vehicle not found");
   }
 
-  return result.rows[0];
+  const vehicle = result.rows[0];
+
+  // Determine effective role
+  const effectiveRole = userEmptype || userRole;
+
+  // Authorization checks
+  if (userRole === "customer") {
+    // Customer can only see their own vehicles
+    if (vehicle.cusid !== userId) {
+      throw new ForbiddenError("You can only view your own vehicles");
+    }
+  } else if (userRole === "employee") {
+    // Employee can access if they are manager/owner, or if they're viewing a vehicle by ID (normal employee access)
+    if (effectiveRole !== "manager" && effectiveRole !== "owner") {
+      // Normal employee - allowed to view any vehicle by ID
+    }
+  }
+
+  return vehicle;
 };
 
-// Update a vehicle
-export const updateVehicleService = async (vehid, customerId, updates) => {
-  const { vehmileage, vehbrand, vehmodel } = updates;
+// Update a vehicle mileage (employees only)
+export const updateVehicleService = async (vehid, vehmileage) => {
+  if (vehmileage === undefined || vehmileage === null) {
+    throw new ValidationError("Mileage is required");
+  }
 
-  // First verify the vehicle belongs to the customer
+  if (vehmileage < 0) {
+    throw new ValidationError("Mileage cannot be negative");
+  }
+
   const vehicleCheck = await pool.query(
-    "SELECT cusid FROM vehicle WHERE vehid = $1",
+    "SELECT vehid FROM vehicle WHERE vehid = $1",
     [vehid]
   );
 
   if (vehicleCheck.rowCount === 0) {
-    throw new Error("Vehicle not found");
-  }
-
-  if (vehicleCheck.rows[0].cusid !== customerId) {
-    throw new Error("You can only update your own vehicles");
+    throw new NotFoundError("Vehicle not found");
   }
 
   const result = await pool.query(
     `
     UPDATE vehicle
-    SET vehmileage = COALESCE($1, vehmileage),
-        vehbrand = COALESCE($2, vehbrand),
-        vehmodel = COALESCE($3, vehmodel),
+    SET vehmileage = $1,
         updated_at = NOW()
-    WHERE vehid = $4
+    WHERE vehid = $2
     RETURNING vehid, vehmileage, vehbrand, vehmodel, cusid
     `,
-    [vehmileage, vehbrand, vehmodel, vehid]
+    [vehmileage, vehid]
   );
 
   return result.rows[0];
@@ -96,11 +173,11 @@ export const deleteVehicleService = async (vehid, customerId) => {
   );
 
   if (vehicleCheck.rowCount === 0) {
-    throw new Error("Vehicle not found");
+    throw new NotFoundError("Vehicle not found");
   }
 
   if (vehicleCheck.rows[0].cusid !== customerId) {
-    throw new Error("You can only delete your own vehicles");
+    throw new ForbiddenError("You can only delete your own vehicles");
   }
 
   await pool.query("DELETE FROM vehicle WHERE vehid = $1", [vehid]);

@@ -19,7 +19,6 @@ const createVehicleTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Vehicle table created");
 };
 
 export default createVehicleTable;

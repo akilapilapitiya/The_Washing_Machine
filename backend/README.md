@@ -12,6 +12,7 @@ This backend is a RESTful API built using Node.js and Express. It powers a vehic
 - Employee and customer profile management
 - Role-based access control (RBAC)
 - JWT-based authentication with HTTP-only cookies
+- Centralized validation and typed error handling with consistent API envelopes
 
 ## Tech Stack
 
@@ -22,6 +23,9 @@ This backend is a RESTful API built using Node.js and Express. It powers a vehic
 - **Password Hashing:** bcryptjs
 - **HTTP Parsing:** Body-parser, cookie-parser
 - **Validation:** Joi (for request validation)
+- **Error Handling:** Centralized middleware with typed errors (AppError, Validation/Unauthorized/Forbidden/NotFound)
+- **Security:** Helmet (security headers), CORS, Rate Limiting, Response Compression
+- **API Documentation:** Swagger/OpenAPI
 
 ## Project Architecture
 
@@ -34,6 +38,7 @@ The backend follows a layered architecture for scalability, maintainability, and
 - **Models:** Database schema definitions
 - **Configs:** Environment and database pool configuration
 - **Utils:** Shared utilities (JWT token generation, helpers)
+  - `utils/errors.util.js` for typed errors and `utils/validation.util.js` for service-layer guards
 
 ## Folder Structure
 
@@ -53,9 +58,13 @@ src/
 │   ├── test.controller.js
 │   └── vehicle.controller.js
 ├── middleware/
-│   ├── auth.middleware.js        # JWT verification & role-based access
-│   ├── bodyParser.middleware.js  # Request body validation
-│   └── error.middleware.js       # Centralized error handling
+│   ├── auth.middleware.js           # JWT verification & role-based access
+│   ├── bodyParser.middleware.js     # Request body validation
+│   ├── compression.middleware.js    # Response compression (gzip)
+│   ├── cors.middleware.js           # Cross-Origin Resource Sharing
+│   ├── error.middleware.js          # Centralized error handling
+│   ├── helmet.middleware.js         # Security headers
+│   └── rateLimit.middleware.js      # Rate limiting & abuse prevention
 ├── models/
 │   ├── booking.model.js
 │   ├── customer.model.js
@@ -118,12 +127,19 @@ Create environment files for your deployment:
 Required variables:
 ```
 PORT=5000
+NODE_ENV=development
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=washing_machine
 DB_USER=postgres
 DB_PASSWORD=your_password
 JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=1d
+SALT_ROUNDS=12
+COOKIE_AGE=7
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_AUTH_MAX=5
 ```
 
 ### Running the Application
@@ -168,6 +184,19 @@ Clean database (removes all data, keeps schema):
 npm run db:clean
 ```
 
+Seed initial owner account (required for first-time setup or after cleaning database):
+```bash
+npm run db:seed-owner
+```
+
+**Important:** After running `db:clean`, you must run `db:seed-owner` to create an owner account. This owner can then sign in and create other employees.
+
+**Default Owner Credentials:**
+- Email: `owner@washingmachine.com`
+- Password: `Owner@123`
+
+**Security Note:** Change these credentials immediately in production environments!
+
 ## API Endpoints
 
 All endpoints (except public service GET) require JWT authentication via `Authorization: Bearer <token>` header or `jwt` cookie.
@@ -184,7 +213,7 @@ All endpoints (except public service GET) require JWT authentication via `Author
 #### Employee Authentication
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| POST | `/api/authemployee/signup` | Employee registration | ❌ | - |
+| POST | `/api/authemployee/signup` | Employee registration | ✅ | Owner |
 | POST | `/api/authemployee/signin` | Employee login | ❌ | - |
 | POST | `/api/authemployee/signout` | Employee logout | ✅ | Employee |
 
@@ -201,30 +230,30 @@ All endpoints (except public service GET) require JWT authentication via `Author
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/employee` | Get all employees | ✅ | Employee |
+| GET | `/api/employee` | Get all employees | ✅ | Owner |
 | GET | `/api/employee/:empid` | Get single employee | ✅ | Employee |
 | PUT | `/api/employee/:empid` | Update employee profile | ✅ | Employee |
-| DELETE | `/api/employee/:empid` | Delete employee | ✅ | Employee |
+| DELETE | `/api/employee/:empid` | Delete employee | ✅ | Owner |
 
-### Vehicle Management (Protected - Customers Only)
+### Vehicle Management
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/vehicle` | Get customer's vehicles | ✅ | Customer |
-| GET | `/api/vehicle/:vehid` | Get single vehicle | ✅ | Customer |
+| GET | `/api/vehicle` | Get vehicles (customers see their own; managers/owners see all) | ✅ | Customer/Manager/Owner |
+| GET | `/api/vehicle/:vehid` | Get vehicle by ID (customers can only see their own vehicle; employees/managers/owners can see any) | ✅ | All authenticated |
 | POST | `/api/vehicle` | Create new vehicle | ✅ | Customer |
-| PUT | `/api/vehicle/:vehid` | Update vehicle | ✅ | Customer |
-| DELETE | `/api/vehicle/:vehid` | Delete vehicle | ✅ | Customer |
+| PUT | `/api/vehicle/:vehid` | Update vehicle mileage only | ✅ | Employee |
+| DELETE | `/api/vehicle/:vehid` | Delete vehicle (owner customer) | ✅ | Customer |
 
 ### Booking Management (Protected - Customers & Employees)
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/booking` | Get all bookings | ✅ | Customer/Employee |
-| GET | `/api/booking/:id` | Get single booking | ✅ | Customer/Employee |
+| GET | `/api/booking` | Employees see all bookings; customers see their own | ✅ | Customer/Employee |
+| GET | `/api/booking/:id` | Employees can view any; customers only their own booking | ✅ | Customer/Employee |
 | POST | `/api/booking` | Create booking | ✅ | Customer/Employee |
-| PUT | `/api/booking/:id` | Update booking | ✅ | Customer/Employee |
-| DELETE | `/api/booking/:id` | Delete booking | ✅ | Customer/Employee |
+| PUT | `/api/booking/:id` | Employees can update any; customers only their own booking | ✅ | Customer/Employee |
+| DELETE | `/api/booking/:id` | Employees can delete any; customers only their own booking | ✅ | Customer/Employee |
 
 ### Service Management
 
@@ -232,21 +261,42 @@ All endpoints (except public service GET) require JWT authentication via `Author
 |--------|----------|-------------|------|------|
 | GET | `/api/service` | Get all services | ❌ | - |
 | GET | `/api/service/:serviceid` | Get single service | ❌ | - |
-| POST | `/api/service` | Create service | ✅ | Employee |
-| PUT | `/api/service/:serviceid` | Update service | ✅ | Employee |
-| DELETE | `/api/service/:serviceid` | Delete service | ✅ | Employee |
+| POST | `/api/service` | Create service | ✅ | Manager/Owner |
+| PUT | `/api/service/:serviceid` | Update service | ✅ | Manager/Owner |
+| DELETE | `/api/service/:serviceid` | Delete service | ✅ | Manager/Owner |
 
-### Payment Management (Protected - Employees Only)
+### Payment Management
 
 | Method | Endpoint | Description | Auth | Role |
 |--------|----------|-------------|------|------|
-| GET | `/api/payment` | Get all payments | ✅ | Employee |
-| GET | `/api/payment/:paymentid` | Get single payment | ✅ | Employee |
-| POST | `/api/payment` | Create payment | ✅ | Employee |
-| PUT | `/api/payment/:paymentid` | Update payment | ✅ | Employee |
-| DELETE | `/api/payment/:paymentid` | Delete payment | ✅ | Employee |
+| GET | `/api/payment` | Get all payments | ✅ | Manager/Owner |
+| GET | `/api/payment/my` | Get my payments | ✅ | Customer |
+| GET | `/api/payment/:paymentid` | Get single payment (customers own only; managers/owners any) | ✅ | Customer/Manager/Owner |
+| POST | `/api/payment` | Create payment | ✅ | Manager/Owner |
+| PUT | `/api/payment/:paymentid` | Update payment | ✅ | Manager/Owner |
+| DELETE | `/api/payment/:paymentid` | Delete payment | ✅ | Manager/Owner |
 
 ## Authentication & Authorization
+
+### Role-Based Access Control (RBAC)
+
+The system implements a 4-tier role-based access control:
+
+1. **Customer** - Can manage their own vehicles and bookings
+2. **Employee** (normal) - Can view employee/customer data and manage bookings
+3. **Manager** - Can create/update/delete services and payments, plus all employee permissions
+4. **Owner** - Full system access including creating/deleting employees, plus all manager permissions
+
+**Role Hierarchy:**
+```
+Owner (highest privilege)
+  ↓
+Manager
+  ↓
+Employee
+  ↓
+Customer (lowest privilege)
+```
 
 ### Authentication Design
 
@@ -256,10 +306,20 @@ All endpoints (except public service GET) require JWT authentication via `Author
 
 ### JWT Payload
 
+**Customer Token:**
 ```json
 {
   "id": 1,
-  "role": "customer" // or "employee"
+  "role": "customer"
+}
+```
+
+**Employee Token (includes emptype):**
+```json
+{
+  "id": 1,
+  "role": "employee",
+  "emptype": "owner" // or "manager", "employee", etc.
 }
 ```
 
@@ -278,34 +338,51 @@ router.get('/', getAllEmployees); // Only authenticated employees
 
 ## Security Measures
 
-- **Password Hashing:** bcryptjs with salt rounds
-- **JWT Authentication:** Stateless token-based auth
+- **Password Hashing:** bcryptjs with salt rounds (configurable)
+- **JWT Authentication:** Stateless token-based auth with HTTP-only cookies
 - **HTTP-Only Cookies:** Tokens stored securely (XSS protection)
+- **CORS:** Cross-origin resource sharing with configurable allowed origins
+- **Security Headers:** Helmet.js for CSP, HSTS, frameguard, and more
+- **Rate Limiting:** DDoS protection with:
+  - General endpoints: 100 requests/15 min
+  - Authentication endpoints: 5 attempts/15 min (stricter)
+  - Disabled in development for easier testing
+- **Response Compression:** gzip compression for optimized bandwidth usage
 - **Role-Based Access Control (RBAC):** Granular permission enforcement
 - **SQL Injection Prevention:** Parameterized queries throughout
 - **Centralized Error Handling:** Consistent error response format
 - **Database Validation:** Constraints, indexes, foreign keys
-- **Request Validation:** Input validation at middleware and service layers
 
 ## Request/Response Format
 
 ### Success Response
 ```json
 {
-  "status": "success",
+  "success": true,
   "message": "Operation completed",
-  "data": { }
+  "data": {}
 }
 ```
 
 ### Error Response
 ```json
 {
-  "status": 500,
-  "message": "Something went wrong",
-  "error": "Error description"
+  "success": false,
+  "message": "Resource not found",
+  "errors": [
+    {
+      "field": "email",
+      "message": "This field is required"
+    }
+  ],
+  "debug": {
+    "error": "Internal stack/message (non-production only)",
+    "stack": "..."
+  }
 }
 ```
+
+- Errors thrown from services/controllers use typed errors (`AppError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError`), which the error middleware maps to appropriate HTTP status codes and the envelope above.
 
 ## Example Usage
 

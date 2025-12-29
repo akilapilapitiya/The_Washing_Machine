@@ -4,17 +4,14 @@ import {
   updateCustomerService,
   deleteCustomerService,
 } from "../services/customer.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const getCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
     const customer = await getCustomerService(cusid);
 
-    res.status(200).json({
-      status: "success",
-      message: "Customer retrieved successfully",
-      customer,
-    });
+    successResponse(res, 200, "Customer retrieved successfully", { customer });
   } catch (error) {
     next(error);
   }
@@ -24,9 +21,7 @@ export const getAllCustomers = async (req, res, next) => {
   try {
     const customers = await getAllCustomersService();
 
-    res.status(200).json({
-      status: "success",
-      message: "Customers retrieved successfully",
+    successResponse(res, 200, "Customers retrieved successfully", {
       customers,
     });
   } catch (error) {
@@ -37,15 +32,18 @@ export const getAllCustomers = async (req, res, next) => {
 export const updateCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
-    const updates = req.body;
+    const { name, email, telephone } = req.body;
+
+    // Map request fields to database field names
+    const updates = {
+      cusname: name,
+      cusemail: email,
+      custel: telephone,
+    };
 
     const customer = await updateCustomerService(cusid, updates);
 
-    res.status(200).json({
-      status: "success",
-      message: "Customer updated successfully",
-      customer,
-    });
+    successResponse(res, 200, "Customer updated successfully", { customer });
   } catch (error) {
     next(error);
   }
@@ -56,10 +54,7 @@ export const deleteCustomer = async (req, res, next) => {
     const { cusid } = req.params;
     await deleteCustomerService(cusid);
 
-    res.status(200).json({
-      status: "success",
-      message: "Customer deleted successfully",
-    });
+    successResponse(res, 200, "Customer deleted successfully");
   } catch (error) {
     next(error);
   }

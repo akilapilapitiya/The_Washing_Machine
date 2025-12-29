@@ -21,7 +21,6 @@ const createEmployeeAssignedTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("EmployeeAssigned table created");
 };
 
 export default createEmployeeAssignedTable;

@@ -1,5 +1,10 @@
 import { COOKIE_AGE, NODE_ENV } from "../configs/env.js";
-import { signUp, signIn } from "../services/employeeAuth.service.js";
+import {
+  signUp,
+  signIn,
+  resetPassword,
+} from "../services/employeeAuth.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const employeeSignUp = async (req, res, next) => {
   try {
@@ -22,9 +27,7 @@ export const employeeSignUp = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Employee registered successfully",
+    successResponse(res, 201, "Employee registered successfully", {
       employee,
       token,
     });
@@ -52,9 +55,7 @@ export const employeeSignIn = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "Employee signed in successfully",
+    successResponse(res, 200, "Employee signed in successfully", {
       employee: safeEmployee,
       token,
     });
@@ -70,5 +71,16 @@ export const employeeSignOut = async (req, res, next) => {
     sameSite: "strict",
     secure: NODE_ENV === "production",
   });
-  res.status(200).json({ message: "Employee signed out" });
+  successResponse(res, 200, "Employee signed out");
+};
+export const passwordReset = async (req, res, next) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    const result = await resetPassword({ email, newPassword });
+
+    successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
 };

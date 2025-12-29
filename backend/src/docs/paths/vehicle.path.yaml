@@ -2,8 +2,8 @@
   get:
     tags:
       - Vehicle
-    summary: Get Customer Vehicles
-    description: Returns vehicles for the authenticated customer.
+    summary: List Vehicles
+    description: Customers see their own vehicles; managers/owners see all vehicles.
     operationId: getCustomerVehicles
     responses:
       "200":
@@ -11,42 +11,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicles retrieved successfully
-                vehicles:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      vehid:
-                        type: integer
-                        example: 12345
-                      vehmileage:
-                        type: integer
-                        example: 45000
-                      vehbrand:
-                        type: string
-                        example: Toyota
-                      vehmodel:
-                        type: string
-                        example: Corolla
-                      cusid:
-                        type: integer
-                        example: 1
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        vehicles:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Vehicle"
   post:
     tags:
       - Vehicle
@@ -66,8 +41,8 @@
               - vehmodel
             properties:
               vehid:
-                type: integer
-                example: 12345
+                type: string
+                example: "ABC-1234"
               vehmileage:
                 type: integer
                 example: 45000
@@ -83,32 +58,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle created successfully
-                vehicle:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    vehid:
-                      type: integer
-                      example: 12345
-                    vehmileage:
-                      type: integer
-                      example: 45000
-                    vehbrand:
-                      type: string
-                      example: Toyota
-                    vehmodel:
-                      type: string
-                      example: Corolla
-                    cusid:
-                      type: integer
-                      example: 1
+                    data:
+                      type: object
+                      properties:
+                        vehicle:
+                          $ref: "#/components/schemas/Vehicle"
 
 /vehicle/{vehid}:
   parameters:
@@ -116,13 +74,13 @@
       name: vehid
       required: true
       schema:
-        type: integer
+        type: string
       description: Vehicle ID
   get:
     tags:
       - Vehicle
     summary: Get Vehicle By ID
-    description: Returns a single vehicle by `vehid`.
+    description: Customers can only see their own vehicle; employees/managers/owners can view any vehicle by `vehid`.
     operationId: getVehicle
     responses:
       "200":
@@ -130,45 +88,20 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle retrieved successfully
-                vehicle:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    vehid:
-                      type: integer
-                      example: 12345
-                    vehmileage:
-                      type: integer
-                      example: 45000
-                    vehbrand:
-                      type: string
-                      example: Toyota
-                    vehmodel:
-                      type: string
-                      example: Corolla
-                    cusid:
-                      type: integer
-                      example: 1
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
+                    data:
+                      type: object
+                      properties:
+                        vehicle:
+                          $ref: "#/components/schemas/Vehicle"
   put:
     tags:
       - Vehicle
-    summary: Update Vehicle
-    description: Updates fields of the vehicle with the given `vehid`.
+    summary: Update Vehicle Mileage
+    description: Employees can update mileage for a vehicle by `vehid`.
     operationId: updateVehicle
     requestBody:
       required: true
@@ -176,53 +109,32 @@
         application/json:
           schema:
             type: object
+            required:
+              - vehmileage
             properties:
               vehmileage:
                 type: integer
                 example: 47000
-              vehbrand:
-                type: string
-                example: Toyota
-              vehmodel:
-                type: string
-                example: Corolla Altis
     responses:
       "200":
-        description: Vehicle updated successfully
+        description: Vehicle mileage updated successfully
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle updated successfully
-                vehicle:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    vehid:
-                      type: integer
-                      example: 12345
-                    vehmileage:
-                      type: integer
-                      example: 47000
-                    vehbrand:
-                      type: string
-                      example: Toyota
-                    vehmodel:
-                      type: string
-                      example: Corolla Altis
-                    cusid:
-                      type: integer
-                      example: 1
+                    data:
+                      type: object
+                      properties:
+                        vehicle:
+                          $ref: "#/components/schemas/Vehicle"
   delete:
     tags:
       - Vehicle
     summary: Delete Vehicle
-    description: Deletes the vehicle with the given `vehid`.
+    description: Customers can delete their own vehicle by `vehid`.
     operationId: deleteVehicle
     responses:
       "200":
@@ -230,11 +142,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Vehicle deleted successfully
+              $ref: "#/components/schemas/SuccessResponse"

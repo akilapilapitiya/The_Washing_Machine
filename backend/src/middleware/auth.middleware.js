@@ -26,11 +26,16 @@ export const authMiddleware = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Attach user info with role to request
+    // Attach user info with role and emptype (if employee) to request
     req.user = {
       id: decoded.id,
       role: decoded.role, // 'customer' or 'employee'
     };
+
+    // For employees, include emptype
+    if (decoded.emptype) {
+      req.user.emptype = decoded.emptype; // 'manager', 'owner', or other types
+    }
 
     // Verify user still exists in database
     let userExists;
@@ -63,13 +68,30 @@ export const authMiddleware = async (req, res, next) => {
 };
 
 // Middleware to restrict access to specific roles
+// For employees, you can specify roles like: 'customer', 'employee', 'manager', 'owner'
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Not authorized. No user found.",
+      });
+    }
+
+    // Determine user's actual role for checking
+    let userRole = req.user.role;
+
+    // If it's an employee with emptype, check if emptype-based role is in allowed roles
+    if (req.user.role === "employee" && req.user.emptype) {
+      userRole = req.user.emptype;
+    }
+
+    // Check if user's role matches any of the allowed roles
+    if (!roles.includes(userRole) && !roles.includes(req.user.role)) {
       return res.status(403).json({
         error: "You do not have permission to perform this action.",
       });
     }
+
     next();
   };
 };

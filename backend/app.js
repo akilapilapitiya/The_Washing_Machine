@@ -15,7 +15,26 @@ import employeeRouter from "./src/routes/employee.route.js";
 import customerRouter from "./src/routes/customer.route.js";
 import paymentRouter from "./src/routes/payment.route.js";
 import setupSwagger from "./src/configs/swagger.js";
+import corsMiddleware from "./src/middleware/cors.middleware.js";
+import helmetConfig from "./src/middleware/helmet.middleware.js";
+import compressionConfig from "./src/middleware/compression.middleware.js";
+import {
+  generalLimiter,
+  authLimiter,
+} from "./src/middleware/rateLimit.middleware.js";
 const app = express();
+
+// CORS Middleware
+app.use(corsMiddleware);
+
+// Security Headers Middleware
+app.use(helmetConfig);
+
+// Response Compression Middleware
+app.use(compressionConfig);
+
+// Rate Limiting
+// app.use(generalLimiter);
 
 // Middleware
 app.use(express.json({ limit: "10mb", strict: false }));
@@ -27,8 +46,8 @@ app.use(bodyParser);
 
 // Routes
 app.use("/api", testRouter);
-app.use("/api/authemployee", employeeAuthRouter);
-app.use("/api/authcustomer", customerAuthRouter);
+app.use("/api/authemployee", authLimiter, employeeAuthRouter);
+app.use("/api/authcustomer", authLimiter, customerAuthRouter);
 app.use("/api/booking", bookingRouter);
 app.use("/api/vehicle", vehicleRouter);
 app.use("/api/service", serviceRouter);
@@ -43,7 +62,7 @@ app.use(errorHandling);
 setupSwagger(app);
 
 // Create Tables
-// await initModels(pool);
+await initModels(pool);
 
 // Server Running
 app.listen(PORT, () => {

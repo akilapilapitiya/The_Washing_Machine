@@ -11,44 +11,17 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Services retrieved successfully
-                services:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      serviceid:
-                        type: integer
-                        example: 10
-                      servicename:
-                        type: string
-                        example: Exterior Wash
-                      servicetime:
-                        type: integer
-                        description: Duration in minutes
-                        example: 45
-                      serviceprice:
-                        type: number
-                        format: float
-                        example: 1500.00
-                      servicedetails:
-                        type: string
-                        example: Full exterior wash including wheels and windows
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: "2025-01-15T09:30:00.000Z"
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        services:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Service"
   post:
     tags:
       - Service
@@ -86,33 +59,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Service created successfully
-                service:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    serviceid:
-                      type: integer
-                      example: 11
-                    servicename:
-                      type: string
-                      example: Interior Detailing
-                    servicetime:
-                      type: integer
-                      example: 60
-                    serviceprice:
-                      type: number
-                      format: float
-                      example: 2500.00
-                    servicedetails:
-                      type: string
-                      example: Deep interior cleaning and conditioning
+                    data:
+                      type: object
+                      properties:
+                        service:
+                          $ref: "#/components/schemas/Service"
 
 /service/{serviceid}:
   parameters:
@@ -134,42 +89,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Service retrieved successfully
-                service:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    serviceid:
-                      type: integer
-                      example: 10
-                    servicename:
-                      type: string
-                      example: Exterior Wash
-                    servicetime:
-                      type: integer
-                      description: Duration in minutes
-                      example: 45
-                    serviceprice:
-                      type: number
-                      format: float
-                      example: 1500.00
-                    servicedetails:
-                      type: string
-                      example: Full exterior wash including wheels and windows
-                    created_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
-                    updated_at:
-                      type: string
-                      format: date-time
-                      example: "2025-01-15T09:30:00.000Z"
+                    data:
+                      type: object
+                      properties:
+                        service:
+                          $ref: "#/components/schemas/Service"
   put:
     tags:
       - Service
@@ -203,33 +131,15 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Service updated successfully
-                service:
-                  type: object
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
                   properties:
-                    serviceid:
-                      type: integer
-                      example: 10
-                    servicename:
-                      type: string
-                      example: Exterior Wash Plus
-                    servicetime:
-                      type: integer
-                      example: 50
-                    serviceprice:
-                      type: number
-                      format: float
-                      example: 1700.00
-                    servicedetails:
-                      type: string
-                      example: Exterior wash with wax
+                    data:
+                      type: object
+                      properties:
+                        service:
+                          $ref: "#/components/schemas/Service"
   delete:
     tags:
       - Service
@@ -242,11 +152,4 @@
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  example: success
-                message:
-                  type: string
-                  example: Service deleted successfully
+              $ref: "#/components/schemas/SuccessResponse"

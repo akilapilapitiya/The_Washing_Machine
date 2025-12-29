@@ -1,11 +1,24 @@
 import pool from "../configs/database.js";
+import {
+  assertAtLeastOneField,
+  assertEnum,
+  assertRequiredFields,
+  validationError,
+} from "../utils/validation.util.js";
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "../utils/errors.util.js";
 
-export const getAllBookingsService = async () => {
+export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
 
   try {
-    const result = await client.query(
-      `
+    // Determine effective role
+    const effectiveRole = userEmptype || userRole;
+
+    let query = `
       SELECT 
         b.bookingid,
         b.bookingstatus,
@@ -15,24 +28,45 @@ export const getAllBookingsService = async () => {
         b.bookinglocationlatitude,
         b.bookinglocationlongitude,
         b.vehid,
+        v.cusid,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
-      GROUP BY b.bookingid
-      `
-    );
+      LEFT JOIN vehicle v ON b.vehid = v.vehid
+    `;
 
+    let queryParams = [];
+
+    // If customer, show only their bookings
+    if (userRole === "customer") {
+      query += ` WHERE v.cusid = $1`;
+      queryParams.push(userId);
+    }
+    // If employee (any type), show all bookings
+    // No WHERE clause needed - they can see everything
+
+    query += ` GROUP BY b.bookingid, v.cusid`;
+
+    const result = await client.query(query, queryParams);
     return result.rows;
   } finally {
     client.release();
   }
 };
 
-export const getBookingService = async (bookingId) => {
+export const getBookingService = async (
+  bookingId,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const client = await pool.connect();
 
   try {
+    // Determine effective role
+    const effectiveRole = userEmptype || userRole;
+
     const result = await client.query(
       `
       SELECT 
@@ -44,21 +78,34 @@ export const getBookingService = async (bookingId) => {
         b.bookinglocationlatitude,
         b.bookinglocationlongitude,
         b.vehid,
+        v.cusid,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
+      LEFT JOIN vehicle v ON b.vehid = v.vehid
       WHERE b.bookingid = $1
-      GROUP BY b.bookingid
+      GROUP BY b.bookingid, v.cusid
       `,
       [bookingId]
     );
 
     if (result.rowCount === 0) {
-      throw new Error("Booking not found");
+      throw new NotFoundError("Booking not found");
     }
 
-    return result.rows[0];
+    const booking = result.rows[0];
+
+    // Authorization checks
+    if (userRole === "customer") {
+      // Customer can only see their own bookings
+      if (booking.cusid !== userId) {
+        throw new ForbiddenError("You can only view your own bookings");
+      }
+    }
+    // Employees can view any booking
+
+    return booking;
   } finally {
     client.release();
   }
@@ -76,6 +123,37 @@ export const createBookingService = async ({
   services,
   userRole,
 }) => {
+  assertRequiredFields(
+    {
+      customerId,
+      status,
+      date,
+      startTime,
+      endTime,
+      locationLatitude,
+      locationLongitude,
+      vehicleId,
+    },
+    [
+      "customerId",
+      "status",
+      "date",
+      "startTime",
+      "endTime",
+      "locationLatitude",
+      "locationLongitude",
+      "vehicleId",
+    ]
+  );
+
+  assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
+
+  // Quick service-layer check for time ordering
+  if (startTime && endTime && startTime >= endTime) {
+    throw validationError("End time must be after start time", [
+      { field: "endTime", message: "End time must be after start time" },
+    ]);
+  }
   const client = await pool.connect();
 
   try {
@@ -88,20 +166,12 @@ export const createBookingService = async ({
     );
 
     if (vehicleCheck.rowCount === 0) {
-      throw new Error("Vehicle not found");
+      throw new NotFoundError("Vehicle not found");
     }
 
     // If the user is a customer, verify they own the vehicle
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
-      throw new Error("You can only book with your own vehicles");
-    }
-
-    // Validate status
-    const validStatuses = ["pending", "inProgress", "completed", "paid"];
-    if (!validStatuses.includes(status)) {
-      throw new Error(
-        `Invalid status. Must be one of: ${validStatuses.join(", ")}`
-      );
+      throw new ForbiddenError("You can only book with your own vehicles");
     }
 
     // Validate the date meets the constraint
@@ -111,7 +181,7 @@ export const createBookingService = async ({
     );
 
     if (!dateCheck.rows[0].is_valid) {
-      throw new Error("Booking date must be today or in the future");
+      throw new ValidationError("Booking date must be today or in the future");
     }
 
     // Insert booking
@@ -143,7 +213,7 @@ export const createBookingService = async ({
       );
 
       if (servicesCheck.rowCount !== services.length) {
-        throw new Error("One or more service IDs do not exist");
+        throw new NotFoundError("One or more service IDs do not exist");
       }
 
       // Insert into servicesbooked (many-to-many)
@@ -172,29 +242,63 @@ export const createBookingService = async ({
 /**
  * UPDATE BOOKING
  */
-export const updateBookingService = async (bookingId, updates) => {
+export const updateBookingService = async (
+  bookingId,
+  updates,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const { status, date, startTime, endTime, services } = updates;
+
+  assertAtLeastOneField(updates, [
+    "status",
+    "date",
+    "startTime",
+    "endTime",
+    "services",
+  ]);
+  assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
+  if (startTime && endTime && startTime >= endTime) {
+    throw validationError("End time must be after start time", [
+      { field: "endTime", message: "End time must be after start time" },
+    ]);
+  }
 
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // Check if booking exists
+    // Check if booking exists and get ownership
     const bookingCheck = await client.query(
-      "SELECT bookingid FROM booking WHERE bookingid = $1",
+      `
+      SELECT b.bookingid, v.cusid
+      FROM booking b
+      JOIN vehicle v ON b.vehid = v.vehid
+      WHERE b.bookingid = $1
+      `,
       [bookingId]
     );
 
     if (bookingCheck.rowCount === 0) {
-      throw new Error("Booking not found");
+      throw new NotFoundError("Booking not found");
     }
+
+    const bookingOwnerId = bookingCheck.rows[0].cusid;
+    const effectiveRole = userEmptype || userRole;
+
+    // Ownership/authorization: customers may only update their own bookings
+    if (userRole === "customer" && bookingOwnerId !== userId) {
+      throw new ForbiddenError("You can only update your own bookings");
+    }
+    // Employees/managers/owners allowed
 
     // Validate status if provided
     if (status) {
       const validStatuses = ["pending", "inProgress", "completed", "paid"];
       if (!validStatuses.includes(status)) {
-        throw new Error(
+        throw new ValidationError(
           `Invalid status. Must be one of: ${validStatuses.join(", ")}`
         );
       }
@@ -208,7 +312,9 @@ export const updateBookingService = async (bookingId, updates) => {
       );
 
       if (!dateCheck.rows[0].is_valid) {
-        throw new Error("Booking date must be today or in the future");
+        throw new ValidationError(
+          "Booking date must be today or in the future"
+        );
       }
     }
 
@@ -260,7 +366,7 @@ export const updateBookingService = async (bookingId, updates) => {
       );
 
       if (servicesCheck.rowCount !== services.length) {
-        throw new Error("One or more service IDs do not exist");
+        throw new NotFoundError("One or more service IDs do not exist");
       }
 
       await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
@@ -292,11 +398,39 @@ export const updateBookingService = async (bookingId, updates) => {
 /**
  * DELETE BOOKING
  */
-export const deleteBookingService = async (bookingId) => {
+export const deleteBookingService = async (
+  bookingId,
+  userId,
+  userRole,
+  userEmptype
+) => {
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
+
+    // Check ownership
+    const bookingCheck = await client.query(
+      `
+      SELECT b.bookingid, v.cusid
+      FROM booking b
+      JOIN vehicle v ON b.vehid = v.vehid
+      WHERE b.bookingid = $1
+      `,
+      [bookingId]
+    );
+
+    if (bookingCheck.rowCount === 0) {
+      throw new NotFoundError("Booking not found");
+    }
+
+    const bookingOwnerId = bookingCheck.rows[0].cusid;
+    const effectiveRole = userEmptype || userRole;
+
+    if (userRole === "customer" && bookingOwnerId !== userId) {
+      throw new ForbiddenError("You can only delete your own bookings");
+    }
+    // Employees/managers/owners allowed
 
     await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
       bookingId,

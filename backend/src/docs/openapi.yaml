@@ -28,33 +28,73 @@ tags:
     description: Vehicle management endpoints
   - name: Service
     description: Service management endpoints
-paths: {}   # empty, will be dynamically merged from paths/*.yaml
+paths: {} # empty, will be dynamically merged from paths/*.yaml
 
 components:
   schemas:
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+          additionalProperties: true
+
     ErrorResponse:
       type: object
+      required:
+        - success
+        - message
       properties:
         success:
           type: boolean
           example: false
         message:
           type: string
-          example: "Database connection failed"
-        errorCode:
-          type: string
-          example: "DB_CONN_ERROR"
+          example: "Validation Error"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        debug:
+          type: object
+          additionalProperties: true
 
   responses:
+    Success:
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessResponse"
+    Created:
+      description: Resource created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessResponse"
     BadRequest:
       description: Invalid request
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
       description: Authentication required
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"

@@ -38,7 +38,6 @@ const createScheduleTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Schedule table created");
 };
 
 export default createScheduleTable;

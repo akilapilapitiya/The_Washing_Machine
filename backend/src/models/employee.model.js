@@ -22,7 +22,6 @@ const createEmployeeTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Employee table created");
 };
 
 export default createEmployeeTable;

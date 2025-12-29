@@ -1,4 +1,10 @@
 import pool from "../configs/database.js";
+import {
+  assertAtLeastOneField,
+  assertPositiveNumber,
+  assertRequiredFields,
+} from "../utils/validation.util.js";
+import { NotFoundError } from "../utils/errors.util.js";
 
 /**
  * CREATE SERVICE
@@ -9,6 +15,14 @@ export const createServiceService = async ({
   serviceprice,
   servicedetails,
 }) => {
+  assertRequiredFields({ servicename, servicetime, serviceprice }, [
+    "servicename",
+    "servicetime",
+    "serviceprice",
+  ]);
+  assertPositiveNumber(serviceprice, "serviceprice");
+  assertPositiveNumber(servicetime, "servicetime");
+
   const result = await pool.query(
     `
     INSERT INTO service (servicename, servicetime, serviceprice, servicedetails)
@@ -50,7 +64,7 @@ export const getServiceService = async (serviceid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Service not found");
+    throw new NotFoundError("Service not found");
   }
 
   return result.rows[0];
@@ -61,6 +75,15 @@ export const getServiceService = async (serviceid) => {
  */
 export const updateServiceService = async (serviceid, updates) => {
   const { servicename, servicetime, serviceprice, servicedetails } = updates;
+
+  assertAtLeastOneField(updates, [
+    "servicename",
+    "servicetime",
+    "serviceprice",
+    "servicedetails",
+  ]);
+  assertPositiveNumber(serviceprice, "serviceprice");
+  assertPositiveNumber(servicetime, "servicetime");
 
   const result = await pool.query(
     `
@@ -77,7 +100,7 @@ export const updateServiceService = async (serviceid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Service not found");
+    throw new NotFoundError("Service not found");
   }
 
   return result.rows[0];
@@ -92,6 +115,6 @@ export const deleteServiceService = async (serviceid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Service not found");
+    throw new NotFoundError("Service not found");
   }
 };

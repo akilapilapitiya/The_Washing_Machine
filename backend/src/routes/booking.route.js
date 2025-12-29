@@ -7,6 +7,8 @@ import {
   getBooking,
 } from "../controllers/booking.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
+import { validateSchema } from "../middleware/validation.middleware.js";
+import { bookingValidator } from "../validators/index.js";
 
 const bookingRouter = Router();
 
@@ -18,8 +20,18 @@ bookingRouter.get("/", restrictTo("customer", "employee"), getAllBookings);
 bookingRouter.get("/:id", restrictTo("customer", "employee"), getBooking);
 
 // Both customers and employees can create, update, and delete bookings
-bookingRouter.post("/", restrictTo("customer", "employee"), createBooking);
-bookingRouter.put("/:id", restrictTo("customer", "employee"), updateBooking);
+bookingRouter.post(
+  "/",
+  restrictTo("customer", "employee"),
+  validateSchema(bookingValidator.createBooking),
+  createBooking
+);
+bookingRouter.put(
+  "/:id",
+  restrictTo("customer", "employee"),
+  validateSchema(bookingValidator.updateBooking),
+  updateBooking
+);
 bookingRouter.delete("/:id", restrictTo("customer", "employee"), deleteBooking);
 
 export default bookingRouter;

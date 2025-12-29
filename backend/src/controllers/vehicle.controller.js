@@ -2,9 +2,11 @@ import {
   createVehicleService,
   getCustomerVehiclesService,
   getVehicleService,
+  getAllVehiclesByRoleService,
   updateVehicleService,
   deleteVehicleService,
 } from "../services/vehicle.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const createVehicle = async (req, res, next) => {
   try {
@@ -19,11 +21,7 @@ export const createVehicle = async (req, res, next) => {
       vehmodel,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Vehicle created successfully",
-      vehicle,
-    });
+    successResponse(res, 201, "Vehicle created successfully", { vehicle });
   } catch (error) {
     next(error);
   }
@@ -31,15 +29,17 @@ export const createVehicle = async (req, res, next) => {
 
 export const getCustomerVehicles = async (req, res, next) => {
   try {
-    const customerId = req.user.id; // from auth middleware
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const vehicles = await getCustomerVehiclesService(customerId);
+    const vehicles = await getAllVehiclesByRoleService(
+      userId,
+      userRole,
+      userEmptype
+    );
 
-    res.status(200).json({
-      status: "success",
-      message: "Vehicles retrieved successfully",
-      vehicles,
-    });
+    successResponse(res, 200, "Vehicles retrieved successfully", { vehicles });
   } catch (error) {
     next(error);
   }
@@ -48,14 +48,18 @@ export const getCustomerVehicles = async (req, res, next) => {
 export const getVehicle = async (req, res, next) => {
   try {
     const { vehid } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const vehicle = await getVehicleService(vehid);
+    const vehicle = await getVehicleService(
+      vehid,
+      userId,
+      userRole,
+      userEmptype
+    );
 
-    res.status(200).json({
-      status: "success",
-      message: "Vehicle retrieved successfully",
-      vehicle,
-    });
+    successResponse(res, 200, "Vehicle retrieved successfully", { vehicle });
   } catch (error) {
     next(error);
   }
@@ -63,15 +67,12 @@ export const getVehicle = async (req, res, next) => {
 
 export const updateVehicle = async (req, res, next) => {
   try {
-    const customerId = req.user.id; // from auth middleware
     const { vehid } = req.params;
-    const updates = req.body;
+    const { vehmileage } = req.body;
 
-    const vehicle = await updateVehicleService(vehid, customerId, updates);
+    const vehicle = await updateVehicleService(vehid, vehmileage);
 
-    res.status(200).json({
-      status: "success",
-      message: "Vehicle updated successfully",
+    successResponse(res, 200, "Vehicle mileage updated successfully", {
       vehicle,
     });
   } catch (error) {
@@ -86,10 +87,7 @@ export const deleteVehicle = async (req, res, next) => {
 
     await deleteVehicleService(vehid, customerId);
 
-    res.status(200).json({
-      status: "success",
-      message: "Vehicle deleted successfully",
-    });
+    successResponse(res, 200, "Vehicle deleted successfully");
   } catch (error) {
     next(error);
   }
