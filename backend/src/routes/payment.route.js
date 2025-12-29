@@ -10,13 +10,15 @@ import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const paymentRouter = Router();
 
-// Protect all payment routes; employees only
-paymentRouter.use(authMiddleware, restrictTo("employee"));
+// Protect all payment routes; managers and owners only
+paymentRouter.use(authMiddleware, restrictTo("manager", "owner"));
 
-paymentRouter.get("/", getAllPayments);
-paymentRouter.post("/", createPayment);
 paymentRouter.get("/:paymentid", getPayment);
-paymentRouter.put("/:paymentid", updatePayment);
+
+// PROTECTED ROUTE - Manager/Owner only
 paymentRouter.delete("/:paymentid", deletePayment);
+paymentRouter.put("/:paymentid", updatePayment);
+paymentRouter.post("/", createPayment);
+paymentRouter.get("/", getAllPayments);
 
 export default paymentRouter;

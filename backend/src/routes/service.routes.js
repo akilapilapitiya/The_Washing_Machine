@@ -14,9 +14,10 @@ const serviceRouter = Router();
 serviceRouter.get("/", getAllServices);
 serviceRouter.get("/:serviceid", getService);
 
-// POST, PUT, DELETE - only employees can manage services
-serviceRouter.use(authMiddleware, restrictTo("employee"));
+// POST, PUT, DELETE - only managers and owners can manage services
+serviceRouter.use(authMiddleware, restrictTo("manager", "owner"));
 
+// PROTECTED ROUTE - Manager/Owner only
 serviceRouter.post("/", createService);
 serviceRouter.put("/:serviceid", updateService);
 serviceRouter.delete("/:serviceid", deleteService);
