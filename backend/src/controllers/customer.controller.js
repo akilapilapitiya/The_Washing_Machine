@@ -37,7 +37,14 @@ export const getAllCustomers = async (req, res, next) => {
 export const updateCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
-    const updates = req.body;
+    const { name, email, telephone } = req.body;
+
+    // Map request fields to database field names
+    const updates = {
+      cusname: name,
+      cusemail: email,
+      custel: telephone,
+    };
 
     const customer = await updateCustomerService(cusid, updates);
 
