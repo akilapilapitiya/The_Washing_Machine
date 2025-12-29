@@ -1,4 +1,5 @@
 import pool from "../configs/database.js";
+import { assertAtLeastOneField } from "../utils/validation.util.js";
 
 export const getAllEmployeesService = async () => {
   const result = await pool.query(
@@ -31,6 +32,9 @@ export const getEmployeeService = async (empid) => {
 export const updateEmployeeService = async (empid, updates) => {
   // Map request body field names to database column names
   const { name, email, telephone, type, nic, password } = updates;
+
+  // Service-layer guard: ensure at least one updatable field
+  assertAtLeastOneField(updates, ["name", "email", "telephone", "type", "nic", "password"]);
 
   // Build dynamic UPDATE query to only update provided fields
   const updateFields = [];
@@ -81,11 +85,6 @@ export const updateEmployeeService = async (empid, updates) => {
 
   // Always update updated_at
   updateFields.push(`updated_at = NOW()`);
-
-  if (updateFields.length === 1) {
-    // Only updated_at would be updated, nothing else provided
-    throw new Error("No fields provided for update");
-  }
 
   updateValues.push(empid);
 

@@ -1,4 +1,10 @@
 import pool from "../configs/database.js";
+import {
+  assertAtLeastOneField,
+  assertEnum,
+  assertRequiredFields,
+  validationError,
+} from "../utils/validation.util.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -112,6 +118,37 @@ export const createBookingService = async ({
   services,
   userRole,
 }) => {
+  assertRequiredFields(
+    {
+      customerId,
+      status,
+      date,
+      startTime,
+      endTime,
+      locationLatitude,
+      locationLongitude,
+      vehicleId,
+    },
+    [
+      "customerId",
+      "status",
+      "date",
+      "startTime",
+      "endTime",
+      "locationLatitude",
+      "locationLongitude",
+      "vehicleId",
+    ]
+  );
+
+  assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
+
+  // Quick service-layer check for time ordering
+  if (startTime && endTime && startTime >= endTime) {
+    throw validationError("End time must be after start time", [
+      { field: "endTime", message: "End time must be after start time" },
+    ]);
+  }
   const client = await pool.connect();
 
   try {
@@ -130,14 +167,6 @@ export const createBookingService = async ({
     // If the user is a customer, verify they own the vehicle
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
       throw new Error("You can only book with your own vehicles");
-    }
-
-    // Validate status
-    const validStatuses = ["pending", "inProgress", "completed", "paid"];
-    if (!validStatuses.includes(status)) {
-      throw new Error(
-        `Invalid status. Must be one of: ${validStatuses.join(", ")}`
-      );
     }
 
     // Validate the date meets the constraint
@@ -216,6 +245,14 @@ export const updateBookingService = async (
   userEmptype
 ) => {
   const { status, date, startTime, endTime, services } = updates;
+
+  assertAtLeastOneField(updates, ["status", "date", "startTime", "endTime", "services"]);
+  assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
+  if (startTime && endTime && startTime >= endTime) {
+    throw validationError("End time must be after start time", [
+      { field: "endTime", message: "End time must be after start time" },
+    ]);
+  }
 
   const client = await pool.connect();
 

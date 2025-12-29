@@ -1,4 +1,10 @@
 import pool from "../configs/database.js";
+import {
+  assertAtLeastOneField,
+  assertEnum,
+  assertPositiveNumber,
+  assertRequiredFields,
+} from "../utils/validation.util.js";
 
 export const getAllPaymentsService = async () => {
   const result = await pool.query(
@@ -71,16 +77,13 @@ export const createPaymentService = async ({
   paymentamount,
   bookingid,
 }) => {
-  // Validate paymenttype
   const validTypes = ["cash", "card", "online"];
-  if (paymenttype && !validTypes.includes(paymenttype)) {
-    throw new Error(
-      `Invalid payment type. Must be one of: ${validTypes.join(", ")}`
-    );
-  }
-  if (paymentamount !== undefined && Number(paymentamount) <= 0) {
-    throw new Error("Payment amount must be greater than 0");
-  }
+  assertRequiredFields(
+    { paymentamount, bookingid, paymenttype },
+    ["paymentamount", "bookingid", "paymenttype"]
+  );
+  assertEnum(paymenttype, "paymenttype", validTypes);
+  assertPositiveNumber(paymentamount, "paymentamount");
 
   const client = await pool.connect();
   try {
@@ -126,18 +129,10 @@ export const createPaymentService = async ({
 // Customer-facing payment creation with ownership check
 export const updatePaymentService = async (paymentid, updates) => {
   const { paymentdate, paymenttype, paymentamount } = updates;
-
-  if (paymenttype !== undefined) {
-    const validTypes = ["cash", "card", "online"];
-    if (!validTypes.includes(paymenttype)) {
-      throw new Error(
-        `Invalid payment type. Must be one of: ${validTypes.join(", ")}`
-      );
-    }
-  }
-  if (paymentamount !== undefined && Number(paymentamount) <= 0) {
-    throw new Error("Payment amount must be greater than 0");
-  }
+  const validTypes = ["cash", "card", "online"];
+  assertAtLeastOneField(updates, ["paymentdate", "paymenttype", "paymentamount"]);
+  assertEnum(paymenttype, "paymenttype", validTypes);
+  assertPositiveNumber(paymentamount, "paymentamount");
 
   const result = await pool.query(
     `
