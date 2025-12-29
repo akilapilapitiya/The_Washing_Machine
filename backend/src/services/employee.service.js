@@ -29,16 +29,17 @@ export const getEmployeeService = async (empid) => {
 };
 
 export const updateEmployeeService = async (empid, updates) => {
-  const { empname, email, emptel, emptype, empnic } = updates;
+  // Map request body field names to database column names
+  const { name, email, telephone, type, nic, password } = updates;
 
   // Build dynamic UPDATE query to only update provided fields
   const updateFields = [];
   const updateValues = [];
   let paramIndex = 1;
 
-  if (empname !== undefined) {
+  if (name !== undefined) {
     updateFields.push(`empname = $${paramIndex}`);
-    updateValues.push(empname);
+    updateValues.push(name);
     paramIndex++;
   }
 
@@ -48,21 +49,30 @@ export const updateEmployeeService = async (empid, updates) => {
     paramIndex++;
   }
 
-  if (emptel !== undefined) {
+  if (telephone !== undefined) {
     updateFields.push(`emptel = $${paramIndex}`);
-    updateValues.push(emptel);
+    updateValues.push(telephone);
     paramIndex++;
   }
 
-  if (emptype !== undefined) {
+  if (type !== undefined) {
     updateFields.push(`emptype = $${paramIndex}`);
-    updateValues.push(emptype);
+    updateValues.push(type);
     paramIndex++;
   }
 
-  if (empnic !== undefined) {
+  if (nic !== undefined) {
     updateFields.push(`empnic = $${paramIndex}`);
-    updateValues.push(empnic);
+    updateValues.push(nic);
+    paramIndex++;
+  }
+
+  if (password !== undefined) {
+    const bcrypt = await import("bcryptjs");
+    const { SALT_ROUNDS } = await import("../configs/env.js");
+    const passwordHash = await bcrypt.default.hash(password, Number(SALT_ROUNDS));
+    updateFields.push(`password_hash = $${paramIndex}`);
+    updateValues.push(passwordHash);
     paramIndex++;
   }
 
