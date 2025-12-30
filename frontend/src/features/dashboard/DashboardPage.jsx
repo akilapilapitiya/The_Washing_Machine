@@ -16,6 +16,7 @@ const employeeTiles = [
   { title: 'Watch Assigned Services', description: 'See your queue and upcoming jobs', to: '/dashboard/employee/assigned' },
   { title: 'Record Payment', description: 'Log payments received from customers', to: '/dashboard/employee/payments' },
   { title: 'Stats & Analytics', description: 'Track performance and service metrics', to: '/dashboard/employee/stats' },
+  { title: 'Manage Employees', description: 'Add, promote, and manage team members', to: '/dashboard/admin/employees' },
   { title: 'Change Password', description: 'Update your account password for security', to: '/dashboard/change-password' },
 ]
 
