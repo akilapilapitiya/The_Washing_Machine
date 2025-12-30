@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import MainLayout from './components/layout/MainLayout'
 import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
 import Services from './pages/Services'
 import Signup from './pages/Signup'
 import CustomerLogin from './pages/CustomerLogin'
@@ -14,6 +15,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />
           <Route path="login" element={<CustomerLogin />} />

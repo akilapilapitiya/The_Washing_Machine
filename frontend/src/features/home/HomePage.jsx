@@ -11,10 +11,10 @@ const HomePage = () => {
         <p className="text-lg text-gray-600 mb-8">Your home page content goes here</p>
         
         <div className="flex gap-4">
-          <Link to="/signup">
+          <Link to="/dashboard">
             <Button size="lg">Sign Up</Button>
           </Link>
-          <Link to="/login">
+          <Link to="/dashboard">
             <Button size="lg" variant="outline">Sign In</Button>
           </Link>
         </div>

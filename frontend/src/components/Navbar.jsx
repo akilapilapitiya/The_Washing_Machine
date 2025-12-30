@@ -42,7 +42,7 @@ const Navbar = () => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Link to="/signup">
+            <Link to="/dashboard">
               <Button>Get Started</Button>
             </Link>
           </div>
@@ -75,7 +75,7 @@ const Navbar = () => {
                   </Button>
                 </Link>
               ))}
-              <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+              <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                 <Button className="w-full">Get Started</Button>
               </Link>
             </div>
