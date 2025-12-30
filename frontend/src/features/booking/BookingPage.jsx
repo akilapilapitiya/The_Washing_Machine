@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import VehicleCard from './VehicleCard'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 
 // Temporary mock data; replace with API data later
@@ -12,11 +12,12 @@ const mockVehicles = [
 ]
 
 const BookingPage = () => {
+  const navigate = useNavigate()
   const [selectedVehicleId, setSelectedVehicleId] = useState(null)
 
   const handleContinue = () => {
-    // Next step will be scheduled after vehicle selection
-    alert(`Proceeding with vehicle ID: ${selectedVehicleId}`)
+    // Navigate to service selection with selected vehicle ID
+    navigate('/booking/services', { state: { vehicleId: selectedVehicleId } })
   }
 
   return (

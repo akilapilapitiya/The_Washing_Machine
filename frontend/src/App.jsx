@@ -11,6 +11,7 @@ import CustomerLogin from './pages/CustomerLogin'
 import EmployeeLogin from './pages/EmployeeLogin'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
+import ServiceSelectionPage from './features/booking/ServiceSelectionPage'
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="dashboard/book" element={<Booking />} />
+          <Route path="booking/services" element={<ServiceSelectionPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />
