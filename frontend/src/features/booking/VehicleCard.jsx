@@ -1,6 +1,6 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const VehicleCard = ({ vehicle, selected, onSelect }) => {
   return (
@@ -12,13 +12,15 @@ const VehicleCard = ({ vehicle, selected, onSelect }) => {
     >
       <Card
         className={cn(
-          'h-full border transition hover:border-blue-400 hover:shadow-sm',
-          selected && 'border-blue-500 shadow'
+          "h-full border transition hover:border-blue-400 hover:shadow-sm",
+          selected && "border-blue-500 shadow"
         )}
       >
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-lg">
-            <span>{vehicle.nickname || `${vehicle.make} ${vehicle.model}`}</span>
+            <span>
+              {vehicle.nickname || `${vehicle.make} ${vehicle.model}`}
+            </span>
             <span className="text-sm text-gray-500">{vehicle.plate}</span>
           </CardTitle>
         </CardHeader>
@@ -42,7 +44,7 @@ const VehicleCard = ({ vehicle, selected, onSelect }) => {
         </CardContent>
       </Card>
     </button>
-  )
-}
+  );
+};
 
-export default VehicleCard
+export default VehicleCard;

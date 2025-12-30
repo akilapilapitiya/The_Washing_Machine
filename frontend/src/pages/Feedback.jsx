@@ -1,3 +1,3 @@
-import FeedbackPage from '@/features/dashboard/FeedbackPage'
+import FeedbackPage from "@/features/dashboard/FeedbackPage";
 
-export default FeedbackPage
+export default FeedbackPage;

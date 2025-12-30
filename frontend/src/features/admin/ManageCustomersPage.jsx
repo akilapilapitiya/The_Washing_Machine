@@ -1,138 +1,161 @@
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Users, Plus, User, Mail, Phone, MapPin, Calendar, X, CheckCircle, Search } from 'lucide-react'
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Users,
+  Plus,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  X,
+  CheckCircle,
+  Search,
+} from "lucide-react";
 
 // Mock customers data
 const mockCustomers = [
   {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+94 77 123 4567',
-    address: '123 Main St, Colombo 07',
-    joinDate: 'Jan 15, 2024',
+    id: "1",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "+94 77 123 4567",
+    address: "123 Main St, Colombo 07",
+    joinDate: "Jan 15, 2024",
     totalBookings: 12,
-    status: 'Active',
+    status: "Active",
   },
   {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    phone: '+94 76 234 5678',
-    address: '456 Park Ave, Dehiwala',
-    joinDate: 'Feb 20, 2024',
+    id: "2",
+    name: "Jane Smith",
+    email: "jane.smith@example.com",
+    phone: "+94 76 234 5678",
+    address: "456 Park Ave, Dehiwala",
+    joinDate: "Feb 20, 2024",
     totalBookings: 8,
-    status: 'Active',
+    status: "Active",
   },
   {
-    id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.j@example.com',
-    phone: '+94 75 345 6789',
-    address: '789 Beach Rd, Mount Lavinia',
-    joinDate: 'Mar 10, 2024',
+    id: "3",
+    name: "Mike Johnson",
+    email: "mike.j@example.com",
+    phone: "+94 75 345 6789",
+    address: "789 Beach Rd, Mount Lavinia",
+    joinDate: "Mar 10, 2024",
     totalBookings: 15,
-    status: 'Active',
+    status: "Active",
   },
   {
-    id: '4',
-    name: 'Sarah Williams',
-    email: 'sarah.w@example.com',
-    phone: '+94 71 456 7890',
-    address: '321 Lake View, Nugegoda',
-    joinDate: 'Apr 05, 2024',
+    id: "4",
+    name: "Sarah Williams",
+    email: "sarah.w@example.com",
+    phone: "+94 71 456 7890",
+    address: "321 Lake View, Nugegoda",
+    joinDate: "Apr 05, 2024",
     totalBookings: 5,
-    status: 'Active',
+    status: "Active",
   },
   {
-    id: '5',
-    name: 'David Brown',
-    email: 'david.brown@example.com',
-    phone: '+94 70 567 8901',
-    address: '654 Hill St, Kandy',
-    joinDate: 'May 12, 2024',
+    id: "5",
+    name: "David Brown",
+    email: "david.brown@example.com",
+    phone: "+94 70 567 8901",
+    address: "654 Hill St, Kandy",
+    joinDate: "May 12, 2024",
     totalBookings: 3,
-    status: 'Active',
+    status: "Active",
   },
-]
+];
 
 const ManageCustomersPage = () => {
-  const [customers, setCustomers] = useState(mockCustomers)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [customers, setCustomers] = useState(mockCustomers);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-  })
-  const [showSuccess, setShowSuccess] = useState(false)
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-    })
-  }
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+    });
+  };
 
   const handleAddCustomer = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address')
-      return
+      alert("Please enter a valid email address");
+      return;
     }
 
     // Validate phone format
     if (!formData.phone.match(/^[+]?[\d\s()-]+$/)) {
-      alert('Please enter a valid phone number')
-      return
+      alert("Please enter a valid phone number");
+      return;
     }
 
     const newCustomer = {
       id: Date.now().toString(),
       ...formData,
-      joinDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      joinDate: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
       totalBookings: 0,
-      status: 'Active',
-    }
+      status: "Active",
+    };
 
-    setCustomers([newCustomer, ...customers])
-    resetForm()
-    setShowAddForm(false)
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 3000)
-  }
+    setCustomers([newCustomer, ...customers]);
+    resetForm();
+    setShowAddForm(false);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
 
   // Filter customers based on search query
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.phone.includes(searchQuery)
-  )
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.phone.includes(searchQuery)
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">Customer Management</p>
+            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+              Customer Management
+            </p>
             <h1 className="text-3xl font-bold">Manage Customers</h1>
-            <p className="text-gray-600">Add new customers and view existing customer information.</p>
+            <p className="text-gray-600">
+              Add new customers and view existing customer information.
+            </p>
           </div>
-          <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2"
+          >
             <Plus size={18} />
             Add Customer
           </Button>
@@ -141,7 +164,9 @@ const ManageCustomersPage = () => {
         {showSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
             <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">Customer added successfully!</p>
+            <p className="text-green-800 font-medium">
+              Customer added successfully!
+            </p>
           </div>
         )}
 
@@ -150,7 +175,9 @@ const ManageCustomersPage = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">{customers.length}</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {customers.length}
+                </p>
                 <p className="text-sm text-gray-600 mt-1">Total Customers</p>
               </div>
             </CardContent>
@@ -158,7 +185,9 @@ const ManageCustomersPage = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">{customers.filter(c => c.status === 'Active').length}</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {customers.filter((c) => c.status === "Active").length}
+                </p>
                 <p className="text-sm text-gray-600 mt-1">Active</p>
               </div>
             </CardContent>
@@ -167,7 +196,10 @@ const ManageCustomersPage = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-purple-600">
-                  {Math.round(customers.reduce((sum, c) => sum + c.totalBookings, 0) / customers.length) || 0}
+                  {Math.round(
+                    customers.reduce((sum, c) => sum + c.totalBookings, 0) /
+                      customers.length
+                  ) || 0}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Avg. Bookings</p>
               </div>
@@ -177,12 +209,14 @@ const ManageCustomersPage = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-orange-600">
-                  {customers.filter(c => {
-                    const joinDate = new Date(c.joinDate)
-                    const monthAgo = new Date()
-                    monthAgo.setMonth(monthAgo.getMonth() - 1)
-                    return joinDate >= monthAgo
-                  }).length}
+                  {
+                    customers.filter((c) => {
+                      const joinDate = new Date(c.joinDate);
+                      const monthAgo = new Date();
+                      monthAgo.setMonth(monthAgo.getMonth() - 1);
+                      return joinDate >= monthAgo;
+                    }).length
+                  }
                 </p>
                 <p className="text-sm text-gray-600 mt-1">New This Month</p>
               </div>
@@ -194,7 +228,10 @@ const ManageCustomersPage = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="relative">
-              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search
+                size={20}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <Input
                 type="text"
                 placeholder="Search by name, email, or phone..."
@@ -210,7 +247,10 @@ const ManageCustomersPage = () => {
         {filteredCustomers.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredCustomers.map((customer) => (
-              <Card key={customer.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={customer.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -218,7 +258,9 @@ const ManageCustomersPage = () => {
                         <User size={24} className="text-white" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg">{customer.name}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {customer.name}
+                        </CardTitle>
                         <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
                           {customer.status}
                         </span>
@@ -230,7 +272,9 @@ const ManageCustomersPage = () => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Mail size={14} className="text-gray-500" />
-                      <span className="text-gray-700 truncate">{customer.email}</span>
+                      <span className="text-gray-700 truncate">
+                        {customer.email}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Phone size={14} className="text-gray-500" />
@@ -244,7 +288,9 @@ const ManageCustomersPage = () => {
                   <div className="pt-3 border-t space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Total Bookings:</span>
-                      <span className="font-semibold text-blue-600">{customer.totalBookings}</span>
+                      <span className="font-semibold text-blue-600">
+                        {customer.totalBookings}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar size={14} />
@@ -260,12 +306,12 @@ const ManageCustomersPage = () => {
             <CardContent className="text-center py-12">
               <Users size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold mb-2">
-                {searchQuery ? 'No customers found' : 'No customers yet'}
+                {searchQuery ? "No customers found" : "No customers yet"}
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchQuery 
-                  ? 'Try adjusting your search criteria.'
-                  : 'Add your first customer to get started.'}
+                {searchQuery
+                  ? "Try adjusting your search criteria."
+                  : "Add your first customer to get started."}
               </p>
               {!searchQuery && (
                 <Button onClick={() => setShowAddForm(true)}>
@@ -288,7 +334,10 @@ const ManageCustomersPage = () => {
                   <Plus size={20} className="text-blue-600" />
                   Add New Customer
                 </CardTitle>
-                <button onClick={() => setShowAddForm(false)} className="text-gray-500 hover:text-gray-700">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   <X size={24} />
                 </button>
               </div>
@@ -343,7 +392,11 @@ const ManageCustomersPage = () => {
                   />
                 </div>
                 <div className="flex gap-3 justify-end pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAddForm(false)}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit">Add Customer</Button>
@@ -354,7 +407,7 @@ const ManageCustomersPage = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ManageCustomersPage
+export default ManageCustomersPage;

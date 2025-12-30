@@ -1,69 +1,103 @@
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Car, Plus, Trash2, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Car, Plus, Trash2, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([
-    { id: '1', brand: 'Toyota', model: 'Corolla', year: 2020, mileage: '45,000', plate: 'ABC-123', color: 'Blue', nickname: 'Daily' },
-    { id: '2', brand: 'Honda', model: 'Civic', year: 2019, mileage: '62,000', plate: 'XYZ-789', color: 'White', nickname: 'Workhorse' },
-    { id: '3', brand: 'Ford', model: 'F-150', year: 2022, mileage: '28,000', plate: 'TRK-555', color: 'Gray', nickname: 'Hauler' },
-  ])
-  
-  const [showAddForm, setShowAddForm] = useState(false)
+    {
+      id: "1",
+      brand: "Toyota",
+      model: "Corolla",
+      year: 2020,
+      mileage: "45,000",
+      plate: "ABC-123",
+      color: "Blue",
+      nickname: "Daily",
+    },
+    {
+      id: "2",
+      brand: "Honda",
+      model: "Civic",
+      year: 2019,
+      mileage: "62,000",
+      plate: "XYZ-789",
+      color: "White",
+      nickname: "Workhorse",
+    },
+    {
+      id: "3",
+      brand: "Ford",
+      model: "F-150",
+      year: 2022,
+      mileage: "28,000",
+      plate: "TRK-555",
+      color: "Gray",
+      nickname: "Hauler",
+    },
+  ]);
+
+  const [showAddForm, setShowAddForm] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
-    brand: '',
-    model: '',
-    year: '',
-    mileage: '',
-    plate: '',
-    color: '',
-    nickname: '',
-  })
+    brand: "",
+    model: "",
+    year: "",
+    mileage: "",
+    plate: "",
+    color: "",
+    nickname: "",
+  });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setNewVehicle(prev => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setNewVehicle((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleAddVehicle = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     const vehicle = {
       id: Date.now().toString(),
       ...newVehicle,
-    }
-    setVehicles(prev => [...prev, vehicle])
+    };
+    setVehicles((prev) => [...prev, vehicle]);
     setNewVehicle({
-      brand: '',
-      model: '',
-      year: '',
-      mileage: '',
-      plate: '',
-      color: '',
-      nickname: '',
-    })
-    setShowAddForm(false)
-  }
+      brand: "",
+      model: "",
+      year: "",
+      mileage: "",
+      plate: "",
+      color: "",
+      nickname: "",
+    });
+    setShowAddForm(false);
+  };
 
   const handleDeleteVehicle = (id) => {
-    if (window.confirm('Are you sure you want to delete this vehicle?')) {
-      setVehicles(prev => prev.filter(v => v.id !== id))
+    if (window.confirm("Are you sure you want to delete this vehicle?")) {
+      setVehicles((prev) => prev.filter((v) => v.id !== id));
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">Vehicles</p>
+            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+              Vehicles
+            </p>
             <h1 className="text-3xl font-bold">Manage your vehicles</h1>
-            <p className="text-gray-600">Add, view, and manage all your vehicles in one place.</p>
+            <p className="text-gray-600">
+              Add, view, and manage all your vehicles in one place.
+            </p>
           </div>
-          <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2"
+          >
             <Plus size={18} />
             Add Vehicle
           </Button>
@@ -165,7 +199,11 @@ const VehiclesPage = () => {
                     </div>
                   </div>
                   <div className="flex gap-3 justify-end">
-                    <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowAddForm(false)}
+                    >
                       Cancel
                     </Button>
                     <Button type="submit">Add Vehicle</Button>
@@ -195,7 +233,8 @@ const VehiclesPage = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg truncate">
-                        {vehicle.nickname || `${vehicle.brand} ${vehicle.model}`}
+                        {vehicle.nickname ||
+                          `${vehicle.brand} ${vehicle.model}`}
                       </CardTitle>
                       <p className="text-sm text-gray-600">{vehicle.plate}</p>
                     </div>
@@ -205,28 +244,38 @@ const VehiclesPage = () => {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <p className="text-gray-500">Brand</p>
-                      <p className="font-medium text-gray-800">{vehicle.brand}</p>
+                      <p className="font-medium text-gray-800">
+                        {vehicle.brand}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Model</p>
-                      <p className="font-medium text-gray-800">{vehicle.model}</p>
+                      <p className="font-medium text-gray-800">
+                        {vehicle.model}
+                      </p>
                     </div>
                     {vehicle.year && (
                       <div>
                         <p className="text-gray-500">Year</p>
-                        <p className="font-medium text-gray-800">{vehicle.year}</p>
+                        <p className="font-medium text-gray-800">
+                          {vehicle.year}
+                        </p>
                       </div>
                     )}
                     {vehicle.mileage && (
                       <div>
                         <p className="text-gray-500">Mileage</p>
-                        <p className="font-medium text-gray-800">{vehicle.mileage} km</p>
+                        <p className="font-medium text-gray-800">
+                          {vehicle.mileage} km
+                        </p>
                       </div>
                     )}
                     {vehicle.color && (
                       <div>
                         <p className="text-gray-500">Color</p>
-                        <p className="font-medium text-gray-800">{vehicle.color}</p>
+                        <p className="font-medium text-gray-800">
+                          {vehicle.color}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -239,7 +288,9 @@ const VehiclesPage = () => {
             <CardContent className="text-center py-12">
               <Car size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold mb-2">No vehicles yet</h3>
-              <p className="text-gray-600 mb-4">Add your first vehicle to get started with bookings.</p>
+              <p className="text-gray-600 mb-4">
+                Add your first vehicle to get started with bookings.
+              </p>
               <Button onClick={() => setShowAddForm(true)}>
                 <Plus size={18} className="mr-2" />
                 Add Vehicle
@@ -249,8 +300,7 @@ const VehiclesPage = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default VehiclesPage
-
+export default VehiclesPage;

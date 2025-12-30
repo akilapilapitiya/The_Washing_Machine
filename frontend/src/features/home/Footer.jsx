@@ -1,6 +1,15 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { Sparkles, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  Sparkles,
+  Mail,
+  Phone,
+  MapPin,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+} from "lucide-react";
 
 const Footer = () => {
   return (
@@ -11,10 +20,13 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Sparkles className="h-6 w-6 text-blue-500" />
-              <span className="text-xl font-bold text-white">The Washing Machine</span>
+              <span className="text-xl font-bold text-white">
+                The Washing Machine
+              </span>
             </div>
             <p className="text-sm mb-4">
-              Your trusted partner for professional laundry services. Clean, fresh, and delivered.
+              Your trusted partner for professional laundry services. Clean,
+              fresh, and delivered.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="hover:text-blue-500 transition-colors">
@@ -36,11 +48,43 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="hover:text-blue-500 transition-colors">Home</Link></li>
-              <li><Link to="/services" className="hover:text-blue-500 transition-colors">Services</Link></li>
-              <li><Link to="/pricing" className="hover:text-blue-500 transition-colors">Pricing</Link></li>
-              <li><Link to="/about" className="hover:text-blue-500 transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-blue-500 transition-colors">Contact</Link></li>
+              <li>
+                <Link to="/" className="hover:text-blue-500 transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/services"
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/pricing"
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/contact"
+                  className="hover:text-blue-500 transition-colors"
+                >
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -48,11 +92,31 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-semibold mb-4">Our Services</h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-blue-500 transition-colors">Wash & Fold</a></li>
-              <li><a href="#" className="hover:text-blue-500 transition-colors">Dry Cleaning</a></li>
-              <li><a href="#" className="hover:text-blue-500 transition-colors">Ironing</a></li>
-              <li><a href="#" className="hover:text-blue-500 transition-colors">Pickup & Delivery</a></li>
-              <li><a href="#" className="hover:text-blue-500 transition-colors">Commercial</a></li>
+              <li>
+                <a href="#" className="hover:text-blue-500 transition-colors">
+                  Wash & Fold
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-500 transition-colors">
+                  Dry Cleaning
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-500 transition-colors">
+                  Ironing
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-500 transition-colors">
+                  Pickup & Delivery
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-500 transition-colors">
+                  Commercial
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -79,15 +143,21 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-sm">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p>&copy; {new Date().getFullYear()} The Washing Machine. All rights reserved.</p>
-            <Link to="/employee/login" className="text-blue-400 hover:text-blue-300 transition-colors">
+            <p>
+              &copy; {new Date().getFullYear()} The Washing Machine. All rights
+              reserved.
+            </p>
+            <Link
+              to="/employee/login"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
+            >
               Employee Portal →
             </Link>
           </div>
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

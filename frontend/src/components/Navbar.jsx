@@ -1,20 +1,20 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Menu, X, Sparkles } from 'lucide-react'
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Menu, X, Sparkles } from "lucide-react";
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
-  const location = useLocation()
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/services', label: 'Services' },
-    { path: '/about', label: 'About' },
-    { path: '/contact', label: 'Contact' },
-  ]
+    { path: "/", label: "Home" },
+    { path: "/services", label: "Services" },
+    { path: "/about", label: "About" },
+    { path: "/contact", label: "Contact" },
+  ];
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => location.pathname === path;
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -31,7 +31,7 @@ const Navbar = () => {
             {navItems.map((item) => (
               <Link key={item.path} to={item.path}>
                 <Button
-                  variant={isActive(item.path) ? 'default' : 'ghost'}
+                  variant={isActive(item.path) ? "default" : "ghost"}
                   className="font-medium"
                 >
                   {item.label}
@@ -53,7 +53,11 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
@@ -68,7 +72,7 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Button
-                    variant={isActive(item.path) ? 'default' : 'ghost'}
+                    variant={isActive(item.path) ? "default" : "ghost"}
                     className="w-full justify-start font-medium"
                   >
                     {item.label}
@@ -83,7 +87,7 @@ const Navbar = () => {
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

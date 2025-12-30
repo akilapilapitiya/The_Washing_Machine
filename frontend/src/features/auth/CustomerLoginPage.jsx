@@ -1,9 +1,15 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Link } from 'react-router-dom'
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 const CustomerLoginPage = () => {
   return (
@@ -25,21 +31,21 @@ const CustomerLoginPage = () => {
             <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="john@example.com" 
-                  required 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  required 
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
                 />
               </div>
 
@@ -48,7 +54,10 @@ const CustomerLoginPage = () => {
                   <input type="checkbox" className="rounded" />
                   <span className="text-gray-600">Remember me</span>
                 </label>
-                <Link to="/forgot-password" className="text-blue-600 hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-blue-600 hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -59,7 +68,7 @@ const CustomerLoginPage = () => {
             </form>
 
             <div className="mt-4 text-center text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link to="/signup" className="text-blue-600 hover:underline">
                 Sign up
               </Link>
@@ -68,7 +77,7 @@ const CustomerLoginPage = () => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CustomerLoginPage
+export default CustomerLoginPage;

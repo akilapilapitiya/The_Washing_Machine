@@ -1,3 +1,3 @@
-import CustomerLoginPage from '@/features/auth/CustomerLoginPage'
+import CustomerLoginPage from "@/features/auth/CustomerLoginPage";
 
-export default CustomerLoginPage
+export default CustomerLoginPage;

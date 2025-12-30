@@ -1,3 +1,3 @@
-import VehiclesPage from '@/features/vehicles/VehiclesPage'
+import VehiclesPage from "@/features/vehicles/VehiclesPage";
 
-export default VehiclesPage
+export default VehiclesPage;

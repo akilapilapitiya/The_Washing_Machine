@@ -1,5 +1,5 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ServiceCard = ({ title, description, price, duration }) => {
   return (
@@ -15,7 +15,7 @@ const ServiceCard = ({ title, description, price, duration }) => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default ServiceCard
+export default ServiceCard;

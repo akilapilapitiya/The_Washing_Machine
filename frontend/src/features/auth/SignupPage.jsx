@@ -1,9 +1,15 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Link } from 'react-router-dom'
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 const SignupPage = () => {
   return (
@@ -36,41 +42,41 @@ const SignupPage = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="john@example.com" 
-                  required 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input 
-                  id="phone" 
-                  type="tel" 
-                  placeholder="+1 (555) 000-0000" 
-                  required 
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+1 (555) 000-0000"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  required 
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input 
-                  id="confirm-password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  required 
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
                 />
               </div>
 
@@ -80,7 +86,7 @@ const SignupPage = () => {
             </form>
 
             <div className="mt-4 text-center text-sm text-gray-600">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link to="/login" className="text-blue-600 hover:underline">
                 Log in
               </Link>
@@ -89,7 +95,7 @@ const SignupPage = () => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SignupPage
+export default SignupPage;

@@ -1,3 +1,3 @@
-import ForgotPasswordPage from '@/features/auth/ForgotPasswordPage'
+import ForgotPasswordPage from "@/features/auth/ForgotPasswordPage";
 
-export default ForgotPasswordPage
+export default ForgotPasswordPage;

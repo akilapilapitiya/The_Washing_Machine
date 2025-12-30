@@ -1,3 +1,3 @@
-import EmployeeLoginPage from '@/features/auth/EmployeeLoginPage'
+import EmployeeLoginPage from "@/features/auth/EmployeeLoginPage";
 
-export default EmployeeLoginPage
+export default EmployeeLoginPage;

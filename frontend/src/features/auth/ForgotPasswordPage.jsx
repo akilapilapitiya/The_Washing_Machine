@@ -1,57 +1,63 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 
 const ForgotPasswordPage = () => {
-  const navigate = useNavigate()
-  const [step, setStep] = useState(1) // 1: email, 2: otp, 3: password
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1); // 1: email, 2: otp, 3: password
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleEmailSubmit = (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     // Simulate API call to send OTP
     setTimeout(() => {
-      setLoading(false)
-      setStep(2)
-    }, 1000)
-  }
+      setLoading(false);
+      setStep(2);
+    }, 1000);
+  };
 
   const handleOtpSubmit = (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     // Simulate API call to verify OTP
     setTimeout(() => {
-      setLoading(false)
-      setStep(3)
-    }, 1000)
-  }
+      setLoading(false);
+      setStep(3);
+    }, 1000);
+  };
 
   const handlePasswordSubmit = (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     // Simulate API call to reset password
     setTimeout(() => {
-      setLoading(false)
-      navigate('/login')
-    }, 1000)
-  }
+      setLoading(false);
+      navigate("/login");
+    }, 1000);
+  };
 
   const handleBack = () => {
     if (step > 1) {
-      setStep(step - 1)
+      setStep(step - 1);
     } else {
-      navigate('/login')
+      navigate("/login");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
@@ -68,9 +74,9 @@ const ForgotPasswordPage = () => {
           <CardHeader>
             <CardTitle>Reset Password</CardTitle>
             <CardDescription>
-              {step === 1 && 'Enter your email to get started'}
-              {step === 2 && 'Enter the OTP sent to your email'}
-              {step === 3 && 'Create your new password'}
+              {step === 1 && "Enter your email to get started"}
+              {step === 2 && "Enter the OTP sent to your email"}
+              {step === 3 && "Create your new password"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -92,7 +98,7 @@ const ForgotPasswordPage = () => {
                   We'll send a one-time password (OTP) to verify your identity.
                 </p>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Sending...' : 'Send OTP'}
+                  {loading ? "Sending..." : "Send OTP"}
                 </Button>
               </form>
             )}
@@ -113,10 +119,11 @@ const ForgotPasswordPage = () => {
                   />
                 </div>
                 <p className="text-sm text-gray-600">
-                  Check your email for the 6-digit code. It expires in 10 minutes.
+                  Check your email for the 6-digit code. It expires in 10
+                  minutes.
                 </p>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Verifying...' : 'Verify OTP'}
+                  {loading ? "Verifying..." : "Verify OTP"}
                 </Button>
               </form>
             )}
@@ -148,16 +155,25 @@ const ForgotPasswordPage = () => {
                   />
                 </div>
 
-                {password && confirmPassword && password !== confirmPassword && (
-                  <p className="text-sm text-red-600">Passwords do not match</p>
-                )}
+                {password &&
+                  confirmPassword &&
+                  password !== confirmPassword && (
+                    <p className="text-sm text-red-600">
+                      Passwords do not match
+                    </p>
+                  )}
 
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={loading || !password || !confirmPassword || password !== confirmPassword}
+                  disabled={
+                    loading ||
+                    !password ||
+                    !confirmPassword ||
+                    password !== confirmPassword
+                  }
                 >
-                  {loading ? 'Resetting...' : 'Reset Password'}
+                  {loading ? "Resetting..." : "Reset Password"}
                 </Button>
               </form>
             )}
@@ -170,14 +186,14 @@ const ForgotPasswordPage = () => {
             <div
               key={s}
               className={`h-2 w-2 rounded-full transition-colors ${
-                s <= step ? 'bg-blue-600' : 'bg-gray-300'
+                s <= step ? "bg-blue-600" : "bg-gray-300"
               }`}
             />
           ))}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ForgotPasswordPage
+export default ForgotPasswordPage;
