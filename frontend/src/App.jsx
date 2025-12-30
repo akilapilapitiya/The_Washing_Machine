@@ -12,6 +12,7 @@ import EmployeeLogin from './pages/EmployeeLogin'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import ServiceSelectionPage from './features/booking/ServiceSelectionPage'
+import LocationSelectionPage from './features/booking/LocationSelectionPage'
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="dashboard/book" element={<Booking />} />
+          <Route path="booking/location" element={<LocationSelectionPage />} />
           <Route path="booking/services" element={<ServiceSelectionPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />

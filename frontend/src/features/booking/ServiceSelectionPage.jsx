@@ -75,8 +75,8 @@ const ServiceSelectionPage = () => {
   }
 
   const handleContinue = () => {
-    // Navigate to next step with vehicle and services
-    navigate('/booking/details', { state: { vehicleId, serviceIds: selectedServiceIds } })
+    // Navigate to location selection with vehicle and services
+    navigate('/booking/location', { state: { vehicleId, serviceIds: selectedServiceIds } })
   }
 
   return (
