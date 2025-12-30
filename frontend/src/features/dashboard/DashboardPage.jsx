@@ -9,12 +9,14 @@ const customerTiles = [
   { title: 'Service History', description: 'Review past services and completed work', to: '/dashboard/history' },
   { title: 'Payment History', description: 'View receipts and transaction records', to: '/dashboard/payments' },
   { title: 'Submit Feedback', description: 'Share your experience with our team', to: '/dashboard/feedback' },
+  { title: 'Change Password', description: 'Update your account password for security', to: '/dashboard/change-password' },
 ]
 
 const employeeTiles = [
   { title: 'Watch Assigned Services', description: 'See your queue and upcoming jobs', to: '/dashboard/employee/assigned' },
   { title: 'Record Payment', description: 'Log payments received from customers', to: '/dashboard/employee/payments' },
   { title: 'Stats & Analytics', description: 'Track performance and service metrics', to: '/dashboard/employee/stats' },
+  { title: 'Change Password', description: 'Update your account password for security', to: '/dashboard/change-password' },
 ]
 
 const TileGrid = ({ title, tiles }) => (
