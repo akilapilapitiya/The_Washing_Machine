@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -32,64 +34,184 @@ import ProfilePage from "./features/dashboard/ProfilePage";
 const App = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="dashboard/book" element={<Booking />} />
-          <Route path="booking/location" element={<LocationSelectionPage />} />
-          <Route path="booking/services" element={<ServiceSelectionPage />} />
-          <Route path="booking/employee" element={<EmployeeSelectionPage />} />
-          <Route path="booking/datetime" element={<DateTimeSelectionPage />} />
-          <Route
-            path="booking/confirmation"
-            element={<BookingConfirmationPage />}
-          />
-          <Route
-            path="dashboard/bookings"
-            element={<ScheduledBookingsPage />}
-          />
-          <Route path="dashboard/history" element={<ServiceHistoryPage />} />
-          <Route path="dashboard/payments" element={<PaymentHistoryPage />} />
-          <Route path="dashboard/feedback" element={<Feedback />} />{" "}
-          <Route path="dashboard/profile" element={<ProfilePage />} />{" "}
-          <Route
-            path="dashboard/change-password"
-            element={<ChangePasswordPage />}
-          />
-          <Route
-            path="dashboard/employee/assigned"
-            element={<AssignedServicesPage />}
-          />
-          <Route
-            path="dashboard/employee/service/:id"
-            element={<ServiceDetailsPage />}
-          />
-          <Route
-            path="dashboard/employee/payments"
-            element={<PaymentManagementPage />}
-          />
-          <Route
-            path="dashboard/admin/employees"
-            element={<EmployeeManagementPage />}
-          />
-          <Route
-            path="dashboard/admin/services"
-            element={<ManageServicesPage />}
-          />
-          <Route
-            path="dashboard/admin/customers"
-            element={<ManageCustomersPage />}
-          />
-          <Route path="dashboard/vehicles" element={<Vehicles />} />
-          <Route path="services" element={<Services />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="login" element={<CustomerLogin />} />
-          <Route path="employee/login" element={<EmployeeLogin />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            {/* Public Routes */}
+            <Route index element={<Home />} />
+            <Route path="services" element={<Services />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="login" element={<CustomerLogin />} />
+            <Route path="employee/login" element={<EmployeeLogin />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+
+            {/* Protected Customer Routes */}
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/book"
+              element={
+                <ProtectedRoute>
+                  <Booking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/location"
+              element={
+                <ProtectedRoute>
+                  <LocationSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/services"
+              element={
+                <ProtectedRoute>
+                  <ServiceSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/employee"
+              element={
+                <ProtectedRoute>
+                  <EmployeeSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/datetime"
+              element={
+                <ProtectedRoute>
+                  <DateTimeSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/confirmation"
+              element={
+                <ProtectedRoute>
+                  <BookingConfirmationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/bookings"
+              element={
+                <ProtectedRoute>
+                  <ScheduledBookingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/history"
+              element={
+                <ProtectedRoute>
+                  <ServiceHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/feedback"
+              element={
+                <ProtectedRoute>
+                  <Feedback />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/change-password"
+              element={
+                <ProtectedRoute>
+                  <ChangePasswordPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/employee/assigned"
+              element={
+                <ProtectedRoute>
+                  <AssignedServicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/employee/service/:id"
+              element={
+                <ProtectedRoute>
+                  <ServiceDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/employee/payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/admin/employees"
+              element={
+                <ProtectedRoute>
+                  <EmployeeManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/admin/services"
+              element={
+                <ProtectedRoute>
+                  <ManageServicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/admin/customers"
+              element={
+                <ProtectedRoute>
+                  <ManageCustomersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard/vehicles"
+              element={
+                <ProtectedRoute>
+                  <Vehicles />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 };
