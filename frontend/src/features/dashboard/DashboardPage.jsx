@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 const customerTiles = [
   { title: 'Book Service Now', description: 'Schedule a new vehicle service appointment', to: '/dashboard/book' },
+  { title: 'My Bookings', description: 'View and manage your scheduled appointments', to: '/dashboard/bookings' },
   { title: 'Manage Vehicles', description: 'Add, edit, or remove vehicles on your account', to: '/dashboard/vehicles' },
   { title: 'Service History', description: 'Review past services and completed work', to: '/dashboard/history' },
   { title: 'Payment History', description: 'View receipts and transaction records', to: '/dashboard/payments' },

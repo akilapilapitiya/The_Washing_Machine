@@ -138,6 +138,9 @@ const ServiceSelectionPage = () => {
         </div>
 
         <div className="flex flex-wrap gap-4 items-center">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            Back
+          </Button>
           <Button
             onClick={handleContinue}
             disabled={selectedServiceIds.length === 0}
