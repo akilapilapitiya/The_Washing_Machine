@@ -55,7 +55,7 @@ const BookingPage = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
                   <span>Go to vehicles</span>
-                  <span aria-hidden="true">></span>
+                  <span aria-hidden="true">&gt;</span>
                 </div>
               </div>
             </div>
