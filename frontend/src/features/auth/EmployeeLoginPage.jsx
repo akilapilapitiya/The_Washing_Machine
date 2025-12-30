@@ -52,7 +52,7 @@ const EmployeeLoginPage = () => {
                   <input type="checkbox" className="rounded" />
                   <span className="text-gray-600">Remember me</span>
                 </label>
-                <Link to="/employee/forgot-password" className="text-blue-600 hover:underline">
+                <Link to="/forgot-password" className="text-blue-600 hover:underline">
                   Forgot password?
                 </Link>
               </div>

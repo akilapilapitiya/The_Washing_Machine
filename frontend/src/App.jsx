@@ -7,6 +7,7 @@ import Services from './pages/Services'
 import Signup from './pages/Signup'
 import CustomerLogin from './pages/CustomerLogin'
 import EmployeeLogin from './pages/EmployeeLogin'
+import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
           <Route path="signup" element={<Signup />} />
           <Route path="login" element={<CustomerLogin />} />
           <Route path="employee/login" element={<EmployeeLogin />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
