@@ -10,5 +10,5 @@
     "moduleResolution": "bundler",
     "types": ["vite/client"]
   },
-  "include": ["src", "main.jsx", "vite.config.js", "eslint.config.js"]
+  "include": ["src", "src/main.jsx", "vite.config.js", "eslint.config.js"]
 }
