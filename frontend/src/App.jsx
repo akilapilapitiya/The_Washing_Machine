@@ -17,6 +17,8 @@ import EmployeeSelectionPage from './features/booking/EmployeeSelectionPage'
 import DateTimeSelectionPage from './features/booking/DateTimeSelectionPage'
 import BookingConfirmationPage from './features/booking/BookingConfirmationPage'
 import ScheduledBookingsPage from './features/dashboard/ScheduledBookingsPage'
+import ServiceHistoryPage from './features/dashboard/ServiceHistoryPage'
+import PaymentHistoryPage from './features/dashboard/PaymentHistoryPage'
 
 const App = () => {
   return (
@@ -32,6 +34,8 @@ const App = () => {
           <Route path="booking/datetime" element={<DateTimeSelectionPage />} />
           <Route path="booking/confirmation" element={<BookingConfirmationPage />} />
           <Route path="dashboard/bookings" element={<ScheduledBookingsPage />} />
+          <Route path="dashboard/history" element={<ServiceHistoryPage />} />
+          <Route path="dashboard/payments" element={<PaymentHistoryPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />
