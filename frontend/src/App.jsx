@@ -21,6 +21,8 @@ import ServiceHistoryPage from './features/dashboard/ServiceHistoryPage'
 import PaymentHistoryPage from './features/dashboard/PaymentHistoryPage'
 import FeedbackPage from './features/dashboard/FeedbackPage'
 import ChangePasswordPage from './features/auth/ChangePasswordPage'
+import AssignedServicesPage from './features/employee/AssignedServicesPage'
+import ServiceDetailsPage from './features/employee/ServiceDetailsPage'
 
 const App = () => {
   return (
@@ -40,6 +42,8 @@ const App = () => {
           <Route path="dashboard/payments" element={<PaymentHistoryPage />} />
           <Route path="dashboard/feedback" element={<FeedbackPage />} />
           <Route path="dashboard/change-password" element={<ChangePasswordPage />} />
+          <Route path="dashboard/employee/assigned" element={<AssignedServicesPage />} />
+          <Route path="dashboard/employee/service/:id" element={<ServiceDetailsPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />
