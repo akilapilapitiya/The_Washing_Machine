@@ -77,8 +77,13 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
-          <p>&copy; {new Date().getFullYear()} The Washing Machine. All rights reserved.</p>
+        <div className="border-t border-gray-800 mt-8 pt-8 text-sm">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>&copy; {new Date().getFullYear()} The Washing Machine. All rights reserved.</p>
+            <Link to="/employee/login" className="text-blue-400 hover:text-blue-300 transition-colors">
+              Employee Portal →
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import MainLayout from './components/layout/MainLayout'
 import Home from './pages/Home'
 import Signup from './pages/Signup'
+import CustomerLogin from './pages/CustomerLogin'
+import EmployeeLogin from './pages/EmployeeLogin'
 import NotFound from './pages/NotFound'
 
 const App = () => {
@@ -12,6 +14,8 @@ const App = () => {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="login" element={<CustomerLogin />} />
+          <Route path="employee/login" element={<EmployeeLogin />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
