@@ -5,6 +5,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null); // 'customer' or 'employee'
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -13,15 +14,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = () => {
       const storedUser = localStorage.getItem("user");
+      const storedUserType = localStorage.getItem("userType");
       const token = localStorage.getItem("token");
 
-      if (storedUser && token) {
+      if (storedUser && token && storedUserType) {
         try {
           setUser(JSON.parse(storedUser));
+          setUserType(storedUserType);
           setIsAuthenticated(true);
         } catch (error) {
           console.error("Failed to parse stored user:", error);
           localStorage.removeItem("user");
+          localStorage.removeItem("userType");
           localStorage.removeItem("token");
         }
       }
@@ -31,19 +35,29 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = (userData, token) => {
+  const login = (userData, token, type = "customer") => {
     setUser(userData);
+    setUserType(type);
     setIsAuthenticated(true);
     localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("userType", type);
     localStorage.setItem("token", token);
   };
 
   const logout = () => {
     setUser(null);
+    setUserType(null);
     setIsAuthenticated(false);
     localStorage.removeItem("user");
+    localStorage.removeItem("userType");
     localStorage.removeItem("token");
-    navigate("/login");
+    
+    // Redirect based on user type
+    if (userType === "employee") {
+      navigate("/employee/login");
+    } else {
+      navigate("/login");
+    }
   };
 
   const updateUser = (updatedData) => {
@@ -54,11 +68,14 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    userType,
     loading,
     isAuthenticated,
     login,
     logout,
     updateUser,
+    isCustomer: userType === "customer",
+    isEmployee: userType === "employee",
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

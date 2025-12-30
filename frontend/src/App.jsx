@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -153,49 +154,49 @@ const App = () => {
             <Route
               path="dashboard/employee/assigned"
               element={
-                <ProtectedRoute>
+                <EmployeeProtectedRoute>
                   <AssignedServicesPage />
-                </ProtectedRoute>
+                </EmployeeProtectedRoute>
               }
             />
             <Route
               path="dashboard/employee/service/:id"
               element={
-                <ProtectedRoute>
+                <EmployeeProtectedRoute>
                   <ServiceDetailsPage />
-                </ProtectedRoute>
+                </EmployeeProtectedRoute>
               }
             />
             <Route
               path="dashboard/employee/payments"
               element={
-                <ProtectedRoute>
+                <EmployeeProtectedRoute>
                   <PaymentManagementPage />
-                </ProtectedRoute>
+                </EmployeeProtectedRoute>
               }
             />
             <Route
               path="dashboard/admin/employees"
               element={
-                <ProtectedRoute>
+                <EmployeeProtectedRoute>
                   <EmployeeManagementPage />
-                </ProtectedRoute>
+                </EmployeeProtectedRoute>
               }
             />
             <Route
               path="dashboard/admin/services"
               element={
-                <ProtectedRoute>
+                <EmployeeProtectedRoute>
                   <ManageServicesPage />
-                </ProtectedRoute>
+                </EmployeeProtectedRoute>
               }
             />
             <Route
               path="dashboard/admin/customers"
               element={
-                <ProtectedRoute>
+                <EmployeeProtectedRoute>
                   <ManageCustomersPage />
-                </ProtectedRoute>
+                </EmployeeProtectedRoute>
               }
             />
             <Route

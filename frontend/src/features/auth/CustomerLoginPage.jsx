@@ -51,8 +51,8 @@ const CustomerLoginPage = () => {
       if (response.success && response.data) {
         const { customer, token } = response.data;
         
-        // Update auth context
-        login(customer, token);
+        // Update auth context with customer type
+        login(customer, token, "customer");
 
         // Redirect to dashboard
         navigate("/dashboard");
