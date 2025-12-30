@@ -26,6 +26,7 @@ import ServiceDetailsPage from './features/employee/ServiceDetailsPage'
 import PaymentManagementPage from './features/employee/PaymentManagementPage'
 import EmployeeManagementPage from './features/admin/EmployeeManagementPage'
 import ManageServicesPage from './features/admin/ManageServicesPage'
+import ManageCustomersPage from './features/admin/ManageCustomersPage'
 import ProfilePage from './features/dashboard/ProfilePage'
 
 const App = () => {
@@ -50,6 +51,7 @@ const App = () => {
           <Route path="dashboard/employee/payments" element={<PaymentManagementPage />} />
           <Route path="dashboard/admin/employees" element={<EmployeeManagementPage />} />
           <Route path="dashboard/admin/services" element={<ManageServicesPage />} />
+          <Route path="dashboard/admin/customers" element={<ManageCustomersPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />
