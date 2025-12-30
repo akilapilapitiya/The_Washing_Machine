@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import MainLayout from './components/layout/MainLayout'
 import Home from './pages/Home'
+import Signup from './pages/Signup'
 import NotFound from './pages/NotFound'
 
 const App = () => {
@@ -10,6 +11,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="signup" element={<Signup />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
