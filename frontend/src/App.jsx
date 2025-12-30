@@ -25,6 +25,8 @@ import AssignedServicesPage from './features/employee/AssignedServicesPage'
 import ServiceDetailsPage from './features/employee/ServiceDetailsPage'
 import PaymentManagementPage from './features/employee/PaymentManagementPage'
 import EmployeeManagementPage from './features/admin/EmployeeManagementPage'
+import ManageServicesPage from './features/admin/ManageServicesPage'
+import ProfilePage from './features/dashboard/ProfilePage'
 
 const App = () => {
   return (
@@ -42,12 +44,12 @@ const App = () => {
           <Route path="dashboard/bookings" element={<ScheduledBookingsPage />} />
           <Route path="dashboard/history" element={<ServiceHistoryPage />} />
           <Route path="dashboard/payments" element={<PaymentHistoryPage />} />
-          <Route path="dashboard/feedback" element={<FeedbackPage />} />
-          <Route path="dashboard/change-password" element={<ChangePasswordPage />} />
+          <Route path="dashboard/feedback" element={<FeedbackPage />} />          <Route path="dashboard/profile" element={<ProfilePage />} />          <Route path="dashboard/change-password" element={<ChangePasswordPage />} />
           <Route path="dashboard/employee/assigned" element={<AssignedServicesPage />} />
           <Route path="dashboard/employee/service/:id" element={<ServiceDetailsPage />} />
           <Route path="dashboard/employee/payments" element={<PaymentManagementPage />} />
           <Route path="dashboard/admin/employees" element={<EmployeeManagementPage />} />
+          <Route path="dashboard/admin/services" element={<ManageServicesPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />

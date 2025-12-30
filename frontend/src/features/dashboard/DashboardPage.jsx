@@ -17,6 +17,8 @@ const employeeTiles = [
   { title: 'Record Payment', description: 'Log payments received from customers', to: '/dashboard/employee/payments' },
   { title: 'Stats & Analytics', description: 'Track performance and service metrics', to: '/dashboard/employee/stats' },
   { title: 'Manage Employees', description: 'Add, promote, and manage team members', to: '/dashboard/admin/employees' },
+  { title: 'Manage Services', description: 'Add, edit, and manage available services', to: '/dashboard/admin/services' },
+  { title: 'My Profile', description: 'View and edit your account information', to: '/dashboard/profile' },
   { title: 'Change Password', description: 'Update your account password for security', to: '/dashboard/change-password' },
 ]
 
