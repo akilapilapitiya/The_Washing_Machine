@@ -13,6 +13,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import ServiceSelectionPage from './features/booking/ServiceSelectionPage'
 import LocationSelectionPage from './features/booking/LocationSelectionPage'
+import EmployeeSelectionPage from './features/booking/EmployeeSelectionPage'
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="dashboard/book" element={<Booking />} />
           <Route path="booking/location" element={<LocationSelectionPage />} />
           <Route path="booking/services" element={<ServiceSelectionPage />} />
+          <Route path="booking/employee" element={<EmployeeSelectionPage />} />
           <Route path="dashboard/vehicles" element={<Vehicles />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />

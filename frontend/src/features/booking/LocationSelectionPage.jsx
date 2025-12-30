@@ -32,8 +32,8 @@ const LocationSelectionPage = () => {
   const { vehicleId, serviceIds } = location.state || {}
 
   const handleContinue = () => {
-    // Navigate to next step with all booking data
-    navigate('/booking/confirmation', { 
+    // Navigate to employee selection with all booking data
+    navigate('/booking/employee', { 
       state: { vehicleId, serviceIds, locationId: selectedLocationId } 
     })
   }
