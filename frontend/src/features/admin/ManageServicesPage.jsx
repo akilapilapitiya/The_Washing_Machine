@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,157 +12,149 @@ import {
   CheckCircle,
   DollarSign,
   Clock,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
-
-// Mock services data
-const mockServices = [
-  {
-    id: "1",
-    title: "Exterior Wash",
-    description:
-      "Thorough exterior wash, rinse, and dry with premium products.",
-    price: 20,
-    duration: "20-30 mins",
-    category: "Washing",
-  },
-  {
-    id: "2",
-    title: "Interior Detailing",
-    description:
-      "Deep interior clean including vacuum, wipe-down, and window care.",
-    price: 60,
-    duration: "45-60 mins",
-    category: "Detailing",
-  },
-  {
-    id: "3",
-    title: "Full Service Detail",
-    description: "Complete inside-out detailing for a showroom finish.",
-    price: 120,
-    duration: "2-3 hrs",
-    category: "Detailing",
-  },
-  {
-    id: "4",
-    title: "Oil Change",
-    description: "Quality oil and filter change with multi-point inspection.",
-    price: 50,
-    duration: "30-45 mins",
-    category: "Maintenance",
-  },
-  {
-    id: "5",
-    title: "Tire & Wheel Care",
-    description: "Tire shine, wheel clean, and pressure check.",
-    price: 25,
-    duration: "20-30 mins",
-    category: "Maintenance",
-  },
-  {
-    id: "6",
-    title: "Engine Bay Clean",
-    description: "Gentle degrease and clean for a fresh engine bay.",
-    price: 70,
-    duration: "45-60 mins",
-    category: "Cleaning",
-  },
-];
-
-const categories = [
-  "Washing",
-  "Detailing",
-  "Maintenance",
-  "Cleaning",
-  "Repair",
-  "Other",
-];
+import * as serviceService from "@/services/service.service";
 
 const ManageServicesPage = () => {
-  const [services, setServices] = useState(mockServices);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    duration: "",
-    category: "Washing",
+    servicename: "",
+    servicedetails: "",
+    serviceprice: "",
+    servicetime: "",
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch services on mount
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await serviceService.getServices();
+      setServices(data);
+    } catch (err) {
+      setError(err.message || "Failed to load services");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDurationChange = (field, value) => {
+    const hours = field === "hours" ? value : parseInt(formData.servicetime?.split(":")[0] || "0");
+    const minutes = field === "minutes" ? value : parseInt(formData.servicetime?.split(":")[1] || "0");
+    const formattedTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    setFormData((prev) => ({ ...prev, servicetime: formattedTime }));
+  };
+
+  const getDurationParts = () => {
+    const [hours, minutes] = formData.servicetime?.split(":").map(Number) || [0, 0];
+    return { hours: hours || 0, minutes: minutes || 0 };
+  };
+
   const resetForm = () => {
     setFormData({
-      title: "",
-      description: "",
-      price: "",
-      duration: "",
-      category: "Washing",
+      servicename: "",
+      servicedetails: "",
+      serviceprice: "",
+      servicetime: "",
     });
   };
 
-  const handleAddService = (e) => {
+  const handleAddService = async (e) => {
     e.preventDefault();
-
-    const newService = {
-      id: Date.now().toString(),
-      ...formData,
-      price: parseFloat(formData.price),
-    };
-
-    setServices([...services, newService]);
-    resetForm();
-    setShowAddForm(false);
-    setSuccessMessage("Service added successfully!");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        servicename: formData.servicename,
+        servicedetails: formData.servicedetails,
+        serviceprice: parseFloat(formData.serviceprice),
+        servicetime: formData.servicetime,
+      };
+      await serviceService.createService(payload);
+      resetForm();
+      setShowAddForm(false);
+      setSuccessMessage("Service added successfully!");
+      setShowSuccess(true);
+      await fetchServices();
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to add service");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleEditService = (e) => {
+  const handleEditService = async (e) => {
     e.preventDefault();
-
-    const updatedServices = services.map((service) =>
-      service.id === selectedService.id
-        ? { ...service, ...formData, price: parseFloat(formData.price) }
-        : service
-    );
-
-    setServices(updatedServices);
-    resetForm();
-    setShowEditForm(false);
-    setSelectedService(null);
-    setSuccessMessage("Service updated successfully!");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        servicename: formData.servicename,
+        servicedetails: formData.servicedetails,
+        serviceprice: parseFloat(formData.serviceprice),
+        servicetime: formData.servicetime,
+      };
+      await serviceService.updateService(selectedService.serviceid, payload);
+      resetForm();
+      setShowEditForm(false);
+      setSelectedService(null);
+      setSuccessMessage("Service updated successfully!");
+      setShowSuccess(true);
+      await fetchServices();
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to update service");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDeleteService = (id) => {
+  const handleDeleteService = async (serviceid) => {
     if (
       window.confirm(
         "Are you sure you want to delete this service? This action cannot be undone."
       )
     ) {
-      setServices(services.filter((service) => service.id !== id));
-      setSuccessMessage("Service deleted successfully!");
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      try {
+        setIsSubmitting(true);
+        await serviceService.deleteService(serviceid);
+        setSuccessMessage("Service deleted successfully!");
+        setShowSuccess(true);
+        await fetchServices();
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch (err) {
+        setError(err.message || "Failed to delete service");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
   const openEditForm = (service) => {
     setSelectedService(service);
     setFormData({
-      title: service.title,
-      description: service.description,
-      price: service.price.toString(),
-      duration: service.duration,
-      category: service.category,
+      servicename: service.servicename,
+      servicedetails: service.servicedetails,
+      serviceprice: service.serviceprice.toString(),
+      servicetime: service.servicetime,
     });
     setShowEditForm(true);
   };
@@ -198,66 +190,30 @@ const ManageServicesPage = () => {
           </div>
         )}
 
-        {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">
-                  {services.length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Total Services</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">
-                  {services.filter((s) => s.category === "Washing").length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Washing</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-purple-600">
-                  {services.filter((s) => s.category === "Detailing").length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Detailing</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-orange-600">
-                  {services.filter((s) => s.category === "Maintenance").length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Maintenance</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600" />
+            <p className="text-red-800 font-medium">{error}</p>
+          </div>
+        )}
 
-        {/* Services Grid */}
-        {services.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={32} className="animate-spin text-blue-600" />
+          </div>
+        ) : services.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
-              <Card key={service.id}>
+              <Card key={service.serviceid}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{service.title}</CardTitle>
-                      <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {service.category}
-                      </span>
+                      <CardTitle className="text-lg">{service.servicename}</CardTitle>
                     </div>
                     <button
-                      onClick={() => handleDeleteService(service.id)}
-                      className="text-gray-400 hover:text-red-600 transition"
+                      onClick={() => handleDeleteService(service.serviceid)}
+                      disabled={isSubmitting}
+                      className="text-gray-400 hover:text-red-600 transition disabled:opacity-50"
                       title="Delete service"
                     >
                       <Trash2 size={18} />
@@ -265,18 +221,18 @@ const ManageServicesPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">{service.description}</p>
+                  <p className="text-sm text-gray-600">{service.servicedetails}</p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign size={16} className="text-green-600" />
                       <span className="font-semibold text-green-600">
-                        Starting at ${service.price}
+                        Rs. {service.serviceprice}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock size={16} className="text-gray-500" />
                       <span className="text-gray-700">
-                        Approx. {service.duration}
+                        {service.servicetime}
                       </span>
                     </div>
                   </div>
@@ -285,6 +241,7 @@ const ManageServicesPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => openEditForm(service)}
+                      disabled={isSubmitting}
                       className="w-full flex items-center justify-center gap-2"
                     >
                       <Edit size={14} />
@@ -324,7 +281,8 @@ const ManageServicesPage = () => {
                 </CardTitle>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  disabled={isSubmitting}
+                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
                 >
                   <X size={24} />
                 </button>
@@ -333,22 +291,22 @@ const ManageServicesPage = () => {
             <CardContent>
               <form onSubmit={handleAddService} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Service Title *</Label>
+                  <Label htmlFor="servicename">Service Name *</Label>
                   <Input
-                    id="title"
-                    name="title"
-                    value={formData.title}
+                    id="servicename"
+                    name="servicename"
+                    value={formData.servicename}
                     onChange={handleInputChange}
                     placeholder="e.g., Exterior Wash"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="servicedetails">Description *</Label>
                   <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
+                    id="servicedetails"
+                    name="servicedetails"
+                    value={formData.servicedetails}
                     onChange={handleInputChange}
                     placeholder="Describe what this service includes..."
                     rows={4}
@@ -358,57 +316,70 @@ const ManageServicesPage = () => {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price ($) *</Label>
+                    <Label htmlFor="serviceprice">Price (Rs.) *</Label>
                     <Input
-                      id="price"
-                      name="price"
+                      id="serviceprice"
+                      name="serviceprice"
                       type="number"
                       step="0.01"
                       min="0"
-                      value={formData.price}
+                      value={formData.serviceprice}
                       onChange={handleInputChange}
-                      placeholder="e.g., 20"
+                      placeholder="e.g., 1500"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="duration">Duration *</Label>
-                    <Input
-                      id="duration"
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 20-30 mins"
-                      required
-                    />
+                    <Label>Duration *</Label>
+                    <div className="flex gap-3 items-end">
+                      <div className="flex-1">
+                        <Label htmlFor="hours" className="text-sm text-gray-600">Hours</Label>
+                        <Input
+                          id="hours"
+                          type="number"
+                          min="0"
+                          max="23"
+                          value={getDurationParts().hours}
+                          onChange={(e) => handleDurationChange("hours", parseInt(e.target.value) || 0)}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Label htmlFor="minutes" className="text-sm text-gray-600">Minutes</Label>
+                        <Input
+                          id="minutes"
+                          type="number"
+                          min="0"
+                          max="59"
+                          value={getDurationParts().minutes}
+                          onChange={(e) => handleDurationChange("minutes", parseInt(e.target.value) || 0)}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
                 </div>
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowAddForm(false)}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">Add Service</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={18} className="mr-2 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Service"
+                    )}
+                  </Button>
                 </div>
               </form>
             </CardContent>
@@ -428,7 +399,8 @@ const ManageServicesPage = () => {
                 </CardTitle>
                 <button
                   onClick={() => setShowEditForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  disabled={isSubmitting}
+                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
                 >
                   <X size={24} />
                 </button>
@@ -437,22 +409,22 @@ const ManageServicesPage = () => {
             <CardContent>
               <form onSubmit={handleEditService} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-title">Service Title *</Label>
+                  <Label htmlFor="edit-servicename">Service Name *</Label>
                   <Input
-                    id="edit-title"
-                    name="title"
-                    value={formData.title}
+                    id="edit-servicename"
+                    name="servicename"
+                    value={formData.servicename}
                     onChange={handleInputChange}
                     placeholder="e.g., Exterior Wash"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">Description *</Label>
+                  <Label htmlFor="edit-servicedetails">Description *</Label>
                   <textarea
-                    id="edit-description"
-                    name="description"
-                    value={formData.description}
+                    id="edit-servicedetails"
+                    name="servicedetails"
+                    value={formData.servicedetails}
                     onChange={handleInputChange}
                     placeholder="Describe what this service includes..."
                     rows={4}
@@ -462,57 +434,70 @@ const ManageServicesPage = () => {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-price">Price ($) *</Label>
+                    <Label htmlFor="edit-serviceprice">Price (Rs.) *</Label>
                     <Input
-                      id="edit-price"
-                      name="price"
+                      id="edit-serviceprice"
+                      name="serviceprice"
                       type="number"
                       step="0.01"
                       min="0"
-                      value={formData.price}
+                      value={formData.serviceprice}
                       onChange={handleInputChange}
-                      placeholder="e.g., 20"
+                      placeholder="e.g., 1500"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-duration">Duration *</Label>
-                    <Input
-                      id="edit-duration"
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 20-30 mins"
-                      required
-                    />
+                    <Label>Duration *</Label>
+                    <div className="flex gap-3 items-end">
+                      <div className="flex-1">
+                        <Label htmlFor="edit-hours" className="text-sm text-gray-600">Hours</Label>
+                        <Input
+                          id="edit-hours"
+                          type="number"
+                          min="0"
+                          max="23"
+                          value={getDurationParts().hours}
+                          onChange={(e) => handleDurationChange("hours", parseInt(e.target.value) || 0)}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Label htmlFor="edit-minutes" className="text-sm text-gray-600">Minutes</Label>
+                        <Input
+                          id="edit-minutes"
+                          type="number"
+                          min="0"
+                          max="59"
+                          value={getDurationParts().minutes}
+                          onChange={(e) => handleDurationChange("minutes", parseInt(e.target.value) || 0)}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-category">Category *</Label>
-                  <select
-                    id="edit-category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
                 </div>
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowEditForm(false)}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">Update Service</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={18} className="mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Service"
+                    )}
+                  </Button>
                 </div>
               </form>
             </CardContent>
