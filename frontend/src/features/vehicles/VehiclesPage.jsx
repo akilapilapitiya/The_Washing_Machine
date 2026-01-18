@@ -1,84 +1,111 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Car, Plus, Trash2, X } from "lucide-react";
+import { Car, Plus, Trash2, X, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import * as vehicleService from "@/services/vehicle.service";
 
 const VehiclesPage = () => {
-  const [vehicles, setVehicles] = useState([
-    {
-      id: "1",
-      brand: "Toyota",
-      model: "Corolla",
-      year: 2020,
-      mileage: "45,000",
-      plate: "ABC-123",
-      color: "Blue",
-      nickname: "Daily",
-    },
-    {
-      id: "2",
-      brand: "Honda",
-      model: "Civic",
-      year: 2019,
-      mileage: "62,000",
-      plate: "XYZ-789",
-      color: "White",
-      nickname: "Workhorse",
-    },
-    {
-      id: "3",
-      brand: "Ford",
-      model: "F-150",
-      year: 2022,
-      mileage: "28,000",
-      plate: "TRK-555",
-      color: "Gray",
-      nickname: "Hauler",
-    },
-  ]);
-
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState(null);
   const [newVehicle, setNewVehicle] = useState({
-    brand: "",
-    model: "",
-    year: "",
-    mileage: "",
-    plate: "",
-    color: "",
-    nickname: "",
+    vehbrand: "",
+    vehmodel: "",
+    vehmileage: "",
+    vehplate: "",
   });
+
+  // Fetch vehicles on mount
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await vehicleService.getVehicles();
+      setVehicles(response.data.vehicles || []);
+    } catch (err) {
+      console.error("Failed to fetch vehicles:", err);
+      setError(err.message || "Failed to load vehicles. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewVehicle((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddVehicle = (e) => {
+  const handleAddVehicle = async (e) => {
     e.preventDefault();
-    const vehicle = {
-      id: Date.now().toString(),
-      ...newVehicle,
-    };
-    setVehicles((prev) => [...prev, vehicle]);
-    setNewVehicle({
-      brand: "",
-      model: "",
-      year: "",
-      mileage: "",
-      plate: "",
-      color: "",
-      nickname: "",
-    });
-    setShowAddForm(false);
+    
+    try {
+      setSubmitting(true);
+      setError(null);
+      
+      const vehicleData = {
+        vehplate: newVehicle.vehplate,
+        vehmileage: parseInt(newVehicle.vehmileage) || 0,
+        vehbrand: newVehicle.vehbrand,
+        vehmodel: newVehicle.vehmodel,
+      };
+
+      await vehicleService.createVehicle(vehicleData);
+      
+      // Refresh the list
+      await fetchVehicles();
+      
+      // Reset form
+      setNewVehicle({
+        vehbrand: "",
+        vehmodel: "",
+        vehmileage: "",
+        vehplate: "",
+      });
+      setShowAddForm(false);
+    } catch (err) {
+      console.error("Failed to create vehicle:", err);
+      setError(err.message || "Failed to add vehicle. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDeleteVehicle = (id) => {
-    if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      setVehicles((prev) => prev.filter((v) => v.id !== id));
+  const handleDeleteClick = (vehicle) => {
+    setVehicleToDelete(vehicle);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!vehicleToDelete) return;
+
+    try {
+      setError(null);
+      await vehicleService.deleteVehicle(vehicleToDelete.id);
+      await fetchVehicles();
+      setShowDeleteConfirm(false);
+      setVehicleToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete vehicle:", err);
+      setError(err.message || "Failed to delete vehicle. Please try again.");
+      setShowDeleteConfirm(false);
+      setVehicleToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setVehicleToDelete(null);
   };
 
   return (
@@ -97,11 +124,29 @@ const VehiclesPage = () => {
           <Button
             onClick={() => setShowAddForm(true)}
             className="flex items-center gap-2"
+            disabled={loading}
           >
             <Plus size={18} />
             Add Vehicle
           </Button>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-red-800 font-medium">Error</p>
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-600 hover:text-red-800"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
 
         {/* Add Vehicle Form Modal */}
         {showAddForm && (
@@ -122,79 +167,51 @@ const VehiclesPage = () => {
                 <form onSubmit={handleAddVehicle} className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="brand">Brand *</Label>
+                      <Label htmlFor="vehbrand">Brand *</Label>
                       <Input
-                        id="brand"
-                        name="brand"
-                        value={newVehicle.brand}
+                        id="vehbrand"
+                        name="vehbrand"
+                        value={newVehicle.vehbrand}
                         onChange={handleInputChange}
                         placeholder="e.g., Toyota"
                         required
+                        disabled={submitting}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="model">Model *</Label>
+                      <Label htmlFor="vehmodel">Model *</Label>
                       <Input
-                        id="model"
-                        name="model"
-                        value={newVehicle.model}
+                        id="vehmodel"
+                        name="vehmodel"
+                        value={newVehicle.vehmodel}
                         onChange={handleInputChange}
                         placeholder="e.g., Corolla"
                         required
+                        disabled={submitting}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="year">Year</Label>
+                      <Label htmlFor="vehplate">Number Plate *</Label>
                       <Input
-                        id="year"
-                        name="year"
-                        type="number"
-                        value={newVehicle.year}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 2020"
-                        min="1900"
-                        max={new Date().getFullYear() + 1}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="plate">Number Plate *</Label>
-                      <Input
-                        id="plate"
-                        name="plate"
-                        value={newVehicle.plate}
+                        id="vehplate"
+                        name="vehplate"
+                        value={newVehicle.vehplate}
                         onChange={handleInputChange}
                         placeholder="e.g., ABC-123"
                         required
+                        disabled={submitting}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="mileage">Mileage (km)</Label>
+                      <Label htmlFor="vehmileage">Mileage (km)</Label>
                       <Input
-                        id="mileage"
-                        name="mileage"
-                        value={newVehicle.mileage}
+                        id="vehmileage"
+                        name="vehmileage"
+                        type="number"
+                        value={newVehicle.vehmileage}
                         onChange={handleInputChange}
-                        placeholder="e.g., 45,000"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="color">Color</Label>
-                      <Input
-                        id="color"
-                        name="color"
-                        value={newVehicle.color}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Blue"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="nickname">Nickname (Optional)</Label>
-                      <Input
-                        id="nickname"
-                        name="nickname"
-                        value={newVehicle.nickname}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Daily Driver"
+                        placeholder="e.g., 45000"
+                        disabled={submitting}
                       />
                     </div>
                   </div>
@@ -203,10 +220,20 @@ const VehiclesPage = () => {
                       type="button"
                       variant="outline"
                       onClick={() => setShowAddForm(false)}
+                      disabled={submitting}
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">Add Vehicle</Button>
+                    <Button type="submit" disabled={submitting}>
+                      {submitting ? (
+                        <>
+                          <Loader2 size={16} className="mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        "Add Vehicle"
+                      )}
+                    </Button>
                   </div>
                 </form>
               </CardContent>
@@ -214,13 +241,23 @@ const VehiclesPage = () => {
           </div>
         )}
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+              <p className="text-gray-600">Loading vehicles...</p>
+            </div>
+          </div>
+        )}
+
         {/* Vehicles Grid */}
-        {vehicles.length > 0 ? (
+        {!loading && vehicles.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {vehicles.map((vehicle) => (
               <Card key={vehicle.id} className="relative overflow-hidden">
                 <button
-                  onClick={() => handleDeleteVehicle(vehicle.id)}
+                  onClick={() => handleDeleteClick(vehicle)}
                   className="absolute top-4 right-4 p-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition z-10"
                   title="Delete vehicle"
                 >
@@ -233,10 +270,9 @@ const VehiclesPage = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg truncate">
-                        {vehicle.nickname ||
-                          `${vehicle.brand} ${vehicle.model}`}
+                        {vehicle.vehbrand} {vehicle.vehmodel}
                       </CardTitle>
-                      <p className="text-sm text-gray-600">{vehicle.plate}</p>
+                      <p className="text-sm text-gray-600">{vehicle.vehplate}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -245,36 +281,26 @@ const VehiclesPage = () => {
                     <div>
                       <p className="text-gray-500">Brand</p>
                       <p className="font-medium text-gray-800">
-                        {vehicle.brand}
+                        {vehicle.vehbrand}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Model</p>
                       <p className="font-medium text-gray-800">
-                        {vehicle.model}
+                        {vehicle.vehmodel}
                       </p>
                     </div>
-                    {vehicle.year && (
-                      <div>
-                        <p className="text-gray-500">Year</p>
-                        <p className="font-medium text-gray-800">
-                          {vehicle.year}
-                        </p>
-                      </div>
-                    )}
-                    {vehicle.mileage && (
+                    <div>
+                      <p className="text-gray-500">Plate</p>
+                      <p className="font-medium text-gray-800">
+                        {vehicle.vehplate}
+                      </p>
+                    </div>
+                    {vehicle.vehmileage != null && (
                       <div>
                         <p className="text-gray-500">Mileage</p>
                         <p className="font-medium text-gray-800">
-                          {vehicle.mileage} km
-                        </p>
-                      </div>
-                    )}
-                    {vehicle.color && (
-                      <div>
-                        <p className="text-gray-500">Color</p>
-                        <p className="font-medium text-gray-800">
-                          {vehicle.color}
+                          {vehicle.vehmileage.toLocaleString()} km
                         </p>
                       </div>
                     )}
@@ -283,7 +309,57 @@ const VehiclesPage = () => {
               </Card>
             ))}
           </div>
-        ) : (
+        ) : null}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && vehicleToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-600">
+                  <AlertCircle size={24} />
+                  Confirm Delete
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700">
+                  Are you sure you want to delete this vehicle?
+                </p>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <p className="font-semibold text-gray-900">
+                    {vehicleToDelete.vehbrand} {vehicleToDelete.vehmodel}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Plate: {vehicleToDelete.vehplate}
+                  </p>
+                </div>
+                <p className="text-sm text-red-600">
+                  This action cannot be undone.
+                </p>
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDeleteCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleDeleteConfirm}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 size={16} className="mr-2" />
+                    Delete Vehicle
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && vehicles.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
               <Car size={48} className="mx-auto text-gray-400 mb-4" />

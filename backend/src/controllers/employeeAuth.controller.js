@@ -46,6 +46,7 @@ export const employeeSignIn = async (req, res, next) => {
       empid: employee.empid,
       empname: employee.empname,
       email: employee.email,
+      emptel: employee.emptel,
     };
 
     res.cookie("jwt", token, {

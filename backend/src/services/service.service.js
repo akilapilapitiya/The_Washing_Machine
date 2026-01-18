@@ -21,7 +21,6 @@ export const createServiceService = async ({
     "serviceprice",
   ]);
   assertPositiveNumber(serviceprice, "serviceprice");
-  assertPositiveNumber(servicetime, "servicetime");
 
   const result = await pool.query(
     `
@@ -83,7 +82,6 @@ export const updateServiceService = async (serviceid, updates) => {
     "servicedetails",
   ]);
   assertPositiveNumber(serviceprice, "serviceprice");
-  assertPositiveNumber(servicetime, "servicetime");
 
   const result = await pool.query(
     `

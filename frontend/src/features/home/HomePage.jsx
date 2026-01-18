@@ -15,10 +15,10 @@ const HomePage = () => {
         </p>
 
         <div className="flex gap-4">
-          <Link to="/dashboard">
+          <Link to="/signup">
             <Button size="lg">Sign Up</Button>
           </Link>
-          <Link to="/dashboard">
+          <Link to="/login">
             <Button size="lg" variant="outline">
               Sign In
             </Button>

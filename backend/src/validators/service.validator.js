@@ -7,17 +7,21 @@ export const serviceValidator = {
       "string.max": "Service name must not exceed 100 characters",
       "any.required": "Service name is required",
     }),
-    servicedescription: Joi.string().trim().messages({
-      "string.base": "Service description must be text",
+    servicedetails: Joi.string().trim().required().messages({
+      "string.base": "Service details must be text",
+      "any.required": "Service details is required",
     }),
     serviceprice: Joi.number().positive().required().messages({
       "number.positive": "Service price must be a positive number",
       "any.required": "Service price is required",
     }),
-    serviceduration: Joi.number().positive().required().messages({
-      "number.positive": "Service duration must be a positive number",
-      "any.required": "Service duration is required",
-    }),
+    servicetime: Joi.string()
+      .pattern(/^([0-1]?\d|2[0-3]):[0-5]\d$/)
+      .required()
+      .messages({
+        "string.pattern.base": "Service time must be in HH:mm format",
+        "any.required": "Service time is required",
+      }),
   }),
 
   updateService: Joi.object({
@@ -25,12 +29,14 @@ export const serviceValidator = {
       "string.empty": "Service name cannot be empty",
       "string.max": "Service name must not exceed 100 characters",
     }),
-    servicedescription: Joi.string().trim(),
+    servicedetails: Joi.string().trim(),
     serviceprice: Joi.number().positive().messages({
       "number.positive": "Service price must be a positive number",
     }),
-    serviceduration: Joi.number().positive().messages({
-      "number.positive": "Service duration must be a positive number",
-    }),
+    servicetime: Joi.string()
+      .pattern(/^([0-1]?\d|2[0-3]):[0-5]\d$/)
+      .messages({
+        "string.pattern.base": "Service time must be in HH:mm format",
+      }),
   }).min(1),
 };

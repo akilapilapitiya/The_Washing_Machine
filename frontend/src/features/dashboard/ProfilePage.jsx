@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,25 +16,20 @@ import {
   X,
 } from "lucide-react";
 
-// Mock user data - replace with actual user from auth context/API
-const mockUser = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  mobile: "+94 77 123 4567",
-  role: "Customer", // or 'Employee'
-  joinDate: "January 2024",
-  accountType: "Premium", // for customers
-  // employeeId: 'EMP-001', // for employees
-  // department: 'Detailing', // for employees
-};
 
 const ProfilePage = () => {
-  const [user, setUser] = useState(mockUser);
+  const { user, updateUser, userType } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user.name,
-    mobile: user.mobile,
+    name: user?.name || "",
+    mobile: user?.mobile || "",
   });
+  React.useEffect(() => {
+    setFormData({
+      name: user?.name || "",
+      mobile: user?.mobile || "",
+    });
+  }, [user]);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleInputChange = (e) => {
@@ -43,20 +39,17 @@ const ProfilePage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     // Validate mobile number format (basic validation)
     if (formData.mobile && !formData.mobile.match(/^[+]?[\d\s()-]+$/)) {
       alert("Please enter a valid mobile number");
       return;
     }
-
-    // Update user profile
-    setUser({ ...user, name: formData.name, mobile: formData.mobile });
+    // Update user profile in context (and localStorage)
+    updateUser({ name: formData.name, mobile: formData.mobile });
     setIsEditing(false);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
-
-    // TODO: API call to update profile
+    // TODO: API call to update profile in backend
   };
 
   const handleCancel = () => {
@@ -100,10 +93,10 @@ const ProfilePage = () => {
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
                   <User size={48} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold">{user.name}</h3>
-                <p className="text-sm text-gray-600">{user.email}</p>
+                <h3 className="text-xl font-bold">{user?.name}</h3>
+                <p className="text-sm text-gray-600">{user?.email}</p>
                 <span className="mt-3 px-4 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                  {user.role}
+                  {userType === "employee" ? "Employee" : "Customer"}
                 </span>
               </div>
 
@@ -115,7 +108,7 @@ const ProfilePage = () => {
                     <p className="font-medium">{user.joinDate}</p>
                   </div>
                 </div>
-                {user.accountType && (
+                {user?.accountType && userType === "customer" && (
                   <div className="flex items-center gap-3 text-sm">
                     <Briefcase size={16} className="text-gray-500" />
                     <div>
@@ -124,7 +117,7 @@ const ProfilePage = () => {
                     </div>
                   </div>
                 )}
-                {user.employeeId && (
+                {user?.employeeId && userType === "employee" && (
                   <div className="flex items-center gap-3 text-sm">
                     <Briefcase size={16} className="text-gray-500" />
                     <div>
@@ -133,7 +126,7 @@ const ProfilePage = () => {
                     </div>
                   </div>
                 )}
-                {user.department && (
+                {user?.department && userType === "employee" && (
                   <div className="flex items-center gap-3 text-sm">
                     <Briefcase size={16} className="text-gray-500" />
                     <div>
@@ -175,7 +168,7 @@ const ProfilePage = () => {
                       <Label className="text-gray-500 text-sm">Full Name</Label>
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                         <User size={18} className="text-gray-500" />
-                        <span className="font-medium">{user.name}</span>
+                        <span className="font-medium">{user?.name}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -184,7 +177,7 @@ const ProfilePage = () => {
                       </Label>
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                         <Phone size={18} className="text-gray-500" />
-                        <span className="font-medium">{user.mobile}</span>
+                        <span className="font-medium">{user?.mobile}</span>
                       </div>
                     </div>
                   </div>
@@ -194,7 +187,7 @@ const ProfilePage = () => {
                     </Label>
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                       <Mail size={18} className="text-gray-500" />
-                      <span className="font-medium">{user.email}</span>
+                      <span className="font-medium">{user?.email}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
                       Email address cannot be changed
@@ -233,7 +226,7 @@ const ProfilePage = () => {
                     </Label>
                     <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg border border-gray-300">
                       <Mail size={18} className="text-gray-400" />
-                      <span className="text-gray-500">{user.email}</span>
+                      <span className="text-gray-500">{user?.email}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
                       Email address cannot be changed

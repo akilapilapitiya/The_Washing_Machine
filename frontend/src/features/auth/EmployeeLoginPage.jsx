@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +9,72 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { Briefcase } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { employeeSignIn } from "@/services/auth.service";
+import { Briefcase, Loader2 } from "lucide-react";
 
 const EmployeeLoginPage = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+    // Clear error when user starts typing
+    if (error) setError("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // Call employee signin API
+      const response = await employeeSignIn({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Check if signin was successful
+      if (response.success && response.data) {
+        const { employee, token } = response.data;
+        
+        // Update auth context with employee type
+        login(employee, token, "employee");
+
+        // Redirect to dashboard
+        navigate("/dashboard");
+      } else {
+        setError(response.message || "Login failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Employee login error:", err);
+      
+      // Handle different error types
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError("An error occurred during login. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
@@ -32,13 +94,22 @@ const EmployeeLoginPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="employee@washingmachine.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -49,13 +120,22 @@ const EmployeeLoginPage = () => {
                   id="password"
                   type="password"
                   placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
                   required
                 />
               </div>
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2">
-                  <input type="checkbox" className="rounded" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded" 
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={loading}
+                  />
                   <span className="text-gray-600">Remember me</span>
                 </label>
                 <Link
@@ -66,8 +146,15 @@ const EmployeeLoginPage = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
 

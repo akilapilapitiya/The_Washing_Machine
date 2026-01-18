@@ -51,7 +51,7 @@ export const signUp = async ({
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT empid, empname, email, password_hash, emptype FROM employee WHERE email = $1",
+    "SELECT empid, empname, email, emptel, password_hash, emptype FROM employee WHERE email = $1",
     [email]
   );
 
@@ -66,7 +66,7 @@ export const signIn = async ({ email, password }) => {
     throw new UnauthorizedError("Invalid email or password");
   }
 
-  const employee = { empid: row.empid, empname: row.empname, email: row.email };
+  const employee = { empid: row.empid, empname: row.empname, email: row.email, emptel: row.emptel };
   const token = generateToken(row.empid, "employee", row.emptype);
   return { employee, token };
 };

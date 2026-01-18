@@ -1,11 +1,14 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const navItems = [
     { path: "/", label: "Home" },
@@ -42,9 +45,15 @@ const Navbar = () => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Link to="/dashboard">
-              <Button>Get Started</Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button>Dashboard</Button>
+              </Link>
+            ) : (
+              <Link to="/signup">
+                <Button>Get Started</Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -79,9 +88,15 @@ const Navbar = () => {
                   </Button>
                 </Link>
               ))}
-              <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full">Get Started</Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full">Dashboard</Button>
+                </Link>
+              ) : (
+                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full">Get Started</Button>
+                </Link>
+              )}
             </div>
           </div>
         )}
