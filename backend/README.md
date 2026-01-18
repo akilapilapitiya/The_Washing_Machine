@@ -99,12 +99,55 @@ src/
 │   ├── service.service.js
 │   └── vehicle.service.js
 ├── scripts/
-│   ├── dataClean.script.js
-│   └── runClean.js
+│   ├── dataClean.script.js       # Truncate all tables (clear data)
+│   ├── dbReset.script.js         # Drop and recreate all tables
+│   ├── addOwner.js               # Create initial owner account
+│   ├── runClean.js               # Script runner for db:clean
+│   └── runReset.js               # Script runner for db:reset
 ├── utils/
 │   └── generateToken.util.js
 └── app.js                # Express app setup & route mounting
 ```
+
+## Database Management Scripts
+
+Use these npm scripts to manage your database:
+
+### `npm run db:clean`
+**Truncates all tables** (clears data but keeps schema intact).  
+Use when you want to wipe data while keeping the table structure.
+
+```bash
+npm run db:clean
+```
+
+### `npm run db:reset`
+**Drops and recreates all tables** (full schema reset).  
+Use after making schema changes (like adding/removing columns or tables).
+
+```bash
+npm run db:reset
+```
+
+### `npm run db:reset:seed`
+**Drops, recreates all tables, and seeds owner account**.  
+Use for a fresh setup with pre-created owner credentials.
+
+```bash
+npm run db:reset:seed
+```
+
+### `npm run db:seed-owner`
+**Creates an owner account** on existing database.  
+Use to add the initial owner account without resetting the database.
+
+```bash
+npm run db:seed-owner
+```
+
+**Default Owner Credentials:**
+- Email: `owner@washingmachine.com`
+- Password: `Owner@123`
 
 ## Installation & Setup
 

@@ -11,11 +11,11 @@ export const getVehicles = async () => {
 
 /**
  * Get a specific vehicle by ID
- * @param {string} vehid - Vehicle ID
+ * @param {number} id - Vehicle ID
  * @returns {Promise<Object>} - Vehicle data
  */
-export const getVehicle = async (vehid) => {
-  const response = await api.get(`/vehicle/${vehid}`);
+export const getVehicle = async (id) => {
+  const response = await api.get(`/vehicle/${id}`);
   return response.data;
 };
 
@@ -31,21 +31,21 @@ export const createVehicle = async (vehicleData) => {
 
 /**
  * Update vehicle mileage (employees only)
- * @param {string} vehid - Vehicle ID
+ * @param {number} id - Vehicle ID
  * @param {Object} data - Update data (vehmileage)
  * @returns {Promise<Object>} - Updated vehicle
  */
-export const updateVehicle = async (vehid, data) => {
-  const response = await api.put(`/vehicle/${vehid}`, data);
+export const updateVehicle = async (id, data) => {
+  const response = await api.put(`/vehicle/${id}`, data);
   return response.data;
 };
 
 /**
  * Delete a vehicle
- * @param {string} vehid - Vehicle ID
+ * @param {number} id - Vehicle ID
  * @returns {Promise<Object>} - Success message
  */
-export const deleteVehicle = async (vehid) => {
-  const response = await api.delete(`/vehicle/${vehid}`);
+export const deleteVehicle = async (id) => {
+  const response = await api.delete(`/vehicle/${id}`);
   return response.data;
 };

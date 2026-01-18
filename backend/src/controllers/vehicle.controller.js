@@ -11,11 +11,11 @@ import { successResponse } from "../utils/response.util.js";
 export const createVehicle = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
-    const { vehid, vehmileage, vehbrand, vehmodel } = req.body;
+    const { vehplate, vehmileage, vehbrand, vehmodel } = req.body;
 
     const vehicle = await createVehicleService({
       customerId,
-      vehid,
+      vehplate,
       vehmileage,
       vehbrand,
       vehmodel,
@@ -47,13 +47,13 @@ export const getCustomerVehicles = async (req, res, next) => {
 
 export const getVehicle = async (req, res, next) => {
   try {
-    const { vehid } = req.params;
+    const { id } = req.params;
     const userId = req.user.id;
     const userRole = req.user.role;
     const userEmptype = req.user.emptype;
 
     const vehicle = await getVehicleService(
-      vehid,
+      id,
       userId,
       userRole,
       userEmptype
@@ -67,10 +67,10 @@ export const getVehicle = async (req, res, next) => {
 
 export const updateVehicle = async (req, res, next) => {
   try {
-    const { vehid } = req.params;
+    const { id } = req.params;
     const { vehmileage } = req.body;
 
-    const vehicle = await updateVehicleService(vehid, vehmileage);
+    const vehicle = await updateVehicleService(id, vehmileage);
 
     successResponse(res, 200, "Vehicle mileage updated successfully", {
       vehicle,
@@ -83,9 +83,9 @@ export const updateVehicle = async (req, res, next) => {
 export const deleteVehicle = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
-    const { vehid } = req.params;
+    const { id } = req.params;
 
-    await deleteVehicleService(vehid, customerId);
+    await deleteVehicleService(id, customerId);
 
     successResponse(res, 200, "Vehicle deleted successfully");
   } catch (error) {

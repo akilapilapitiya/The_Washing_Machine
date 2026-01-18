@@ -2,9 +2,10 @@ import Joi from "joi";
 
 export const vehicleValidator = {
   createVehicle: Joi.object({
-    vehid: Joi.string().length(7).required().messages({
-      "string.length": "Vehicle ID must be exactly 7 characters",
-      "any.required": "Vehicle ID is required",
+    vehplate: Joi.string().min(1).max(20).trim().required().messages({
+      "string.min": "Vehicle plate must have at least 1 character",
+      "string.max": "Vehicle plate must not exceed 20 characters",
+      "any.required": "Vehicle plate is required",
     }),
     vehbrand: Joi.string().max(50).trim().required().messages({
       "string.max": "Vehicle brand must not exceed 50 characters",

@@ -12,25 +12,25 @@ import {
 // Create a vehicle
 export const createVehicleService = async ({
   customerId,
-  vehid,
+  vehplate,
   vehmileage,
   vehbrand,
   vehmodel,
 }) => {
-  assertRequiredFields({ customerId, vehid, vehbrand, vehmodel }, [
+  assertRequiredFields({ customerId, vehplate, vehbrand, vehmodel }, [
     "customerId",
-    "vehid",
+    "vehplate",
     "vehbrand",
     "vehmodel",
   ]);
   assertNonNegativeNumber(vehmileage, "vehmileage");
   const result = await pool.query(
     `
-    INSERT INTO vehicle (vehid, vehmileage, vehbrand, vehmodel, cusid)
+    INSERT INTO vehicle (vehplate, vehmileage, vehbrand, vehmodel, cusid)
     VALUES ($1, $2, $3, $4, $5)
-    RETURNING vehid, vehmileage, vehbrand, vehmodel, cusid
+    RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
     `,
-    [vehid, vehmileage, vehbrand, vehmodel, customerId]
+    [vehplate, vehmileage || 0, vehbrand, vehmodel, customerId]
   );
 
   return result.rows[0];
@@ -40,7 +40,7 @@ export const createVehicleService = async ({
 export const getCustomerVehiclesService = async (customerId) => {
   const result = await pool.query(
     `
-    SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+    SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
     FROM vehicle
     WHERE cusid = $1
     ORDER BY created_at DESC
@@ -64,7 +64,7 @@ export const getAllVehiclesByRoleService = async (
   if (userRole === "customer") {
     const result = await pool.query(
       `
-      SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
       FROM vehicle
       WHERE cusid = $1
       ORDER BY created_at DESC
@@ -78,7 +78,7 @@ export const getAllVehiclesByRoleService = async (
   if (effectiveRole === "manager" || effectiveRole === "owner") {
     const result = await pool.query(
       `
-      SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
       FROM vehicle
       ORDER BY created_at DESC
       `
@@ -92,18 +92,18 @@ export const getAllVehiclesByRoleService = async (
 
 // Get a vehicle by ID based on user role
 export const getVehicleService = async (
-  vehid,
+  id,
   userId,
   userRole,
   userEmptype
 ) => {
   const result = await pool.query(
     `
-    SELECT vehid, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+    SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
     FROM vehicle
-    WHERE vehid = $1
+    WHERE id = $1
     `,
-    [vehid]
+    [id]
   );
 
   if (result.rowCount === 0) {
@@ -132,7 +132,7 @@ export const getVehicleService = async (
 };
 
 // Update a vehicle mileage (employees only)
-export const updateVehicleService = async (vehid, vehmileage) => {
+export const updateVehicleService = async (id, vehmileage) => {
   if (vehmileage === undefined || vehmileage === null) {
     throw new ValidationError("Mileage is required");
   }
@@ -142,8 +142,8 @@ export const updateVehicleService = async (vehid, vehmileage) => {
   }
 
   const vehicleCheck = await pool.query(
-    "SELECT vehid FROM vehicle WHERE vehid = $1",
-    [vehid]
+    "SELECT id FROM vehicle WHERE id = $1",
+    [id]
   );
 
   if (vehicleCheck.rowCount === 0) {
@@ -155,21 +155,21 @@ export const updateVehicleService = async (vehid, vehmileage) => {
     UPDATE vehicle
     SET vehmileage = $1,
         updated_at = NOW()
-    WHERE vehid = $2
-    RETURNING vehid, vehmileage, vehbrand, vehmodel, cusid
+    WHERE id = $2
+    RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
     `,
-    [vehmileage, vehid]
+    [vehmileage, id]
   );
 
   return result.rows[0];
 };
 
 //Delete a Vehicle
-export const deleteVehicleService = async (vehid, customerId) => {
+export const deleteVehicleService = async (id, customerId) => {
   // First verify the vehicle belongs to the customer
   const vehicleCheck = await pool.query(
-    "SELECT cusid FROM vehicle WHERE vehid = $1",
-    [vehid]
+    "SELECT cusid FROM vehicle WHERE id = $1",
+    [id]
   );
 
   if (vehicleCheck.rowCount === 0) {
@@ -180,5 +180,5 @@ export const deleteVehicleService = async (vehid, customerId) => {
     throw new ForbiddenError("You can only delete your own vehicles");
   }
 
-  await pool.query("DELETE FROM vehicle WHERE vehid = $1", [vehid]);
+  await pool.query("DELETE FROM vehicle WHERE id = $1", [id]);
 };

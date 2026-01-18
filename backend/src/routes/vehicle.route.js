@@ -13,7 +13,7 @@ import { vehicleValidator } from "../validators/index.js";
 const vehicleRouter = Router();
 
 vehicleRouter.use(authMiddleware);
-vehicleRouter.get("/:vehid", getVehicle);
+vehicleRouter.get("/:id", getVehicle);
 //Customer only routes
 vehicleRouter.post(
   "/",
@@ -21,10 +21,10 @@ vehicleRouter.post(
   validateSchema(vehicleValidator.createVehicle),
   createVehicle
 );
-vehicleRouter.delete("/:vehid", restrictTo("customer"), deleteVehicle);
+vehicleRouter.delete("/:id", restrictTo("customer"), deleteVehicle);
 //Employee only routes - Update mileage
 vehicleRouter.put(
-  "/:vehid",
+  "/:id",
   restrictTo("employee"),
   validateSchema(vehicleValidator.updateVehicle),
   updateVehicle

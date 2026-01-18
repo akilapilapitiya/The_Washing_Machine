@@ -25,7 +25,7 @@ async function addOwner() {
       console.log(" Owner account already exists!");
       console.log(`Email: ${ownerData.email}`);
       console.log("No action taken.");
-      process.exit(0);
+      return;
     }
 
     // Hash password
@@ -60,12 +60,24 @@ async function addOwner() {
     console.log(`Password: ${ownerData.password}`);
     console.log("=====================================\n");
     console.log("Use these credentials to sign in and create other employees.");
-
-    process.exit(0);
   } catch (err) {
     console.error(" Failed to create owner account:", err.message);
+    throw err;
+  }
+}
+
+export const seedOwnerAccount = addOwner;
+
+// Run directly if executed as script
+async function main() {
+  try {
+    await addOwner();
+    process.exit(0);
+  } catch (err) {
     process.exit(1);
   }
 }
 
-addOwner();
+if (process.argv[1].includes("addOwner.js")) {
+  main();
+}

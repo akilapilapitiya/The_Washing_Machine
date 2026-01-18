@@ -19,7 +19,7 @@ const VehiclesPage = () => {
     vehbrand: "",
     vehmodel: "",
     vehmileage: "",
-    vehid: "",
+    vehplate: "",
   });
 
   // Fetch vehicles on mount
@@ -54,7 +54,7 @@ const VehiclesPage = () => {
       setError(null);
       
       const vehicleData = {
-        vehid: newVehicle.vehid,
+        vehplate: newVehicle.vehplate,
         vehmileage: parseInt(newVehicle.vehmileage) || 0,
         vehbrand: newVehicle.vehbrand,
         vehmodel: newVehicle.vehmodel,
@@ -70,7 +70,7 @@ const VehiclesPage = () => {
         vehbrand: "",
         vehmodel: "",
         vehmileage: "",
-        vehid: "",
+        vehplate: "",
       });
       setShowAddForm(false);
     } catch (err) {
@@ -91,7 +91,7 @@ const VehiclesPage = () => {
 
     try {
       setError(null);
-      await vehicleService.deleteVehicle(vehicleToDelete.vehid);
+      await vehicleService.deleteVehicle(vehicleToDelete.id);
       await fetchVehicles();
       setShowDeleteConfirm(false);
       setVehicleToDelete(null);
@@ -191,11 +191,11 @@ const VehiclesPage = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="vehid">Number Plate *</Label>
+                      <Label htmlFor="vehplate">Number Plate *</Label>
                       <Input
-                        id="vehid"
-                        name="vehid"
-                        value={newVehicle.vehid}
+                        id="vehplate"
+                        name="vehplate"
+                        value={newVehicle.vehplate}
                         onChange={handleInputChange}
                         placeholder="e.g., ABC-123"
                         required
@@ -255,7 +255,7 @@ const VehiclesPage = () => {
         {!loading && vehicles.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {vehicles.map((vehicle) => (
-              <Card key={vehicle.vehid} className="relative overflow-hidden">
+              <Card key={vehicle.id} className="relative overflow-hidden">
                 <button
                   onClick={() => handleDeleteClick(vehicle)}
                   className="absolute top-4 right-4 p-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition z-10"
@@ -272,7 +272,7 @@ const VehiclesPage = () => {
                       <CardTitle className="text-lg truncate">
                         {vehicle.vehbrand} {vehicle.vehmodel}
                       </CardTitle>
-                      <p className="text-sm text-gray-600">{vehicle.vehid}</p>
+                      <p className="text-sm text-gray-600">{vehicle.vehplate}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -293,7 +293,7 @@ const VehiclesPage = () => {
                     <div>
                       <p className="text-gray-500">Plate</p>
                       <p className="font-medium text-gray-800">
-                        {vehicle.vehid}
+                        {vehicle.vehplate}
                       </p>
                     </div>
                     {vehicle.vehmileage != null && (
@@ -330,7 +330,7 @@ const VehiclesPage = () => {
                     {vehicleToDelete.vehbrand} {vehicleToDelete.vehmodel}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Plate: {vehicleToDelete.vehid}
+                    Plate: {vehicleToDelete.vehplate}
                   </p>
                 </div>
                 <p className="text-sm text-red-600">

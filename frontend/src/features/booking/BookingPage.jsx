@@ -85,14 +85,14 @@ const BookingPage = () => {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {vehicles.map((vehicle) => (
                 <VehicleCard
-                  key={vehicle.vehid}
+                  key={vehicle.id}
                   vehicle={{
-                    id: vehicle.vehid,
+                    id: vehicle.id,
                     make: vehicle.vehbrand,
                     model: vehicle.vehmodel,
-                    plate: vehicle.vehid,
+                    plate: vehicle.vehplate,
                   }}
-                  selected={vehicle.vehid === selectedVehicleId}
+                  selected={vehicle.id === selectedVehicleId}
                   onSelect={setSelectedVehicleId}
                 />
               ))}
