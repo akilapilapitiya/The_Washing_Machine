@@ -13,6 +13,8 @@ const VehiclesPage = () => {
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState(null);
   const [newVehicle, setNewVehicle] = useState({
     vehbrand: "",
     vehmodel: "",
@@ -79,17 +81,31 @@ const VehiclesPage = () => {
     }
   };
 
-  const handleDeleteVehicle = async (vehid) => {
-    if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      try {
-        setError(null);
-        await vehicleService.deleteVehicle(vehid);
-        await fetchVehicles();
-      } catch (err) {
-        console.error("Failed to delete vehicle:", err);
-        setError(err.message || "Failed to delete vehicle. Please try again.");
-      }
+  const handleDeleteClick = (vehicle) => {
+    setVehicleToDelete(vehicle);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!vehicleToDelete) return;
+
+    try {
+      setError(null);
+      await vehicleService.deleteVehicle(vehicleToDelete.vehid);
+      await fetchVehicles();
+      setShowDeleteConfirm(false);
+      setVehicleToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete vehicle:", err);
+      setError(err.message || "Failed to delete vehicle. Please try again.");
+      setShowDeleteConfirm(false);
+      setVehicleToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setVehicleToDelete(null);
   };
 
   return (
@@ -241,7 +257,7 @@ const VehiclesPage = () => {
             {vehicles.map((vehicle) => (
               <Card key={vehicle.vehid} className="relative overflow-hidden">
                 <button
-                  onClick={() => handleDeleteVehicle(vehicle.vehid)}
+                  onClick={() => handleDeleteClick(vehicle)}
                   className="absolute top-4 right-4 p-2 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition z-10"
                   title="Delete vehicle"
                 >
@@ -294,6 +310,53 @@ const VehiclesPage = () => {
             ))}
           </div>
         ) : null}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && vehicleToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-600">
+                  <AlertCircle size={24} />
+                  Confirm Delete
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700">
+                  Are you sure you want to delete this vehicle?
+                </p>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <p className="font-semibold text-gray-900">
+                    {vehicleToDelete.vehbrand} {vehicleToDelete.vehmodel}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Plate: {vehicleToDelete.vehid}
+                  </p>
+                </div>
+                <p className="text-sm text-red-600">
+                  This action cannot be undone.
+                </p>
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDeleteCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleDeleteConfirm}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Trash2 size={16} className="mr-2" />
+                    Delete Vehicle
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Empty State */}
         {!loading && vehicles.length === 0 && (
