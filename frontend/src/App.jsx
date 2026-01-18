@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
@@ -34,7 +34,6 @@ import ProfilePage from "./features/dashboard/ProfilePage";
 
 const App = () => {
   return (
-    <BrowserRouter>
       <AuthProvider>
         <Routes>
           <Route path="/" element={<MainLayout />}>
@@ -213,7 +212,6 @@ const App = () => {
           </Route>
         </Routes>
       </AuthProvider>
-    </BrowserRouter>
   );
 };
 
