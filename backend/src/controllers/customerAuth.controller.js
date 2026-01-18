@@ -44,6 +44,7 @@ export const customerSignIn = async (req, res, next) => {
       cusid: customer.cusid,
       cusname: customer.cusname,
       cusemail: customer.cusemail,
+      custel: customer.custel,
     };
 
     // Set cookie

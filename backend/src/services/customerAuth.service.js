@@ -44,7 +44,7 @@ export const signUp = async ({ name, email, password, telephone }) => {
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT cusid, cusname, cusemail, password_hash FROM customer WHERE cusemail = $1",
+    "SELECT cusid, cusname, cusemail, custel, password_hash FROM customer WHERE cusemail = $1",
     [email]
   );
 
@@ -62,6 +62,7 @@ export const signIn = async ({ email, password }) => {
     cusid: row.cusid,
     cusname: row.cusname,
     cusemail: row.cusemail,
+    custel: row.custel,
   };
   const token = generateToken(row.cusid, "customer");
   return { customer, token };

@@ -19,7 +19,25 @@ export const AuthProvider = ({ children }) => {
 
       if (storedUser && token && storedUserType) {
         try {
-          setUser(JSON.parse(storedUser));
+          const raw = JSON.parse(storedUser);
+          // Normalize stored user to common shape
+          let normalized = raw;
+          if (storedUserType === "customer") {
+            normalized = {
+              id: raw.cusid ?? raw.id,
+              name: raw.cusname ?? raw.name,
+              email: raw.cusemail ?? raw.email,
+              mobile: raw.telephone ?? raw.mobile ?? raw.custel,
+            };
+          } else if (storedUserType === "employee") {
+            normalized = {
+              id: raw.empid ?? raw.id,
+              name: raw.empname ?? raw.name,
+              email: raw.email,
+              mobile: raw.telephone ?? raw.mobile ?? raw.emptel,
+            };
+          }
+          setUser(normalized);
           setUserType(storedUserType);
           setIsAuthenticated(true);
         } catch (error) {
@@ -36,10 +54,28 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData, token, type = "customer") => {
-    setUser(userData);
+    // Normalize user data shape for context-aware UI
+    let normalized = userData;
+    if (type === "customer") {
+      normalized = {
+        id: userData.cusid ?? userData.id,
+        name: userData.cusname ?? userData.name,
+        email: userData.cusemail ?? userData.email,
+              mobile: userData.telephone ?? userData.mobile ?? userData.custel,
+      };
+    } else if (type === "employee") {
+      normalized = {
+        id: userData.empid ?? userData.id,
+        name: userData.empname ?? userData.name,
+        email: userData.email,
+              mobile: userData.telephone ?? userData.mobile ?? userData.emptel,
+      };
+    }
+
+    setUser(normalized);
     setUserType(type);
     setIsAuthenticated(true);
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("user", JSON.stringify(normalized));
     localStorage.setItem("userType", type);
     localStorage.setItem("token", token);
   };
