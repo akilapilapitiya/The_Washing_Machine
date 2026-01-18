@@ -18,7 +18,7 @@ const ServicesPage = () => {
       setLoading(true);
       setError(null);
       const response = await serviceService.getServices();
-      setServices(response.data.services || []);
+      setServices(response || []);
     } catch (err) {
       console.error("Failed to fetch services:", err);
       setError(err.message || "Failed to load services. Please try again.");

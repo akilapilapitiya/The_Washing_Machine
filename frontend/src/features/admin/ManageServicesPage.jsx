@@ -109,9 +109,13 @@ const ManageServicesPage = () => {
       const payload = {
         servicename: formData.servicename,
         servicedetails: formData.servicedetails,
-        serviceprice: parseFloat(formData.serviceprice),
         servicetime: formData.servicetime,
       };
+      // Only include serviceprice if it's a valid number
+      const price = parseFloat(formData.serviceprice);
+      if (!isNaN(price) && formData.serviceprice !== "") {
+        payload.serviceprice = price;
+      }
       await serviceService.updateService(selectedService.serviceid, payload);
       resetForm();
       setShowEditForm(false);
