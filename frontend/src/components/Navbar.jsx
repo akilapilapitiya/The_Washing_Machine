@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "../assets/logo.svg";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -25,8 +26,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Sparkles className="h-6 w-6 text-blue-600" />
-            <span className="text-xl font-bold">The Washing Machine</span>
+            <img src={logo} alt="The Washing Machine Logo" className="h-auto w-50 object-cover rounded" />
           </Link>
 
           {/* Desktop Navigation */}
