@@ -1,6 +1,6 @@
 import React from "react";
 import HeroSection from "../features/home/HeroSection";
-import BrandSection from "../features/home/BrandSection";
+import PartnerSection from "../features/home/PartnerSection";
 import ServicesSection from "../features/home/ServicesSection";
 import Footer from "../features/home/Footer";
 
@@ -8,7 +8,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <HeroSection />
-      <BrandSection />
+      <PartnerSection />
       <ServicesSection />
       <Footer />
     </div>
