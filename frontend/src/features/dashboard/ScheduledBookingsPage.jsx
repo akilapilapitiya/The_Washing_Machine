@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar,
   Clock,
   MapPin,
-  Car,
   Wrench,
   User,
   CheckCircle,
@@ -158,7 +156,7 @@ const ScheduledBookingsPage = () => {
       try {
         setLoading(true);
         const data = await getBookings();
-        setBookings(data);
+        setBookings(data || []);
       } catch (err) {
         setError("Failed to load your bookings. Please try again.");
       } finally {
@@ -172,9 +170,6 @@ const ScheduledBookingsPage = () => {
   const upcomingBookings = bookings.filter(
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
-  const completedBookings = bookings.filter(
-    (b) => b.bookingstatus === "completed" || b.bookingstatus === "paid",
-  );
 
   if (loading) {
     return (
@@ -187,11 +182,18 @@ const ScheduledBookingsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">My Bookings</h1>
-          <p className={COLORS.text.secondary}>
-            View and manage your service appointments.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">My Bookings</h1>
+            <p className={COLORS.text.secondary}>
+              Manage your upcoming service appointments.
+            </p>
+          </div>
+          <Link to="/dashboard/book">
+            <Button className={`${COLORS.bg.brand} w-full md:w-auto`}>
+              Book New Service
+            </Button>
+          </Link>
         </div>
 
         {error && (
@@ -201,78 +203,36 @@ const ScheduledBookingsPage = () => {
           </div>
         )}
 
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <TabsList className="bg-white border">
-              <TabsTrigger
-                value="upcoming"
-                className="data-[state=active]:bg-red-600 data-[state=active]:text-white"
-              >
-                Upcoming ({upcomingBookings.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="completed"
-                className="data-[state=active]:bg-red-600 data-[state=active]:text-white"
-              >
-                History ({completedBookings.length})
-              </TabsTrigger>
-            </TabsList>
-
-            <Link to="/dashboard/book">
-              <Button className={COLORS.bg.brand}>Book New Service</Button>
-            </Link>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b pb-4">
+            <h2 className="text-xl font-semibold">
+              Upcoming ({upcomingBookings.length})
+            </h2>
           </div>
 
-          <TabsContent value="upcoming" className="space-y-4">
-            {upcomingBookings.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {upcomingBookings.map((booking) => (
-                  <BookingCard key={booking.bookingid} booking={booking} />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="text-center py-16">
-                  <Calendar size={48} className="mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-xl font-bold mb-2">
-                    No upcoming bookings
-                  </h3>
-                  <p className={`${COLORS.text.secondary} mb-6`}>
-                    You don't have any scheduled appointments at the moment.
-                  </p>
-                  <Link to="/dashboard/book">
-                    <Button className={COLORS.bg.brand}>
-                      Schedule Your First Wash
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="completed" className="space-y-4">
-            {completedBookings.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {completedBookings.map((booking) => (
-                  <BookingCard key={booking.bookingid} booking={booking} />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="text-center py-16">
-                  <CheckCircle
-                    size={48}
-                    className="mx-auto text-gray-300 mb-4"
-                  />
-                  <h3 className="text-xl font-bold mb-2">No service history</h3>
-                  <p className={COLORS.text.secondary}>
-                    Your completed service appointments will appear here.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+          {upcomingBookings.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingBookings.map((booking) => (
+                <BookingCard key={booking.bookingid} booking={booking} />
+              ))}
+            </div>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="text-center py-16">
+                <Calendar size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-xl font-bold mb-2">No upcoming bookings</h3>
+                <p className={`${COLORS.text.secondary} mb-6`}>
+                  You don't have any scheduled appointments at the moment.
+                </p>
+                <Link to="/dashboard/book">
+                  <Button className={COLORS.bg.brand}>
+                    Schedule Your First Wash
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );

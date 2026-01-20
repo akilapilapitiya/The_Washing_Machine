@@ -1,133 +1,128 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Calendar,
+  Clock,
   MapPin,
-  Car,
   Wrench,
   User,
-  DollarSign,
   CheckCircle,
+  XCircle,
+  Loader2,
+  AlertCircle,
+  History,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { getBookings } from "@/services/booking.service";
+import { COLORS } from "@/lib/colors";
 
-// Mock service history data
-const mockServiceHistory = [
-  {
-    id: "1",
-    date: "2025-12-28",
-    vehicle: {
-      brand: "Ford",
-      model: "F-150",
-      plate: "TRK-555",
-      nickname: "Hauler",
-    },
-    services: ["Oil Change", "Tire & Wheel Care"],
-    location: "Main Branch - Pannipitiya",
-    employee: "Sarah Fernando",
-    totalCost: "$75",
-    status: "completed",
-  },
-  {
-    id: "2",
-    date: "2025-12-15",
-    vehicle: {
-      brand: "Toyota",
-      model: "Corolla",
-      plate: "ABC-123",
-      nickname: "Daily",
-    },
-    services: ["Exterior Wash", "Interior Detailing"],
-    location: "Main Branch - Pannipitiya",
-    employee: "John Silva",
-    totalCost: "$80",
-    status: "completed",
-  },
-  {
-    id: "3",
-    date: "2025-12-05",
-    vehicle: {
-      brand: "Honda",
-      model: "Civic",
-      plate: "XYZ-789",
-      nickname: "Workhorse",
-    },
-    services: ["Full Service Detail"],
-    location: "Home Visit",
-    employee: "Michael Perera",
-    totalCost: "$120",
-    status: "completed",
-  },
-  {
-    id: "4",
-    date: "2025-11-20",
-    vehicle: {
-      brand: "Toyota",
-      model: "Corolla",
-      plate: "ABC-123",
-      nickname: "Daily",
-    },
-    services: ["Engine Bay Clean", "Exterior Wash"],
-    location: "Main Branch - Pannipitiya",
-    employee: "Amara Jayasinghe",
-    totalCost: "$90",
-    status: "completed",
-  },
-];
+const StatusBadge = ({ status }) => {
+  const styles = {
+    completed: "bg-green-100 text-green-800 border-green-300",
+    paid: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    cancelled: "bg-red-100 text-red-800 border-red-300",
+  };
 
-const ServiceHistoryCard = ({ service }) => {
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const labels = {
+    completed: "Completed",
+    paid: "Paid",
+    cancelled: "Cancelled",
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <span
+      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${styles[status] || "bg-gray-100 text-gray-800 border-gray-300"}`}
+    >
+      {(status === "completed" || status === "paid") && (
+        <CheckCircle size={12} />
+      )}
+      {status === "cancelled" && <XCircle size={12} />}
+      {labels[status] || status}
+    </span>
+  );
+};
+
+const HistoryCard = ({ booking }) => {
+  const servicesList = booking.services
+    ? booking.services.map((s) => s.serviceName).join(", ")
+    : "No services selected";
+
+  const vehicleName = booking.vehbrand
+    ? `${booking.vehbrand} ${booking.vehmodel}`
+    : `Vehicle ID: ${booking.vehid}`;
+
+  const plate = booking.vehplate || "";
+  const location = "Main Branch - Pannipitiya";
+  const employee = booking.assigned_employee || "Service Team";
+
+  const totalPrice = booking.services
+    ? booking.services.reduce(
+        (sum, s) => sum + (Number(s.servicePrice) || 0),
+        0,
+      )
+    : 0;
+
+  const formattedTotalPrice =
+    totalPrice > 0 ? `Rs. ${totalPrice.toLocaleString()}` : "---";
+
+  return (
+    <Card className="border-gray-200">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg">
-              {service.vehicle.nickname ||
-                `${service.vehicle.brand} ${service.vehicle.model}`}
-            </CardTitle>
-            <p className="text-sm text-gray-600">{service.vehicle.plate}</p>
+          <div>
+            <CardTitle className="text-lg font-bold">{vehicleName}</CardTitle>
+            <p className={`text-sm ${COLORS.text.secondary}`}>{plate}</p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
-            <CheckCircle size={12} />
-            {service.status.charAt(0).toUpperCase() + service.status.slice(1)}
-          </div>
+          <StatusBadge status={booking.bookingstatus} />
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="flex items-start gap-2 text-sm">
+          <div className="flex items-start gap-2 text-sm text-gray-600">
+            <Wrench
+              size={16}
+              className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
+            />
+            <span>{servicesList}</span>
+          </div>
+          <div className="flex items-start gap-2 text-sm text-gray-600">
             <Calendar
               size={16}
-              className="text-gray-500 mt-0.5 flex-shrink-0"
+              className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
             />
-            <span className="text-gray-800">{formatDate(service.date)}</span>
+            <span>
+              {new Date(booking.bookingdate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
           </div>
-          <div className="flex items-start gap-2 text-sm">
-            <MapPin size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-800">{service.location}</span>
-          </div>
-          <div className="flex items-start gap-2 text-sm">
-            <User size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-800">{service.employee}</span>
-          </div>
-          <div className="flex items-start gap-2 text-sm">
-            <Wrench size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-800">{service.services.join(", ")}</span>
+          <div className="flex items-start gap-2 text-sm text-gray-600">
+            <User
+              size={16}
+              className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
+            />
+            <span>{employee}</span>
           </div>
         </div>
-        <div className="flex items-center justify-between pt-4 border-t">
-          <span className="text-sm text-gray-600">Total Cost</span>
-          <span className="text-lg font-bold text-blue-600">
-            {service.totalCost}
-          </span>
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-500 uppercase font-semibold">
+              Total Paid
+            </span>
+            <span className={`text-lg font-extrabold ${COLORS.text.brand}`}>
+              {formattedTotalPrice}
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-500 hover:text-red-600"
+          >
+            View Receipt
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -135,36 +130,92 @@ const ServiceHistoryCard = ({ service }) => {
 };
 
 const ServiceHistoryPage = () => {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setLoading(true);
+        const data = await getBookings();
+        setBookings(data || []);
+      } catch (err) {
+        setError("Failed to load your service history. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
+  const historyBookings = bookings.filter(
+    (b) => b.bookingstatus === "completed" || b.bookingstatus === "paid",
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
-            Service History
+          <p
+            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
+          >
+            Activity Logs
           </p>
-          <h1 className="text-3xl font-bold">Your service history</h1>
-          <p className="text-gray-600">
-            View all completed services and maintenance records.
+          <h1 className="text-4xl font-black">Service History</h1>
+          <p className={COLORS.text.secondary}>
+            A record of all your past vehicle maintenance and detailing.
           </p>
         </div>
 
-        {mockServiceHistory.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {mockServiceHistory.map((service) => (
-              <ServiceHistoryCard key={service.id} service={service} />
-            ))}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
+            <AlertCircle size={20} />
+            <p>{error}</p>
           </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Wrench size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No service history</h3>
-              <p className="text-gray-600">
-                Your completed services will appear here.
-              </p>
-            </CardContent>
-          </Card>
         )}
+
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b pb-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <History size={20} className={COLORS.text.brand} />
+              Past Services ({historyBookings.length})
+            </h2>
+          </div>
+
+          {historyBookings.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {historyBookings.map((booking) => (
+                <HistoryCard key={booking.bookingid} booking={booking} />
+              ))}
+            </div>
+          ) : (
+            <Card className="border-dashed bg-white">
+              <CardContent className="text-center py-20">
+                <History size={64} className="mx-auto text-gray-200 mb-6" />
+                <h3 className="text-2xl font-bold mb-2">No past services</h3>
+                <p className={`${COLORS.text.secondary} max-w-sm mx-auto mb-8`}>
+                  Once you complete a service with us, it will appear here for
+                  your records.
+                </p>
+                <Link to="/dashboard/book">
+                  <Button className={COLORS.bg.brand}>
+                    Book Your First Service
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
