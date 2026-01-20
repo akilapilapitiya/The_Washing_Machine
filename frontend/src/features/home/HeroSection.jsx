@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Clock, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Clock,
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 // Import hero section images
 import image1 from "@/assets/heroSection/image1.svg";
@@ -9,7 +16,7 @@ import image2 from "@/assets/heroSection/image2.svg";
 import image3 from "@/assets/heroSection/image3.svg";
 import image4 from "@/assets/heroSection/image4.svg";
 
-const HeroSection = () => {
+const HeroSection = ({ id }) => {
   const images = [image1, image2, image3, image4];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -26,11 +33,13 @@ const HeroSection = () => {
   };
 
   const goToPrevImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex - 1 + images.length) % images.length,
+    );
   };
 
   return (
-    <section className="relative overflow-hidden min-h-screen">
+    <section id={id} className="relative overflow-hidden min-h-screen">
       {/* Slideshow Images */}
       <div className="absolute inset-0">
         {images.map((image, index) => (

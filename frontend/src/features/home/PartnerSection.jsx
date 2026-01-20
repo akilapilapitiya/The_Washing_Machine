@@ -1,15 +1,21 @@
 import React from "react";
 
-const PartnerSection = () => {
+const PartnerSection = ({ id }) => {
   const partners = [
     { name: "3M", logo: "/src/assets/partnerSection/3m.png" },
     { name: "AutoGlym", logo: "/src/assets/partnerSection/autoglym.png" },
     { name: "Castrol", logo: "/src/assets/partnerSection/castrol.svg" },
-    { name: "Chemical Guys", logo: "/src/assets/partnerSection/chemical-guys.png" },
+    {
+      name: "Chemical Guys",
+      logo: "/src/assets/partnerSection/chemical-guys.png",
+    },
     { name: "Lukoil", logo: "/src/assets/partnerSection/lukoil.png" },
     { name: "Meguiars", logo: "/src/assets/partnerSection/meguiars.png" },
     { name: "Mobil", logo: "/src/assets/partnerSection/mobil.jpeg" },
-    { name: "Nippon Paint", logo: "/src/assets/partnerSection/nippon-paint.png" },
+    {
+      name: "Nippon Paint",
+      logo: "/src/assets/partnerSection/nippon-paint.png",
+    },
     { name: "Sikkens", logo: "/src/assets/partnerSection/sikkens.jpeg" },
     { name: "Valvoline", logo: "/src/assets/partnerSection/valvoline.png" },
     { name: "Wilita", logo: "/src/assets/partnerSection/wilita.jpeg" },
@@ -17,7 +23,7 @@ const PartnerSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+    <section id={id} className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -25,8 +31,8 @@ const PartnerSection = () => {
             Our Trusted Partners
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            We partner with industry-leading brands to deliver the highest quality
-            vehicle care and services. Your vehicle deserves the best.
+            We partner with industry-leading brands to deliver the highest
+            quality vehicle care and services. Your vehicle deserves the best.
           </p>
         </div>
 
@@ -58,7 +64,9 @@ const PartnerSection = () => {
               <div className="text-gray-600">Quality Assurance</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">Expert</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">
+                Expert
+              </div>
               <div className="text-gray-600">Professional Brands</div>
             </div>
           </div>

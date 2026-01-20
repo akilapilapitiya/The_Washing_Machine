@@ -1,29 +1,31 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.svg";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Facebook,
-} from "lucide-react";
+import { Mail, Phone, MapPin, Facebook } from "lucide-react";
 
-const Footer = () => {
+const Footer = ({ id }) => {
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer id={id} className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <img src={logo} alt="The Washing Machine Logo" className="h-auto w-50 object-cover rounded" />
+              <img
+                src={logo}
+                alt="The Washing Machine Logo"
+                className="h-auto w-50 object-cover rounded"
+              />
             </div>
             <p className="text-sm mb-4">
               Your trusted partner for professional vehicle cleaning and
               detailing services.
             </p>
             <div className="flex space-x-4">
-              <a href="https://www.facebook.com/share/1EFn99hw8z/" className="hover:text-blue-500 transition-colors">
+              <a
+                href="https://www.facebook.com/share/1EFn99hw8z/"
+                className="hover:text-blue-500 transition-colors"
+              >
                 <Facebook className="h-5 w-5" />
               </a>
             </div>
@@ -111,7 +113,9 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                <span>488, Hight level Road, Pannipitiya, Colombo, Sri Lanka</span>
+                <span>
+                  488, Hight level Road, Pannipitiya, Colombo, Sri Lanka
+                </span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-blue-500 flex-shrink-0" />
@@ -121,9 +125,10 @@ const Footer = () => {
                 <Mail className="h-5 w-5 text-blue-500 flex-shrink-0" />
                 <span>info@washingmachine.com</span>
               </li>
-              <li className="flex items-center span-x-3">  
-              <a href="https://www.facebook.com/share/1EFn99hw8z/">
-              <Facebook className="h-5 w-5 text-blue-500 flex-shrink-0" /></a>
+              <li className="flex items-center span-x-3">
+                <a href="https://www.facebook.com/share/1EFn99hw8z/">
+                  <Facebook className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                </a>
               </li>
             </ul>
           </div>

@@ -11,14 +11,25 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
 
+  // Navigation items - using hash links for homepage sections
   const navItems = [
-    { path: "/", label: "Home" },
-    { path: "/partners", label: "Partners" },
-    { path: "/services", label: "Services" },
-    { path: "/contact", label: "Contact" },
+    { path: "/#home", label: "Home", hash: "home" },
+    { path: "/#partners", label: "Partners", hash: "partners" },
+    { path: "/#services", label: "Services", hash: "services" },
+    { path: "/#contact", label: "Contact", hash: "contact" },
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  // Handle smooth scroll to section
+  const handleScrollToSection = (e, hash) => {
+    e.preventDefault();
+    const element = document.getElementById(hash);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      setIsMenuOpen(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -41,14 +52,18 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => (
-              <Link key={item.path} to={item.path}>
+              <a
+                key={item.path}
+                href={item.path}
+                onClick={(e) => handleScrollToSection(e, item.hash)}
+              >
                 <Button
                   variant={isActive(item.path) ? "default" : "ghost"}
                   className="font-medium"
                 >
                   {item.label}
                 </Button>
-              </Link>
+              </a>
             ))}
           </div>
 
@@ -109,10 +124,10 @@ const Navbar = () => {
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-2">
               {navItems.map((item) => (
-                <Link
+                <a
                   key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMenuOpen(false)}
+                  href={item.path}
+                  onClick={(e) => handleScrollToSection(e, item.hash)}
                 >
                   <Button
                     variant={isActive(item.path) ? "default" : "ghost"}
@@ -120,7 +135,7 @@ const Navbar = () => {
                   >
                     {item.label}
                   </Button>
-                </Link>
+                </a>
               ))}
 
               {isAuthenticated ? (

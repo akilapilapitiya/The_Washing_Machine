@@ -7,10 +7,10 @@ import Footer from "../features/home/Footer";
 const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <HeroSection />
-      <PartnerSection />
-      <ServicesSection />
-      <Footer />
+      <HeroSection id="home" />
+      <PartnerSection id="partners" />
+      <ServicesSection id="services" />
+      <Footer id="contact" />
     </div>
   );
 };
