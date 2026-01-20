@@ -121,6 +121,10 @@ const Footer = () => {
                 <Mail className="h-5 w-5 text-blue-500 flex-shrink-0" />
                 <span>info@washingmachine.com</span>
               </li>
+              <li className="flex items-center span-x-3">  
+              <a href="https://www.facebook.com/share/1EFn99hw8z/">
+              <Facebook className="h-5 w-5 text-blue-500 flex-shrink-0" /></a>
+              </li>
             </ul>
           </div>
         </div>
