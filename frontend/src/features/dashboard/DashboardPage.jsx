@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { COLORS } from "@/lib/colors";
 
 const customerTiles = [
   {
@@ -87,7 +88,9 @@ const employeeTiles = [
 const TileGrid = ({ title, tiles }) => (
   <section className="space-y-4">
     <div>
-      <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+      <p
+        className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
+      >
         {title}
       </p>
     </div>
@@ -96,7 +99,9 @@ const TileGrid = ({ title, tiles }) => (
         <Link key={tile.title} to={tile.to} className="group">
           <Card className="h-full border-gray-200 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold group-hover:text-blue-600 transition-colors">
+              <CardTitle
+                className={`text-lg font-semibold group-hover:${COLORS.text.brand} transition-colors`}
+              >
                 {tile.title}
               </CardTitle>
             </CardHeader>
@@ -124,7 +129,9 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-10">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p
+            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
+          >
             Dashboard
           </p>
           <h1 className="text-4xl font-bold">

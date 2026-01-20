@@ -13,21 +13,7 @@ import createVehicleTable from "./vehicle.model.js";
 
 const initModels = async (pool) => {
   try {
-    // Check if tables already exist
-    const checkQuery = `
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'customer'
-      );
-    `;
-    const result = await pool.query(checkQuery);
-    const tablesExist = result.rows[0].exists;
-
-    if (tablesExist) {
-      console.log("✓ Database tables already initialized");
-      return;
-    }
+    console.log("Initializing database tables...");
 
     // Create all tables
     await createCustomerTable(pool);
