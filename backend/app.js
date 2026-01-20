@@ -16,6 +16,7 @@ import customerAuthRouter from "./src/routes/customerAuth.route.js";
 import customerRouter from "./src/routes/customer.route.js";
 import employeeAuthRouter from "./src/routes/employeeAuth.route.js";
 import employeeRouter from "./src/routes/employee.route.js";
+import feedbackRouter from "./src/routes/feedback.route.js";
 import paymentRouter from "./src/routes/payment.route.js";
 import serviceRouter from "./src/routes/service.routes.js";
 import testRouter from "./src/routes/test.route.js";
@@ -56,6 +57,7 @@ const createApp = () => {
   app.use("/api/employee", employeeRouter);
   app.use("/api/customer", customerRouter);
   app.use("/api/payment", paymentRouter);
+  app.use("/api/feedback", feedbackRouter);
 
   // Error handling Middleware
   app.use(errorHandling);
