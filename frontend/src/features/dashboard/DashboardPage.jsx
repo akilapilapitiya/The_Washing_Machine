@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const customerTiles = [
   {
@@ -110,6 +111,15 @@ const TileGrid = ({ title, tiles }) => (
 );
 
 const DashboardPage = () => {
+  // Get user info and type from AuthContext
+  const { user, userType, isCustomer, isEmployee } = useAuth();
+
+  // Determine which tiles to show based on user type
+  const tilesToShow = isCustomer ? customerTiles : employeeTiles;
+  const dashboardTitle = isCustomer
+    ? "Customer Dashboard"
+    : "Employee Dashboard";
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-10">
@@ -117,15 +127,17 @@ const DashboardPage = () => {
           <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
             Dashboard
           </p>
-          <h1 className="text-4xl font-bold">Welcome to The Washing Machine</h1>
+          <h1 className="text-4xl font-bold">
+            Welcome back, {user?.name || "User"}!
+          </h1>
           <p className="text-gray-600 max-w-2xl">
-            Quick actions for customers and employees. Choose a tile to get
-            started.
+            {isCustomer
+              ? "Manage your vehicles, bookings, and service history."
+              : "Manage services, customers, and team operations."}
           </p>
         </div>
 
-        <TileGrid title="Customer" tiles={customerTiles} />
-        <TileGrid title="Employee" tiles={employeeTiles} />
+        <TileGrid title={dashboardTitle} tiles={tilesToShow} />
       </div>
     </div>
   );
