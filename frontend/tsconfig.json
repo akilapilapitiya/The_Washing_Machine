@@ -10,8 +10,10 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "noEmit": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/configs"]
+  "exclude": ["node_modules", "dist"]
 }
