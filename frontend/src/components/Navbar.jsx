@@ -13,8 +13,8 @@ const Navbar = () => {
 
   const navItems = [
     { path: "/", label: "Home" },
+    { path: "/partners", label: "Partners" },
     { path: "/services", label: "Services" },
-    { path: "/about", label: "About" },
     { path: "/contact", label: "Contact" },
   ];
 
@@ -43,17 +43,14 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            {isAuthenticated ? (
-              <Link to="/dashboard">
-                <Button>Dashboard</Button>
-              </Link>
-            ) : (
-              <Link to="/signup">
-                <Button>Get Started</Button>
-              </Link>
-            )}
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Link to="/login">
+              <Button variant="outline">Sign In</Button>
+            </Link>
+            <Link to="/signup">
+              <Button>Sign Up</Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -88,15 +85,15 @@ const Navbar = () => {
                   </Button>
                 </Link>
               ))}
-              {isAuthenticated ? (
-                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full">Dashboard</Button>
-                </Link>
-              ) : (
-                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full">Get Started</Button>
-                </Link>
-              )}
+              {}
+              <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                <Button variant="outline" className="w-full">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                <Button className="w-full">Sign Up</Button>
+              </Link>
             </div>
           </div>
         )}
