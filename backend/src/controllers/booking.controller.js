@@ -44,11 +44,11 @@ export const createBooking = async (req, res, next) => {
       status,
       date,
       startTime,
-      endTime,
       locationLatitude,
       locationLongitude,
       vehicleId,
       services, // array of service IDs
+      employeeId,
     } = req.body;
 
     const booking = await createBookingService({
@@ -56,12 +56,12 @@ export const createBooking = async (req, res, next) => {
       status,
       date,
       startTime,
-      endTime,
       locationLatitude,
       locationLongitude,
       vehicleId,
       services,
       userRole,
+      employeeId,
     });
 
     successResponse(res, 201, "Booking created successfully", { booking });
@@ -83,7 +83,7 @@ export const updateBooking = async (req, res, next) => {
       updates,
       userId,
       userRole,
-      userEmptype
+      userEmptype,
     );
 
     successResponse(res, 200, "Booking updated successfully", { booking });

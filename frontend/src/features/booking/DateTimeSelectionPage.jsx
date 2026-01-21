@@ -16,8 +16,8 @@ const generateTimeSlots = () => {
       hour < 12
         ? `${hour}:00 AM`
         : hour === 12
-        ? `12:00 PM`
-        : `${hour - 12}:00 PM`;
+          ? `12:00 PM`
+          : `${hour - 12}:00 PM`;
     slots.push({ value: time, display: displayTime });
   }
   return slots;
@@ -48,24 +48,11 @@ const DateTimeSelectionPage = () => {
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (selectedDate && employeeId) {
-      // If "Any Employee" is selected, all slots are available
-      if (employeeId === "any") {
-        setAvailableSlots(timeSlots.map((slot) => slot.value));
-      } else {
-        // Get employee-specific availability for the selected date
-        const employeeAvailability = mockAvailability[employeeId] || {};
-        const dateAvailability = employeeAvailability[selectedDate] || [];
-
-        // If no specific data, assume all slots are available
-        if (Object.keys(employeeAvailability).length === 0) {
-          setAvailableSlots(timeSlots.map((slot) => slot.value));
-        } else {
-          setAvailableSlots(dateAvailability);
-        }
-      }
+    if (selectedDate) {
+      // For now, make all slots available as requested
+      setAvailableSlots(timeSlots.map((slot) => slot.value));
     }
-  }, [selectedDate, employeeId]);
+  }, [selectedDate]);
 
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
@@ -94,50 +81,59 @@ const DateTimeSelectionPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold">Select date & time</h1>
+          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+            Select date & time
+          </h1>
           <p className="text-gray-600">
             Choose your preferred appointment date and time.
           </p>
         </div>
 
-        <div className="max-w-3xl space-y-8">
+        <div className="max-w-4xl space-y-8">
           {/* Date Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Calendar size={20} className="text-blue-600" />
+          <Card className="border-2 border-transparent shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-3 text-lg font-bold uppercase italic text-gray-900">
+                <Calendar size={24} className="text-red-600" />
                 Select Date
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="date">Appointment Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  min={today}
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  className="max-w-xs"
-                />
+              <div className="space-y-3">
+                <Label
+                  htmlFor="date"
+                  className="text-xs uppercase font-bold tracking-wider text-gray-500"
+                >
+                  Appointment Date
+                </Label>
+                <div className="relative max-w-xs">
+                  <Input
+                    id="date"
+                    type="date"
+                    min={today}
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    className="pl-4 h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-mono font-medium"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Time Selection */}
           {selectedDate && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Clock size={20} className="text-blue-600" />
+            <Card className="border-2 border-transparent shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-3 text-lg font-bold uppercase italic text-gray-900">
+                  <Clock size={24} className="text-red-600" />
                   Select Time
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {timeSlots.map((slot) => {
                     const available = isSlotAvailable(slot.value);
                     return (
@@ -147,16 +143,12 @@ const DateTimeSelectionPage = () => {
                         onClick={() => available && setSelectedTime(slot.value)}
                         disabled={!available}
                         className={cn(
-                          "px-4 py-3 rounded-lg border text-sm font-medium transition",
-                          "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                          selectedTime === slot.value &&
-                            "border-blue-500 bg-blue-500 text-white ring-2 ring-blue-500 ring-offset-0",
-                          !available &&
-                            selectedTime !== slot.value &&
-                            "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed",
-                          available &&
-                            selectedTime !== slot.value &&
-                            "border-gray-300 bg-white hover:border-blue-400 hover:shadow-sm"
+                          "px-4 py-4 rounded-xl border-2 text-xs font-bold uppercase tracking-tight transition-all duration-200",
+                          selectedTime === slot.value
+                            ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-200"
+                            : !available
+                              ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed opacity-50"
+                              : "border-gray-100 bg-white text-gray-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600",
                         )}
                       >
                         {slot.display}
@@ -165,23 +157,29 @@ const DateTimeSelectionPage = () => {
                   })}
                 </div>
                 {availableSlots.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-4">
-                    No available slots for this date. Please select another
-                    date.
-                  </p>
+                  <div className="flex items-center gap-2 text-red-600 mt-6 bg-red-50 p-4 rounded-lg border border-red-100">
+                    <p className="text-sm font-bold uppercase tracking-tight">
+                      No matching slots available for this date.
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
           )}
         </div>
 
-        <div className="flex flex-wrap gap-4 items-center">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+        <div className="flex flex-wrap gap-4 items-center pt-8 border-t border-gray-200">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="px-8 h-14 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
+          >
             Back
           </Button>
           <Button
             onClick={handleContinue}
             disabled={!selectedDate || !selectedTime}
+            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
           >
             Continue
           </Button>

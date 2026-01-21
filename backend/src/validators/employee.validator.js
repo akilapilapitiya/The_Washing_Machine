@@ -22,8 +22,11 @@ export const employeeValidator = {
       "string.min": "Password must be at least 6 characters",
       "any.required": "Password is required",
     }),
-    job: Joi.string().max(100).required().messages({
-      "any.required": "Job title is required",
+    type: Joi.string().max(100).required().messages({
+      "any.required": "Job title/type is required",
+    }),
+    nic: Joi.string().required().messages({
+      "any.required": "NIC is required",
     }),
   }),
 
@@ -37,7 +40,7 @@ export const employeeValidator = {
       .messages({
         "string.pattern.base": "Phone number must be exactly 10 digits",
       }),
-    job: Joi.string().max(100),
+    type: Joi.string().max(100),
   }).min(1),
 
   loginEmployee: Joi.object({
