@@ -31,23 +31,25 @@ import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
 import ManageServicesPage from "./features/admin/ManageServicesPage";
 import ManageCustomersPage from "./features/admin/ManageCustomersPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
+import DashboardLayout from "./components/layout/DashboardLayout";
 
 const App = () => {
   return (
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            {/* Public Routes */}
-            <Route index element={<Home />} />
-            <Route path="services" element={<Services />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="login" element={<CustomerLogin />} />
-            <Route path="employee/login" element={<EmployeeLogin />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          {/* Public Routes */}
+          <Route index element={<Home />} />
+          <Route path="services" element={<Services />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="login" element={<CustomerLogin />} />
+          <Route path="employee/login" element={<EmployeeLogin />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
 
-            {/* Protected Customer Routes */}
+          {/* Dashboard Routes with Sidebar */}
+          <Route path="dashboard" element={<DashboardLayout />}>
             <Route
-              path="dashboard"
+              index
               element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -55,7 +57,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/book"
+              path="book"
               element={
                 <ProtectedRoute>
                   <Booking />
@@ -63,47 +65,7 @@ const App = () => {
               }
             />
             <Route
-              path="booking/location"
-              element={
-                <ProtectedRoute>
-                  <LocationSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/services"
-              element={
-                <ProtectedRoute>
-                  <ServiceSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/employee"
-              element={
-                <ProtectedRoute>
-                  <EmployeeSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/datetime"
-              element={
-                <ProtectedRoute>
-                  <DateTimeSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/confirmation"
-              element={
-                <ProtectedRoute>
-                  <BookingConfirmationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/bookings"
+              path="bookings"
               element={
                 <ProtectedRoute>
                   <ScheduledBookingsPage />
@@ -111,7 +73,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/history"
+              path="history"
               element={
                 <ProtectedRoute>
                   <ServiceHistoryPage />
@@ -119,7 +81,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/payments"
+              path="payments"
               element={
                 <ProtectedRoute>
                   <PaymentHistoryPage />
@@ -127,7 +89,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/feedback"
+              path="feedback"
               element={
                 <ProtectedRoute>
                   <Feedback />
@@ -135,7 +97,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/profile"
+              path="profile"
               element={
                 <ProtectedRoute>
                   <ProfilePage />
@@ -143,7 +105,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/change-password"
+              path="change-password"
               element={
                 <ProtectedRoute>
                   <ChangePasswordPage />
@@ -151,55 +113,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/employee/assigned"
-              element={
-                <EmployeeProtectedRoute>
-                  <AssignedServicesPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/employee/service/:id"
-              element={
-                <EmployeeProtectedRoute>
-                  <ServiceDetailsPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/employee/payments"
-              element={
-                <EmployeeProtectedRoute>
-                  <PaymentManagementPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/admin/employees"
-              element={
-                <EmployeeProtectedRoute>
-                  <EmployeeManagementPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/admin/services"
-              element={
-                <EmployeeProtectedRoute>
-                  <ManageServicesPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/admin/customers"
-              element={
-                <EmployeeProtectedRoute>
-                  <ManageCustomersPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/vehicles"
+              path="vehicles"
               element={
                 <ProtectedRoute>
                   <Vehicles />
@@ -207,11 +121,64 @@ const App = () => {
               }
             />
 
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
+            {/* Employee Dashboard Routes */}
+            <Route
+              path="employee/assigned"
+              element={
+                <EmployeeProtectedRoute>
+                  <AssignedServicesPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="employee/service/:id"
+              element={
+                <EmployeeProtectedRoute>
+                  <ServiceDetailsPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="employee/payments"
+              element={
+                <EmployeeProtectedRoute>
+                  <PaymentManagementPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+
+            {/* Admin Dashboard Routes */}
+            <Route
+              path="admin/employees"
+              element={
+                <EmployeeProtectedRoute>
+                  <EmployeeManagementPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/services"
+              element={
+                <EmployeeProtectedRoute>
+                  <ManageServicesPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/customers"
+              element={
+                <EmployeeProtectedRoute>
+                  <ManageCustomersPage />
+                </EmployeeProtectedRoute>
+              }
+            />
           </Route>
-        </Routes>
-      </AuthProvider>
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   );
 };
 
