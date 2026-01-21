@@ -44,7 +44,6 @@ export const createBooking = async (req, res, next) => {
       status,
       date,
       startTime,
-      endTime,
       locationLatitude,
       locationLongitude,
       vehicleId,
@@ -56,7 +55,6 @@ export const createBooking = async (req, res, next) => {
       status,
       date,
       startTime,
-      endTime,
       locationLatitude,
       locationLongitude,
       vehicleId,
@@ -83,7 +81,7 @@ export const updateBooking = async (req, res, next) => {
       updates,
       userId,
       userRole,
-      userEmptype
+      userEmptype,
     );
 
     successResponse(res, 200, "Booking updated successfully", { booking });

@@ -9,6 +9,7 @@ const createBookingTable = async (pool) => {
       bookinglocationlatitude DECIMAL(9,6) NOT NULL CHECK (bookinglocationlatitude BETWEEN -90 AND 90),
       bookinglocationlongitude DECIMAL(9,6) NOT NULL CHECK (bookinglocationlongitude BETWEEN -180 AND 180),
       vehid INT NOT NULL,
+      totalprice DECIMAL(10,2) NOT NULL DEFAULT 0 CHECK (totalprice >= 0),
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       CONSTRAINT fk_booking_vehicle
