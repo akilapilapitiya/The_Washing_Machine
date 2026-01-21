@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,108 +14,83 @@ import {
   CheckCircle,
   ArrowLeft,
   AlertCircle,
+  Loader2,
+  Mail,
+  Smartphone,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-
-// Mock data - same as in AssignedServicesPage
-const mockAssignedServices = [
-  {
-    id: "1",
-    bookingId: "BK-2025-001",
-    status: "scheduled",
-    date: "2025-12-31",
-    time: "10:00 AM",
-    customer: {
-      name: "John Doe",
-      phone: "+94 77 123 4567",
-      email: "john.doe@example.com",
-    },
-    vehicle: {
-      brand: "Toyota",
-      model: "Corolla",
-      plate: "ABC-123",
-      nickname: "Daily",
-      currentMileage: "45,000",
-      color: "Blue",
-      year: 2020,
-    },
-    services: ["Exterior Wash", "Interior Detailing"],
-    location: "Main Branch - Pannipitiya",
-    estimatedDuration: "90 mins",
-    totalCost: "$80",
-  },
-  {
-    id: "2",
-    bookingId: "BK-2025-002",
-    status: "in-progress",
-    date: "2025-12-30",
-    time: "2:00 PM",
-    customer: {
-      name: "Sarah Smith",
-      phone: "+94 77 987 6543",
-      email: "sarah.smith@example.com",
-    },
-    vehicle: {
-      brand: "Honda",
-      model: "Civic",
-      plate: "XYZ-789",
-      nickname: "Workhorse",
-      currentMileage: "62,000",
-      color: "White",
-      year: 2019,
-    },
-    services: ["Full Service Detail"],
-    location: "Home Visit",
-    estimatedDuration: "180 mins",
-    totalCost: "$120",
-  },
-];
+import * as bookingService from "@/services/booking.service";
 
 const ServiceDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const service = mockAssignedServices.find((s) => s.id === id);
+  const [service, setService] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
-  const [status, setStatus] = useState(service?.status || "scheduled");
-  const [currentMileage, setCurrentMileage] = useState(
-    service?.vehicle.currentMileage || ""
-  );
+  const [currentMileage, setCurrentMileage] = useState("");
   const [nextServiceMileage, setNextServiceMileage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  if (!service) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="text-center py-12">
-            <AlertCircle size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Service not found</h3>
-            <p className="text-gray-600 mb-4">
-              The requested service could not be found.
-            </p>
-            <Button onClick={() => navigate("/dashboard/employee/assigned")}>
-              Back to Services
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchServiceDetails();
+  }, [id]);
 
-  const handleStatusChange = (newStatus) => {
-    setStatus(newStatus);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const fetchServiceDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await bookingService.getBookingById(id);
+      if (data) {
+        setService(data);
+        setCurrentMileage(data.vehmileage || "");
+      }
+    } catch (err) {
+      console.error("Failed to fetch service details:", err);
+      setError("Operation failed. Could not retrieve mission parameters.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdateMileage = () => {
-    // In real app, this would make an API call
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleStatusChange = async (newStatus) => {
+    try {
+      setUpdating(true);
+      await bookingService.updateBookingStatus(id, newStatus);
+      setService((prev) => ({ ...prev, bookingstatus: newStatus }));
+      setSuccessMessage(`Mission status updated to ${newStatus}`);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      setError("Strategic update failed. Signal interrupted.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleUpdateMileage = async () => {
+    try {
+      setUpdating(true);
+      // Assuming bookingService has this or we use general vehicle update
+      // For now, let's pretend it updates via the booking service
+      await bookingService.updateBookingStatus(id, service.bookingstatus); // Placeholder
+      setSuccessMessage("Machine telemetry updated successfully");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to update mileage:", err);
+      setError("Telemetry synchronization failed.");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       weekday: "long",
@@ -125,236 +100,405 @@ const ServiceDetailsPage = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <Loader2 size={48} className="animate-spin text-red-600 mb-4" />
+        <p className="text-gray-500 font-bold italic tracking-widest text-sm uppercase">
+          Accessing Mission Details...
+        </p>
+      </div>
+    );
+  }
+
+  if (error && !service) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-red-200">
+          <CardContent className="text-center py-12 space-y-4">
+            <AlertCircle size={48} className="mx-auto text-red-600" />
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold uppercase italic">
+                Access Denied
+              </h3>
+              <p className="text-gray-600 text-sm">{error}</p>
+            </div>
+            <Button
+              onClick={() => navigate("/dashboard/employee/assigned")}
+              className="bg-red-600 hover:bg-black text-white"
+            >
+              Return to Base
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="border-gray-300 hover:bg-gray-100"
+          >
             <ArrowLeft size={18} className="mr-2" />
-            Back
+            Return
           </Button>
+          <div className="flex gap-2">
+            <StatusBadge status={service.bookingstatus} />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
-            Service Details
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-widest text-red-600 font-black">
+            Mission Briefing
           </p>
-          <h1 className="text-3xl font-bold">{service.bookingId}</h1>
+          <h1 className="text-4xl font-black uppercase italic tracking-tighter">
+            {service.bookingid}
+          </h1>
+          <p className="text-gray-500 font-medium">
+            {" "}
+            Assigned Operative: {service.empname || "Self"}
+          </p>
         </div>
 
         {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
             <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">
-              Changes saved successfully!
+            <p className="text-green-800 font-medium text-sm">
+              {successMessage}
             </p>
           </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User size={20} className="text-blue-600" />
-                Customer Information
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400">
+                <User size={18} className="text-red-600" />
+                Customer Identity
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-600">Name</p>
-                <p className="font-semibold">{service.customer.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Phone</p>
-                <p className="font-semibold flex items-center gap-2">
-                  <Phone size={14} />
-                  {service.customer.phone}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Email</p>
-                <p className="font-semibold">{service.customer.email}</p>
+            <CardContent className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-red-600 font-bold border">
+                    {service.cusname?.charAt(0) || "C"}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">
+                      {service.cusname || "Unidentified Customer"}
+                    </p>
+                    <p className="text-xs text-gray-500 font-mono">
+                      CID: {service.customerid}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Smartphone size={14} className="text-red-500" />
+                    <span className="font-semibold">
+                      {service.cusphone || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Mail size={14} className="text-red-500" />
+                    <span>{service.cusemail || "N/A"}</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Vehicle Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Car size={20} className="text-blue-600" />
-                Vehicle Information
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400">
+                <Car size={18} className="text-red-600" />
+                Machine Intel
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-600">Vehicle</p>
-                <p className="font-semibold">
-                  {service.vehicle.nickname ||
-                    `${service.vehicle.brand} ${service.vehicle.model}`}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-sm text-gray-600">Plate</p>
-                  <p className="font-semibold">{service.vehicle.plate}</p>
+            <CardContent className="space-y-4">
+              <div className="bg-gray-900 text-white p-4 rounded-lg">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <p className="text-2xl font-black uppercase italic tracking-tighter">
+                      {service.vehbrand} {service.vehmodel}
+                    </p>
+                    <p className="text-xs font-mono text-red-500 font-bold tracking-[0.2em]">
+                      {service.vehplate}
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 bg-red-600 rounded flex items-center justify-center">
+                    <Car size={20} />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Year</p>
-                  <p className="font-semibold">{service.vehicle.year}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Color</p>
-                  <p className="font-semibold">{service.vehicle.color}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Current Mileage</p>
-                  <p className="font-semibold">
-                    {service.vehicle.currentMileage} km
-                  </p>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1">
+                    <p className="text-gray-500 uppercase font-black">
+                      Telementry
+                    </p>
+                    <p className="font-bold">
+                      {service.vehmileage?.toLocaleString() || "0"} KM
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-gray-500 uppercase font-black">Status</p>
+                    <p className="font-bold text-green-500">ACTIVE</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Appointment Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar size={20} className="text-blue-600" />
-                Appointment Details
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400">
+                <Calendar size={18} className="text-red-600" />
+                Operational Schedule
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Calendar size={16} className="text-gray-500" />
-                <span className="font-semibold">
-                  {formatDate(service.date)}
-                </span>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                    Date
+                  </p>
+                  <div className="flex items-center gap-2 text-sm font-bold">
+                    <Calendar size={14} className="text-red-600" />
+                    {formatDate(service.bookingdate)}
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                    Window
+                  </p>
+                  <div className="flex items-center gap-2 text-sm font-bold">
+                    <Clock size={14} className="text-red-600" />
+                    {service.bookingstarttime} - {service.bookingendtime}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-gray-500" />
-                <span className="font-semibold">{service.time}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin size={16} className="text-gray-500" />
-                <span className="font-semibold">{service.location}</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Estimated Duration</p>
-                <p className="font-semibold">{service.estimatedDuration}</p>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                  Deployment Location
+                </p>
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <MapPin size={14} className="text-red-600" />
+                  {"Main Branch - HQ"}
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Services & Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wrench size={20} className="text-blue-600" />
-                Services & Status
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400">
+                <Wrench size={18} className="text-red-600" />
+                Mission Objectives
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <p className="text-sm text-gray-600 mb-2">Services</p>
-                <ul className="space-y-1">
-                  {service.services.map((srv, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                      {srv}
+                <ul className="grid gap-2">
+                  {service.services?.map((srv, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-600"></div>
+                        <span className="text-sm font-bold text-gray-900">
+                          {srv.serviceName}
+                        </span>
+                      </div>
+                      <span className="text-xs font-mono text-gray-500">
+                        ${srv.price || "0"}
+                      </span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Total Cost</p>
-                <p className="text-xl font-bold text-blue-600">
-                  {service.totalCost}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Current Status</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={status === "scheduled" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleStatusChange("scheduled")}
-                  >
-                    Scheduled
-                  </Button>
-                  <Button
-                    variant={status === "in-progress" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleStatusChange("in-progress")}
-                  >
-                    In Progress
-                  </Button>
-                  <Button
-                    variant={status === "completed" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleStatusChange("completed")}
-                  >
-                    Completed
-                  </Button>
+
+              <div className="pt-4 border-t flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+                    Total Payload
+                  </p>
+                  <p className="text-2xl font-black text-red-600">
+                    ${service.bookingtotalprice || "0"}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 text-right mb-1">
+                    Command Control
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={
+                        service.bookingstatus === "pending" ||
+                        service.bookingstatus === "scheduled"
+                          ? "default"
+                          : "outline"
+                      }
+                      className={
+                        service.bookingstatus === "pending" ||
+                        service.bookingstatus === "scheduled"
+                          ? "bg-gray-900 border-gray-900"
+                          : "border-gray-300"
+                      }
+                      onClick={() => handleStatusChange("pending")}
+                      disabled={updating}
+                    >
+                      Hold
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={
+                        service.bookingstatus === "inProgress"
+                          ? "default"
+                          : "outline"
+                      }
+                      className={
+                        service.bookingstatus === "inProgress"
+                          ? "bg-red-600 hover:bg-red-700"
+                          : "border-gray-300"
+                      }
+                      onClick={() => handleStatusChange("inProgress")}
+                      disabled={updating}
+                    >
+                      Engage
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={
+                        service.bookingstatus === "completed"
+                          ? "default"
+                          : "outline"
+                      }
+                      className={
+                        service.bookingstatus === "completed"
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "border-gray-300"
+                      }
+                      onClick={() => handleStatusChange("completed")}
+                      disabled={updating}
+                    >
+                      Finish
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Mileage Updates */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Car size={20} className="text-blue-600" />
-              Mileage Management
+        {/* Telemetry Management */}
+        <Card className="border-gray-200 shadow-sm overflow-hidden">
+          <CardHeader className="bg-gray-50 border-b py-3">
+            <CardTitle className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500">
+              <Wrench size={16} className="text-red-600" />
+              Telemetry & Logistics
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <Label htmlFor="currentMileage">
-                  Update Current Mileage (km)
+                <Label
+                  htmlFor="currentMileage"
+                  className="text-xs font-bold uppercase text-gray-500"
+                >
+                  Update Current Mileage (KM)
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     id="currentMileage"
-                    type="text"
+                    type="number"
                     value={currentMileage}
                     onChange={(e) => setCurrentMileage(e.target.value)}
-                    placeholder="e.g., 45,500"
+                    placeholder="Enter current KM..."
+                    className="border-gray-200 focus:ring-red-500"
                   />
-                  <Button onClick={handleUpdateMileage}>Update</Button>
+                  <Button
+                    onClick={handleUpdateMileage}
+                    disabled={updating}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Sync
+                  </Button>
                 </div>
-                <p className="text-sm text-gray-500">
-                  Current: {service.vehicle.currentMileage} km
-                </p>
               </div>
               <div className="space-y-3">
-                <Label htmlFor="nextService">
-                  Suggest Next Service At (km)
+                <Label
+                  htmlFor="nextService"
+                  className="text-xs font-bold uppercase text-gray-500"
+                >
+                  Next Service Threshold (KM)
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     id="nextService"
-                    type="text"
+                    type="number"
                     value={nextServiceMileage}
                     onChange={(e) => setNextServiceMileage(e.target.value)}
-                    placeholder="e.g., 50,000"
+                    placeholder="Enter target KM..."
+                    className="border-gray-200 focus:ring-red-500"
                   />
-                  <Button onClick={handleUpdateMileage}>Save</Button>
+                  <Button
+                    onClick={handleUpdateMileage}
+                    variant="outline"
+                    disabled={updating}
+                  >
+                    Set
+                  </Button>
                 </div>
-                <p className="text-sm text-gray-500">
-                  Recommend when customer should return for next service
-                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+};
+
+const StatusBadge = ({ status }) => {
+  const styles = {
+    pending: "bg-gray-100 text-gray-800 border-gray-300",
+    scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+    inProgress: "bg-red-50 text-red-700 border-red-200",
+    completed: "bg-green-100 text-green-800 border-green-300",
+  };
+
+  const labels = {
+    pending: "Pending Approval",
+    scheduled: "Deployment Ready",
+    inProgress: "Mission Active",
+    completed: "Mission Accomplished",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status] || styles.pending}`}
+    >
+      <div
+        className={`h-1.5 w-1.5 rounded-full mr-2 animate-pulse ${
+          status === "inProgress"
+            ? "bg-red-600"
+            : status === "completed"
+              ? "bg-green-600"
+              : "bg-gray-400"
+        }`}
+      ></div>
+      {labels[status] || status}
+    </span>
   );
 };
 

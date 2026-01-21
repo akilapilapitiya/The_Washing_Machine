@@ -19,9 +19,9 @@ import { COLORS } from "@/lib/colors";
 
 const StatusBadge = ({ status }) => {
   const styles = {
-    completed: "bg-green-100 text-green-800 border-green-300",
-    paid: "bg-emerald-100 text-emerald-800 border-emerald-300",
-    cancelled: "bg-red-100 text-red-800 border-red-300",
+    completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    cancelled: "bg-gray-50 text-gray-700 border-gray-100",
   };
 
   const labels = {
@@ -109,17 +109,17 @@ const HistoryCard = ({ booking }) => {
         </div>
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex flex-col">
-            <span className="text-xs text-gray-500 uppercase font-semibold">
+            <span className="text-xs text-gray-500 uppercase font-bold">
               Total Paid
             </span>
-            <span className={`text-lg font-extrabold ${COLORS.text.brand}`}>
+            <span className={`text-lg font-bold ${COLORS.text.brand}`}>
               {formattedTotalPrice}
             </span>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-500 hover:text-red-600"
+            className="text-gray-500 hover:text-red-600 font-bold"
           >
             View Receipt
           </Button>
@@ -171,8 +171,8 @@ const ServiceHistoryPage = () => {
           >
             Activity Logs
           </p>
-          <h1 className="text-4xl font-black">Service History</h1>
-          <p className={COLORS.text.secondary}>
+          <h1 className="text-3xl font-bold tracking-tight">Service History</h1>
+          <p className="text-gray-500">
             A record of all your past vehicle maintenance and detailing.
           </p>
         </div>

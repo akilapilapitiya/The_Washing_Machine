@@ -82,9 +82,9 @@ const paymentMethods = [
 
 const StatusBadge = ({ status }) => {
   const styles = {
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    partial: "bg-orange-100 text-orange-800 border-orange-300",
-    paid: "bg-green-100 text-green-800 border-green-300",
+    pending: "bg-amber-50 text-amber-700 border-amber-100",
+    partial: "bg-orange-50 text-orange-700 border-orange-100",
+    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
   };
 
   const labels = {
@@ -95,7 +95,7 @@ const StatusBadge = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${styles[status]}`}
+      className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status]}`}
     >
       {labels[status]}
     </span>
@@ -182,7 +182,7 @@ const PaymentCard = ({ payment, onRecordPayment }) => {
         {!isPaid && (
           <Button
             onClick={() => onRecordPayment(payment)}
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold"
           >
             <Plus size={16} />
             Record Payment
@@ -196,7 +196,7 @@ const PaymentCard = ({ payment, onRecordPayment }) => {
 const PaymentManagementPage = () => {
   const [payments, setPayments] = useState(mockPendingPayments);
   const [completedPayments, setCompletedPayments] = useState(
-    mockCompletedPayments
+    mockCompletedPayments,
   );
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [paymentData, setPaymentData] = useState({
@@ -245,7 +245,7 @@ const PaymentManagementPage = () => {
       setCompletedPayments([updatedPayment, ...completedPayments]);
     } else {
       setPayments(
-        payments.map((p) => (p.id === selectedPayment.id ? updatedPayment : p))
+        payments.map((p) => (p.id === selectedPayment.id ? updatedPayment : p)),
       );
     }
 
@@ -258,11 +258,11 @@ const PaymentManagementPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Payment Management
           </p>
-          <h1 className="text-3xl font-bold">Record Payments</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold tracking-tight">Record Payments</h1>
+          <p className="text-gray-500">
             Manage and record customer payments for completed services.
           </p>
         </div>
@@ -345,33 +345,37 @@ const PaymentManagementPage = () => {
         {selectedPayment && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <Card className="w-full max-w-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign size={24} className="text-blue-600" />
+              <CardHeader className="border-b bg-gray-50/50">
+                <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                  <DollarSign size={24} className="text-red-600" />
                   Record Payment - {selectedPayment.bookingId}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmitPayment} className="space-y-6">
                   {/* Payment Summary */}
-                  <div className="bg-blue-50 rounded-lg p-4 space-y-2 border border-blue-200">
+                  <div className="bg-red-50 rounded-lg p-4 space-y-2 border border-red-100">
                     <div className="flex justify-between">
-                      <span className="text-gray-700">Total Amount Due</span>
+                      <span className="text-gray-600 text-sm font-medium">
+                        Total Amount Due
+                      </span>
                       <span className="text-lg font-bold text-gray-900">
                         ${selectedPayment.totalAmount}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-700">Already Paid</span>
-                      <span className="text-lg font-semibold text-green-600">
+                      <span className="text-gray-600 text-sm font-medium">
+                        Already Paid
+                      </span>
+                      <span className="text-lg font-semibold text-emerald-600">
                         ${selectedPayment.amountPaid}
                       </span>
                     </div>
-                    <div className="border-t border-blue-300 pt-2 flex justify-between">
-                      <span className="text-gray-700 font-semibold">
+                    <div className="border-t border-red-200 pt-2 flex justify-between">
+                      <span className="text-gray-800 font-bold">
                         Remaining Balance
                       </span>
-                      <span className="text-xl font-bold text-red-600">
+                      <span className="text-xl font-black text-red-600">
                         $
                         {selectedPayment.totalAmount -
                           selectedPayment.amountPaid}
@@ -410,7 +414,7 @@ const PaymentManagementPage = () => {
                       name="paymentMethod"
                       value={paymentData.paymentMethod}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
                       required
                     >
                       <option value="">-- Select payment method --</option>
@@ -432,7 +436,7 @@ const PaymentManagementPage = () => {
                       onChange={handleInputChange}
                       placeholder="Add any notes about this payment..."
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none bg-white"
                     />
                   </div>
 
@@ -444,7 +448,10 @@ const PaymentManagementPage = () => {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" className="flex items-center gap-2">
+                    <Button
+                      type="submit"
+                      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold"
+                    >
                       <CheckCircle size={18} />
                       Record Payment
                     </Button>
