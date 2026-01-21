@@ -33,7 +33,9 @@ const BookingPage = () => {
   };
 
   const handleContinue = () => {
-    navigate("/booking/services", { state: { vehicleId: selectedVehicleId } });
+    navigate("/dashboard/booking/services", {
+      state: { vehicleId: selectedVehicleId },
+    });
   };
 
   return (
@@ -43,7 +45,7 @@ const BookingPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Select a vehicle
           </h1>
           <p className="text-gray-600">
@@ -58,7 +60,7 @@ const BookingPage = () => {
               className="text-red-600 flex-shrink-0 mt-0.5"
             />
             <div className="flex-1">
-              <p className="text-red-800 font-black uppercase italic tracking-tight">
+              <p className="text-red-800 font-bold tracking-tight">
                 System Error
               </p>
               <p className="text-red-700 text-sm font-medium">{error}</p>
@@ -81,7 +83,7 @@ const BookingPage = () => {
                 <Loader2 className="h-12 w-12 animate-spin mx-auto text-red-600" />
                 <Car className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-red-400" />
               </div>
-              <p className="text-gray-400 font-bold uppercase italic tracking-widest text-xs">
+              <p className="text-gray-400 font-semibold tracking-widest text-xs uppercase">
                 Scanning Inventory...
               </p>
             </div>
@@ -93,7 +95,7 @@ const BookingPage = () => {
                 <Car size={32} className="text-gray-300" />
               </div>
               <div className="space-y-2">
-                <p className="text-xl font-black uppercase italic text-gray-900">
+                <p className="text-xl font-bold text-gray-900">
                   No Vehicles Found
                 </p>
                 <p className="text-gray-500 max-w-sm mx-auto">
@@ -102,7 +104,7 @@ const BookingPage = () => {
                 </p>
               </div>
               <Link to="/dashboard/vehicles" className="inline-block">
-                <Button className="bg-red-600 hover:bg-black font-black uppercase italic tracking-widest px-8 h-14 shadow-lg shadow-red-200">
+                <Button className="bg-red-600 hover:bg-black font-bold tracking-wide px-8 h-14 shadow-lg shadow-red-200">
                   <Plus size={20} className="mr-2" />
                   Add Your Machine
                 </Button>
@@ -133,7 +135,7 @@ const BookingPage = () => {
                         <Plus size={24} />
                       </span>
                       <div>
-                        <p className="text-lg font-black uppercase italic text-gray-900 group-hover:text-red-600 transition-colors">
+                        <p className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">
                           Add Machine
                         </p>
                         <p className="text-xs font-bold uppercase tracking-tight text-gray-400">
@@ -141,7 +143,7 @@ const BookingPage = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs font-black uppercase italic tracking-widest text-red-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+                    <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-red-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
                       <span>Enter Garage</span>
                       <ArrowRight size={14} />
                     </div>
@@ -162,7 +164,7 @@ const BookingPage = () => {
               <Button
                 onClick={handleContinue}
                 disabled={!selectedVehicleId}
-                className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 disabled:shadow-none transition-all duration-300 group"
+                className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 disabled:shadow-none transition-all duration-300 group"
               >
                 <span>Initialize Booking</span>
                 <ArrowRight

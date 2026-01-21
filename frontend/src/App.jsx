@@ -121,6 +121,48 @@ const App = () => {
               }
             />
 
+            {/* Booking Flow Selection Steps */}
+            <Route
+              path="booking/services"
+              element={
+                <ProtectedRoute>
+                  <ServiceSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/location"
+              element={
+                <ProtectedRoute>
+                  <LocationSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/employee"
+              element={
+                <ProtectedRoute>
+                  <EmployeeSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/datetime"
+              element={
+                <ProtectedRoute>
+                  <DateTimeSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/confirmation"
+              element={
+                <ProtectedRoute>
+                  <BookingConfirmationPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Employee Dashboard Routes */}
             <Route
               path="employee/assigned"

@@ -137,7 +137,7 @@ const BookingConfirmationPage = () => {
               <CheckCircle size={40} className="text-red-600" />
             </div>
           </div>
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-gray-900">
+          <h1 className="text-4xl font-bold tracking-tighter text-gray-900">
             Review & Confirm
           </h1>
           <p className="text-gray-600 font-medium leading-relaxed">
@@ -165,14 +165,14 @@ const BookingConfirmationPage = () => {
             <Card className="border-2 border-transparent shadow-sm overflow-hidden group">
               <div className="h-1 bg-red-600" />
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-sm font-black uppercase italic text-gray-500">
+                <CardTitle className="flex items-center gap-3 text-sm font-bold text-gray-500 uppercase tracking-widest">
                   <Car size={18} className="text-red-600" />
                   Target Vehicle
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">
-                  <p className="font-black text-2xl text-gray-900 uppercase italic">
+                  <p className="font-bold text-2xl text-gray-900">
                     {data.vehicle?.vehbrand} {data.vehicle?.vehmodel}
                   </p>
                   <p className="text-red-600 font-mono font-bold tracking-widest bg-red-50 inline-block px-3 py-1 rounded">
@@ -186,7 +186,7 @@ const BookingConfirmationPage = () => {
             <Card className="border-2 border-transparent shadow-sm overflow-hidden">
               <div className="h-1 bg-red-600" />
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-sm font-black uppercase italic text-gray-500">
+                <CardTitle className="flex items-center gap-3 text-sm font-bold text-gray-500 uppercase tracking-widest">
                   <Calendar size={18} className="text-red-600" />
                   Schedule
                 </CardTitle>
@@ -225,7 +225,7 @@ const BookingConfirmationPage = () => {
             <Card className="border-2 border-transparent shadow-sm overflow-hidden">
               <div className="h-1 bg-red-600" />
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-sm font-black uppercase italic text-gray-500">
+                <CardTitle className="flex items-center gap-3 text-sm font-bold text-gray-500 uppercase tracking-widest">
                   <MapPin size={18} className="text-red-600" />
                   Location
                 </CardTitle>
@@ -252,7 +252,7 @@ const BookingConfirmationPage = () => {
                 <h3 className="text-xs uppercase font-black tracking-widest text-red-500 mb-1">
                   Order Summary
                 </h3>
-                <p className="text-2xl font-black uppercase italic tracking-tighter">
+                <p className="text-2xl font-bold tracking-tighter">
                   Premium Car Care
                 </p>
               </div>
@@ -295,11 +295,11 @@ const BookingConfirmationPage = () => {
                     <span className="font-mono">Included</span>
                   </div>
                   <div className="flex justify-between items-center pt-4 border-t-2 border-gray-900">
-                    <span className="text-xl font-black uppercase italic tracking-tighter text-gray-900">
+                    <span className="text-xl font-bold tracking-tighter text-gray-900">
                       Total Price
                     </span>
                     <div className="text-right">
-                      <p className="text-2xl font-black text-red-600 font-mono">
+                      <p className="text-2xl font-bold text-red-600 font-mono">
                         Rs. {totalPrice.toLocaleString()}
                       </p>
                       <p className="text-[10px] uppercase font-bold text-gray-400">
@@ -312,7 +312,7 @@ const BookingConfirmationPage = () => {
                 <Button
                   onClick={handleConfirm}
                   disabled={submitting}
-                  className="w-full h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300 group disabled:opacity-50"
+                  className="w-full h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300 group disabled:opacity-50"
                 >
                   {submitting ? (
                     <Loader2 className="h-6 w-6 animate-spin" />

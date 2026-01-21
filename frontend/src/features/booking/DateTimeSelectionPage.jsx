@@ -61,7 +61,7 @@ const DateTimeSelectionPage = () => {
 
   const handleContinue = () => {
     // Navigate to confirmation/summary page
-    navigate("/booking/confirmation", {
+    navigate("/dashboard/booking/confirmation", {
       state: {
         vehicleId,
         serviceIds,
@@ -84,7 +84,7 @@ const DateTimeSelectionPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Select date & time
           </h1>
           <p className="text-gray-600">
@@ -96,7 +96,7 @@ const DateTimeSelectionPage = () => {
           {/* Date Selection */}
           <Card className="border-2 border-transparent shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-3 text-lg font-bold uppercase italic text-gray-900">
+              <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
                 <Calendar size={24} className="text-red-600" />
                 Select Date
               </CardTitle>
@@ -127,7 +127,7 @@ const DateTimeSelectionPage = () => {
           {selectedDate && (
             <Card className="border-2 border-transparent shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-lg font-bold uppercase italic text-gray-900">
+                <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
                   <Clock size={24} className="text-red-600" />
                   Select Time
                 </CardTitle>
@@ -143,7 +143,7 @@ const DateTimeSelectionPage = () => {
                         onClick={() => available && setSelectedTime(slot.value)}
                         disabled={!available}
                         className={cn(
-                          "px-4 py-4 rounded-xl border-2 text-xs font-bold uppercase tracking-tight transition-all duration-200",
+                          "px-4 py-4 rounded-xl border-2 text-xs font-bold tracking-tight transition-all duration-200",
                           selectedTime === slot.value
                             ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-200"
                             : !available
@@ -179,7 +179,7 @@ const DateTimeSelectionPage = () => {
           <Button
             onClick={handleContinue}
             disabled={!selectedDate || !selectedTime}
-            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
           >
             Continue
           </Button>
