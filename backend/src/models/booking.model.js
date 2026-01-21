@@ -20,6 +20,9 @@ const createBookingTable = async (pool) => {
       CONSTRAINT chk_booking_time
         CHECK (bookingendtime > bookingstarttime)
     );
+
+    -- Ensure totalprice column exists (in case table was created before this column was added)
+    ALTER TABLE booking ADD COLUMN IF NOT EXISTS totalprice DECIMAL(10,2) NOT NULL DEFAULT 0;
     
     CREATE INDEX IF NOT EXISTS idx_booking_vehicle ON booking(vehid);
     CREATE INDEX IF NOT EXISTS idx_booking_date ON booking(bookingdate);

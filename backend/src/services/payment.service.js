@@ -30,7 +30,7 @@ export const getPaymentService = async (
            v.cusid
 		FROM payment p
       JOIN booking b ON p.bookingid = b.bookingid
-      JOIN vehicle v ON b.vehid = v.vehid
+      JOIN vehicle v ON b.vehid = v.id
 		WHERE p.paymentid = $1
 		`,
     [paymentid],

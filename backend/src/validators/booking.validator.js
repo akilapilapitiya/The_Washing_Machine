@@ -38,6 +38,9 @@ export const bookingValidator = {
         "array.min": "At least one service must be selected",
         "any.required": "Services are required",
       }),
+    employeeId: Joi.alternatives()
+      .try(Joi.number().integer(), Joi.string().allow("any", ""))
+      .allow(null),
   }),
 
   updateBooking: Joi.object({

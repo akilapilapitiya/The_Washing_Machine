@@ -84,6 +84,7 @@ const BookingConfirmationPage = () => {
         startTime: time,
         locationLatitude: 6.9271, // Default to Colombo for now
         locationLongitude: 79.8612,
+        employeeId: employeeId === "any" ? null : employeeId,
         status: "pending",
       };
 

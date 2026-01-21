@@ -93,7 +93,7 @@ export const getBookingService = async (
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
-      LEFT JOIN vehicle v ON b.vehid = v.vehid
+      LEFT JOIN vehicle v ON b.vehid = v.id
       WHERE b.bookingid = $1
       GROUP BY b.bookingid, v.cusid
       `,
@@ -131,6 +131,7 @@ export const createBookingService = async ({
   vehicleId,
   services,
   userRole,
+  employeeId,
 }) => {
   assertRequiredFields(
     {
@@ -196,7 +197,7 @@ export const createBookingService = async ({
 
     // 2. Validate vehicle ownership
     const vehicleCheck = await client.query(
-      "SELECT vehid, cusid FROM vehicle WHERE vehid = $1",
+      "SELECT id, cusid FROM vehicle WHERE id = $1",
       [vehicleId],
     );
 
@@ -208,41 +209,84 @@ export const createBookingService = async ({
       throw new ForbiddenError("You can only book with your own vehicles");
     }
 
-    // 3. Find an available employee
-    // Search for employees who are not on leave and don't have overlapping schedules
-    const availabilityQuery = `
-      SELECT e.empid 
-      FROM employee e
-      WHERE e.empid NOT IN (
-        -- Employees on leave
-        SELECT el.empid 
-        FROM employeeleave el 
-        WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
-      )
-      AND e.empid NOT IN (
-        -- Employees with overlapping schedules
-        SELECT ea.empid 
-        FROM employeeassigned ea
-        JOIN schedule s ON ea.bookingid = s.bookingid
-        WHERE s.schedulestartdate = $1::date
-        AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
-      )
-      LIMIT 1;
-    `;
+    let assignedEmpId;
 
-    const availabilityResult = await client.query(availabilityQuery, [
-      date,
-      startTime,
-      endTime,
-    ]);
+    if (employeeId && employeeId !== "any") {
+      // If specific employee requested, verify they are not on leave and not occupied
+      const specificAvailabilityQuery = `
+        SELECT e.empid 
+        FROM employee e
+        WHERE e.empid = $4
+        AND e.empid NOT IN (
+          SELECT el.empid FROM employeeleave el 
+          WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
+        )
+        AND e.empid NOT IN (
+          SELECT ea.empid FROM employeeassigned ea
+          JOIN schedule s ON ea.bookingid = s.bookingid
+          WHERE s.schedulestartdate = $1::date
+          AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
+        )
+        LIMIT 1;
+      `;
+      const specificResult = await client.query(specificAvailabilityQuery, [
+        date,
+        startTime,
+        endTime,
+        employeeId,
+      ]);
 
-    if (availabilityResult.rowCount === 0) {
-      throw new ValidationError(
-        "No employees are available for the selected time slot",
-      );
+      if (specificResult.rowCount > 0) {
+        assignedEmpId = specificResult.rows[0].empid;
+      } else {
+        // Fallback for now as per user request (make all available)
+        // If specific fails, we still allow it by just using the provided ID
+        assignedEmpId = employeeId;
+      }
+    } else {
+      // Auto-assign logic
+      const availabilityQuery = `
+        SELECT e.empid 
+        FROM employee e
+        WHERE e.empid NOT IN (
+          -- Employees on leave
+          SELECT el.empid 
+          FROM employeeleave el 
+          WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
+        )
+        AND e.empid NOT IN (
+          -- Employees with overlapping schedules
+          SELECT ea.empid 
+          FROM employeeassigned ea
+          JOIN schedule s ON ea.bookingid = s.bookingid
+          WHERE s.schedulestartdate = $1::date
+          AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
+        )
+        LIMIT 1;
+      `;
+      const availabilityResult = await client.query(availabilityQuery, [
+        date,
+        startTime,
+        endTime,
+      ]);
+
+      if (availabilityResult.rowCount > 0) {
+        assignedEmpId = availabilityResult.rows[0].empid;
+      } else {
+        // Fallback: Just pick any employee (not on owner/manager type ideally, but for now any)
+        // This satisfies "make all timeslots available"
+        const fallbackResult = await client.query(
+          "SELECT empid FROM employee WHERE emptype != 'owner' LIMIT 1",
+        );
+        if (fallbackResult.rowCount > 0) {
+          assignedEmpId = fallbackResult.rows[0].empid;
+        } else {
+          throw new ValidationError(
+            "No employees available in the system. Please register an employee first.",
+          );
+        }
+      }
     }
-
-    const assignedEmpId = availabilityResult.rows[0].empid;
 
     // 4. Insert booking
     const bookingResult = await client.query(
@@ -332,7 +376,7 @@ export const updateBookingService = async (
       `
       SELECT b.*, v.cusid, ea.empid as current_empid
       FROM booking b
-      JOIN vehicle v ON b.vehid = v.vehid
+      JOIN vehicle v ON b.vehid = v.id
       LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
       WHERE b.bookingid = $1
       `,
@@ -522,7 +566,7 @@ export const deleteBookingService = async (
       `
       SELECT b.bookingid, v.cusid
       FROM booking b
-      JOIN vehicle v ON b.vehid = v.vehid
+      JOIN vehicle v ON b.vehid = v.id
       WHERE b.bookingid = $1
       `,
       [bookingId],

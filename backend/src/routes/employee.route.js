@@ -11,17 +11,21 @@ import { employeeValidator } from "../validators/index.js";
 
 const employeeRouter = Router();
 
-// Protect all employee routes; employees only
-employeeRouter.use(authMiddleware, restrictTo("employee"));
-employeeRouter.get("/:empid", getEmployee);
+// Protect all employee routes
+employeeRouter.use(authMiddleware);
+
+employeeRouter.get("/:empid", restrictTo("employee", "owner"), getEmployee);
 employeeRouter.put(
   "/:empid",
+  restrictTo("employee", "owner"),
   validateSchema(employeeValidator.updateEmployee),
-  updateEmployee
+  updateEmployee,
 );
 
-// PROTECTED ROUTES - Owner only
-employeeRouter.get("/", restrictTo("owner"), getAllEmployees);
+// VIEW ALL: Accessible to all authenticated users (needed for booking flow)
+employeeRouter.get("/", getAllEmployees);
+
+// DELETE: Owner only
 employeeRouter.delete("/:empid", restrictTo("owner"), deleteEmployee);
 export default employeeRouter;
 

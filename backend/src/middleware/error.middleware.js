@@ -101,10 +101,16 @@ const errorHandling = (err, req, res, next) => {
   };
 
   // Don't expose sensitive error details in production
-  if (process.env.NODE_ENV !== "production" && err.message && status === 500) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    err.message &&
+    (status === 500 || status === 400)
+  ) {
     response.debug = {
       error: err.message,
       stack: err.stack,
+      code: err.code,
+      detail: err.detail,
     };
   }
 

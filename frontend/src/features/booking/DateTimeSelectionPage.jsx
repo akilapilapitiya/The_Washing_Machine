@@ -48,24 +48,11 @@ const DateTimeSelectionPage = () => {
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (selectedDate && employeeId) {
-      // If "Any Employee" is selected, all slots are available
-      if (employeeId === "any") {
-        setAvailableSlots(timeSlots.map((slot) => slot.value));
-      } else {
-        // Get employee-specific availability for the selected date
-        const employeeAvailability = mockAvailability[employeeId] || {};
-        const dateAvailability = employeeAvailability[selectedDate] || [];
-
-        // If no specific data, assume all slots are available
-        if (Object.keys(employeeAvailability).length === 0) {
-          setAvailableSlots(timeSlots.map((slot) => slot.value));
-        } else {
-          setAvailableSlots(dateAvailability);
-        }
-      }
+    if (selectedDate) {
+      // For now, make all slots available as requested
+      setAvailableSlots(timeSlots.map((slot) => slot.value));
     }
-  }, [selectedDate, employeeId]);
+  }, [selectedDate]);
 
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);

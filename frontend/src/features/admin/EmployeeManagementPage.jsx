@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,68 +14,18 @@ import {
   AlertCircle,
   CheckCircle,
   X,
+  CreditCard,
 } from "lucide-react";
-
-// Mock employees data
-const mockEmployees = [
-  {
-    id: "1",
-    name: "John Silva",
-    email: "john.silva@example.com",
-    phone: "+94 77 123 4567",
-    role: "Senior Detailer",
-    level: "senior",
-    joinDate: "2022-03-15",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Sarah Fernando",
-    email: "sarah.fernando@example.com",
-    phone: "+94 77 987 6543",
-    role: "Service Specialist",
-    level: "mid",
-    joinDate: "2023-06-20",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Michael Perera",
-    email: "michael.perera@example.com",
-    phone: "+94 77 555 1234",
-    role: "Lead Technician",
-    level: "lead",
-    joinDate: "2021-01-10",
-    status: "active",
-  },
-  {
-    id: "4",
-    name: "Amara Jayasinghe",
-    email: "amara.jayasinghe@example.com",
-    phone: "+94 77 321 9876",
-    role: "Master Detailer",
-    level: "master",
-    joinDate: "2020-05-05",
-    status: "active",
-  },
-  {
-    id: "5",
-    name: "Alex Kumar",
-    email: "alex.kumar@example.com",
-    phone: "+94 77 444 7890",
-    role: "Junior Technician",
-    level: "junior",
-    joinDate: "2024-01-15",
-    status: "active",
-  },
-];
+import * as employeeService from "@/services/employee.service";
+import { COLORS } from "@/lib/colors";
 
 const roleOptions = [
-  { value: "junior", label: "Junior Technician" },
+  { value: "junior", label: "Frontline Detailer" },
   { value: "mid", label: "Service Specialist" },
-  { value: "senior", label: "Senior Detailer" },
-  { value: "lead", label: "Lead Technician" },
+  { value: "senior", label: "Senior Technician" },
+  { value: "lead", label: "Floor Manager" },
   { value: "master", label: "Master Detailer" },
+  { value: "owner", label: "Strategic Owner" },
 ];
 
 const levelColors = {
@@ -106,16 +56,18 @@ const LevelBadge = ({ level }) => {
   const colors = levelColors[level] || levelColors.junior;
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${colors.bg} ${colors.text} ${colors.border}`}
+      className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase font-black border-2 ${colors.bg} ${colors.text} ${colors.border} tracking-widest italic`}
     >
-      <Badge size={12} className="mr-1" />
-      {roleOptions.find((r) => r.value === level)?.label}
+      <Badge size={10} className="mr-1" />
+      {roleOptions.find((r) => r.value === level)?.label || level}
     </span>
   );
 };
 
 const EmployeeManagementPage = () => {
-  const [employees, setEmployees] = useState(mockEmployees);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPromoteForm, setShowPromoteForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -123,155 +75,229 @@ const EmployeeManagementPage = () => {
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     email: "",
-    phone: "",
-    role: "junior",
+    telephone: "",
+    type: "junior",
+    nic: "",
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleAddEmployee = (e) => {
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await employeeService.getEmployees();
+      setEmployees(data);
+    } catch (err) {
+      console.error("Failed to fetch employees:", err);
+      setError("Failed to load employee directory.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddEmployee = async (e) => {
     e.preventDefault();
 
-    if (!newEmployee.name || !newEmployee.email || !newEmployee.phone) {
+    // NIC Validation (Sri Lankan Format: 9 digits + V/v or 12 digits)
+    const nicRegex = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
+    if (!nicRegex.test(newEmployee.nic)) {
+      setError("Invalid NIC format. Must be 9 digits + V or 12 digits.");
       return;
     }
 
-    const employee = {
-      id: Date.now().toString(),
-      ...newEmployee,
-      level: newEmployee.role,
-      joinDate: new Date().toISOString().split("T")[0],
-      status: "active",
-    };
+    try {
+      setSubmitting(true);
+      setError(null);
+      await employeeService.addEmployee(newEmployee);
 
-    setEmployees([...employees, employee]);
-    setNewEmployee({ name: "", email: "", phone: "", role: "junior" });
-    setShowAddForm(false);
-    setSuccessMessage("Employee added successfully!");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+      await fetchEmployees();
+      setNewEmployee({
+        name: "",
+        email: "",
+        telephone: "",
+        type: "junior",
+        nic: "",
+      });
+      setShowAddForm(false);
+      setSuccessMessage("New operative registered successfully!");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to register employee:", err);
+      setError(err.response?.data?.message || "Failed to register employee.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handlePromoteEmployee = (e) => {
+  const handlePromoteEmployee = async (e) => {
     e.preventDefault();
 
     if (!newRole) {
       return;
     }
 
-    const updatedEmployees = employees.map((emp) =>
-      emp.id === selectedEmployee.id
-        ? {
-            ...emp,
-            level: newRole,
-            role: roleOptions.find((r) => r.value === newRole)?.label,
-          }
-        : emp
-    );
+    try {
+      setSubmitting(true);
+      setError(null);
+      await employeeService.updateEmployee(selectedEmployee.empid, {
+        type: newRole,
+      });
 
-    setEmployees(updatedEmployees);
-    setShowPromoteForm(false);
-    setSelectedEmployee(null);
-    setNewRole("");
-    setSuccessMessage("Employee promoted successfully!");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
-
-  const handleDeleteEmployee = (id) => {
-    if (
-      window.confirm(
-        "Are you sure you want to remove this employee? This action cannot be undone."
-      )
-    ) {
-      setEmployees(employees.filter((emp) => emp.id !== id));
-      setSuccessMessage("Employee removed successfully!");
+      await fetchEmployees();
+      setShowPromoteForm(false);
+      setSelectedEmployee(null);
+      setNewRole("");
+      setSuccessMessage("Operational rank updated successfully!");
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to update rank:", err);
+      setError("Failed to update employee rank.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteEmployee = async (id) => {
+    if (
+      window.confirm(
+        "Are you sure you want to remove this employee? This action cannot be undone.",
+      )
+    ) {
+      try {
+        await employeeService.deleteEmployee(id);
+        await fetchEmployees();
+        setSuccessMessage("Employee records purged.");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch (err) {
+        console.error("Failed to delete employee:", err);
+        setError("Failed to remove employee record.");
+      }
     }
   };
 
   const openPromoteForm = (employee) => {
     setSelectedEmployee(employee);
-    setNewRole(employee.level);
+    setNewRole(employee.emptype);
     setShowPromoteForm(true);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
-              Employee Management
+            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
+              Force Management
             </p>
-            <h1 className="text-3xl font-bold">Manage Employees</h1>
+            <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+              Manage Employees
+            </h1>
             <p className="text-gray-600">
-              Add, promote, and manage your team members.
+              Register, promote, and coordinate your elite service team.
             </p>
           </div>
           <Button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2"
+            className="h-14 px-8 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-lg shadow-red-200 transition-all duration-300 group"
           >
-            <Plus size={18} />
+            <Plus
+              size={20}
+              className="mr-2 group-hover:rotate-90 transition-transform"
+            />
             Add Employee
           </Button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border-2 border-red-100 rounded-xl p-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+            <AlertCircle
+              size={24}
+              className="text-red-600 flex-shrink-0 mt-0.5"
+            />
+            <div className="flex-1">
+              <p className="text-red-800 font-black uppercase italic tracking-tight text-sm">
+                System Error
+              </p>
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-600">
+              <X size={24} />
+            </button>
+          </div>
+        )}
+
         {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">{successMessage}</p>
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 flex items-center gap-4 animate-in fade-in zoom-in duration-300">
+            <CheckCircle size={24} className="text-red-600" />
+            <p className="text-red-900 font-black uppercase italic tracking-tight">
+              {successMessage}
+            </p>
           </div>
         )}
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">
+                <p className="text-3xl font-black italic text-red-600">
                   {employees.length}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Total Employees</p>
+                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                  Total Force
+                </p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-3xl font-black italic text-gray-900">
                   {
                     employees.filter(
                       (e) =>
-                        e.level === "senior" ||
-                        e.level === "master" ||
-                        e.level === "lead"
+                        e.emptype === "senior" ||
+                        e.emptype === "master" ||
+                        e.emptype === "lead",
                     ).length
                   }
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Senior Staff</p>
+                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                  Senior Elite
+                </p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-yellow-600">
-                  {employees.filter((e) => e.level === "mid").length}
+                <p className="text-3xl font-black italic text-gray-900">
+                  {employees.filter((e) => e.emptype === "mid").length}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Mid-Level</p>
+                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                  Mid-Level
+                </p>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-purple-600">
-                  {employees.filter((e) => e.level === "junior").length}
+                <p className="text-3xl font-black italic text-gray-900">
+                  {employees.filter((e) => e.emptype === "junior").length}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Junior Staff</p>
+                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                  Junior Staff
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -282,63 +308,73 @@ const EmployeeManagementPage = () => {
           {employees.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {employees.map((employee) => (
-                <Card key={employee.id}>
-                  <CardHeader>
+                <Card
+                  key={employee.empid}
+                  className="group border-2 border-transparent bg-white shadow-sm hover:border-red-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden relative"
+                >
+                  <div className="absolute top-0 right-0 h-1 bg-red-600 w-0 group-hover:w-full transition-all duration-500" />
+                  <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-lg">
-                          {employee.name}
+                        <p className="text-[10px] uppercase font-black text-red-600 tracking-widest mb-1">
+                          Operative
+                        </p>
+                        <CardTitle className="text-xl font-black uppercase italic tracking-tighter leading-none">
+                          {employee.empname}
                         </CardTitle>
-                        <LevelBadge level={employee.level} />
+                        <div className="mt-2">
+                          <LevelBadge level={employee.emptype} />
+                        </div>
                       </div>
                       <button
-                        onClick={() => handleDeleteEmployee(employee.id)}
-                        className="text-gray-400 hover:text-red-600 transition"
-                        title="Remove employee"
+                        onClick={() => handleDeleteEmployee(employee.empid)}
+                        className="h-8 w-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all z-10 opacity-0 group-hover:opacity-100 shadow-sm"
+                        title="Purge records"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="p-6 pt-2 space-y-4">
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Mail size={14} className="text-gray-500" />
-                        <span className="text-gray-700 truncate">
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
+                          <Mail size={14} />
+                        </div>
+                        <span className="text-gray-900 font-bold truncate">
                           {employee.email}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Phone size={14} className="text-gray-500" />
-                        <span className="text-gray-700">{employee.phone}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
+                          <Phone size={14} />
+                        </div>
+                        <span className="text-gray-900 font-bold">
+                          {employee.emptel}
+                        </span>
                       </div>
-                      <div className="text-xs text-gray-600">
-                        <span>
-                          Joined:{" "}
-                          {new Date(employee.joinDate).toLocaleDateString(
-                            "en-US",
-                            { year: "numeric", month: "short", day: "numeric" }
-                          )}
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
+                          <CreditCard size={14} />
+                        </div>
+                        <span className="text-gray-900 font-mono font-black text-xs uppercase tracking-wider">
+                          {employee.empnic}
                         </span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                    <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest pt-2">
+                      Enlisted:{" "}
+                      {new Date(employee.created_at).toLocaleDateString()}
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 pt-4 border-t border-dashed">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openPromoteForm(employee)}
-                        className="flex items-center gap-1"
+                        className="h-10 border-2 font-black uppercase italic tracking-widest text-xs hover:border-red-600 hover:text-red-600 transition-all flex items-center justify-center gap-2"
                       >
                         <TrendingUp size={14} />
-                        Promote
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled
-                        className="text-gray-500"
-                      >
-                        Edit
+                        Reassign Rank
                       </Button>
                     </div>
                   </CardContent>
@@ -365,38 +401,54 @@ const EmployeeManagementPage = () => {
 
       {/* Add Employee Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-2 border-red-600 shadow-2xl animate-in zoom-in-95 duration-300">
+            <CardHeader className="bg-gray-900 text-white rounded-t-lg">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Plus size={20} className="text-blue-600" />
-                  Add New Employee
-                </CardTitle>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase font-black tracking-widest text-red-500">
+                    Recruitment
+                  </p>
+                  <CardTitle className="text-2xl font-black uppercase italic tracking-tight">
+                    Add New Operative
+                  </CardTitle>
+                </div>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="h-10 w-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-red-600 transition-all"
                 >
                   <X size={24} />
                 </button>
               </div>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddEmployee} className="space-y-4">
+            <CardContent className="p-8">
+              <form onSubmit={handleAddEmployee} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label
+                    htmlFor="name"
+                    className="text-xs uppercase font-black text-gray-400"
+                  >
+                    Full Name *
+                  </Label>
                   <Input
                     id="name"
                     value={newEmployee.name}
                     onChange={(e) =>
                       setNewEmployee({ ...newEmployee, name: e.target.value })
                     }
-                    placeholder="John Silva"
+                    placeholder="Full Identification"
+                    className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
                     required
+                    disabled={submitting}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
+                  <Label
+                    htmlFor="email"
+                    className="text-xs uppercase font-black text-gray-400"
+                  >
+                    Professional Email *
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -404,31 +456,70 @@ const EmployeeManagementPage = () => {
                     onChange={(e) =>
                       setNewEmployee({ ...newEmployee, email: e.target.value })
                     }
-                    placeholder="john@example.com"
+                    placeholder="name@washingmachine.com"
+                    className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
                     required
+                    disabled={submitting}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
-                  <Input
-                    id="phone"
-                    value={newEmployee.phone}
-                    onChange={(e) =>
-                      setNewEmployee({ ...newEmployee, phone: e.target.value })
-                    }
-                    placeholder="+94 77 123 4567"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="telephone"
+                      className="text-xs uppercase font-black text-gray-400"
+                    >
+                      Phone *
+                    </Label>
+                    <Input
+                      id="telephone"
+                      value={newEmployee.telephone}
+                      onChange={(e) =>
+                        setNewEmployee({
+                          ...newEmployee,
+                          telephone: e.target.value,
+                        })
+                      }
+                      placeholder="0771234567"
+                      className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                      required
+                      disabled={submitting}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="nic"
+                      className="text-xs uppercase font-black text-gray-400"
+                    >
+                      NIC *
+                    </Label>
+                    <Input
+                      id="nic"
+                      value={newEmployee.nic}
+                      onChange={(e) =>
+                        setNewEmployee({ ...newEmployee, nic: e.target.value })
+                      }
+                      placeholder="ID Number"
+                      className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-mono font-bold uppercase transition-all"
+                      required
+                      disabled={submitting}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role">Starting Role *</Label>
+                  <Label
+                    htmlFor="role"
+                    className="text-xs uppercase font-black text-gray-400"
+                  >
+                    Operational Rank *
+                  </Label>
                   <select
                     id="role"
-                    value={newEmployee.role}
+                    value={newEmployee.type}
                     onChange={(e) =>
-                      setNewEmployee({ ...newEmployee, role: e.target.value })
+                      setNewEmployee({ ...newEmployee, type: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-12 px-3 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                    disabled={submitting}
                   >
                     {roleOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -437,15 +528,36 @@ const EmployeeManagementPage = () => {
                     ))}
                   </select>
                 </div>
-                <div className="flex gap-3 justify-end pt-4">
+
+                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                  <p className="text-[10px] uppercase font-black text-red-600 mb-1">
+                    Security Protocol
+                  </p>
+                  <p className="text-xs font-bold text-red-900 leading-tight">
+                    Default password set to:{" "}
+                    <span className="font-mono bg-white px-2 py-0.5 rounded border">
+                      Employee@123
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex gap-4 justify-end pt-4 border-t border-gray-100">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowAddForm(false)}
+                    className="h-14 px-8 border-2 font-black uppercase tracking-widest hover:bg-gray-50"
+                    disabled={submitting}
                   >
-                    Cancel
+                    Abort
                   </Button>
-                  <Button type="submit">Add Employee</Button>
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="h-14 px-10 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+                  >
+                    {submitting ? "Enlisting..." : "Enlist Operative"}
+                  </Button>
                 </div>
               </form>
             </CardContent>
@@ -455,48 +567,60 @@ const EmployeeManagementPage = () => {
 
       {/* Promote Employee Modal */}
       {showPromoteForm && selectedEmployee && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-2 border-red-600 shadow-2xl animate-in zoom-in-95 duration-300">
+            <CardHeader className="bg-gray-900 text-white rounded-t-lg">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp size={20} className="text-blue-600" />
-                  Promote Employee
-                </CardTitle>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase font-black tracking-widest text-red-500">
+                    Personnel Logistics
+                  </p>
+                  <CardTitle className="text-2xl font-black uppercase italic tracking-tight">
+                    Promote Operative
+                  </CardTitle>
+                </div>
                 <button
                   onClick={() => setShowPromoteForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="h-10 w-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-red-600 transition-all"
                 >
                   <X size={24} />
                 </button>
               </div>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePromoteEmployee} className="space-y-4">
+            <CardContent className="p-8">
+              <form onSubmit={handlePromoteEmployee} className="space-y-6">
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Employee</p>
-                  <p className="font-semibold text-lg">
-                    {selectedEmployee.name}
+                  <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">
+                    Target Personnel
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Current:{" "}
-                    {
-                      roleOptions.find(
-                        (r) => r.value === selectedEmployee.level
-                      )?.label
-                    }
+                  <p className="font-black text-xl text-gray-900 uppercase italic leading-none">
+                    {selectedEmployee.empname}
+                  </p>
+                  <p className="text-xs font-bold text-red-600 mt-2">
+                    Current Rank:{" "}
+                    <span className="uppercase">
+                      {roleOptions.find(
+                        (r) => r.value === selectedEmployee.emptype,
+                      )?.label || selectedEmployee.emptype}
+                    </span>
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="newRole">New Role *</Label>
+                  <Label
+                    htmlFor="newRole"
+                    className="text-xs uppercase font-black text-gray-400"
+                  >
+                    Target Operational Rank *
+                  </Label>
                   <select
                     id="newRole"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-12 px-3 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
                     required
+                    disabled={submitting}
                   >
-                    <option value="">-- Select new role --</option>
+                    <option value="">-- Select Deployment Rank --</option>
                     {roleOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -504,37 +628,36 @@ const EmployeeManagementPage = () => {
                     ))}
                   </select>
                 </div>
-                {newRole && newRole !== selectedEmployee.level && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
-                      Promoting from{" "}
-                      <span className="font-semibold">
-                        {
-                          roleOptions.find(
-                            (r) => r.value === selectedEmployee.level
-                          )?.label
-                        }
+                {newRole && newRole !== selectedEmployee.emptype && (
+                  <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                    <p className="text-xs font-bold text-red-900 flex items-center gap-2">
+                      <TrendingUp size={14} />
+                      Ascending from{" "}
+                      <span className="uppercase italic">
+                        {selectedEmployee.emptype}
                       </span>{" "}
-                      to{" "}
-                      <span className="font-semibold">
-                        {roleOptions.find((r) => r.value === newRole)?.label}
-                      </span>
+                      to <span className="uppercase italic">{newRole}</span>
                     </p>
                   </div>
                 )}
-                <div className="flex gap-3 justify-end pt-4">
+                <div className="flex gap-4 justify-end pt-4 border-t border-gray-100">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowPromoteForm(false)}
+                    className="h-14 px-8 border-2 font-black uppercase tracking-widest hover:bg-gray-50"
+                    disabled={submitting}
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    disabled={newRole === selectedEmployee.level}
+                    disabled={
+                      newRole === selectedEmployee.emptype || submitting
+                    }
+                    className="h-14 px-10 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
                   >
-                    Promote Employee
+                    {submitting ? "Processing..." : "Confirm Promotion"}
                   </Button>
                 </div>
               </form>
