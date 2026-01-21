@@ -311,7 +311,7 @@ const BookingConfirmationPage = () => {
                 <Button
                   onClick={handleConfirm}
                   disabled={submitting}
-                  className="w-full bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest py-8 h-auto shadow-2xl shadow-red-200 transition-all duration-300 group"
+                  className="w-full h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300 group disabled:opacity-50"
                 >
                   {submitting ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -324,7 +324,7 @@ const BookingConfirmationPage = () => {
                 </Button>
                 <button
                   onClick={() => navigate(-1)}
-                  className="w-full text-center text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-red-600 transition-colors"
+                  className="w-full text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-red-600 transition-colors"
                 >
                   Go Back & Edit
                 </button>

@@ -80,7 +80,7 @@ const ServiceSelectionPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold italic tracking-tight uppercase">
+          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
             Select services
           </h1>
           <p className="text-gray-600">
@@ -194,14 +194,14 @@ const ServiceSelectionPage = () => {
           <Button
             variant="outline"
             onClick={() => navigate(-1)}
-            className="px-8 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
+            className="px-8 h-14 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
           >
             Back
           </Button>
           <Button
             onClick={handleContinue}
             disabled={selectedServiceIds.length === 0}
-            className="px-8 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider py-6 h-auto shadow-lg shadow-red-200"
+            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 transition-all duration-300"
           >
             Continue with {selectedServiceIds.length}{" "}
             {selectedServiceIds.length === 1 ? "service" : "services"}
