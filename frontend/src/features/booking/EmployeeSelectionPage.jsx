@@ -67,66 +67,91 @@ const EmployeeSelectionPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold">Select preferred employee</h1>
+          <h1 className="text-3xl font-bold italic tracking-tight uppercase">
+            Select preferred employee
+          </h1>
           <p className="text-gray-600">
             Choose a specific employee or let us assign the best available.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {mockEmployees.map((employee) => (
             <button
               key={employee.id}
               type="button"
               onClick={() => setSelectedEmployeeId(employee.id)}
-              className="text-left"
+              className="group text-left transition-all duration-300"
               aria-pressed={selectedEmployeeId === employee.id}
             >
               <Card
                 className={cn(
-                  "h-full border transition hover:border-blue-400 hover:shadow-sm",
-                  selectedEmployeeId === employee.id &&
-                    "border-blue-500 shadow ring-2 ring-blue-500 ring-offset-0"
+                  "h-full border-2 transition-all duration-300",
+                  selectedEmployeeId === employee.id
+                    ? "border-red-600 shadow-md ring-1 ring-red-600"
+                    : "border-transparent hover:border-red-200 bg-white shadow-sm",
                 )}
               >
                 <CardHeader>
-                  <CardTitle className="flex items-start gap-3 text-lg">
+                  <CardTitle className="flex items-start gap-4 text-lg">
                     <span
                       className={cn(
-                        "flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full text-white",
-                        employee.isDefault ? "bg-gray-400" : "bg-blue-600"
+                        "flex-shrink-0 flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors shadow-sm",
+                        selectedEmployeeId === employee.id
+                          ? "bg-red-600"
+                          : "bg-gray-900 group-hover:bg-red-600",
                       )}
                     >
                       {employee.isDefault ? (
-                        <Users size={20} />
+                        <Users size={24} />
                       ) : (
-                        <User size={20} />
+                        <User size={24} />
                       )}
                     </span>
                     <div className="flex-1">
-                      <div>{employee.name}</div>
-                      <div className="text-sm font-normal text-gray-600 mt-1">
+                      <div
+                        className={cn(
+                          "font-bold uppercase italic transition-colors",
+                          selectedEmployeeId === employee.id
+                            ? "text-red-600"
+                            : "text-gray-900",
+                        )}
+                      >
+                        {employee.name}
+                      </div>
+                      <div className="text-sm font-medium text-gray-500 mt-1 uppercase tracking-tight">
                         {employee.role}
                       </div>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 text-sm">{employee.experience}</p>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {employee.experience}
+                  </p>
                 </CardContent>
               </Card>
             </button>
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-4 items-center">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+        <div className="flex flex-wrap gap-4 items-center pt-8 border-t border-gray-200">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="px-8 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
+          >
             Back
           </Button>
-          <Button onClick={handleContinue}>Continue</Button>
+          <Button
+            onClick={handleContinue}
+            className="px-8 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider py-6 h-auto shadow-lg shadow-red-200"
+          >
+            Continue
+          </Button>
         </div>
       </div>
     </div>

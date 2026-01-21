@@ -21,8 +21,8 @@ const BookingPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await vehicleService.getVehicles();
-      setVehicles(response.data.vehicles || []);
+      const vehicles = await vehicleService.getVehicles();
+      setVehicles(vehicles);
     } catch (err) {
       console.error("Failed to fetch vehicles:", err);
       setError(err.message || "Failed to load vehicles. Please try again.");
@@ -51,7 +51,10 @@ const BookingPage = () => {
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle
+              size={20}
+              className="text-red-600 flex-shrink-0 mt-0.5"
+            />
             <div className="flex-1">
               <p className="text-red-800 font-medium">Error</p>
               <p className="text-red-700 text-sm">{error}</p>
@@ -123,7 +126,9 @@ const BookingPage = () => {
 
             <div className="flex flex-wrap gap-4 items-center">
               <Link to="/dashboard/vehicles">
-                <Button variant="outline">Can't find your vehicle? Add it</Button>
+                <Button variant="outline">
+                  Can't find your vehicle? Add it
+                </Button>
               </Link>
               <Button onClick={handleContinue} disabled={!selectedVehicleId}>
                 Continue

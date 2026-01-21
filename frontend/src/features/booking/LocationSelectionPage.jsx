@@ -44,16 +44,18 @@ const LocationSelectionPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold">Select location</h1>
+          <h1 className="text-3xl font-bold italic tracking-tight uppercase">
+            Select location
+          </h1>
           <p className="text-gray-600">
             Choose where you'd like to receive your service.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 max-w-3xl">
+        <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
           {locations.map((loc) => {
             const Icon = loc.icon;
             return (
@@ -61,31 +63,50 @@ const LocationSelectionPage = () => {
                 key={loc.id}
                 type="button"
                 onClick={() => setSelectedLocationId(loc.id)}
-                className="text-left"
+                className="text-left group transition-all duration-300"
                 aria-pressed={selectedLocationId === loc.id}
               >
                 <Card
                   className={cn(
-                    "h-full border transition hover:border-blue-400 hover:shadow-sm",
-                    selectedLocationId === loc.id &&
-                      "border-blue-500 shadow ring-2 ring-blue-500 ring-offset-0"
+                    "h-full border-2 transition-all duration-300",
+                    selectedLocationId === loc.id
+                      ? "border-red-600 shadow-md ring-1 ring-red-600"
+                      : "border-transparent hover:border-red-200 bg-white shadow-sm",
                   )}
                 >
                   <CardHeader>
-                    <CardTitle className="flex items-start gap-3 text-lg">
-                      <span className="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                        <Icon size={20} />
+                    <CardTitle className="flex items-start gap-4 text-lg">
+                      <span
+                        className={cn(
+                          "flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full transition-colors",
+                          selectedLocationId === loc.id
+                            ? "bg-red-600 text-white"
+                            : "bg-red-50 text-red-600",
+                        )}
+                      >
+                        <Icon size={24} />
                       </span>
                       <div className="flex-1">
-                        <div>{loc.title}</div>
-                        <div className="text-sm font-normal text-gray-600 mt-1">
+                        <div
+                          className={cn(
+                            "font-bold uppercase italic transition-colors",
+                            selectedLocationId === loc.id
+                              ? "text-red-600"
+                              : "text-gray-900",
+                          )}
+                        >
+                          {loc.title}
+                        </div>
+                        <div className="text-sm font-medium text-gray-500 mt-1 font-mono">
                           {loc.address}
                         </div>
                       </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600 text-sm">{loc.description}</p>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {loc.description}
+                    </p>
                   </CardContent>
                 </Card>
               </button>
@@ -93,11 +114,19 @@ const LocationSelectionPage = () => {
           })}
         </div>
 
-        <div className="flex flex-wrap gap-4 items-center">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+        <div className="flex flex-wrap gap-4 items-center pt-8 border-t border-gray-200">
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="px-8 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
+          >
             Back
           </Button>
-          <Button onClick={handleContinue} disabled={!selectedLocationId}>
+          <Button
+            onClick={handleContinue}
+            disabled={!selectedLocationId}
+            className="px-8 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider py-6 h-auto shadow-lg shadow-red-200"
+          >
             Continue
           </Button>
         </div>

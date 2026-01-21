@@ -6,7 +6,7 @@ import api from "@/lib/api";
  */
 export const getVehicles = async () => {
   const response = await api.get("/vehicle");
-  return response.data;
+  return response.data?.data?.vehicles || [];
 };
 
 /**
@@ -16,7 +16,7 @@ export const getVehicles = async () => {
  */
 export const getVehicle = async (id) => {
   const response = await api.get(`/vehicle/${id}`);
-  return response.data;
+  return response.data?.data?.vehicle;
 };
 
 /**
