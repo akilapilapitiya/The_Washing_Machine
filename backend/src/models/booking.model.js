@@ -8,12 +8,12 @@ const createBookingTable = async (pool) => {
       bookingendtime TIME NOT NULL,
       bookinglocationlatitude DECIMAL(9,6) NOT NULL CHECK (bookinglocationlatitude BETWEEN -90 AND 90),
       bookinglocationlongitude DECIMAL(9,6) NOT NULL CHECK (bookinglocationlongitude BETWEEN -180 AND 180),
-      vehid VARCHAR(7) NOT NULL,
+      vehid INT NOT NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       CONSTRAINT fk_booking_vehicle
         FOREIGN KEY (vehid)
-        REFERENCES vehicle(vehid)
+        REFERENCES vehicle(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
       CONSTRAINT chk_booking_time

@@ -4,18 +4,12 @@ import Navbar from "../Navbar";
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <main>
+      <main className="flex-1">
         <Outlet />
       </main>
-
-      <footer className="bg-white border-t mt-auto">
-        <div className="container mx-auto px-4 py-4 text-center text-gray-600">
-          <p>&copy; 2025 The Washing Machine. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };

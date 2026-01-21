@@ -33,7 +33,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
-      LEFT JOIN vehicle v ON b.vehid = v.vehid
+      LEFT JOIN vehicle v ON b.vehid = v.id
     `;
 
     let queryParams = [];
@@ -46,7 +46,17 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
     // If employee (any type), show all bookings
     // No WHERE clause needed - they can see everything
 
-    query += ` GROUP BY b.bookingid, v.cusid`;
+    query += ` GROUP BY 
+      b.bookingid, 
+      b.bookingstatus, 
+      b.bookingdate, 
+      b.bookingstarttime, 
+      b.bookingendtime, 
+      b.bookinglocationlatitude, 
+      b.bookinglocationlongitude, 
+      b.vehid, 
+      v.cusid,
+      v.id`;
 
     const result = await client.query(query, queryParams);
     return result.rows;
@@ -59,7 +69,7 @@ export const getBookingService = async (
   bookingId,
   userId,
   userRole,
-  userEmptype
+  userEmptype,
 ) => {
   const client = await pool.connect();
 
@@ -87,7 +97,7 @@ export const getBookingService = async (
       WHERE b.bookingid = $1
       GROUP BY b.bookingid, v.cusid
       `,
-      [bookingId]
+      [bookingId],
     );
 
     if (result.rowCount === 0) {
@@ -143,7 +153,7 @@ export const createBookingService = async ({
       "locationLatitude",
       "locationLongitude",
       "vehicleId",
-    ]
+    ],
   );
 
   assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
@@ -162,7 +172,7 @@ export const createBookingService = async ({
     // Validate vehicle exists and belongs to customer (if user is a customer)
     const vehicleCheck = await client.query(
       "SELECT vehid, cusid FROM vehicle WHERE vehid = $1",
-      [vehicleId]
+      [vehicleId],
     );
 
     if (vehicleCheck.rowCount === 0) {
@@ -177,7 +187,7 @@ export const createBookingService = async ({
     // Validate the date meets the constraint
     const dateCheck = await client.query(
       "SELECT $1::date >= CURRENT_DATE as is_valid",
-      [date]
+      [date],
     );
 
     if (!dateCheck.rows[0].is_valid) {
@@ -200,7 +210,7 @@ export const createBookingService = async ({
         locationLatitude,
         locationLongitude,
         vehicleId,
-      ]
+      ],
     );
 
     const bookingId = bookingResult.rows[0].bookingid;
@@ -209,7 +219,7 @@ export const createBookingService = async ({
     if (services && services.length > 0) {
       const servicesCheck = await client.query(
         "SELECT serviceid FROM service WHERE serviceid = ANY($1)",
-        [services]
+        [services],
       );
 
       if (servicesCheck.rowCount !== services.length) {
@@ -223,7 +233,7 @@ export const createBookingService = async ({
           INSERT INTO servicesbooked (bookingid, serviceid)
           VALUES ($1, $2)
           `,
-          [bookingId, serviceId]
+          [bookingId, serviceId],
         );
       }
     }
@@ -247,7 +257,7 @@ export const updateBookingService = async (
   updates,
   userId,
   userRole,
-  userEmptype
+  userEmptype,
 ) => {
   const { status, date, startTime, endTime, services } = updates;
 
@@ -278,7 +288,7 @@ export const updateBookingService = async (
       JOIN vehicle v ON b.vehid = v.vehid
       WHERE b.bookingid = $1
       `,
-      [bookingId]
+      [bookingId],
     );
 
     if (bookingCheck.rowCount === 0) {
@@ -299,7 +309,7 @@ export const updateBookingService = async (
       const validStatuses = ["pending", "inProgress", "completed", "paid"];
       if (!validStatuses.includes(status)) {
         throw new ValidationError(
-          `Invalid status. Must be one of: ${validStatuses.join(", ")}`
+          `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
         );
       }
     }
@@ -308,12 +318,12 @@ export const updateBookingService = async (
     if (date) {
       const dateCheck = await client.query(
         "SELECT $1::date >= CURRENT_DATE as is_valid",
-        [date]
+        [date],
       );
 
       if (!dateCheck.rows[0].is_valid) {
         throw new ValidationError(
-          "Booking date must be today or in the future"
+          "Booking date must be today or in the future",
         );
       }
     }
@@ -352,9 +362,9 @@ export const updateBookingService = async (
       updateValues.push(bookingId);
       await client.query(
         `UPDATE booking SET ${updateFields.join(
-          ", "
+          ", ",
         )} WHERE bookingid = $${paramIndex}`,
-        updateValues
+        updateValues,
       );
     }
 
@@ -362,7 +372,7 @@ export const updateBookingService = async (
     if (services && services.length > 0) {
       const servicesCheck = await client.query(
         "SELECT serviceid FROM service WHERE serviceid = ANY($1)",
-        [services]
+        [services],
       );
 
       if (servicesCheck.rowCount !== services.length) {
@@ -379,7 +389,7 @@ export const updateBookingService = async (
           INSERT INTO servicesbooked (bookingid, serviceid)
           VALUES ($1, $2)
           `,
-          [bookingId, serviceId]
+          [bookingId, serviceId],
         );
       }
     }
@@ -402,7 +412,7 @@ export const deleteBookingService = async (
   bookingId,
   userId,
   userRole,
-  userEmptype
+  userEmptype,
 ) => {
   const client = await pool.connect();
 
@@ -417,7 +427,7 @@ export const deleteBookingService = async (
       JOIN vehicle v ON b.vehid = v.vehid
       WHERE b.bookingid = $1
       `,
-      [bookingId]
+      [bookingId],
     );
 
     if (bookingCheck.rowCount === 0) {
