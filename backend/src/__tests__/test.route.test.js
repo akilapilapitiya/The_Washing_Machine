@@ -7,15 +7,21 @@ jest.unstable_mockModule("../configs/database.js", () => ({
   default: { query: mockQuery },
 }));
 
-const { createApp } = await import("../../app.js");
+let createApp;
 
+beforeAll(async () => {
+  const module = await import("../../app.js");
+  createApp = module.createApp;
+});
 describe("GET /api/db", () => {
   beforeEach(() => {
     mockQuery.mockReset();
   });
 
   it("returns the current database name", async () => {
-    mockQuery.mockResolvedValue({ rows: [{ current_database: "wash_test_db" }] });
+    mockQuery.mockResolvedValue({
+      rows: [{ current_database: "wash_test_db" }],
+    });
 
     const app = createApp();
     const res = await request(app).get("/api/db");
