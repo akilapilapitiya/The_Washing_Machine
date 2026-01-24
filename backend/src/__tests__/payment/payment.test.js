@@ -1,20 +1,13 @@
 import request from "supertest";
 import { jest } from "@jest/globals";
 
-// Use the manual mock
+// 1. Mock Modules before importing app
 jest.unstable_mockModule(
   "../../services/payment.service.js",
   () => import("../../services/__mocks__/payment.service.js"),
 );
 
-// Import the mocks to control them
-const {
-  createPaymentService,
-  getAllPaymentsService,
-  getCustomerPaymentsService,
-} = await import("../../services/payment.service.js");
-
-// 2. Mock Middleware
+// Mock Middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
   req.user = { id: 1, role: "customer", emptype: null };
   next();
@@ -30,13 +23,13 @@ jest.unstable_mockModule("../../middleware/auth.middleware.js", () => ({
   restrictTo: mockRestrictTo,
 }));
 
-// 3. Mock Database
+// Mock Database
 const mockQuery = jest.fn();
 jest.unstable_mockModule("../../configs/database.js", () => ({
   default: { query: mockQuery },
 }));
 
-// 4. Mock Env
+// Mock Env
 jest.unstable_mockModule("../../configs/env.js", () => ({
   NODE_ENV: "test",
   COOKIE_AGE: 1,
@@ -53,6 +46,16 @@ jest.unstable_mockModule("../../configs/env.js", () => ({
   RATE_LIMIT_MAX_REQUESTS: 100,
   RATE_LIMIT_AUTH_MAX: 5,
 }));
+
+// Import the service after mocking
+const {
+  createPaymentService,
+  getCustomerPaymentsService,
+  getAllPaymentsService,
+  getPaymentService,
+  updatePaymentService,
+  deletePaymentService,
+} = await import("../../services/payment.service.js");
 
 let createApp;
 let app;
@@ -86,17 +89,73 @@ describe("Payment Routes", () => {
     });
   });
 
-  describe("GET /api/payment/my-payments", () => {
+  describe("GET /api/payment/my", () => {
     it("should return payments for the logged-in customer", async () => {
       const mockPayments = [{ paymentid: 1, paymentamount: 50.0 }];
       getCustomerPaymentsService.mockResolvedValue(mockPayments);
 
-      const res = await request(app).get("/api/payment/my-payments");
+      const res = await request(app).get("/api/payment/my");
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(getCustomerPaymentsService).toHaveBeenCalled();
       expect(res.body.data.payments).toEqual(mockPayments);
+    });
+  });
+
+  describe("GET /api/payment", () => {
+    it("should return all payments for manager/owner", async () => {
+      const mockPayments = [{ paymentid: 1, paymentamount: 50.0 }];
+      getAllPaymentsService.mockResolvedValue(mockPayments);
+
+      const res = await request(app).get("/api/payment");
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(getAllPaymentsService).toHaveBeenCalled();
+      expect(res.body.data.payments).toEqual(mockPayments);
+    });
+  });
+
+  describe("GET /api/payment/:paymentid", () => {
+    it("should return a specific payment", async () => {
+      const mockPayment = { paymentid: 1, paymentamount: 50.0 };
+      getPaymentService.mockResolvedValue(mockPayment);
+
+      const res = await request(app).get("/api/payment/1");
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(getPaymentService).toHaveBeenCalled();
+      expect(res.body.data.payment).toEqual(mockPayment);
+    });
+  });
+
+  describe("PUT /api/payment/:paymentid", () => {
+    it("should update a payment successfully", async () => {
+      const mockPayment = { paymentid: 1, paymentamount: 60.0 };
+      updatePaymentService.mockResolvedValue(mockPayment);
+
+      const res = await request(app).put("/api/payment/1").send({
+        paymentamount: 60.0,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(updatePaymentService).toHaveBeenCalled();
+      expect(res.body.data.payment).toEqual(mockPayment);
+    });
+  });
+
+  describe("DELETE /api/payment/:paymentid", () => {
+    it("should delete a payment successfully", async () => {
+      deletePaymentService.mockResolvedValue();
+
+      const res = await request(app).delete("/api/payment/1");
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(deletePaymentService).toHaveBeenCalled();
     });
   });
 });
