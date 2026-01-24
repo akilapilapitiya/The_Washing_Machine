@@ -136,7 +136,7 @@ const ManageCustomersPage = () => {
     (customer) =>
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone.includes(searchQuery)
+      customer.phone.includes(searchQuery),
   );
 
   return (
@@ -144,7 +144,7 @@ const ManageCustomersPage = () => {
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
               Customer Management
             </p>
             <h1 className="text-3xl font-bold">Manage Customers</h1>
@@ -154,7 +154,7 @@ const ManageCustomersPage = () => {
           </div>
           <Button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
           >
             <Plus size={18} />
             Add Customer
@@ -175,7 +175,7 @@ const ManageCustomersPage = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">
+                <p className="text-3xl font-bold text-red-600">
                   {customers.length}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Total Customers</p>
@@ -198,7 +198,7 @@ const ManageCustomersPage = () => {
                 <p className="text-3xl font-bold text-purple-600">
                   {Math.round(
                     customers.reduce((sum, c) => sum + c.totalBookings, 0) /
-                      customers.length
+                      customers.length,
                   ) || 0}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Avg. Bookings</p>
@@ -288,7 +288,7 @@ const ManageCustomersPage = () => {
                   <div className="pt-3 border-t space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Total Bookings:</span>
-                      <span className="font-semibold text-blue-600">
+                      <span className="font-semibold text-red-600">
                         {customer.totalBookings}
                       </span>
                     </div>
@@ -387,7 +387,7 @@ const ManageCustomersPage = () => {
                     onChange={handleInputChange}
                     placeholder="Enter full address..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
                     required
                   />
                 </div>
@@ -399,7 +399,12 @@ const ManageCustomersPage = () => {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">Add Customer</Button>
+                  <Button
+                    type="submit"
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Add Customer
+                  </Button>
                 </div>
               </form>
             </CardContent>

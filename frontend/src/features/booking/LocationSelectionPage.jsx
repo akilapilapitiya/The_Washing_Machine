@@ -35,7 +35,7 @@ const LocationSelectionPage = () => {
 
   const handleContinue = () => {
     // Navigate to employee selection with all booking data
-    navigate("/booking/employee", {
+    navigate("/dashboard/booking/employee", {
       state: { vehicleId, serviceIds, locationId: selectedLocationId },
     });
   };
@@ -47,7 +47,7 @@ const LocationSelectionPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Select location
           </h1>
           <p className="text-gray-600">
@@ -89,7 +89,7 @@ const LocationSelectionPage = () => {
                       <div className="flex-1">
                         <div
                           className={cn(
-                            "font-bold uppercase italic transition-colors",
+                            "font-bold transition-colors",
                             selectedLocationId === loc.id
                               ? "text-red-600"
                               : "text-gray-900",
@@ -125,7 +125,7 @@ const LocationSelectionPage = () => {
           <Button
             onClick={handleContinue}
             disabled={!selectedLocationId}
-            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 transition-all duration-300"
+            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 transition-all duration-300"
           >
             Continue
           </Button>

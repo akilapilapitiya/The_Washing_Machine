@@ -53,7 +53,7 @@ const EmployeeSelectionPage = () => {
 
   const handleContinue = () => {
     // Navigate to datetime selection with all booking data
-    navigate("/booking/datetime", {
+    navigate("/dashboard/booking/datetime", {
       state: {
         vehicleId,
         serviceIds,
@@ -70,7 +70,7 @@ const EmployeeSelectionPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Select preferred employee
           </h1>
           <p className="text-gray-600">
@@ -81,7 +81,7 @@ const EmployeeSelectionPage = () => {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
             <Loader2 className="h-10 w-10 animate-spin text-red-600 mb-4" />
-            <p className="text-gray-500 font-bold uppercase tracking-widest italic">
+            <p className="text-gray-500 font-bold uppercase tracking-widest">
               Syncing Operatives...
             </p>
           </div>
@@ -89,7 +89,7 @@ const EmployeeSelectionPage = () => {
           <div className="bg-red-50 border-2 border-red-100 rounded-xl p-8 flex flex-col items-center text-center gap-4">
             <AlertCircle size={40} className="text-red-600" />
             <div className="space-y-1">
-              <p className="text-red-800 font-black uppercase italic tracking-tight">
+              <p className="text-red-800 font-bold tracking-tight">
                 System Fault
               </p>
               <p className="text-red-700 font-medium">{error}</p>
@@ -97,7 +97,7 @@ const EmployeeSelectionPage = () => {
             <Button
               onClick={() => window.location.reload()}
               variant="outline"
-              className="mt-2 border-red-200 text-red-600 hover:bg-red-600 hover:text-white font-black uppercase italic"
+              className="mt-2 border-red-200 text-red-600 hover:bg-red-600 hover:text-white font-bold"
             >
               Retry Mission
             </Button>
@@ -133,7 +133,7 @@ const EmployeeSelectionPage = () => {
                     <div className="flex-1">
                       <div
                         className={cn(
-                          "font-bold uppercase italic transition-colors",
+                          "font-bold transition-colors",
                           selectedEmployeeId === "any"
                             ? "text-red-600"
                             : "text-gray-900",
@@ -188,7 +188,7 @@ const EmployeeSelectionPage = () => {
                       <div className="flex-1">
                         <div
                           className={cn(
-                            "font-bold uppercase italic transition-colors",
+                            "font-bold transition-colors",
                             selectedEmployeeId === employee.empid
                               ? "text-red-600"
                               : "text-gray-900",
@@ -224,7 +224,7 @@ const EmployeeSelectionPage = () => {
           </Button>
           <Button
             onClick={handleContinue}
-            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
           >
             Continue
           </Button>

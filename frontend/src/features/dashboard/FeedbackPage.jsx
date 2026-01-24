@@ -132,11 +132,11 @@ const FeedbackPage = () => {
       <div className="mx-auto px-4 py-12 space-y-10 max-w-7xl">
         <div className="space-y-2">
           <p
-            className={`text-sm uppercase tracking-widest ${COLORS.text.brand} font-black`}
+            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
           >
             Customer Voice
           </p>
-          <h1 className="text-4xl font-black tracking-tight">Your Feedback</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Your Feedback</h1>
           <p className="text-gray-500 max-w-2xl">
             Tell us about your service experience. Your ratings help our team
             maintain the highest standards of detail.
@@ -272,7 +272,7 @@ const FeedbackPage = () => {
                       <Button
                         type="submit"
                         disabled={submitting}
-                        className={`${COLORS.bg.brand} hover:opacity-90 h-12 px-8 rounded-xl font-black tracking-tight text-white flex items-center gap-2`}
+                        className="bg-red-600 hover:bg-red-700 h-10 px-8 rounded-lg font-bold text-white flex items-center gap-2"
                       >
                         {submitting ? (
                           <Loader2 className="animate-spin" size={18} />
@@ -347,10 +347,10 @@ const FeedbackPage = () => {
                       </div>
                     </CardContent>
                     <div className="px-6 py-4 bg-gray-50/50 border-t flex justify-between items-center rounded-b-xl">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">
                         Service Date
                       </span>
-                      <span className="text-xs font-bold text-gray-600">
+                      <span className="text-xs font-semibold text-gray-600">
                         {formatDate(f.bookingdate)}
                       </span>
                     </div>

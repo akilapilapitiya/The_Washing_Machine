@@ -22,7 +22,7 @@ const VehicleCard = ({ vehicle, selected, onSelect }) => {
           <CardTitle className="flex flex-col gap-1">
             <span
               className={cn(
-                "text-lg font-black uppercase italic tracking-tight transition-colors",
+                "text-lg font-bold tracking-tight transition-colors",
                 selected
                   ? "text-red-600"
                   : "text-gray-900 group-hover:text-red-600",

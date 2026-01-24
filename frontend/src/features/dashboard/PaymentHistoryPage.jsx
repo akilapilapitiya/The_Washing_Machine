@@ -86,7 +86,7 @@ const PaymentHistoryCard = ({ payment }) => {
           <span className="text-sm font-semibold text-gray-500">
             Amount Released
           </span>
-          <span className={`text-xl font-black ${COLORS.text.brand}`}>
+          <span className={`text-lg font-bold ${COLORS.text.brand}`}>
             Rs. {Number(payment.paymentamount).toLocaleString()}
           </span>
         </div>
@@ -128,13 +128,11 @@ const PaymentHistoryPage = () => {
       <div className="mx-auto px-4 py-12 space-y-10 max-w-7xl">
         <div className="space-y-2">
           <p
-            className={`text-sm uppercase tracking-widest ${COLORS.text.brand} font-black`}
+            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
           >
             Financial Records
           </p>
-          <h1 className="text-4xl font-black tracking-tight">
-            Payment History
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
           <p className="text-gray-500 max-w-2xl">
             Access your complete transaction history, billing statements, and
             proof of payments here.

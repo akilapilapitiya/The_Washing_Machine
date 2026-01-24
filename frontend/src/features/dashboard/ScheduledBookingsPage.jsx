@@ -18,11 +18,11 @@ import { COLORS } from "@/lib/colors";
 
 const StatusBadge = ({ status }) => {
   const styles = {
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    inProgress: "bg-blue-100 text-blue-800 border-blue-300",
-    completed: "bg-green-100 text-green-800 border-green-300",
-    paid: "bg-green-100 text-green-800 border-green-300",
-    cancelled: "bg-red-100 text-red-800 border-red-300",
+    pending: "bg-amber-50 text-amber-700 border-amber-100",
+    inProgress: "bg-red-50 text-red-700 border-red-100",
+    completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    cancelled: "bg-gray-50 text-gray-700 border-gray-100",
   };
 
   const labels = {
@@ -136,7 +136,7 @@ const BookingCard = ({ booking }) => {
           <Button
             variant="outline"
             size="sm"
-            className={`border-gray-200 hover:border-red-600 hover:text-red-600 transition-colors`}
+            className="border-gray-300 text-gray-700 hover:text-red-600 hover:border-red-600 transition-colors font-bold"
           >
             View Details
           </Button>
@@ -184,13 +184,13 @@ const ScheduledBookingsPage = () => {
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">My Bookings</h1>
-            <p className={COLORS.text.secondary}>
+            <h1 className="text-3xl font-bold tracking-tight">My Bookings</h1>
+            <p className="text-gray-500">
               Manage your upcoming service appointments.
             </p>
           </div>
           <Link to="/dashboard/book">
-            <Button className={`${COLORS.bg.brand} w-full md:w-auto`}>
+            <Button className="bg-red-600 hover:bg-red-700 text-white w-full md:w-auto font-semibold">
               Book New Service
             </Button>
           </Link>

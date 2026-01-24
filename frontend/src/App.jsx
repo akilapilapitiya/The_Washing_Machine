@@ -31,23 +31,25 @@ import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
 import ManageServicesPage from "./features/admin/ManageServicesPage";
 import ManageCustomersPage from "./features/admin/ManageCustomersPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
+import DashboardLayout from "./components/layout/DashboardLayout";
 
 const App = () => {
   return (
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            {/* Public Routes */}
-            <Route index element={<Home />} />
-            <Route path="services" element={<Services />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="login" element={<CustomerLogin />} />
-            <Route path="employee/login" element={<EmployeeLogin />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          {/* Public Routes */}
+          <Route index element={<Home />} />
+          <Route path="services" element={<Services />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="login" element={<CustomerLogin />} />
+          <Route path="employee/login" element={<EmployeeLogin />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
 
-            {/* Protected Customer Routes */}
+          {/* Dashboard Routes with Sidebar */}
+          <Route path="dashboard" element={<DashboardLayout />}>
             <Route
-              path="dashboard"
+              index
               element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -55,10 +57,76 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/book"
+              path="book"
               element={
                 <ProtectedRoute>
                   <Booking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="bookings"
+              element={
+                <ProtectedRoute>
+                  <ScheduledBookingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="history"
+              element={
+                <ProtectedRoute>
+                  <ServiceHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="feedback"
+              element={
+                <ProtectedRoute>
+                  <Feedback />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="change-password"
+              element={
+                <ProtectedRoute>
+                  <ChangePasswordPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="vehicles"
+              element={
+                <ProtectedRoute>
+                  <Vehicles />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Booking Flow Selection Steps */}
+            <Route
+              path="booking/services"
+              element={
+                <ProtectedRoute>
+                  <ServiceSelectionPage />
                 </ProtectedRoute>
               }
             />
@@ -67,14 +135,6 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <LocationSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/services"
-              element={
-                <ProtectedRoute>
-                  <ServiceSelectionPage />
                 </ProtectedRoute>
               }
             />
@@ -102,56 +162,10 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Employee Dashboard Routes */}
             <Route
-              path="dashboard/bookings"
-              element={
-                <ProtectedRoute>
-                  <ScheduledBookingsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/history"
-              element={
-                <ProtectedRoute>
-                  <ServiceHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/payments"
-              element={
-                <ProtectedRoute>
-                  <PaymentHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/feedback"
-              element={
-                <ProtectedRoute>
-                  <Feedback />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/change-password"
-              element={
-                <ProtectedRoute>
-                  <ChangePasswordPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="dashboard/employee/assigned"
+              path="employee/assigned"
               element={
                 <EmployeeProtectedRoute>
                   <AssignedServicesPage />
@@ -159,7 +173,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/employee/service/:id"
+              path="employee/service/:id"
               element={
                 <EmployeeProtectedRoute>
                   <ServiceDetailsPage />
@@ -167,15 +181,17 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/employee/payments"
+              path="employee/payments"
               element={
                 <EmployeeProtectedRoute>
                   <PaymentManagementPage />
                 </EmployeeProtectedRoute>
               }
             />
+
+            {/* Admin Dashboard Routes */}
             <Route
-              path="dashboard/admin/employees"
+              path="admin/employees"
               element={
                 <EmployeeProtectedRoute>
                   <EmployeeManagementPage />
@@ -183,7 +199,7 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/admin/services"
+              path="admin/services"
               element={
                 <EmployeeProtectedRoute>
                   <ManageServicesPage />
@@ -191,27 +207,20 @@ const App = () => {
               }
             />
             <Route
-              path="dashboard/admin/customers"
+              path="admin/customers"
               element={
                 <EmployeeProtectedRoute>
                   <ManageCustomersPage />
                 </EmployeeProtectedRoute>
               }
             />
-            <Route
-              path="dashboard/vehicles"
-              element={
-                <ProtectedRoute>
-                  <Vehicles />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
           </Route>
-        </Routes>
-      </AuthProvider>
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </AuthProvider>
   );
 };
 

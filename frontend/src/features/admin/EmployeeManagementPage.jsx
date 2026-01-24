@@ -56,9 +56,8 @@ const LevelBadge = ({ level }) => {
   const colors = levelColors[level] || levelColors.junior;
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase font-black border-2 ${colors.bg} ${colors.text} ${colors.border} tracking-widest italic`}
+      className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase font-bold border ${colors.bg} ${colors.text} ${colors.border} tracking-wider`}
     >
-      <Badge size={10} className="mr-1" />
       {roleOptions.find((r) => r.value === level)?.label || level}
     </span>
   );
@@ -198,70 +197,54 @@ const EmployeeManagementPage = () => {
             <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
               Force Management
             </p>
-            <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900">
               Manage Employees
             </h1>
             <p className="text-gray-600">
-              Register, promote, and coordinate your elite service team.
+              Register, promote, and coordinate your service team.
             </p>
           </div>
           <Button
             onClick={() => setShowAddForm(true)}
-            className="h-14 px-8 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-lg shadow-red-200 transition-all duration-300 group"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-200"
           >
-            <Plus
-              size={20}
-              className="mr-2 group-hover:rotate-90 transition-transform"
-            />
+            <Plus size={18} className="mr-2" />
             Add Employee
           </Button>
         </div>
 
         {error && (
-          <div className="bg-red-50 border-2 border-red-100 rounded-xl p-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
-            <AlertCircle
-              size={24}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <div className="flex-1">
-              <p className="text-red-800 font-black uppercase italic tracking-tight text-sm">
-                System Error
-              </p>
-              <p className="text-red-700 text-sm font-medium">{error}</p>
-            </div>
-            <button onClick={() => setError(null)} className="text-red-600">
-              <X size={24} />
-            </button>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600" />
+            <p className="text-red-800 font-medium">{error}</p>
           </div>
         )}
 
         {showSuccess && (
-          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 flex items-center gap-4 animate-in fade-in zoom-in duration-300">
-            <CheckCircle size={24} className="text-red-600" />
-            <p className="text-red-900 font-black uppercase italic tracking-tight">
-              {successMessage}
-            </p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+            <CheckCircle size={20} className="text-green-600" />
+            <p className="text-green-800 font-medium">{successMessage}</p>
           </div>
         )}
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
+          <Card className="shadow-sm">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-black italic text-red-600">
+                <p className="text-3xl font-bold text-red-600">
                   {employees.length}
                 </p>
-                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
                   Total Force
                 </p>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
+          <Card className="shadow-sm">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-black italic text-gray-900">
+                <p className="text-3xl font-bold text-gray-900">
                   {
                     employees.filter(
                       (e) =>
@@ -271,31 +254,31 @@ const EmployeeManagementPage = () => {
                     ).length
                   }
                 </p>
-                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
                   Senior Elite
                 </p>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
+          <Card className="shadow-sm">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-black italic text-gray-900">
+                <p className="text-3xl font-bold text-gray-900">
                   {employees.filter((e) => e.emptype === "mid").length}
                 </p>
-                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
                   Mid-Level
                 </p>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-2 border-transparent hover:border-red-200 transition-all">
+          <Card className="shadow-sm">
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-black italic text-gray-900">
+                <p className="text-3xl font-bold text-gray-900">
                   {employees.filter((e) => e.emptype === "junior").length}
                 </p>
-                <p className="text-xs uppercase font-black text-gray-400 mt-1 tracking-widest">
+                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
                   Junior Staff
                 </p>
               </div>
@@ -310,16 +293,15 @@ const EmployeeManagementPage = () => {
               {employees.map((employee) => (
                 <Card
                   key={employee.empid}
-                  className="group border-2 border-transparent bg-white shadow-sm hover:border-red-200 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden relative"
+                  className="group border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm"
                 >
-                  <div className="absolute top-0 right-0 h-1 bg-red-600 w-0 group-hover:w-full transition-all duration-500" />
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="text-[10px] uppercase font-black text-red-600 tracking-widest mb-1">
+                        <p className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">
                           Operative
                         </p>
-                        <CardTitle className="text-xl font-black uppercase italic tracking-tighter leading-none">
+                        <CardTitle className="text-lg font-bold">
                           {employee.empname}
                         </CardTitle>
                         <div className="mt-2">
@@ -328,53 +310,45 @@ const EmployeeManagementPage = () => {
                       </div>
                       <button
                         onClick={() => handleDeleteEmployee(employee.empid)}
-                        className="h-8 w-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all z-10 opacity-0 group-hover:opacity-100 shadow-sm"
+                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
                         title="Purge records"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 pt-2 space-y-4">
+                  <CardContent className="space-y-4">
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
-                          <Mail size={14} />
-                        </div>
-                        <span className="text-gray-900 font-bold truncate">
+                        <Mail size={14} className="text-gray-400" />
+                        <span className="text-gray-600 truncate">
                           {employee.email}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
-                          <Phone size={14} />
-                        </div>
-                        <span className="text-gray-900 font-bold">
-                          {employee.emptel}
-                        </span>
+                        <Phone size={14} className="text-gray-400" />
+                        <span className="text-gray-600">{employee.emptel}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
-                          <CreditCard size={14} />
-                        </div>
-                        <span className="text-gray-900 font-mono font-black text-xs uppercase tracking-wider">
+                        <CreditCard size={14} className="text-gray-400" />
+                        <span className="text-gray-600 font-mono text-xs">
                           {employee.empnic}
                         </span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest pt-2">
-                      Enlisted:{" "}
-                      {new Date(employee.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 pt-4 border-t border-dashed">
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">
+                        Joined:{" "}
+                        {new Date(employee.created_at).toLocaleDateString()}
+                      </span>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openPromoteForm(employee)}
-                        className="h-10 border-2 font-black uppercase italic tracking-widest text-xs hover:border-red-600 hover:text-red-600 transition-all flex items-center justify-center gap-2"
+                        className="h-8 text-xs font-bold"
                       >
-                        <TrendingUp size={14} />
-                        Reassign Rank
+                        <TrendingUp size={12} className="mr-1" />
+                        Rank
                       </Button>
                     </div>
                   </CardContent>
@@ -382,14 +356,18 @@ const EmployeeManagementPage = () => {
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Users size={48} className="mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No employees yet</h3>
-                <p className="text-gray-600 mb-4">
-                  Add your first employee to get started.
+            <Card className="border-dashed border-2">
+              <CardContent className="text-center py-20 px-6">
+                <Users size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-bold">No operatives deployed</h3>
+                <p className="text-gray-500 mb-6 text-sm max-w-xs mx-auto">
+                  Enlist your first team member to start managing detailing
+                  operations.
                 </p>
-                <Button onClick={() => setShowAddForm(true)}>
+                <Button
+                  onClick={() => setShowAddForm(true)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
                   <Plus size={18} className="mr-2" />
                   Add Employee
                 </Button>
@@ -401,34 +379,26 @@ const EmployeeManagementPage = () => {
 
       {/* Add Employee Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-md border-2 border-red-600 shadow-2xl animate-in zoom-in-95 duration-300">
-            <CardHeader className="bg-gray-900 text-white rounded-t-lg">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md shadow-xl">
+            <CardHeader className="border-b bg-white">
               <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs uppercase font-black tracking-widest text-red-500">
-                    Recruitment
-                  </p>
-                  <CardTitle className="text-2xl font-black uppercase italic tracking-tight">
-                    Add New Operative
-                  </CardTitle>
-                </div>
+                <CardTitle className="text-xl font-bold">
+                  Add New Operative
+                </CardTitle>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="h-10 w-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-red-600 transition-all"
+                  className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="p-8">
-              <form onSubmit={handleAddEmployee} className="space-y-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="name"
-                    className="text-xs uppercase font-black text-gray-400"
-                  >
-                    Full Name *
+            <CardContent className="p-6">
+              <form onSubmit={handleAddEmployee} className="space-y-4">
+                <div className="space-y-1">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Full Name
                   </Label>
                   <Input
                     id="name"
@@ -436,18 +406,15 @@ const EmployeeManagementPage = () => {
                     onChange={(e) =>
                       setNewEmployee({ ...newEmployee, name: e.target.value })
                     }
-                    placeholder="Full Identification"
-                    className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                    placeholder="Enter full name..."
+                    className="focus:ring-red-500"
                     required
                     disabled={submitting}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-xs uppercase font-black text-gray-400"
-                  >
-                    Professional Email *
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email Address
                   </Label>
                   <Input
                     id="email"
@@ -456,19 +423,16 @@ const EmployeeManagementPage = () => {
                     onChange={(e) =>
                       setNewEmployee({ ...newEmployee, email: e.target.value })
                     }
-                    placeholder="name@washingmachine.com"
-                    className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                    placeholder="name@example.com"
+                    className="focus:ring-red-500"
                     required
                     disabled={submitting}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="telephone"
-                      className="text-xs uppercase font-black text-gray-400"
-                    >
-                      Phone *
+                  <div className="space-y-1">
+                    <Label htmlFor="telephone" className="text-sm font-medium">
+                      Phone
                     </Label>
                     <Input
                       id="telephone"
@@ -480,17 +444,14 @@ const EmployeeManagementPage = () => {
                         })
                       }
                       placeholder="0771234567"
-                      className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                      className="focus:ring-red-500"
                       required
                       disabled={submitting}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="nic"
-                      className="text-xs uppercase font-black text-gray-400"
-                    >
-                      NIC *
+                  <div className="space-y-1">
+                    <Label htmlFor="nic" className="text-sm font-medium">
+                      NIC
                     </Label>
                     <Input
                       id="nic"
@@ -498,19 +459,16 @@ const EmployeeManagementPage = () => {
                       onChange={(e) =>
                         setNewEmployee({ ...newEmployee, nic: e.target.value })
                       }
-                      placeholder="ID Number"
-                      className="h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-mono font-bold uppercase transition-all"
+                      placeholder="NIC Number"
+                      className="focus:ring-red-500"
                       required
                       disabled={submitting}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="role"
-                    className="text-xs uppercase font-black text-gray-400"
-                  >
-                    Operational Rank *
+                <div className="space-y-1">
+                  <Label htmlFor="role" className="text-sm font-medium">
+                    Operational Rank
                   </Label>
                   <select
                     id="role"
@@ -518,7 +476,7 @@ const EmployeeManagementPage = () => {
                     onChange={(e) =>
                       setNewEmployee({ ...newEmployee, type: e.target.value })
                     }
-                    className="w-full h-12 px-3 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none"
                     disabled={submitting}
                   >
                     {roleOptions.map((option) => (
@@ -529,34 +487,28 @@ const EmployeeManagementPage = () => {
                   </select>
                 </div>
 
-                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                  <p className="text-[10px] uppercase font-black text-red-600 mb-1">
-                    Security Protocol
-                  </p>
-                  <p className="text-xs font-bold text-red-900 leading-tight">
-                    Default password set to:{" "}
-                    <span className="font-mono bg-white px-2 py-0.5 rounded border">
-                      Employee@123
-                    </span>
-                  </p>
+                <div className="bg-gray-50 p-3 rounded-lg border text-xs text-gray-600">
+                  <p className="font-bold mb-1">Default Password:</p>
+                  <code className="bg-white px-1 py-0.5 border rounded">
+                    Employee@123
+                  </code>
                 </div>
 
-                <div className="flex gap-4 justify-end pt-4 border-t border-gray-100">
+                <div className="flex gap-3 justify-end pt-4 border-t">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowAddForm(false)}
-                    className="h-14 px-8 border-2 font-black uppercase tracking-widest hover:bg-gray-50"
                     disabled={submitting}
                   >
-                    Abort
+                    Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="h-14 px-10 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+                    className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    {submitting ? "Enlisting..." : "Enlist Operative"}
+                    {submitting ? "Processing..." : "Enlist Operative"}
                   </Button>
                 </div>
               </form>
@@ -567,60 +519,47 @@ const EmployeeManagementPage = () => {
 
       {/* Promote Employee Modal */}
       {showPromoteForm && selectedEmployee && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-md border-2 border-red-600 shadow-2xl animate-in zoom-in-95 duration-300">
-            <CardHeader className="bg-gray-900 text-white rounded-t-lg">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md shadow-xl">
+            <CardHeader className="border-b bg-white">
               <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs uppercase font-black tracking-widest text-red-500">
-                    Personnel Logistics
-                  </p>
-                  <CardTitle className="text-2xl font-black uppercase italic tracking-tight">
-                    Promote Operative
-                  </CardTitle>
-                </div>
+                <CardTitle className="text-xl font-bold">Update Rank</CardTitle>
                 <button
                   onClick={() => setShowPromoteForm(false)}
-                  className="h-10 w-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-red-600 transition-all"
+                  className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="p-8">
+            <CardContent className="p-6">
               <form onSubmit={handlePromoteEmployee} className="space-y-6">
-                <div>
-                  <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">
-                    Target Personnel
-                  </p>
-                  <p className="font-black text-xl text-gray-900 uppercase italic leading-none">
+                <div className="text-center space-y-1">
+                  <p className="text-lg font-bold">
                     {selectedEmployee.empname}
                   </p>
-                  <p className="text-xs font-bold text-red-600 mt-2">
-                    Current Rank:{" "}
-                    <span className="uppercase">
-                      {roleOptions.find(
+                  <p className="text-xs text-gray-500 uppercase font-semibold">
+                    Current:{" "}
+                    {
+                      roleOptions.find(
                         (r) => r.value === selectedEmployee.emptype,
-                      )?.label || selectedEmployee.emptype}
-                    </span>
+                      )?.label
+                    }
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="newRole"
-                    className="text-xs uppercase font-black text-gray-400"
-                  >
-                    Target Operational Rank *
+                  <Label htmlFor="newRole" className="text-sm font-medium">
+                    New Operational Rank
                   </Label>
                   <select
                     id="newRole"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    className="w-full h-12 px-3 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-bold transition-all"
+                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none"
                     required
                     disabled={submitting}
                   >
-                    <option value="">-- Select Deployment Rank --</option>
+                    <option value="">-- Select Rank --</option>
                     {roleOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -628,24 +567,11 @@ const EmployeeManagementPage = () => {
                     ))}
                   </select>
                 </div>
-                {newRole && newRole !== selectedEmployee.emptype && (
-                  <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-                    <p className="text-xs font-bold text-red-900 flex items-center gap-2">
-                      <TrendingUp size={14} />
-                      Ascending from{" "}
-                      <span className="uppercase italic">
-                        {selectedEmployee.emptype}
-                      </span>{" "}
-                      to <span className="uppercase italic">{newRole}</span>
-                    </p>
-                  </div>
-                )}
-                <div className="flex gap-4 justify-end pt-4 border-t border-gray-100">
+                <div className="flex gap-3 justify-end pt-4 border-t">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowPromoteForm(false)}
-                    className="h-14 px-8 border-2 font-black uppercase tracking-widest hover:bg-gray-50"
                     disabled={submitting}
                   >
                     Cancel
@@ -655,9 +581,9 @@ const EmployeeManagementPage = () => {
                     disabled={
                       newRole === selectedEmployee.emptype || submitting
                     }
-                    className="h-14 px-10 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+                    className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    {submitting ? "Processing..." : "Confirm Promotion"}
+                    {submitting ? "Updating..." : "Confirm Rank Change"}
                   </Button>
                 </div>
               </form>

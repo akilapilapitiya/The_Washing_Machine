@@ -16,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 
-
 const ProfilePage = () => {
   const { user, updateUser, userType } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -61,7 +60,7 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Account Settings
           </p>
           <h1 className="text-3xl font-bold">My Profile</h1>
@@ -81,57 +80,47 @@ const ProfilePage = () => {
 
         <div className="grid gap-6 md:grid-cols-3">
           {/* Profile Card */}
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCircle size={20} className="text-blue-600" />
+          <Card className="md:col-span-1 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <UserCircle size={18} className="text-red-600" />
                 Profile
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-red-200">
                   <User size={48} className="text-white" />
                 </div>
                 <h3 className="text-xl font-bold">{user?.name}</h3>
-                <p className="text-sm text-gray-600">{user?.email}</p>
-                <span className="mt-3 px-4 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                <p className="text-sm text-gray-500">{user?.email}</p>
+                <span className="mt-3 px-3 py-1 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-widest border border-red-100 rounded-full">
                   {userType === "employee" ? "Employee" : "Customer"}
                 </span>
               </div>
 
               <div className="border-t pt-4 space-y-3">
                 <div className="flex items-center gap-3 text-sm">
-                  <Calendar size={16} className="text-gray-500" />
+                  <Calendar size={16} className="text-gray-400" />
                   <div>
-                    <p className="text-gray-500">Joined</p>
-                    <p className="font-medium">{user.joinDate}</p>
+                    <p className="text-[10px] uppercase font-bold text-gray-400">
+                      Joined
+                    </p>
+                    <p className="font-semibold text-gray-700">
+                      {user.joinDate}
+                    </p>
                   </div>
                 </div>
                 {user?.accountType && userType === "customer" && (
                   <div className="flex items-center gap-3 text-sm">
-                    <Briefcase size={16} className="text-gray-500" />
+                    <Briefcase size={16} className="text-gray-400" />
                     <div>
-                      <p className="text-gray-500">Account Type</p>
-                      <p className="font-medium">{user.accountType}</p>
-                    </div>
-                  </div>
-                )}
-                {user?.employeeId && userType === "employee" && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Briefcase size={16} className="text-gray-500" />
-                    <div>
-                      <p className="text-gray-500">Employee ID</p>
-                      <p className="font-medium">{user.employeeId}</p>
-                    </div>
-                  </div>
-                )}
-                {user?.department && userType === "employee" && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Briefcase size={16} className="text-gray-500" />
-                    <div>
-                      <p className="text-gray-500">Department</p>
-                      <p className="font-medium">{user.department}</p>
+                      <p className="text-[10px] uppercase font-bold text-gray-400">
+                        Account Type
+                      </p>
+                      <p className="font-semibold text-gray-700">
+                        {user.accountType}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -140,57 +129,66 @@ const ProfilePage = () => {
           </Card>
 
           {/* Profile Information Card */}
-          <Card className="md:col-span-2">
-            <CardHeader>
+          <Card className="md:col-span-2 shadow-sm">
+            <CardHeader className="border-b bg-gray-50/50">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <User size={20} className="text-blue-600" />
-                  Profile Information
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
+                  <User size={18} className="text-red-600" />
+                  Basic Information
                 </CardTitle>
                 {!isEditing && (
                   <Button
                     onClick={() => setIsEditing(true)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2"
+                    className="h-8 text-xs font-bold"
                   >
-                    <Edit size={16} />
-                    Edit Profile
+                    <Edit size={14} className="mr-1" />
+                    Edit
                   </Button>
                 )}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {!isEditing ? (
                 <div className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-gray-500 text-sm">Full Name</Label>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <User size={18} className="text-gray-500" />
-                        <span className="font-medium">{user?.name}</span>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-bold uppercase text-gray-400">
+                        Full Name
+                      </Label>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                        <User size={16} className="text-gray-400" />
+                        <span className="font-semibold text-gray-700">
+                          {user?.name}
+                        </span>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-gray-500 text-sm">
+                    <div className="space-y-1">
+                      <Label className="text-xs font-bold uppercase text-gray-400">
                         Mobile Number
                       </Label>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <Phone size={18} className="text-gray-500" />
-                        <span className="font-medium">{user?.mobile}</span>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                        <Phone size={16} className="text-gray-400" />
+                        <span className="font-semibold text-gray-700">
+                          {user?.mobile}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-gray-500 text-sm">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold uppercase text-gray-400">
                       Email Address
                     </Label>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Mail size={18} className="text-gray-500" />
-                      <span className="font-medium">{user?.email}</span>
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                      <Mail size={16} className="text-gray-400" />
+                      <span className="font-semibold text-gray-700">
+                        {user?.email}
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Email address cannot be changed
+                    <p className="text-[10px] text-gray-400 mt-1 italic font-medium">
+                      Note: Email address is used for authentication and cannot
+                      be modified.
                     </p>
                   </div>
                 </div>
@@ -198,52 +196,47 @@ const ProfilePage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name *</Label>
+                      <Label htmlFor="name" className="text-sm font-medium">
+                        Full Name
+                      </Label>
                       <Input
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
                         placeholder="Enter your full name"
+                        className="focus:ring-red-500"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="mobile">Mobile Number *</Label>
+                      <Label htmlFor="mobile" className="text-sm font-medium">
+                        Mobile Number
+                      </Label>
                       <Input
                         id="mobile"
                         name="mobile"
                         value={formData.mobile}
                         onChange={handleInputChange}
                         placeholder="+94 77 123 4567"
+                        className="focus:ring-red-500"
                         required
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-gray-500 text-sm">
-                      Email Address
-                    </Label>
-                    <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg border border-gray-300">
-                      <Mail size={18} className="text-gray-400" />
-                      <span className="text-gray-500">{user?.email}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Email address cannot be changed
-                    </p>
-                  </div>
-                  <div className="flex gap-3 justify-end pt-4 border-t">
+                  <div className="flex gap-3 justify-end pt-6 border-t">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleCancel}
-                      className="flex items-center gap-2"
+                      className="h-10 text-sm"
                     >
-                      <X size={16} />
                       Cancel
                     </Button>
-                    <Button type="submit" className="flex items-center gap-2">
-                      <CheckCircle size={16} />
+                    <Button
+                      type="submit"
+                      className="h-10 text-sm bg-red-600 hover:bg-red-700"
+                    >
                       Save Changes
                     </Button>
                   </div>
@@ -253,26 +246,36 @@ const ProfilePage = () => {
           </Card>
         </div>
 
-        {/* Additional Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Account Security</CardTitle>
+        {/* Account Security */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+              Account Security
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold">Password</h4>
-                <p className="text-sm text-gray-600">
-                  Last changed 2 months ago
-                </p>
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center border text-gray-400">
+                  <CheckCircle size={20} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-700">Login Password</h4>
+                  <p className="text-xs text-gray-500">
+                    Maintain a strong password to secure your mission-critical
+                    data.
+                  </p>
+                </div>
               </div>
               <Button
                 variant="outline"
+                size="sm"
+                className="font-bold border-gray-300"
                 onClick={() =>
                   (window.location.href = "/dashboard/change-password")
                 }
               >
-                Change Password
+                Update
               </Button>
             </div>
           </CardContent>

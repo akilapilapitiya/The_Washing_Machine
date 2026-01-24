@@ -58,14 +58,22 @@ const ManageServicesPage = () => {
   };
 
   const handleDurationChange = (field, value) => {
-    const hours = field === "hours" ? value : parseInt(formData.servicetime?.split(":")[0] || "0");
-    const minutes = field === "minutes" ? value : parseInt(formData.servicetime?.split(":")[1] || "0");
+    const hours =
+      field === "hours"
+        ? value
+        : parseInt(formData.servicetime?.split(":")[0] || "0");
+    const minutes =
+      field === "minutes"
+        ? value
+        : parseInt(formData.servicetime?.split(":")[1] || "0");
     const formattedTime = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     setFormData((prev) => ({ ...prev, servicetime: formattedTime }));
   };
 
   const getDurationParts = () => {
-    const [hours, minutes] = formData.servicetime?.split(":").map(Number) || [0, 0];
+    const [hours, minutes] = formData.servicetime?.split(":").map(Number) || [
+      0, 0,
+    ];
     return { hours: hours || 0, minutes: minutes || 0 };
   };
 
@@ -134,7 +142,7 @@ const ManageServicesPage = () => {
   const handleDeleteService = async (serviceid) => {
     if (
       window.confirm(
-        "Are you sure you want to delete this service? This action cannot be undone."
+        "Are you sure you want to delete this service? This action cannot be undone.",
       )
     ) {
       try {
@@ -173,7 +181,7 @@ const ManageServicesPage = () => {
       <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
               Service Management
             </p>
             <h1 className="text-3xl font-bold">Manage Services</h1>
@@ -181,7 +189,10 @@ const ManageServicesPage = () => {
               Add, edit, and manage all available services.
             </p>
           </div>
-          <Button onClick={openAddForm} className="flex items-center gap-2">
+          <Button
+            onClick={openAddForm}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+          >
             <Plus size={18} />
             Add Service
           </Button>
@@ -203,7 +214,7 @@ const ManageServicesPage = () => {
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={32} className="animate-spin text-blue-600" />
+            <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
         ) : services.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -212,7 +223,9 @@ const ManageServicesPage = () => {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{service.servicename}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {service.servicename}
+                      </CardTitle>
                     </div>
                     <button
                       onClick={() => handleDeleteService(service.serviceid)}
@@ -225,7 +238,9 @@ const ManageServicesPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">{service.servicedetails}</p>
+                  <p className="text-sm text-gray-600">
+                    {service.servicedetails}
+                  </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign size={16} className="text-green-600" />
@@ -280,7 +295,7 @@ const ManageServicesPage = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Plus size={20} className="text-blue-600" />
+                  <Plus size={20} className="text-red-600" />
                   Add New Service
                 </CardTitle>
                 <button
@@ -337,27 +352,47 @@ const ManageServicesPage = () => {
                     <Label>Duration *</Label>
                     <div className="flex gap-3 items-end">
                       <div className="flex-1">
-                        <Label htmlFor="hours" className="text-sm text-gray-600">Hours</Label>
+                        <Label
+                          htmlFor="hours"
+                          className="text-sm text-gray-600"
+                        >
+                          Hours
+                        </Label>
                         <Input
                           id="hours"
                           type="number"
                           min="0"
                           max="23"
                           value={getDurationParts().hours}
-                          onChange={(e) => handleDurationChange("hours", parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            handleDurationChange(
+                              "hours",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
                           className="mt-1"
                           required
                         />
                       </div>
                       <div className="flex-1">
-                        <Label htmlFor="minutes" className="text-sm text-gray-600">Minutes</Label>
+                        <Label
+                          htmlFor="minutes"
+                          className="text-sm text-gray-600"
+                        >
+                          Minutes
+                        </Label>
                         <Input
                           id="minutes"
                           type="number"
                           min="0"
                           max="59"
                           value={getDurationParts().minutes}
-                          onChange={(e) => handleDurationChange("minutes", parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            handleDurationChange(
+                              "minutes",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
                           className="mt-1"
                           required
                         />
@@ -398,7 +433,7 @@ const ManageServicesPage = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Edit size={20} className="text-blue-600" />
+                  <Edit size={20} className="text-red-600" />
                   Edit Service
                 </CardTitle>
                 <button
@@ -455,27 +490,47 @@ const ManageServicesPage = () => {
                     <Label>Duration *</Label>
                     <div className="flex gap-3 items-end">
                       <div className="flex-1">
-                        <Label htmlFor="edit-hours" className="text-sm text-gray-600">Hours</Label>
+                        <Label
+                          htmlFor="edit-hours"
+                          className="text-sm text-gray-600"
+                        >
+                          Hours
+                        </Label>
                         <Input
                           id="edit-hours"
                           type="number"
                           min="0"
                           max="23"
                           value={getDurationParts().hours}
-                          onChange={(e) => handleDurationChange("hours", parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            handleDurationChange(
+                              "hours",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
                           className="mt-1"
                           required
                         />
                       </div>
                       <div className="flex-1">
-                        <Label htmlFor="edit-minutes" className="text-sm text-gray-600">Minutes</Label>
+                        <Label
+                          htmlFor="edit-minutes"
+                          className="text-sm text-gray-600"
+                        >
+                          Minutes
+                        </Label>
                         <Input
                           id="edit-minutes"
                           type="number"
                           min="0"
                           max="59"
                           value={getDurationParts().minutes}
-                          onChange={(e) => handleDurationChange("minutes", parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            handleDurationChange(
+                              "minutes",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
                           className="mt-1"
                           required
                         />

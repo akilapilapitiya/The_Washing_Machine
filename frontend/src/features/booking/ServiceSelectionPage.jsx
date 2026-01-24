@@ -57,7 +57,7 @@ const ServiceSelectionPage = () => {
   };
 
   const handleContinue = () => {
-    navigate("/booking/location", {
+    navigate("/dashboard/booking/location", {
       state: { vehicleId, serviceIds: selectedServiceIds },
     });
   };
@@ -80,7 +80,7 @@ const ServiceSelectionPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Book Service
           </p>
-          <h1 className="text-3xl font-bold italic tracking-tight uppercase text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             Select services
           </h1>
           <p className="text-gray-600">
@@ -114,7 +114,7 @@ const ServiceSelectionPage = () => {
               <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-1">
                 Target Vehicle
               </p>
-              <p className="text-xl font-black text-gray-900 uppercase italic">
+              <p className="text-xl font-bold text-gray-900">
                 {selectedVehicle.vehbrand} {selectedVehicle.vehmodel}
               </p>
               <p className="text-sm text-gray-600 font-medium font-mono">
@@ -201,7 +201,7 @@ const ServiceSelectionPage = () => {
           <Button
             onClick={handleContinue}
             disabled={selectedServiceIds.length === 0}
-            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-black uppercase italic tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 transition-all duration-300"
+            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 transition-all duration-300"
           >
             Continue with {selectedServiceIds.length}{" "}
             {selectedServiceIds.length === 1 ? "service" : "services"}
