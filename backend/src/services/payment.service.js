@@ -10,10 +10,29 @@ import { NotFoundError, ForbiddenError } from "../utils/errors.util.js";
 export const getAllPaymentsService = async () => {
   const result = await pool.query(
     `
-		SELECT paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
-		FROM payment
-		ORDER BY created_at DESC
-		`,
+    SELECT 
+      p.paymentid, 
+      p.paymentdate, 
+      p.paymenttype, 
+      p.paymentamount, 
+      p.bookingid, 
+      p.created_at, 
+      p.updated_at,
+      c.cusname,
+      c.custel,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehplate,
+      json_agg(s.servicename) FILTER (WHERE s.servicename IS NOT NULL) as services
+    FROM payment p
+    JOIN booking b ON p.bookingid = b.bookingid
+    JOIN vehicle v ON b.vehid = v.id
+    JOIN customer c ON v.cusid = c.cusid
+    LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
+    LEFT JOIN service s ON sb.serviceid = s.serviceid
+    GROUP BY p.paymentid, c.cusname, c.custel, v.vehbrand, v.vehmodel, v.vehplate
+    ORDER BY p.created_at DESC
+    `,
   );
   return result.rows;
 };
@@ -139,6 +158,12 @@ export const createPaymentService = async ({
 			RETURNING paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
 			`,
       [paymentdate || null, paymenttype, paymentamount, parseInt(bookingid)],
+    );
+
+    // Update booking status to 'paid'
+    await client.query(
+      `UPDATE booking SET bookingstatus = 'paid', updated_at = NOW() WHERE bookingid = $1`,
+      [parseInt(bookingid)],
     );
 
     await client.query("COMMIT");

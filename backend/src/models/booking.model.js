@@ -3,7 +3,7 @@ const createBookingTable = async (pool) => {
     CREATE TABLE IF NOT EXISTS booking (
       bookingid SERIAL PRIMARY KEY,
       bookingstatus VARCHAR(15) NOT NULL CHECK (bookingstatus IN ('pending', 'inProgress', 'completed', 'paid')),
-      bookingdate DATE NOT NULL CHECK (bookingdate >= CURRENT_DATE),
+      bookingdate DATE NOT NULL,
       bookingstarttime TIME NOT NULL,
       bookingendtime TIME NOT NULL,
       bookinglocationlatitude DECIMAL(9,6) NOT NULL CHECK (bookinglocationlatitude BETWEEN -90 AND 90),
@@ -21,8 +21,11 @@ const createBookingTable = async (pool) => {
         CHECK (bookingendtime > bookingstarttime)
     );
 
-    -- Ensure totalprice column exists (in case table was created before this column was added)
+    -- Ensure totalprice column exists
     ALTER TABLE booking ADD COLUMN IF NOT EXISTS totalprice DECIMAL(10,2) NOT NULL DEFAULT 0;
+
+    -- Drop restrictive date check constraint if it exists to allow payment recording for past bookings
+    ALTER TABLE booking DROP CONSTRAINT IF EXISTS booking_bookingdate_check;
     
     CREATE INDEX IF NOT EXISTS idx_booking_vehicle ON booking(vehid);
     CREATE INDEX IF NOT EXISTS idx_booking_date ON booking(bookingdate);

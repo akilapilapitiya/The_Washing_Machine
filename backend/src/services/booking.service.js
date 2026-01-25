@@ -28,6 +28,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         b.bookinglocationlatitude,
         b.bookinglocationlongitude,
         b.vehid,
+        b.totalprice,
         v.cusid,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
@@ -55,6 +56,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       b.bookinglocationlatitude, 
       b.bookinglocationlongitude, 
       b.vehid, 
+      b.totalprice,
       v.cusid,
       v.id`;
 
@@ -157,6 +159,14 @@ export const createBookingService = async ({
   );
 
   assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
+
+  // Service layer validation for past dates (replacing rigid DB constraint)
+  const bookingDateObj = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (bookingDateObj < today) {
+    throw new ValidationError("Booking date cannot be in the past");
+  }
 
   const client = await pool.connect();
 
