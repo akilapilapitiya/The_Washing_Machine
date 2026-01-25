@@ -64,3 +64,16 @@ export const deleteBooking = async (id) => {
     throw error;
   }
 };
+
+/**
+ * Update booking status
+ */
+export const updateBookingStatus = async (id, status) => {
+  try {
+    const response = await api.put(`/booking/${id}`, { status });
+    return response.data?.data?.booking;
+  } catch (error) {
+    console.error(`Error updating booking status ${id}:`, error);
+    throw error;
+  }
+};
