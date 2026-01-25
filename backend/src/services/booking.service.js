@@ -219,9 +219,20 @@ export const createBookingService = async ({
 
     // 1. Calculate duration and price
     const servicesCheck = await client.query(
-      "SELECT servicetime, serviceprice, has_offer, offer_price FROM service WHERE serviceid = ANY($1)",
+      "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
       [services],
     );
+
+    if (servicesCheck.rowCount !== services.length) {
+      throw new NotFoundError("One or more service IDs do not exist");
+    }
+
+    const packageCount = servicesCheck.rows.filter(
+      (s) => s.servicetype === "package",
+    ).length;
+    if (packageCount > 1) {
+      throw new ValidationError("You can only select one Service Package.");
+    }
 
     if (servicesCheck.rowCount !== services.length) {
       throw new NotFoundError("One or more service IDs do not exist");
@@ -459,9 +470,17 @@ export const updateBookingService = async (
 
     if (services || startTime) {
       const srvCheck = await client.query(
-        "SELECT servicetime, serviceprice, has_offer, offer_price FROM service WHERE serviceid = ANY($1)",
+        "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
+
+      const packageCount = srvCheck.rows.filter(
+        (s) => s.servicetype === "package",
+      ).length;
+      if (packageCount > 1) {
+        throw new ValidationError("You can only select one Service Package.");
+      }
+
       let duration = 0;
       totalPrice = 0;
       srvCheck.rows.forEach((s) => {

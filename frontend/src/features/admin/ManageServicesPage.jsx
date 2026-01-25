@@ -16,6 +16,8 @@ import {
   Loader2,
   Tag,
   Percent,
+  Box,
+  Layers,
 } from "lucide-react";
 import * as serviceService from "@/services/service.service";
 
@@ -34,6 +36,7 @@ const ManageServicesPage = () => {
     has_offer: false,
     offer_price: "",
     offer_description: "",
+    servicetype: "package",
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -94,6 +97,7 @@ const ManageServicesPage = () => {
       has_offer: false,
       offer_price: "",
       offer_description: "",
+      servicetype: "package",
     });
   };
 
@@ -113,6 +117,7 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
+        servicetype: formData.servicetype,
       };
       await serviceService.createService(payload);
       resetForm();
@@ -143,6 +148,7 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
+        servicetype: formData.servicetype,
       };
       // Only include serviceprice if it's a valid number
       const price = parseFloat(formData.serviceprice);
@@ -201,6 +207,7 @@ const ManageServicesPage = () => {
       has_offer: service.has_offer || false,
       offer_price: service.offer_price ? service.offer_price.toString() : "",
       offer_description: service.offer_description || "",
+      servicetype: service.servicetype || "package",
     });
     setShowEditForm(true);
   };
@@ -251,83 +258,115 @@ const ManageServicesPage = () => {
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
         ) : services.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {services.map((service) => (
-              <Card
-                key={service.serviceid}
-                className={service.has_offer ? "border-2 border-red-200" : ""}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">
-                        {service.servicename}
-                      </CardTitle>
-                      {service.has_offer && (
-                        <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
-                          <Tag size={12} /> Special Offer
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDeleteService(service.serviceid)}
-                      disabled={isSubmitting}
-                      className="text-gray-400 hover:text-red-600 transition disabled:opacity-50"
-                      title="Delete service"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+          <div className="space-y-12">
+            {["package", "addon"].map((type) => {
+              const typeServices = services.filter(
+                (s) => (s.servicetype || "package") === type,
+              );
+              if (typeServices.length === 0) return null;
+
+              return (
+                <div key={type} className="space-y-4">
+                  <div className="flex items-center gap-2 border-b pb-2">
+                    {type === "package" ? (
+                      <Box className="text-red-600" />
+                    ) : (
+                      <Layers className="text-blue-600" />
+                    )}
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {type === "package"
+                        ? "Service Packages"
+                        : "Optional Add-ons"}
+                    </h2>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {service.servicedetails}
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Banknote
-                        size={16}
+
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {typeServices.map((service) => (
+                      <Card
+                        key={service.serviceid}
                         className={
-                          service.has_offer ? "text-gray-400" : "text-green-600"
+                          service.has_offer ? "border-2 border-red-200" : ""
                         }
-                      />
-                      {service.has_offer ? (
-                        <div className="flex items-center gap-2">
-                          <span className="line-through text-gray-400 font-medium">
-                            Rs. {service.serviceprice}
-                          </span>
-                          <span className="font-bold text-red-600 text-lg">
-                            Rs. {service.offer_price}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="font-semibold text-green-600">
-                          Rs. {service.serviceprice}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock size={16} className="text-gray-500" />
-                      <span className="text-gray-700">
-                        {service.servicetime}
-                      </span>
-                    </div>
+                      >
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">
+                                {service.servicename}
+                              </CardTitle>
+                              {service.has_offer && (
+                                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
+                                  <Tag size={12} /> Special Offer
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() =>
+                                handleDeleteService(service.serviceid)
+                              }
+                              disabled={isSubmitting}
+                              className="text-gray-400 hover:text-red-600 transition disabled:opacity-50"
+                              title="Delete service"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {service.servicedetails}
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Banknote
+                                size={16}
+                                className={
+                                  service.has_offer
+                                    ? "text-gray-400"
+                                    : "text-green-600"
+                                }
+                              />
+                              {service.has_offer ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="line-through text-gray-400 font-medium">
+                                    Rs. {service.serviceprice}
+                                  </span>
+                                  <span className="font-bold text-red-600 text-lg">
+                                    Rs. {service.offer_price}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="font-semibold text-green-600">
+                                  Rs. {service.serviceprice}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Clock size={16} className="text-gray-500" />
+                              <span className="text-gray-700">
+                                {service.servicetime}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="pt-2 border-t">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditForm(service)}
+                              disabled={isSubmitting}
+                              className="w-full flex items-center justify-center gap-2"
+                            >
+                              <Edit size={14} />
+                              Edit Service
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                  <div className="pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditForm(service)}
-                      disabled={isSubmitting}
-                      className="w-full flex items-center justify-center gap-2"
-                    >
-                      <Edit size={14} />
-                      Edit Service
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <Card>
@@ -378,6 +417,47 @@ const ManageServicesPage = () => {
                     required
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label>Service Type</Label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
+                      <input
+                        type="radio"
+                        name="servicetype"
+                        value="package"
+                        checked={formData.servicetype === "package"}
+                        onChange={handleInputChange}
+                        className="text-red-600 focus:ring-red-500"
+                      />
+                      <Box size={16} className="text-gray-500" />
+                      <div className="text-sm">
+                        <span className="font-semibold block">Package</span>
+                        <span className="text-xs text-gray-500">
+                          Stand-alone service (Max 1)
+                        </span>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
+                      <input
+                        type="radio"
+                        name="servicetype"
+                        value="addon"
+                        checked={formData.servicetype === "addon"}
+                        onChange={handleInputChange}
+                        className="text-red-600 focus:ring-red-500"
+                      />
+                      <Layers size={16} className="text-gray-500" />
+                      <div className="text-sm">
+                        <span className="font-semibold block">Add-on</span>
+                        <span className="text-xs text-gray-500">
+                          Extra service (Multiple allowed)
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="servicedetails">Description *</Label>
                   <textarea
@@ -572,6 +652,46 @@ const ManageServicesPage = () => {
                     placeholder="e.g., Exterior Wash"
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Service Type</Label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
+                      <input
+                        type="radio"
+                        name="servicetype"
+                        value="package"
+                        checked={formData.servicetype === "package"}
+                        onChange={handleInputChange}
+                        className="text-red-600 focus:ring-red-500"
+                      />
+                      <Box size={16} className="text-gray-500" />
+                      <div className="text-sm">
+                        <span className="font-semibold block">Package</span>
+                        <span className="text-xs text-gray-500">
+                          Stand-alone (Max 1)
+                        </span>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
+                      <input
+                        type="radio"
+                        name="servicetype"
+                        value="addon"
+                        checked={formData.servicetype === "addon"}
+                        onChange={handleInputChange}
+                        className="text-red-600 focus:ring-red-500"
+                      />
+                      <Layers size={16} className="text-gray-500" />
+                      <div className="text-sm">
+                        <span className="font-semibold block">Add-on</span>
+                        <span className="text-xs text-gray-500">
+                          Extra service
+                        </span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-servicedetails">Description *</Label>
