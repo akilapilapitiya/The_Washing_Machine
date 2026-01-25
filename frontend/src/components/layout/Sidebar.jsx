@@ -62,6 +62,7 @@ const Sidebar = () => {
     },
     { to: "/dashboard/admin/services", icon: Settings, label: "Services" },
     { to: "/dashboard/admin/customers", icon: Users, label: "Customers" },
+    { to: "/dashboard/admin/feedback", icon: MessageSquare, label: "Feedback" },
     { to: "/dashboard/admin/employees", icon: ShieldCheck, label: "Employees" },
   ];
 
