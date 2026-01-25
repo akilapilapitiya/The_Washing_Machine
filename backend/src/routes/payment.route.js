@@ -22,23 +22,19 @@ paymentRouter.get("/my", restrictTo("customer"), getMyPayments);
 // Shared access
 paymentRouter.get(
   "/:paymentid",
-  restrictTo("customer", "manager", "owner"),
-  getPayment
+  restrictTo("customer", "cashier", "owner"),
+  getPayment,
 );
 
 // Manager/Owner only
-paymentRouter.delete(
-  "/:paymentid",
-  restrictTo("manager", "owner"),
-  deletePayment
-);
+paymentRouter.delete("/:paymentid", restrictTo("owner"), deletePayment);
 paymentRouter.put(
   "/:paymentid",
-  restrictTo("manager", "owner"),
+  restrictTo("cashier", "owner"),
   validateSchema(paymentValidator.updatePayment),
-  updatePayment
+  updatePayment,
 );
-paymentRouter.post("/", restrictTo("manager", "owner"), createPayment);
-paymentRouter.get("/", restrictTo("manager", "owner"), getAllPayments);
+paymentRouter.post("/", restrictTo("cashier", "owner"), createPayment);
+paymentRouter.get("/", restrictTo("cashier", "owner"), getAllPayments);
 
 export default paymentRouter;

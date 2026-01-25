@@ -39,7 +39,7 @@ async function addOwner() {
       `INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic, roleid)
        VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = 'owner'))
        RETURNING empid, empname, email, emptype, 
-         (SELECT rolename FROM role WHERE rolename = $5) as rolename`,
+         (SELECT rolename FROM role WHERE rolename = $5::VARCHAR) as rolename`,
       [
         ownerData.name,
         ownerData.email,

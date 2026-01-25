@@ -19,46 +19,43 @@ import {
 import * as employeeService from "@/services/employee.service";
 import { COLORS } from "@/lib/colors";
 
-const roleOptions = [
-  { value: "junior", label: "Frontline Detailer" },
-  { value: "mid", label: "Service Specialist" },
-  { value: "senior", label: "Senior Technician" },
-  { value: "lead", label: "Floor Manager" },
-  { value: "master", label: "Master Detailer" },
-  { value: "owner", label: "Strategic Owner" },
+// Initial fallback if roles haven't loaded yet
+const initialRoleOptions = [
+  { value: "owner", label: "Owner" },
+  { value: "cashier", label: "Cashier" },
+  { value: "employee", label: "Employee" },
 ];
 
 const levelColors = {
-  junior: {
-    bg: "bg-blue-100",
-    text: "text-blue-800",
-    border: "border-blue-300",
-  },
-  mid: {
+  owner: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+  cashier: {
     bg: "bg-purple-100",
     text: "text-purple-800",
     border: "border-purple-300",
   },
-  senior: {
-    bg: "bg-green-100",
-    text: "text-green-800",
-    border: "border-green-300",
+  employee: {
+    bg: "bg-blue-100",
+    text: "text-blue-800",
+    border: "border-blue-300",
   },
-  lead: {
-    bg: "bg-orange-100",
-    text: "text-orange-800",
-    border: "border-orange-300",
-  },
-  master: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
 };
 
-const LevelBadge = ({ level }) => {
-  const colors = levelColors[level] || levelColors.junior;
+const getRoleBadgeInfo = (level, roles) => {
+  const role = roles.find((r) => r.rolename === level);
+  const colors = levelColors[level] || levelColors.employee;
+  return {
+    label: role ? role.rolename : level,
+    colors,
+  };
+};
+
+const LevelBadge = ({ level, roles }) => {
+  const { label, colors } = getRoleBadgeInfo(level, roles);
   return (
     <span
       className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase font-bold border ${colors.bg} ${colors.text} ${colors.border} tracking-wider`}
     >
-      {roleOptions.find((r) => r.value === level)?.label || level}
+      {label}
     </span>
   );
 };
@@ -75,16 +72,29 @@ const EmployeeManagementPage = () => {
     name: "",
     email: "",
     telephone: "",
-    type: "junior",
+    type: "employee",
     nic: "",
   });
+  const [roles, setRoles] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
+    fetchRoles();
   }, []);
+
+  const fetchRoles = async () => {
+    try {
+      const response = await employeeService.getRoles();
+      if (response.success) {
+        setRoles(response.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -120,7 +130,7 @@ const EmployeeManagementPage = () => {
         name: "",
         email: "",
         telephone: "",
-        type: "junior",
+        type: "employee",
         nic: "",
       });
       setShowAddForm(false);
@@ -245,17 +255,10 @@ const EmployeeManagementPage = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-900">
-                  {
-                    employees.filter(
-                      (e) =>
-                        e.emptype === "senior" ||
-                        e.emptype === "master" ||
-                        e.emptype === "lead",
-                    ).length
-                  }
+                  {employees.filter((e) => e.emptype === "owner").length}
                 </p>
                 <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Senior Elite
+                  Owners
                 </p>
               </div>
             </CardContent>
@@ -264,10 +267,10 @@ const EmployeeManagementPage = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-900">
-                  {employees.filter((e) => e.emptype === "mid").length}
+                  {employees.filter((e) => e.emptype === "cashier").length}
                 </p>
                 <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Mid-Level
+                  Cashiers
                 </p>
               </div>
             </CardContent>
@@ -276,10 +279,10 @@ const EmployeeManagementPage = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-900">
-                  {employees.filter((e) => e.emptype === "junior").length}
+                  {employees.filter((e) => e.emptype === "employee").length}
                 </p>
                 <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Junior Staff
+                  Technical Staff
                 </p>
               </div>
             </CardContent>
@@ -305,7 +308,7 @@ const EmployeeManagementPage = () => {
                           {employee.empname}
                         </CardTitle>
                         <div className="mt-2">
-                          <LevelBadge level={employee.emptype} />
+                          <LevelBadge level={employee.emptype} roles={roles} />
                         </div>
                       </div>
                       <button
@@ -476,14 +479,20 @@ const EmployeeManagementPage = () => {
                     onChange={(e) =>
                       setNewEmployee({ ...newEmployee, type: e.target.value })
                     }
-                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none capitalize"
                     disabled={submitting}
                   >
-                    {roleOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
+                    {roles.length > 0
+                      ? roles.map((role) => (
+                          <option key={role.roleid} value={role.rolename}>
+                            {role.rolename}
+                          </option>
+                        ))
+                      : initialRoleOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                   </select>
                 </div>
 
@@ -539,12 +548,7 @@ const EmployeeManagementPage = () => {
                     {selectedEmployee.empname}
                   </p>
                   <p className="text-xs text-gray-500 uppercase font-semibold">
-                    Current:{" "}
-                    {
-                      roleOptions.find(
-                        (r) => r.value === selectedEmployee.emptype,
-                      )?.label
-                    }
+                    Current: {selectedEmployee.emptype}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -555,14 +559,14 @@ const EmployeeManagementPage = () => {
                     id="newRole"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none capitalize"
                     required
                     disabled={submitting}
                   >
                     <option value="">-- Select Rank --</option>
-                    {roleOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {roles.map((role) => (
+                      <option key={role.roleid} value={role.rolename}>
+                        {role.rolename}
                       </option>
                     ))}
                   </select>

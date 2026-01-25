@@ -80,3 +80,12 @@ export const getEmployeeMe = async () => {
   const response = await api.get("/authemployee/me");
   return response.data;
 };
+
+/**
+ * Get all available employee roles
+ * @returns {Promise<Object>} - List of roles
+ */
+export const getEmployeeRoles = async () => {
+  const response = await api.get("/authemployee/roles");
+  return response.data;
+};

@@ -36,9 +36,9 @@ export const signUp = async ({
   const result = await pool.query(
     `
     INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic, roleid)
-    VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = $5))
+    VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = $5::VARCHAR))
     RETURNING empid, empname, email, emptel, emptype, empnic, 
-      (SELECT rolename FROM role WHERE rolename = $5) as rolename
+      (SELECT rolename FROM role WHERE rolename = $5::VARCHAR) as rolename
     `,
     [name, email, telephone, passwordHash, type, nic],
   );
@@ -138,4 +138,12 @@ export const getEmployeeById = async (empid) => {
   }
 
   return result.rows[0];
+};
+
+// Get all roles
+export const getAllRoles = async () => {
+  const result = await pool.query(
+    "SELECT roleid, rolename, role_description, is_admin FROM role ORDER BY roleid ASC",
+  );
+  return result.rows;
 };

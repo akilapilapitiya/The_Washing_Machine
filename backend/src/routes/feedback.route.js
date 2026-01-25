@@ -12,6 +12,6 @@ feedbackRouter.use(authMiddleware);
 
 feedbackRouter.post("/", restrictTo("customer"), createFeedback);
 feedbackRouter.get("/my", restrictTo("customer"), getMyFeedbacks);
-feedbackRouter.get("/", restrictTo("manager", "owner"), getAllFeedbacks);
+feedbackRouter.get("/", restrictTo("cashier", "owner"), getAllFeedbacks);
 
 export default feedbackRouter;

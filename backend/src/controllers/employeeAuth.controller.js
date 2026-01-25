@@ -4,6 +4,7 @@ import {
   signIn,
   resetPassword,
   getEmployeeById,
+  getAllRoles,
 } from "../services/employeeAuth.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -102,6 +103,15 @@ export const employeeGetMe = async (req, res, next) => {
     };
 
     successResponse(res, 200, "Employee retrieved successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const employeeGetAllRoles = async (req, res, next) => {
+  try {
+    const roles = await getAllRoles();
+    successResponse(res, 200, "Roles retrieved successfully", roles);
   } catch (error) {
     next(error);
   }

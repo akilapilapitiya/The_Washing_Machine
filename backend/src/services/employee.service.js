@@ -8,7 +8,7 @@ export const getAllEmployeesService = async () => {
 		SELECT empid, empname, email, emptel, emptype, empnic, created_at, updated_at
 		FROM employee
 		ORDER BY created_at DESC
-		`
+		`,
   );
   return result.rows;
 };
@@ -20,7 +20,7 @@ export const getEmployeeService = async (empid) => {
 		FROM employee
 		WHERE empid = $1
 		`,
-    [empid]
+    [empid],
   );
 
   if (result.rowCount === 0) {
@@ -69,6 +69,9 @@ export const updateEmployeeService = async (empid, updates) => {
 
   if (type !== undefined) {
     updateFields.push(`emptype = $${paramIndex}`);
+    updateFields.push(
+      `roleid = (SELECT roleid FROM role WHERE rolename = $${paramIndex}::VARCHAR)`,
+    );
     updateValues.push(type);
     paramIndex++;
   }
@@ -84,7 +87,7 @@ export const updateEmployeeService = async (empid, updates) => {
     const { SALT_ROUNDS } = await import("../configs/env.js");
     const passwordHash = await bcrypt.default.hash(
       password,
-      Number(SALT_ROUNDS)
+      Number(SALT_ROUNDS),
     );
     updateFields.push(`password_hash = $${paramIndex}`);
     updateValues.push(passwordHash);
@@ -98,9 +101,9 @@ export const updateEmployeeService = async (empid, updates) => {
 
   const result = await pool.query(
     `UPDATE employee SET ${updateFields.join(
-      ", "
+      ", ",
     )} WHERE empid = $${paramIndex} RETURNING empid, empname, email, emptel, emptype, empnic, created_at, updated_at`,
-    updateValues
+    updateValues,
   );
 
   if (result.rowCount === 0) {

@@ -5,6 +5,7 @@ import {
   employeeSignUp,
   passwordReset,
   employeeGetMe,
+  employeeGetAllRoles,
 } from "../controllers/employeeAuth.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -20,6 +21,7 @@ employeeAuthRouter.post(
 employeeAuthRouter.post("/signout", employeeSignOut);
 employeeAuthRouter.put("/passwordreset", passwordReset);
 employeeAuthRouter.get("/me", authMiddleware, employeeGetMe);
+employeeAuthRouter.get("/roles", authMiddleware, employeeGetAllRoles);
 // PROTECTED ROUTE - Owner only
 employeeAuthRouter.post(
   "/signup",
