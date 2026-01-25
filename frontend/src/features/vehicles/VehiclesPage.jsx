@@ -11,6 +11,7 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as vehicleService from "@/services/vehicle.service";
@@ -34,6 +35,11 @@ const VehiclesPage = () => {
     vehplate: "",
   });
 
+  // Plate State
+  const [plateType, setPlateType] = useState("modern"); // 'modern' | 'vintage'
+  const [platePart1, setPlatePart1] = useState("");
+  const [platePart2, setPlatePart2] = useState("");
+
   // "Other" mode flags
   const [isManualBrand, setIsManualBrand] = useState(false);
   const [isManualModel, setIsManualModel] = useState(false);
@@ -47,11 +53,10 @@ const VehiclesPage = () => {
 
         const [vehRes, catRes] = await Promise.all([
           vehicleService.getVehicles(),
-          catalogService.getCatalog().catch(() => ({ data: [] })), // Fail gracefully if catalog fails
+          catalogService.getCatalog().catch(() => ({ data: [] })),
         ]);
 
         setVehicles(vehRes || []);
-        // catRes might be { data: [...] } or just [...] depend on service
         setCatalog(catRes.data || catRes || []);
       } catch (err) {
         console.error("Failed to load data:", err);
@@ -82,7 +87,7 @@ const VehiclesPage = () => {
     if (value === "OTHER_MANUAL") {
       setIsManualBrand(true);
       setNewVehicle((prev) => ({ ...prev, vehbrand: "", vehmodel: "" }));
-      setIsManualModel(true); // If brand is manual, model must be too
+      setIsManualModel(true);
     } else {
       setIsManualBrand(false);
       setIsManualModel(false);
@@ -101,15 +106,56 @@ const VehiclesPage = () => {
     }
   };
 
+  // Plate Handlers
+  const handlePlatePart1Change = (e) => {
+    const val = e.target.value.toUpperCase();
+    if (plateType === "modern") {
+      // Letters only, max 3
+      if (/^[A-Z]{0,3}$/.test(val)) setPlatePart1(val);
+    } else {
+      // Numbers only, 0-1000
+      if (/^\d{0,4}$/.test(val)) {
+        // Allow if empty or valid number <= 1000
+        if (val === "" || parseInt(val) <= 1000) setPlatePart1(val);
+      }
+    }
+  };
+
+  const handlePlatePart2Change = (e) => {
+    const val = e.target.value;
+    // Numbers only, max 4
+    if (/^\d{0,4}$/.test(val)) setPlatePart2(val);
+  };
+
   const handleAddVehicle = async (e) => {
     e.preventDefault();
+
+    // Plate Validation
+    if (plateType === "modern") {
+      if (platePart1.length < 2) {
+        setError("Modern plates need at least 2 letters (e.g., WP, CAB).");
+        return;
+      }
+    } else {
+      if (platePart1 === "") {
+        setError("Please enter the numeric prefix.");
+        return;
+      }
+    }
+
+    if (platePart2.length !== 4) {
+      setError("The second part of the plate must be exactly 4 digits.");
+      return;
+    }
+
+    const finalPlate = `${platePart1}-${platePart2}`;
 
     try {
       setSubmitting(true);
       setError(null);
 
       const vehicleData = {
-        vehplate: newVehicle.vehplate,
+        vehplate: finalPlate,
         vehmileage: parseInt(newVehicle.vehmileage) || 0,
         vehbrand: newVehicle.vehbrand,
         vehmodel: newVehicle.vehmodel,
@@ -128,6 +174,8 @@ const VehiclesPage = () => {
         vehmileage: "",
         vehplate: "",
       });
+      setPlatePart1("");
+      setPlatePart2("");
       setIsManualBrand(false);
       setIsManualModel(false);
       setShowAddForm(false);
@@ -351,24 +399,79 @@ const VehiclesPage = () => {
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="vehplate"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        Plate Number *
-                      </Label>
-                      <Input
-                        id="vehplate"
-                        name="vehplate"
-                        value={newVehicle.vehplate}
-                        onChange={handleInputChange}
-                        placeholder="e.g., ABC-1234"
-                        className="focus:ring-red-500 font-mono"
-                        required
-                        disabled={submitting}
-                      />
+                    {/* SRI LANKAN PLATE LOGIC */}
+                    <div className="md:col-span-2 space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-bold text-gray-800">
+                          Plate Number *
+                        </Label>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="plateType"
+                              value="modern"
+                              checked={plateType === "modern"}
+                              onChange={() => {
+                                setPlateType("modern");
+                                setPlatePart1("");
+                              }}
+                              className="text-red-600 focus:ring-red-500"
+                            />
+                            <span className="text-sm font-medium text-gray-600">
+                              Modern (Letters)
+                            </span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="plateType"
+                              value="vintage"
+                              checked={plateType === "vintage"}
+                              onChange={() => {
+                                setPlateType("vintage");
+                                setPlatePart1("");
+                              }}
+                              className="text-red-600 focus:ring-red-500"
+                            />
+                            <span className="text-sm font-medium text-gray-600">
+                              Numeric (19-xxxx)
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <Input
+                            value={platePart1}
+                            onChange={handlePlatePart1Change}
+                            placeholder={plateType === "modern" ? "CAB" : "19"}
+                            className="text-center font-mono uppercase text-lg tracking-wider focus:ring-red-500"
+                            maxLength={plateType === "modern" ? 3 : 4}
+                          />
+                          <p className="text-[10px] text-gray-500 mt-1 text-center">
+                            {plateType === "modern"
+                              ? "2-3 Letters (e.g. WP, CAB)"
+                              : "Number 0-1000"}
+                          </p>
+                        </div>
+                        <div className="text-xl font-bold text-gray-400">-</div>
+                        <div className="flex-[2]">
+                          <Input
+                            value={platePart2}
+                            onChange={handlePlatePart2Change}
+                            placeholder="1234"
+                            className="text-center font-mono text-lg tracking-[0.2em] focus:ring-red-500"
+                            maxLength={4}
+                          />
+                          <p className="text-[10px] text-gray-500 mt-1 text-center">
+                            Exactly 4 Digits
+                          </p>
+                        </div>
+                      </div>
                     </div>
+
                     <div className="space-y-2">
                       <Label
                         htmlFor="vehmileage"
