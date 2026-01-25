@@ -320,7 +320,7 @@ const ServiceDetailsPage = () => {
                         </span>
                       </div>
                       <span className="text-xs font-mono text-gray-500">
-                        ${srv.price || "0"}
+                        Rs. {srv.price || "0"}
                       </span>
                     </li>
                   ))}
@@ -333,7 +333,7 @@ const ServiceDetailsPage = () => {
                     Total Payload
                   </p>
                   <p className="text-2xl font-black text-red-600">
-                    ${service.bookingtotalprice || "0"}
+                    Rs. {service.bookingtotalprice || "0"}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2">
