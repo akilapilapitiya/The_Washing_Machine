@@ -30,11 +30,18 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         b.vehid,
         b.totalprice,
         v.cusid,
+        c.cusname,
+        c.custel as cusphone,
+        c.cusemail,
+        v.vehbrand,
+        v.vehmodel,
+        v.vehplate,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
       LEFT JOIN vehicle v ON b.vehid = v.id
+      LEFT JOIN customer c ON v.cusid = c.cusid
     `;
 
     let queryParams = [];
@@ -58,6 +65,12 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       b.vehid, 
       b.totalprice,
       v.cusid,
+      c.cusname,
+      c.custel,
+      c.cusemail,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehplate,
       v.id`;
 
     const result = await client.query(query, queryParams);
@@ -91,13 +104,20 @@ export const getBookingService = async (
         b.bookinglocationlongitude,
         b.vehid,
         v.cusid,
+        c.cusname,
+        c.custel as cusphone,
+        c.cusemail,
+        v.vehbrand,
+        v.vehmodel,
+        v.vehplate,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
       LEFT JOIN vehicle v ON b.vehid = v.id
+      LEFT JOIN customer c ON v.cusid = c.cusid
       WHERE b.bookingid = $1
-      GROUP BY b.bookingid, v.cusid
+      GROUP BY b.bookingid, v.cusid, c.cusid, v.id
       `,
       [bookingId],
     );
