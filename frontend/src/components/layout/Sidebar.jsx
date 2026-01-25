@@ -12,7 +12,10 @@ import {
   Users,
   Wrench,
   Settings,
+  Database,
   LogOut,
+  Umbrella,
+  ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -57,6 +60,18 @@ const Sidebar = () => {
       roles: ["owner", "cashier", "employee"],
     },
     {
+      to: "/dashboard/employee/incidents",
+      icon: ShieldAlert,
+      label: "Report Incident",
+      roles: ["cashier", "employee"],
+    },
+    {
+      to: "/dashboard/employee/leaves",
+      icon: Umbrella,
+      label: "My Leaves",
+      roles: ["cashier", "employee"],
+    },
+    {
       to: "/dashboard/employee/payments",
       icon: CreditCard,
       label: "Record Payment",
@@ -66,6 +81,18 @@ const Sidebar = () => {
       to: "/dashboard/admin/services",
       icon: Settings,
       label: "Services",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/vehicle-catalog",
+      icon: Database,
+      label: "Vehicle Catalog",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/incidents",
+      icon: ShieldAlert,
+      label: "Incidents",
       roles: ["owner"],
     },
     {
@@ -86,11 +113,16 @@ const Sidebar = () => {
       label: "Employees",
       roles: ["owner"],
     },
+    {
+      to: "/dashboard/admin/attendance",
+      icon: Calendar,
+      label: "Attendance",
+      roles: ["owner"],
+    },
   ];
 
   const filteredEmployeeLinks = employeeLinks.filter((link) => {
     if (!link.roles) return true; // Default to public for employees (e.g. Overview)
-    if (emptype === "owner") return true; // Owner has access to everything
     return link.roles.includes(emptype);
   });
 

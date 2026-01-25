@@ -75,7 +75,8 @@ const QuickAction = ({ title, description, to, icon: Icon, primary }) => (
 );
 
 const DashboardPage = () => {
-  const { user, isCustomer, isEmployee } = useAuth();
+  const { user, isCustomer, isEmployee, emptype, isOwner, isCashier } =
+    useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     bookings: [],
@@ -87,10 +88,17 @@ const DashboardPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        // Only fetch payments for customers, owners, and cashiers
+        const shouldFetchPayments = isCustomer || isOwner || isCashier;
+
         const [bookingsRes, vehiclesRes, paymentsRes] = await Promise.all([
           getBookings(),
           isCustomer ? getVehicles() : Promise.resolve([]),
-          isCustomer ? getMyPayments() : getAllPayments(),
+          shouldFetchPayments
+            ? isCustomer
+              ? getMyPayments()
+              : getAllPayments()
+            : Promise.resolve([]),
         ]);
 
         setData({
@@ -106,7 +114,7 @@ const DashboardPage = () => {
     };
 
     fetchData();
-  }, [isCustomer]);
+  }, [isCustomer, isOwner, isCashier]);
 
   // Derived metrics
   const totalBookings = data.bookings.length;
@@ -117,15 +125,17 @@ const DashboardPage = () => {
   );
 
   const upcomingBooking = data.bookings
-    .filter((b) => b.status === "confirmed" || b.status === "pending")
-    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+    .filter(
+      (b) => b.bookingstatus === "confirmed" || b.bookingstatus === "pending",
+    )
+    .sort((a, b) => new Date(a.bookingdate) - new Date(b.bookingdate))[0];
 
   const assignedJobs = data.bookings.filter(
-    (b) => b.status === "confirmed" || b.status === "in-progress",
+    (b) => b.bookingstatus === "confirmed" || b.bookingstatus === "inProgress",
   ).length;
 
   const completedJobs = data.bookings.filter(
-    (b) => b.status === "completed",
+    (b) => b.bookingstatus === "completed",
   ).length;
 
   const customerMetrics = [
@@ -138,11 +148,11 @@ const DashboardPage = () => {
     {
       title: "Upcoming",
       value: upcomingBooking
-        ? new Date(upcomingBooking.date).toLocaleDateString()
+        ? new Date(upcomingBooking.bookingdate).toLocaleDateString()
         : "None",
       icon: Clock,
       description: upcomingBooking
-        ? `Status: ${upcomingBooking.status}`
+        ? `Status: ${upcomingBooking.bookingstatus}`
         : "Book a service now",
     },
     {
@@ -153,6 +163,7 @@ const DashboardPage = () => {
     },
   ];
 
+  // Employee metrics - only show revenue for owner/cashier
   const employeeMetrics = [
     {
       title: "Active Jobs",
@@ -166,16 +177,21 @@ const DashboardPage = () => {
       icon: CheckCircle2,
       description: "This month's summary",
     },
-    {
-      title: "Revenue Logged",
-      value: `Rs. ${totalAmount.toLocaleString()}`,
-      icon: CreditCard,
-      description: "Total through the platform",
-    },
+    ...(isOwner || isCashier
+      ? [
+          {
+            title: "Revenue Logged",
+            value: `Rs. ${totalAmount.toLocaleString()}`,
+            icon: CreditCard,
+            description: "Total through the platform",
+          },
+        ]
+      : []),
   ];
 
   const metrics = isCustomer ? customerMetrics : employeeMetrics;
 
+  // Quick actions based on user role
   const quickActions = isCustomer
     ? [
         {
@@ -208,38 +224,54 @@ const DashboardPage = () => {
         },
       ]
     : [
-        {
-          title: "Record Payment",
-          description: "Log a completed transaction for a customer.",
-          to: "/dashboard/employee/payments",
-          icon: Plus,
-          primary: true,
-        },
+        // Generic employees only see active services
         {
           title: "Active Services",
           description: "Manage jobs currently in progress.",
           to: "/dashboard/employee/assigned",
           icon: Wrench,
-          primary: false,
+          primary: true,
         },
-        {
-          title: "Manage Services",
-          description: "Update pricing and service availability.",
-          to: "/dashboard/admin/services",
-          icon: Settings,
-          primary: false,
-        },
-        {
-          title: "Customer Database",
-          description: "View and manage customer information.",
-          to: "/dashboard/admin/customers",
-          icon: Users,
-          primary: false,
-        },
+        // Owner and cashier can record payments
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Record Payment",
+                description: "Log a completed transaction for a customer.",
+                to: "/dashboard/employee/payments",
+                icon: Plus,
+                primary: false,
+              },
+            ]
+          : []),
+        // Only owner can manage services
+        ...(isOwner
+          ? [
+              {
+                title: "Manage Services",
+                description: "Update pricing and service availability.",
+                to: "/dashboard/admin/services",
+                icon: Settings,
+                primary: false,
+              },
+            ]
+          : []),
+        // Owner and cashier can access customer database
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Customer Database",
+                description: "View and manage customer information.",
+                to: "/dashboard/admin/customers",
+                icon: Users,
+                primary: false,
+              },
+            ]
+          : []),
       ];
 
   const recentActivity = data.bookings
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => new Date(b.bookingdate) - new Date(a.bookingdate))
     .slice(0, 3);
 
   return (
@@ -315,14 +347,14 @@ const DashboardPage = () => {
                     >
                       <div
                         className={`p-2 rounded ${
-                          activity.status === "completed"
+                          activity.bookingstatus === "completed"
                             ? "bg-green-50 text-green-600"
-                            : activity.status === "confirmed"
+                            : activity.bookingstatus === "confirmed"
                               ? "bg-blue-50 text-blue-600"
                               : "bg-yellow-50 text-yellow-600"
                         }`}
                       >
-                        {activity.status === "completed" ? (
+                        {activity.bookingstatus === "completed" ? (
                           <CheckCircle2 className="h-4 w-4" />
                         ) : (
                           <Calendar className="h-4 w-4" />
@@ -331,15 +363,15 @@ const DashboardPage = () => {
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <p className="text-sm font-medium capitalize">
-                            {activity.status} Service
+                            {activity.bookingstatus} Service
                           </p>
                           <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-                            {activity.startTime}
+                            {activity.bookingstarttime}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
                           Scheduled for{" "}
-                          {new Date(activity.date).toLocaleDateString()}
+                          {new Date(activity.bookingdate).toLocaleDateString()}
                         </p>
                       </div>
                     </div>

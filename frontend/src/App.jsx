@@ -31,6 +31,11 @@ import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
 import ManageServicesPage from "./features/admin/ManageServicesPage";
 import ManageCustomersPage from "./features/admin/ManageCustomersPage";
 import ViewFeedbackPage from "./features/admin/ViewFeedbackPage";
+import LeaveManagementPage from "./features/admin/LeaveManagementPage";
+import MyLeavesPage from "./features/employee/MyLeavesPage";
+import ManageVehicleCatalogPage from "./features/admin/ManageVehicleCatalogPage";
+import ManageIncidentsPage from "./features/admin/ManageIncidentsPage";
+import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
@@ -186,10 +191,28 @@ const App = () => {
               }
             />
             <Route
+              path="employee/incidents"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["employee", "cashier"]}>
+                  <EmployeeIncidentPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
               path="employee/payments"
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <PaymentManagementPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="employee/leaves"
+              element={
+                <EmployeeProtectedRoute
+                  allowedRoles={["owner", "employee", "cashier"]}
+                >
+                  <MyLeavesPage />
                 </EmployeeProtectedRoute>
               }
             />
@@ -200,6 +223,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <EmployeeManagementPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/attendance"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <LeaveManagementPage />
                 </EmployeeProtectedRoute>
               }
             />
@@ -224,6 +255,22 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ViewFeedbackPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/vehicle-catalog"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <ManageVehicleCatalogPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/incidents"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <ManageIncidentsPage />
                 </EmployeeProtectedRoute>
               }
             />

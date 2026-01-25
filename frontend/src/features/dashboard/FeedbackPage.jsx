@@ -194,7 +194,7 @@ const FeedbackPage = () => {
               <CardContent className="pt-8">
                 {completedBookings.length > 0 ? (
                   <form onSubmit={handleSubmitFeedback} className="space-y-8">
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-6">
                       <div className="space-y-3">
                         <Label
                           htmlFor="booking"
@@ -219,34 +219,6 @@ const FeedbackPage = () => {
                             </option>
                           ))}
                         </select>
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label className="text-sm font-bold text-gray-700">
-                          Service Rating *
-                        </Label>
-                        <div className="flex h-12 items-center gap-3 px-4 bg-gray-50 rounded-xl border border-gray-200">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <button
-                              key={s}
-                              type="button"
-                              onClick={() => setRating(s)}
-                              className="focus:outline-none hover:scale-110 transition-transform"
-                            >
-                              <Star
-                                size={24}
-                                className={
-                                  s <= rating
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "text-gray-300"
-                                }
-                              />
-                            </button>
-                          ))}
-                          <span className="ml-auto font-black text-gray-400 text-sm">
-                            {rating}/5
-                          </span>
-                        </div>
                       </div>
                     </div>
 
@@ -317,7 +289,6 @@ const FeedbackPage = () => {
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div>
-                          {renderStars(f.rating)}
                           <CardTitle className="text-lg font-bold mt-2">
                             {f.vehbrand} {f.vehmodel}
                           </CardTitle>

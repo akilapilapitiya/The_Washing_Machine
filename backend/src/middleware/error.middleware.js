@@ -106,6 +106,11 @@ const errorHandling = (err, req, res, next) => {
     err.message &&
     (status === 500 || status === 400)
   ) {
+    // If it's a DB error, make the message more descriptive for debugging
+    if (message === "Database error") {
+      response.message = `Database error: ${err.message}`;
+    }
+
     response.debug = {
       error: err.message,
       stack: err.stack,

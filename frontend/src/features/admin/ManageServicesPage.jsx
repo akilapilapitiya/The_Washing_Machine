@@ -14,6 +14,8 @@ import {
   Clock,
   AlertCircle,
   Loader2,
+  Tag,
+  Percent,
 } from "lucide-react";
 import * as serviceService from "@/services/service.service";
 
@@ -28,7 +30,10 @@ const ManageServicesPage = () => {
     servicename: "",
     servicedetails: "",
     serviceprice: "",
-    servicetime: "",
+    servicetime: "00:00",
+    has_offer: false,
+    offer_price: "",
+    offer_description: "",
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -53,8 +58,11 @@ const ManageServicesPage = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleDurationChange = (field, value) => {
@@ -82,7 +90,10 @@ const ManageServicesPage = () => {
       servicename: "",
       servicedetails: "",
       serviceprice: "",
-      servicetime: "",
+      servicetime: "00:00",
+      has_offer: false,
+      offer_price: "",
+      offer_description: "",
     });
   };
 
@@ -95,6 +106,13 @@ const ManageServicesPage = () => {
         servicedetails: formData.servicedetails,
         serviceprice: parseFloat(formData.serviceprice),
         servicetime: formData.servicetime,
+        has_offer: formData.has_offer,
+        offer_price: formData.has_offer
+          ? parseFloat(formData.offer_price)
+          : null,
+        offer_description: formData.has_offer
+          ? formData.offer_description
+          : null,
       };
       await serviceService.createService(payload);
       resetForm();
@@ -118,6 +136,13 @@ const ManageServicesPage = () => {
         servicename: formData.servicename,
         servicedetails: formData.servicedetails,
         servicetime: formData.servicetime,
+        has_offer: formData.has_offer,
+        offer_price: formData.has_offer
+          ? parseFloat(formData.offer_price)
+          : null,
+        offer_description: formData.has_offer
+          ? formData.offer_description
+          : null,
       };
       // Only include serviceprice if it's a valid number
       const price = parseFloat(formData.serviceprice);
@@ -162,11 +187,20 @@ const ManageServicesPage = () => {
 
   const openEditForm = (service) => {
     setSelectedService(service);
+    // Ensure time is HH:MM (strip seconds if present)
+    const timeParts = service.servicetime
+      ? service.servicetime.split(":")
+      : ["00", "00"];
+    const formattedTime = `${timeParts[0]}:${timeParts[1] || "00"}`;
+
     setFormData({
       servicename: service.servicename,
       servicedetails: service.servicedetails,
       serviceprice: service.serviceprice.toString(),
-      servicetime: service.servicetime,
+      servicetime: formattedTime,
+      has_offer: service.has_offer || false,
+      offer_price: service.offer_price ? service.offer_price.toString() : "",
+      offer_description: service.offer_description || "",
     });
     setShowEditForm(true);
   };
@@ -219,13 +253,21 @@ const ManageServicesPage = () => {
         ) : services.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
-              <Card key={service.serviceid}>
+              <Card
+                key={service.serviceid}
+                className={service.has_offer ? "border-2 border-red-200" : ""}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg">
                         {service.servicename}
                       </CardTitle>
+                      {service.has_offer && (
+                        <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
+                          <Tag size={12} /> Special Offer
+                        </span>
+                      )}
                     </div>
                     <button
                       onClick={() => handleDeleteService(service.serviceid)}
@@ -238,15 +280,31 @@ const ManageServicesPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 line-clamp-2">
                     {service.servicedetails}
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <Banknote size={16} className="text-green-600" />
-                      <span className="font-semibold text-green-600">
-                        Rs. {service.serviceprice}
-                      </span>
+                      <Banknote
+                        size={16}
+                        className={
+                          service.has_offer ? "text-gray-400" : "text-green-600"
+                        }
+                      />
+                      {service.has_offer ? (
+                        <div className="flex items-center gap-2">
+                          <span className="line-through text-gray-400 font-medium">
+                            Rs. {service.serviceprice}
+                          </span>
+                          <span className="font-bold text-red-600 text-lg">
+                            Rs. {service.offer_price}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-semibold text-green-600">
+                          Rs. {service.serviceprice}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock size={16} className="text-gray-500" />
@@ -400,6 +458,63 @@ const ManageServicesPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Offer Section */}
+                <div className="bg-red-50 p-4 rounded-lg border border-red-100 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="has_offer"
+                      name="has_offer"
+                      checked={formData.has_offer}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                    />
+                    <Label
+                      htmlFor="has_offer"
+                      className="font-bold text-red-800 cursor-pointer"
+                    >
+                      Activate Promotional Offer
+                    </Label>
+                  </div>
+
+                  {formData.has_offer && (
+                    <div className="grid gap-4 md:grid-cols-2 animate-in slide-in-from-top-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="offer_price" className="text-red-900">
+                          Discounted Price (Rs.)
+                        </Label>
+                        <Input
+                          id="offer_price"
+                          name="offer_price"
+                          type="number"
+                          value={formData.offer_price}
+                          onChange={handleInputChange}
+                          className="border-red-200 focus:ring-red-500"
+                          placeholder="e.g. 1200"
+                          required={formData.has_offer}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="offer_description"
+                          className="text-red-900"
+                        >
+                          Offer Label
+                        </Label>
+                        <Input
+                          id="offer_description"
+                          name="offer_description"
+                          value={formData.offer_description}
+                          onChange={handleInputChange}
+                          className="border-red-200 focus:ring-red-500"
+                          placeholder="e.g. Summer Sale"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
@@ -538,6 +653,66 @@ const ManageServicesPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Offer Section */}
+                <div className="bg-red-50 p-4 rounded-lg border border-red-100 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit-has_offer"
+                      name="has_offer"
+                      checked={formData.has_offer}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                    />
+                    <Label
+                      htmlFor="edit-has_offer"
+                      className="font-bold text-red-800 cursor-pointer"
+                    >
+                      Activate Promotional Offer
+                    </Label>
+                  </div>
+
+                  {formData.has_offer && (
+                    <div className="grid gap-4 md:grid-cols-2 animate-in slide-in-from-top-2">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="edit-offer_price"
+                          className="text-red-900"
+                        >
+                          Discounted Price (Rs.)
+                        </Label>
+                        <Input
+                          id="edit-offer_price"
+                          name="offer_price"
+                          type="number"
+                          value={formData.offer_price}
+                          onChange={handleInputChange}
+                          className="border-red-200 focus:ring-red-500"
+                          placeholder="e.g. 1200"
+                          required={formData.has_offer}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="edit-offer_description"
+                          className="text-red-900"
+                        >
+                          Offer Label
+                        </Label>
+                        <Input
+                          id="edit-offer_description"
+                          name="offer_description"
+                          value={formData.offer_description}
+                          onChange={handleInputChange}
+                          className="border-red-200 focus:ring-red-500"
+                          placeholder="e.g. Summer Sale"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
