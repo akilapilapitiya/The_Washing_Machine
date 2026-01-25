@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getEmployeeMe } from "@/services/auth.service";
 
 const AuthContext = createContext(null);
 
@@ -7,55 +8,77 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null); // 'customer' or 'employee'
   const [emptype, setEmptype] = useState(null); // 'owner', 'manager', or 'employee' (for employees only)
+  const [isAdmin, setIsAdmin] = useState(false); // Flag for administrative supremacy
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   // Initialize auth state from localStorage on mount
   useEffect(() => {
-    const initAuth = () => {
+    const initAuth = async () => {
       const storedUser = localStorage.getItem("user");
       const storedUserType = localStorage.getItem("userType");
-      const storedEmptype = localStorage.getItem("emptype");
       const token = localStorage.getItem("token");
 
-      if (storedUser && token && storedUserType) {
+      if (token && storedUser && storedUserType) {
         try {
           const raw = JSON.parse(storedUser);
-          // Normalize stored user to common shape
-          let normalized = raw;
+
           if (storedUserType === "customer") {
-            normalized = {
-              id: raw.cusid ?? raw.id,
-              name: raw.cusname ?? raw.name,
-              email: raw.cusemail ?? raw.email,
-              mobile: raw.telephone ?? raw.mobile ?? raw.custel,
-            };
+            setUser(raw);
+            setUserType("customer");
+            setIsAuthenticated(true);
+            setLoading(false);
           } else if (storedUserType === "employee") {
-            normalized = {
-              id: raw.empid ?? raw.id,
-              name: raw.empname ?? raw.name,
-              email: raw.email,
-              mobile: raw.telephone ?? raw.mobile ?? raw.emptel,
-              emptype: raw.emptype, // Preserve emptype in normalized user
-            };
-            // Restore emptype for employees
-            if (storedEmptype) {
-              setEmptype(storedEmptype);
+            // STAFF REFRESH: ALWAYS FETCH FROM DB FOR RELIABLE ROLES
+            try {
+              const response = await getEmployeeMe();
+              if (response.success && response.data) {
+                const emp = response.data;
+                const updated = {
+                  id: emp.empid,
+                  name: emp.empname,
+                  email: emp.email,
+                  mobile: emp.emptel,
+                  emptype: emp.emptype || emp.rolename || emp.role,
+                  isAdmin: !!emp.is_admin || !!emp.isAdmin,
+                };
+                setUser(updated);
+                setUserType("employee");
+                setEmptype(updated.emptype);
+                setIsAdmin(updated.isAdmin);
+                setIsAuthenticated(true);
+                localStorage.setItem("user", JSON.stringify(updated));
+                localStorage.setItem("emptype", updated.emptype);
+                localStorage.setItem(
+                  "isAdmin",
+                  updated.isAdmin ? "true" : "false",
+                );
+              } else {
+                throw new Error("Failed to validate staff session");
+              }
+            } catch (err) {
+              console.error("Staff session validation failed:", err);
+              // Fallback to stored data if API fails but token exists (optional safety)
+              setEmptype(raw.emptype || raw.role || raw.rolename);
+              setIsAdmin(
+                raw.isAdmin || localStorage.getItem("isAdmin") === "true",
+              );
+              setUser(raw);
+              setUserType("employee");
+              setIsAuthenticated(true);
+            } finally {
+              setLoading(false);
             }
           }
-          setUser(normalized);
-          setUserType(storedUserType);
-          setIsAuthenticated(true);
         } catch (error) {
-          console.error("Failed to parse stored user:", error);
-          localStorage.removeItem("user");
-          localStorage.removeItem("userType");
-          localStorage.removeItem("emptype");
-          localStorage.removeItem("token");
+          console.error("Failed to restore session:", error);
+          logout(); // Clean sweep on error
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initAuth();
@@ -74,8 +97,8 @@ export const AuthProvider = ({ children }) => {
         mobile: userData.telephone ?? userData.mobile ?? userData.custel,
       };
     } else if (type === "employee") {
-      // Extract emptype from employee data
-      employeeType = userData.emptype;
+      // Extract emptype from employee data (check fallback names from API)
+      employeeType = userData.emptype || userData.role || userData.rolename;
 
       normalized = {
         id: userData.empid ?? userData.id,
@@ -83,16 +106,20 @@ export const AuthProvider = ({ children }) => {
         email: userData.email,
         mobile: userData.telephone ?? userData.mobile ?? userData.emptel,
         emptype: employeeType, // Store emptype in user object
+        isAdmin:
+          !!userData.is_admin || !!userData.isAdmin || employeeType === "owner",
       };
     }
 
     setUser(normalized);
     setUserType(type);
     setEmptype(employeeType); // Set emptype state (null for customers)
+    setIsAdmin(normalized.isAdmin || false);
     setIsAuthenticated(true);
     localStorage.setItem("user", JSON.stringify(normalized));
     localStorage.setItem("userType", type);
     localStorage.setItem("token", token);
+    localStorage.setItem("isAdmin", normalized.isAdmin ? "true" : "false");
 
     // Store emptype for employees
     if (employeeType) {
@@ -135,8 +162,13 @@ export const AuthProvider = ({ children }) => {
     updateUser,
     isCustomer: userType === "customer",
     isEmployee: userType === "employee",
-    isOwner: userType === "employee" && emptype === "owner", // Helper for owner role
-    isManager: userType === "employee" && emptype === "manager", // Helper for manager role
+    isAdmin, // Direct access to admin flag
+    isOwner: userType === "employee" && (emptype === "owner" || isAdmin),
+    isCashier:
+      userType === "employee" &&
+      (emptype === "cashier" || emptype === "owner" || isAdmin),
+    isStaff: userType === "employee",
+    employeeRole: emptype,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

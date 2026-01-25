@@ -36,7 +36,7 @@ const SidebarItem = ({ to, icon: Icon, label, active }) => (
 
 const Sidebar = () => {
   const location = useLocation();
-  const { user, isCustomer, isEmployee, logout } = useAuth();
+  const { user, isCustomer, isEmployee, emptype, logout } = useAuth();
 
   const customerLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -54,19 +54,47 @@ const Sidebar = () => {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
       label: "Assigned Jobs",
+      roles: ["owner", "employee"],
     },
     {
       to: "/dashboard/employee/payments",
       icon: CreditCard,
       label: "Record Payment",
+      roles: ["owner", "cashier"],
     },
-    { to: "/dashboard/admin/services", icon: Settings, label: "Services" },
-    { to: "/dashboard/admin/customers", icon: Users, label: "Customers" },
-    { to: "/dashboard/admin/feedback", icon: MessageSquare, label: "Feedback" },
-    { to: "/dashboard/admin/employees", icon: ShieldCheck, label: "Employees" },
+    {
+      to: "/dashboard/admin/services",
+      icon: Settings,
+      label: "Services",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/customers",
+      icon: Users,
+      label: "Customers",
+      roles: ["owner", "cashier"],
+    },
+    {
+      to: "/dashboard/admin/feedback",
+      icon: MessageSquare,
+      label: "Feedback",
+      roles: ["owner", "cashier"],
+    },
+    {
+      to: "/dashboard/admin/employees",
+      icon: ShieldCheck,
+      label: "Employees",
+      roles: ["owner"],
+    },
   ];
 
-  const links = isCustomer ? customerLinks : employeeLinks;
+  const filteredEmployeeLinks = employeeLinks.filter((link) => {
+    if (!link.roles) return true; // Default to public for employees (e.g. Overview)
+    if (emptype === "owner") return true; // Owner has access to everything
+    return link.roles.includes(emptype);
+  });
+
+  const links = isCustomer ? customerLinks : filteredEmployeeLinks;
 
   return (
     <aside className="fixed top-16 bottom-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col z-40">
@@ -101,7 +129,7 @@ const Sidebar = () => {
               {user?.name || "User"}
             </p>
             <p className="text-xs text-gray-500 truncate capitalize">
-              {isCustomer ? "Customer" : "Staff"}
+              {isCustomer ? "Customer" : emptype || "Staff"}
             </p>
           </div>
         </div>

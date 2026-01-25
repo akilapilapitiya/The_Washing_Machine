@@ -4,6 +4,7 @@ import {
   employeeSignOut,
   employeeSignUp,
   passwordReset,
+  employeeGetMe,
 } from "../controllers/employeeAuth.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -14,17 +15,18 @@ const employeeAuthRouter = Router();
 employeeAuthRouter.post(
   "/signin",
   validateSchema(employeeValidator.loginEmployee),
-  employeeSignIn
+  employeeSignIn,
 );
 employeeAuthRouter.post("/signout", employeeSignOut);
 employeeAuthRouter.put("/passwordreset", passwordReset);
+employeeAuthRouter.get("/me", authMiddleware, employeeGetMe);
 // PROTECTED ROUTE - Owner only
 employeeAuthRouter.post(
   "/signup",
   authMiddleware,
   restrictTo("owner"),
   validateSchema(employeeValidator.createEmployee),
-  employeeSignUp
+  employeeSignUp,
 );
 export default employeeAuthRouter;
 

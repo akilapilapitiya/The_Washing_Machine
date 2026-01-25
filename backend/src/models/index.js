@@ -10,6 +10,7 @@ import createScheduleTable from "./schedule.model.js";
 import createServiceTable from "./service.model.js";
 import createServicesBookedTable from "./servicesBooked.model.js";
 import createVehicleTable from "./vehicle.model.js";
+import createRoleTable from "./role.model.js";
 
 const initModels = async (pool) => {
   try {
@@ -17,6 +18,7 @@ const initModels = async (pool) => {
 
     // Create all tables
     await createCustomerTable(pool);
+    await createRoleTable(pool);
     await createEmployeeTable(pool);
     await createVehicleTable(pool);
     await createServiceTable(pool);

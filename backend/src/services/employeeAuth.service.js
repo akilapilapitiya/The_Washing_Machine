@@ -20,7 +20,7 @@ export const signUp = async ({
 }) => {
   const existing = await pool.query(
     "SELECT empid FROM employee WHERE email = $1",
-    [email]
+    [email],
   );
 
   if (existing.rowCount > 0) {
@@ -35,14 +35,19 @@ export const signUp = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING empid, empname, email, emptel, emptype, empnic
+    INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic, roleid)
+    VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = $5))
+    RETURNING empid, empname, email, emptel, emptype, empnic, 
+      (SELECT rolename FROM role WHERE rolename = $5) as rolename
     `,
-    [name, email, telephone, passwordHash, type, nic]
+    [name, email, telephone, passwordHash, type, nic],
   );
 
-  const employee = result.rows[0];
+  const employee = {
+    ...result.rows[0],
+    emptype: result.rows[0].rolename || result.rows[0].emptype,
+    role: result.rows[0].rolename,
+  };
   const token = generateToken(employee.empid, "employee", employee.emptype);
 
   return { employee, token };
@@ -51,8 +56,13 @@ export const signUp = async ({
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT empid, empname, email, emptel, password_hash, emptype FROM employee WHERE email = $1",
-    [email]
+    `
+    SELECT e.empid, e.empname, e.email, e.emptel, e.password_hash, r.rolename 
+    FROM employee e
+    LEFT JOIN role r ON e.roleid = r.roleid
+    WHERE e.email = $1
+    `,
+    [email],
   );
 
   if (result.rowCount === 0) {
@@ -66,8 +76,15 @@ export const signIn = async ({ email, password }) => {
     throw new UnauthorizedError("Invalid email or password");
   }
 
-  const employee = { empid: row.empid, empname: row.empname, email: row.email, emptel: row.emptel };
-  const token = generateToken(row.empid, "employee", row.emptype);
+  const employee = {
+    empid: row.empid,
+    empname: row.empname,
+    email: row.email,
+    emptel: row.emptel,
+    role: row.rolename,
+    emptype: row.rolename,
+  };
+  const token = generateToken(row.empid, "employee", row.rolename);
   return { employee, token };
 };
 
@@ -83,7 +100,7 @@ export const resetPassword = async ({ email, newPassword }) => {
 
   const existing = await pool.query(
     "SELECT empid FROM employee WHERE email = $1",
-    [email]
+    [email],
   );
 
   if (existing.rowCount === 0) {
@@ -98,8 +115,27 @@ export const resetPassword = async ({ email, newPassword }) => {
     SET password_hash = $1, updated_at = NOW()
     WHERE email = $2
     `,
-    [passwordHash, email]
+    [passwordHash, email],
   );
 
   return { message: "Password reset successful" };
+};
+
+// Get employee by ID with role info
+export const getEmployeeById = async (empid) => {
+  const result = await pool.query(
+    `
+    SELECT e.empid, e.empname, e.email, e.emptel, r.rolename, r.is_admin
+    FROM employee e
+    LEFT JOIN role r ON e.roleid = r.roleid
+    WHERE e.empid = $1
+    `,
+    [empid],
+  );
+
+  if (result.rowCount === 0) {
+    throw new NotFoundError("Employee not found");
+  }
+
+  return result.rows[0];
 };

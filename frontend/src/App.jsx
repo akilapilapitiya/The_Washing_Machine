@@ -168,7 +168,7 @@ const App = () => {
             <Route
               path="employee/assigned"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "employee"]}>
                   <AssignedServicesPage />
                 </EmployeeProtectedRoute>
               }
@@ -176,7 +176,7 @@ const App = () => {
             <Route
               path="employee/service/:id"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "employee"]}>
                   <ServiceDetailsPage />
                 </EmployeeProtectedRoute>
               }
@@ -184,7 +184,7 @@ const App = () => {
             <Route
               path="employee/payments"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <PaymentManagementPage />
                 </EmployeeProtectedRoute>
               }
@@ -194,7 +194,7 @@ const App = () => {
             <Route
               path="admin/employees"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <EmployeeManagementPage />
                 </EmployeeProtectedRoute>
               }
@@ -202,7 +202,7 @@ const App = () => {
             <Route
               path="admin/services"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ManageServicesPage />
                 </EmployeeProtectedRoute>
               }
@@ -210,7 +210,7 @@ const App = () => {
             <Route
               path="admin/customers"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <ManageCustomersPage />
                 </EmployeeProtectedRoute>
               }
@@ -218,7 +218,7 @@ const App = () => {
             <Route
               path="admin/feedback"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <ViewFeedbackPage />
                 </EmployeeProtectedRoute>
               }
