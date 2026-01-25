@@ -36,23 +36,36 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         v.vehbrand,
         v.vehmodel,
         v.vehplate,
-        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
+        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
+        ea.empid as assigned_empid,
+        e.empname as assigned_empname
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
       LEFT JOIN vehicle v ON b.vehid = v.id
       LEFT JOIN customer c ON v.cusid = c.cusid
+      LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+      LEFT JOIN employee e ON ea.empid = e.empid
     `;
 
     let queryParams = [];
+    let whereClauses = [];
 
-    // If customer, show only their bookings
+    // 1. Customers see only their own bookings
     if (userRole === "customer") {
-      query += ` WHERE v.cusid = $1`;
+      whereClauses.push(`v.cusid = $${queryParams.length + 1}`);
       queryParams.push(userId);
     }
-    // If employee (any type), show all bookings
-    // No WHERE clause needed - they can see everything
+    // 2. Regular employees see only their assigned bookings
+    else if (userRole === "employee" && effectiveRole === "employee") {
+      whereClauses.push(`ea.empid = $${queryParams.length + 1}`);
+      queryParams.push(userId);
+    }
+    // 3. Owners and Cashiers see everything (no where clause for them)
+
+    if (whereClauses.length > 0) {
+      query += ` WHERE ` + whereClauses.join(" AND ");
+    }
 
     query += ` GROUP BY 
       b.bookingid, 
@@ -71,7 +84,9 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
-      v.id`;
+      v.id,
+      ea.empid,
+      e.empname`;
 
     const result = await client.query(query, queryParams);
     return result.rows;
@@ -134,8 +149,22 @@ export const getBookingService = async (
       if (booking.cusid !== userId) {
         throw new ForbiddenError("You can only view your own bookings");
       }
+    } else if (userRole === "employee") {
+      // Owners and Cashiers can view any booking
+      if (effectiveRole === "owner" || effectiveRole === "cashier") {
+        return booking;
+      }
+
+      // Regular employees can only see their assigned bookings
+      const assignmentCheck = await client.query(
+        "SELECT 1 FROM employeeassigned WHERE bookingid = $1 AND empid = $2",
+        [bookingId, userId],
+      );
+
+      if (assignmentCheck.rowCount === 0) {
+        throw new ForbiddenError("You are not authorized to view this mission");
+      }
     }
-    // Employees can view any booking
 
     return booking;
   } finally {

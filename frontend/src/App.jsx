@@ -24,7 +24,7 @@ import ServiceHistoryPage from "./features/dashboard/ServiceHistoryPage";
 import PaymentHistoryPage from "./features/dashboard/PaymentHistoryPage";
 import Feedback from "./pages/Feedback";
 import ChangePasswordPage from "./features/auth/ChangePasswordPage";
-import AssignedServicesPage from "./features/employee/AssignedServicesPage";
+import AllBookingsPage from "./features/admin/AllBookingsPage";
 import ServiceDetailsPage from "./features/employee/ServiceDetailsPage";
 import PaymentManagementPage from "./features/employee/PaymentManagementPage";
 import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
@@ -168,15 +168,19 @@ const App = () => {
             <Route
               path="employee/assigned"
               element={
-                <EmployeeProtectedRoute allowedRoles={["owner", "employee"]}>
-                  <AssignedServicesPage />
+                <EmployeeProtectedRoute
+                  allowedRoles={["owner", "employee", "cashier"]}
+                >
+                  <AllBookingsPage />
                 </EmployeeProtectedRoute>
               }
             />
             <Route
               path="employee/service/:id"
               element={
-                <EmployeeProtectedRoute allowedRoles={["owner", "employee"]}>
+                <EmployeeProtectedRoute
+                  allowedRoles={["owner", "employee", "cashier"]}
+                >
                   <ServiceDetailsPage />
                 </EmployeeProtectedRoute>
               }
@@ -218,7 +222,7 @@ const App = () => {
             <Route
               path="admin/feedback"
               element={
-                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ViewFeedbackPage />
                 </EmployeeProtectedRoute>
               }

@@ -53,8 +53,8 @@ const Sidebar = () => {
     {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
-      label: "Assigned Jobs",
-      roles: ["owner", "employee"],
+      label: "Service Queue",
+      roles: ["owner", "cashier", "employee"],
     },
     {
       to: "/dashboard/employee/payments",
@@ -78,7 +78,7 @@ const Sidebar = () => {
       to: "/dashboard/admin/feedback",
       icon: MessageSquare,
       label: "Feedback",
-      roles: ["owner", "cashier"],
+      roles: ["owner"],
     },
     {
       to: "/dashboard/admin/employees",
