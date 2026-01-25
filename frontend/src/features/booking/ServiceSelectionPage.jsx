@@ -165,6 +165,11 @@ const ServiceSelectionPage = () => {
                     >
                       {service.servicename}
                     </span>
+                    {service.has_offer && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold uppercase text-red-700">
+                        OFFER
+                      </span>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -175,10 +180,29 @@ const ServiceSelectionPage = () => {
                   <div className="space-y-2 pt-2 border-t border-gray-100">
                     <div className="flex items-center text-red-600 font-bold">
                       <Tag size={14} className="mr-2" />
-                      <span>
-                        Rs. {parseFloat(service.serviceprice).toLocaleString()}
-                      </span>
+                      {service.has_offer ? (
+                        <div className="flex items-center gap-2">
+                          <span className="line-through text-gray-400 text-xs font-medium">
+                            Rs.{" "}
+                            {parseFloat(service.serviceprice).toLocaleString()}
+                          </span>
+                          <span className="text-lg animate-pulse">
+                            Rs.{" "}
+                            {parseFloat(service.offer_price).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span>
+                          Rs.{" "}
+                          {parseFloat(service.serviceprice).toLocaleString()}
+                        </span>
+                      )}
                     </div>
+                    {service.has_offer && service.offer_description && (
+                      <div className="text-xs font-bold text-red-600 bg-red-50 p-1 rounded inline-block">
+                        {service.offer_description}
+                      </div>
+                    )}
                     <div className="flex items-center text-gray-500 text-xs font-medium uppercase tracking-tight">
                       <Clock size={14} className="mr-2" />
                       <span>Approx. {service.servicetime}</span>

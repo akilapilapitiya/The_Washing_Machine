@@ -212,7 +212,7 @@ export const createBookingService = async ({
 
     // 1. Calculate duration and price
     const servicesCheck = await client.query(
-      "SELECT servicetime, serviceprice FROM service WHERE serviceid = ANY($1)",
+      "SELECT servicetime, serviceprice, has_offer, offer_price FROM service WHERE serviceid = ANY($1)",
       [services],
     );
 
@@ -226,7 +226,11 @@ export const createBookingService = async ({
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
       totalDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
-      totalPrice += parseFloat(s.serviceprice);
+
+      const price = s.has_offer
+        ? parseFloat(s.offer_price)
+        : parseFloat(s.serviceprice);
+      totalPrice += price;
     });
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
@@ -376,7 +380,7 @@ export const updateBookingService = async (
 
     if (services || startTime) {
       const srvCheck = await client.query(
-        "SELECT servicetime, serviceprice FROM service WHERE serviceid = ANY($1)",
+        "SELECT servicetime, serviceprice, has_offer, offer_price FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
       let duration = 0;
@@ -384,7 +388,10 @@ export const updateBookingService = async (
       srvCheck.rows.forEach((s) => {
         const [h, m, s_] = s.servicetime.split(":").map(Number);
         duration += h * 3600 + m * 60 + (s_ || 0);
-        totalPrice += parseFloat(s.serviceprice);
+        const price = s.has_offer
+          ? parseFloat(s.offer_price)
+          : parseFloat(s.serviceprice);
+        totalPrice += price;
       });
 
       const [sh, sm, ss] = newStartTime.split(":").map(Number);
