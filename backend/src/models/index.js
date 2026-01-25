@@ -3,7 +3,7 @@ import createCustomerTable from "./customer.model.js";
 import createEmployeeTable from "./employee.model.js";
 import createEmployeeAssignedTable from "./employeeAssigned.model.js";
 import createEmployeeLeaveTable from "./employeeLeave.model.js";
-import createEmployeePreferenceTable from "./employeepreference.model.js";
+import createEmployeePreferenceTable from "./employeePreference.model.js";
 import createFeedbackTable from "./feedback.model.js";
 import createPaymentTable from "./payment.model.js";
 import createScheduleTable from "./schedule.model.js";

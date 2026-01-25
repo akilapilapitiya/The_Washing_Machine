@@ -1,0 +1,67 @@
+/feedback:
+  post:
+    tags:
+      - Feedback
+    summary: Create new feedback
+    description: Allows a customer to submit feedback for a completed booking.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - feedbackcomment
+              - feedbackrating
+              - bookingid
+            properties:
+              feedbackcomment:
+                type: string
+                example: "Excellent service!"
+              feedbackrating:
+                type: integer
+                example: 5
+              bookingid:
+                type: integer
+                example: 101
+    responses:
+      "201":
+        $ref: "#/components/responses/Created"
+      "400":
+        $ref: "#/components/responses/BadRequest"
+      "401":
+        $ref: "#/components/responses/Unauthorized"
+
+/feedback/my:
+  get:
+    tags:
+      - Feedback
+    summary: Get my feedbacks
+    description: Retrieves all feedbacks submitted by the logged-in customer.
+    security:
+      - BearerAuth: []
+    responses:
+      "200":
+        description: List of feedbacks retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: "Feedbacks retrieved successfully"
+                data:
+                  type: object
+                  properties:
+                    feedbacks:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Feedback"
+      "401":
+        $ref: "#/components/responses/Unauthorized"
