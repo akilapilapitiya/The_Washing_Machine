@@ -21,6 +21,8 @@ import paymentRouter from "./src/routes/payment.route.js";
 import serviceRouter from "./src/routes/service.routes.js";
 import testRouter from "./src/routes/test.route.js";
 import vehicleRouter from "./src/routes/vehicle.route.js";
+import leaveRouter from "./src/routes/employeeLeave.route.js";
+import scheduleRouter from "./src/routes/schedule.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -58,6 +60,8 @@ const createApp = () => {
   app.use("/api/customer", customerRouter);
   app.use("/api/payment", paymentRouter);
   app.use("/api/feedback", feedbackRouter);
+  app.use("/api/leave", leaveRouter);
+  app.use("/api/schedule", scheduleRouter);
 
   // Error handling Middleware
   app.use(errorHandling);

@@ -86,6 +86,12 @@ const Sidebar = () => {
       label: "Employees",
       roles: ["owner"],
     },
+    {
+      to: "/dashboard/admin/attendance",
+      icon: Calendar,
+      label: "Attendance",
+      roles: ["owner"],
+    },
   ];
 
   const filteredEmployeeLinks = employeeLinks.filter((link) => {

@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
+import * as schedulerService from "@/services/scheduler.service";
 
 // Generate time slots between 9 AM and 4 PM
 const generateTimeSlots = () => {
@@ -25,34 +26,103 @@ const generateTimeSlots = () => {
 
 const timeSlots = generateTimeSlots();
 
-// Mock availability data - in real app, this would come from API based on employee and date
-const mockAvailability = {
-  any: {}, // Any employee is always available
-  1: { "2025-12-31": ["09:00", "10:00", "13:00", "14:00", "15:00"] },
-  2: { "2025-12-31": ["09:00", "11:00", "12:00", "14:00", "16:00"] },
-  3: { "2025-12-31": ["10:00", "11:00", "12:00", "13:00", "15:00"] },
-  4: { "2025-12-31": ["09:00", "10:00", "11:00", "14:00", "16:00"] },
-};
-
 const DateTimeSelectionPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState(null);
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [error, setError] = useState(null);
 
-  const { vehicleId, serviceIds, locationId, employeeId } =
+  const { vehicleId, serviceIds, locationId, coords, employeeId } =
     location.state || {};
 
   // Get today's date in YYYY-MM-DD format for min date
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (selectedDate) {
-      // For now, make all slots available as requested
-      setAvailableSlots(timeSlots.map((slot) => slot.value));
+    if (employeeId && employeeId !== "any") {
+      fetchBlockedDates();
     }
-  }, [selectedDate]);
+  }, [employeeId]);
+
+  const fetchBlockedDates = async () => {
+    try {
+      const dates = await schedulerService.getBlockedDates(employeeId);
+      // Handle both array responses and empty responses
+      if (Array.isArray(dates) && dates.length > 0) {
+        setBlockedDates(
+          dates.map((d) => new Date(d).toISOString().split("T")[0]),
+        );
+      } else {
+        setBlockedDates([]);
+      }
+    } catch (err) {
+      // Only log actual errors, not empty responses
+      console.error("Failed to sync operative calendar:", err.message);
+      setBlockedDates([]);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDate) {
+      if (blockedDates.includes(selectedDate)) {
+        setError(
+          "This operative is offline on the selected date. Please choose another date.",
+        );
+        setAvailableSlots([]);
+        return;
+      }
+      setError(null);
+      fetchDaySchedule();
+    }
+  }, [selectedDate, blockedDates]);
+
+  const fetchDaySchedule = async () => {
+    if (!employeeId || employeeId === "any") {
+      setAvailableSlots(timeSlots.map((s) => s.value));
+      return;
+    }
+
+    try {
+      setLoadingAvailability(true);
+      const schedule = await schedulerService.getDaySchedule(
+        employeeId,
+        selectedDate,
+      );
+
+      // Defensive: ensure schedule is an array
+      const scheduleArray = Array.isArray(schedule) ? schedule : [];
+
+      // Filter slots
+      // A slot is available if it doesn't overlap with any schedule entry
+      const filtered = timeSlots.filter((slot) => {
+        const slotStart = slot.value;
+        // Assume 1 hour default duration for checking overlap in basic phase
+        const [h, m] = slotStart.split(":").map(Number);
+        const slotEnd = `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
+
+        const isOverlapping = scheduleArray.some((entry) => {
+          // NOT (s.scheduleendtime <= $3::time OR s.schedulestarttime >= $4::time)
+          return !(
+            entry.scheduleendtime <= slotStart ||
+            entry.schedulestarttime >= slotEnd
+          );
+        });
+
+        return !isOverlapping;
+      });
+
+      setAvailableSlots(filtered.map((s) => s.value));
+    } catch (err) {
+      console.error("Schedule fetch failed:", err.message);
+      setError("Strategic error. Could not retrieve real-time availability.");
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
 
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
@@ -66,6 +136,7 @@ const DateTimeSelectionPage = () => {
         vehicleId,
         serviceIds,
         locationId,
+        coords,
         employeeId,
         date: selectedDate,
         time: selectedTime,
@@ -116,21 +187,39 @@ const DateTimeSelectionPage = () => {
                     min={today}
                     value={selectedDate}
                     onChange={handleDateChange}
-                    className="pl-4 h-12 border-2 border-gray-100 focus:border-red-600 focus:ring-0 rounded-lg font-mono font-medium"
+                    className={cn(
+                      "pl-4 h-12 border-2 focus:border-red-600 focus:ring-0 rounded-lg font-mono font-medium",
+                      error
+                        ? "border-red-200 bg-red-50"
+                        : "border-gray-100 bg-white",
+                    )}
                   />
                 </div>
+                {error && (
+                  <div className="flex items-center gap-2 text-red-600 mt-2">
+                    <AlertCircle size={14} />
+                    <p className="text-xs font-bold uppercase tracking-tight">
+                      {error}
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Time Selection */}
-          {selectedDate && (
+          {selectedDate && !error && (
             <Card className="border-2 border-transparent shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                  <Clock size={24} className="text-red-600" />
-                  Select Time
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
+                    <Clock size={24} className="text-red-600" />
+                    Select Time
+                  </CardTitle>
+                  {loadingAvailability && (
+                    <Loader2 className="animate-spin text-red-600 h-5 w-5" />
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
@@ -141,7 +230,7 @@ const DateTimeSelectionPage = () => {
                         key={slot.value}
                         type="button"
                         onClick={() => available && setSelectedTime(slot.value)}
-                        disabled={!available}
+                        disabled={!available || loadingAvailability}
                         className={cn(
                           "px-4 py-4 rounded-xl border-2 text-xs font-bold tracking-tight transition-all duration-200",
                           selectedTime === slot.value
@@ -156,10 +245,11 @@ const DateTimeSelectionPage = () => {
                     );
                   })}
                 </div>
-                {availableSlots.length === 0 && (
+                {!loadingAvailability && availableSlots.length === 0 && (
                   <div className="flex items-center gap-2 text-red-600 mt-6 bg-red-50 p-4 rounded-lg border border-red-100">
                     <p className="text-sm font-bold uppercase tracking-tight">
-                      No matching slots available for this date.
+                      No matching slots available for this operative on the
+                      selected date.
                     </p>
                   </div>
                 )}
@@ -178,7 +268,7 @@ const DateTimeSelectionPage = () => {
           </Button>
           <Button
             onClick={handleContinue}
-            disabled={!selectedDate || !selectedTime}
+            disabled={!selectedDate || !selectedTime || !!error}
             className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
           >
             Continue

@@ -31,6 +31,7 @@ import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
 import ManageServicesPage from "./features/admin/ManageServicesPage";
 import ManageCustomersPage from "./features/admin/ManageCustomersPage";
 import ViewFeedbackPage from "./features/admin/ViewFeedbackPage";
+import LeaveManagementPage from "./features/admin/LeaveManagementPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
@@ -200,6 +201,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <EmployeeManagementPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/attendance"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <LeaveManagementPage />
                 </EmployeeProtectedRoute>
               }
             />
