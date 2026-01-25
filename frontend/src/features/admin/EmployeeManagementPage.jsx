@@ -123,7 +123,10 @@ const EmployeeManagementPage = () => {
     try {
       setSubmitting(true);
       setError(null);
-      await employeeService.addEmployee(newEmployee);
+      await employeeService.addEmployee({
+        ...newEmployee,
+        password: "Employee@123",
+      });
 
       await fetchEmployees();
       setNewEmployee({

@@ -11,6 +11,7 @@ import createServiceTable from "./service.model.js";
 import createServicesBookedTable from "./servicesBooked.model.js";
 import createVehicleTable from "./vehicle.model.js";
 import createRoleTable from "./role.model.js";
+import createNotificationTable from "./notification.model.js";
 
 const initModels = async (pool) => {
   try {
@@ -30,6 +31,7 @@ const initModels = async (pool) => {
     await createServicesBookedTable(pool);
     await createEmployeePreferenceTable(pool);
     await createEmployeeAssignedTable(pool);
+    await createNotificationTable(pool);
 
     console.log("✓ All database tables created successfully");
   } catch (error) {

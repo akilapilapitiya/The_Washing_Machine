@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from "../utils/errors.util.js";
 import * as scheduleService from "./schedule.service.js";
+import { createNotificationService } from "./notification.service.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -37,7 +38,9 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         v.vehplate,
         json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename, 'servicePrice', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
         ea.empid as assigned_empid,
-        e.empname as assigned_empname
+        e.empname as assigned_empname,
+        ep.empid as preferred_empid,
+        pe.empname as preferred_empname
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
@@ -45,6 +48,8 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       LEFT JOIN customer c ON v.cusid = c.cusid
       LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
       LEFT JOIN employee e ON ea.empid = e.empid
+      LEFT JOIN employeepreference ep ON b.bookingid = ep.bookingid
+      LEFT JOIN employee pe ON ep.empid = pe.empid
     `;
 
     let queryParams = [];
@@ -81,7 +86,9 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       v.vehplate,
       v.id,
       ea.empid,
-      e.empname
+      e.empname,
+      ep.empid,
+      pe.empname
       ORDER BY b.bookingdate DESC, b.bookingstarttime DESC`;
 
     const result = await client.query(query, queryParams);
@@ -304,7 +311,14 @@ export const createBookingService = async ({
       );
     }
 
-    // 6. Assign Staff
+    // 6. Assign Staff and Record Preference
+    if (employeeId && employeeId !== "any") {
+      await client.query(
+        "INSERT INTO employeepreference (bookingid, empid) VALUES ($1, $2)",
+        [bookingId, employeeId],
+      );
+    }
+
     await client.query(
       "INSERT INTO employeeassigned (bookingid, empid) VALUES ($1, $2)",
       [bookingId, assignedEmpId],
@@ -341,7 +355,13 @@ export const updateBookingService = async (
   userEmptype,
 ) => {
   const { status, date, startTime, services } = updates;
-  assertAtLeastOneField(updates, ["status", "date", "startTime", "services"]);
+  assertAtLeastOneField(updates, [
+    "status",
+    "date",
+    "startTime",
+    "services",
+    "employeeId",
+  ]);
 
   const client = await pool.connect();
 
@@ -363,8 +383,67 @@ export const updateBookingService = async (
       throw new ForbiddenError("Unauthorized update");
     }
 
+    const { status, date, startTime, services, employeeId } = updates;
+
+    // Status Change Notifications
+    if (status === "cancelled" && current.bookingstatus !== "cancelled") {
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Booking Cancelled",
+        message: `Your booking (ID: ${bookingId}) has been cancelled.`,
+        type: "warning",
+        bookingId: bookingId,
+      });
+    }
+
+    // Status Change: Completed
+    if (status === "completed" && current.bookingstatus !== "completed") {
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Service Completed",
+        message: `Your service (ID: ${bookingId}) is complete. We value your feedback!`,
+        type: "success",
+        bookingId: bookingId,
+      });
+    }
+
     const newDate = date || current.bookingdate;
     const newStartTime = startTime || current.bookingstarttime;
+
+    // Check Employee Reassignment
+    let finalEmpId = current.current_empid;
+    if (employeeId && employeeId !== current.current_empid) {
+      // Validate new employee availability (simplified check)
+      const check = await client.query(
+        "SELECT empname FROM employee WHERE empid = $1",
+        [employeeId],
+      );
+      if (check.rowCount === 0) throw new NotFoundError("Employee not found");
+
+      const empName = check.rows[0].empname;
+      finalEmpId = employeeId;
+
+      await client.query("DELETE FROM employeeassigned WHERE bookingid = $1", [
+        bookingId,
+      ]);
+      await client.query(
+        "INSERT INTO employeeassigned (bookingid, empid) VALUES ($1, $2)",
+        [bookingId, employeeId],
+      );
+
+      // Reassignment Notification
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Employee Reassigned",
+        message: `Your booking (ID: ${bookingId}) has been reassigned to ${empName}.`,
+        type: "info",
+        bookingId: bookingId,
+      });
+    }
+
     let newServices = services;
     if (!newServices) {
       const srvRes = await client.query(

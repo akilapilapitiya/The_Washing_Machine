@@ -26,6 +26,7 @@ import scheduleRouter from "./src/routes/schedule.route.js";
 import catalogRouter from "./src/routes/vehicleCatalog.route.js";
 import incidentRouter from "./src/routes/incident.route.js";
 import reportRouter from "./src/routes/report.route.js";
+import notificationRouter from "./src/routes/notification.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -68,6 +69,7 @@ const createApp = () => {
   app.use("/api/vehicle-catalog", catalogRouter);
   app.use("/api/incident", incidentRouter);
   app.use("/api/report", reportRouter);
+  app.use("/api/notification", notificationRouter);
 
   // Error handling Middleware
   app.use(errorHandling);

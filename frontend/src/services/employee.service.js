@@ -1,44 +1,28 @@
 import api from "@/lib/api";
 
-/**
- * Get all employees
- */
-export const getEmployees = async () => {
+export const getAvailableEmployees = async (date, startTime, endTime) => {
+  const params = new URLSearchParams({ date, startTime, endTime });
+  const response = await api.get(`/employee/available?${params.toString()}`);
+  return response.data?.data?.employees || [];
+};
+
+export const getAllEmployees = async () => {
   const response = await api.get("/employee");
   return response.data?.data?.employees || [];
 };
 
-/**
- * Register a new employee (Owner only)
- */
-export const addEmployee = async (employeeData) => {
-  const response = await api.post("/authemployee/signup", {
-    ...employeeData,
-    password: "Employee@123", // Standard default password
-  });
+export const getEmployees = getAllEmployees;
+
+export const addEmployee = async (data) => {
+  const response = await api.post("/authemployee/signup", data);
   return response.data;
 };
 
-/**
- * Delete an employee
- */
+export const updateEmployee = async (id, data) => {
+  const response = await api.put(`/employee/${id}`, data);
+  return response.data;
+};
+
 export const deleteEmployee = async (id) => {
-  const response = await api.delete(`/employee/${id}`);
-  return response.data;
-};
-
-/**
- * Update employee details (Promote etc)
- */
-export const updateEmployee = async (id, updates) => {
-  const response = await api.put(`/employee/${id}`, updates);
-  return response.data;
-};
-
-/**
- * Get all available roles
- */
-export const getRoles = async () => {
-  const response = await api.get("/authemployee/roles");
-  return response.data;
+  await api.delete(`/employee/${id}`);
 };

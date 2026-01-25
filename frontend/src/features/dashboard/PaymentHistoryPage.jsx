@@ -7,10 +7,11 @@ import {
   CheckCircle,
   DollarSign,
   Loader2,
-  AlertCircle,
   Hash,
+  Download,
 } from "lucide-react";
 import { getMyPayments } from "@/services/payment.service";
+import { printReceipt } from "@/utils/receipt";
 import { COLORS } from "@/lib/colors";
 
 const PaymentHistoryCard = ({ payment }) => {
@@ -82,13 +83,23 @@ const PaymentHistoryCard = ({ payment }) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 bg-gray-50/50 -mx-6 px-6 -mb-6 py-4 rounded-b-lg">
+        <div className="flex items-center justify-between pt-4 bg-gray-50/50 -mx-6 px-6 -mb-6 py-4 rounded-b-lg custom-print-hide">
           <span className="text-sm font-semibold text-gray-500">
             Amount Released
           </span>
           <span className={`text-lg font-bold ${COLORS.text.brand}`}>
             Rs. {Number(payment.paymentamount).toLocaleString()}
           </span>
+        </div>
+
+        <div className="pt-4 mt-2 border-t border-dashed border-gray-100">
+          <button
+            onClick={() => printReceipt(payment)}
+            className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <Download size={14} />
+            Download Receipt
+          </button>
         </div>
       </CardContent>
     </Card>

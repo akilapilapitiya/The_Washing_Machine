@@ -17,6 +17,7 @@ import {
   Umbrella,
   ShieldAlert,
   BarChart3,
+  ListChecks,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -59,6 +60,12 @@ const Sidebar = () => {
       icon: Wrench,
       label: "Service Queue",
       roles: ["owner", "cashier", "employee"],
+    },
+    {
+      to: "/dashboard/admin/bookings",
+      icon: ListChecks,
+      label: "Review Bookings",
+      roles: ["owner", "cashier"],
     },
     {
       to: "/dashboard/employee/incidents",

@@ -10,9 +10,11 @@ import {
   Plus,
   Loader2,
   AlertCircle,
+  Download,
 } from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { getAllPayments, createPayment } from "@/services/payment.service";
+import { printReceipt } from "@/utils/receipt";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -133,6 +135,19 @@ const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
               Payment Method
             </p>
             <p className="text-sm font-medium capitalize">{item.paymenttype}</p>
+          </div>
+        )}
+
+        {isPayment && (
+          <div className="pt-2 mt-2 border-t border-gray-100">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2 border-dashed"
+              onClick={() => printReceipt(item)}
+            >
+              <Download size={14} /> Print Receipt
+            </Button>
           </div>
         )}
 
