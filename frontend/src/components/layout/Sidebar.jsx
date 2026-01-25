@@ -123,7 +123,6 @@ const Sidebar = () => {
 
   const filteredEmployeeLinks = employeeLinks.filter((link) => {
     if (!link.roles) return true; // Default to public for employees (e.g. Overview)
-    if (emptype === "owner") return true; // Owner has access to everything
     return link.roles.includes(emptype);
   });
 
