@@ -23,6 +23,7 @@ import testRouter from "./src/routes/test.route.js";
 import vehicleRouter from "./src/routes/vehicle.route.js";
 import leaveRouter from "./src/routes/employeeLeave.route.js";
 import scheduleRouter from "./src/routes/schedule.route.js";
+import catalogRouter from "./src/routes/vehicleCatalog.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -62,6 +63,7 @@ const createApp = () => {
   app.use("/api/feedback", feedbackRouter);
   app.use("/api/leave", leaveRouter);
   app.use("/api/schedule", scheduleRouter);
+  app.use("/api/vehicle-catalog", catalogRouter);
 
   // Error handling Middleware
   app.use(errorHandling);

@@ -33,6 +33,7 @@ import ManageCustomersPage from "./features/admin/ManageCustomersPage";
 import ViewFeedbackPage from "./features/admin/ViewFeedbackPage";
 import LeaveManagementPage from "./features/admin/LeaveManagementPage";
 import MyLeavesPage from "./features/employee/MyLeavesPage";
+import ManageVehicleCatalogPage from "./features/admin/ManageVehicleCatalogPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
@@ -244,6 +245,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ViewFeedbackPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/vehicle-catalog"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <ManageVehicleCatalogPage />
                 </EmployeeProtectedRoute>
               }
             />

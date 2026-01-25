@@ -14,15 +14,19 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as vehicleService from "@/services/vehicle.service";
+import * as catalogService from "@/services/vehicleCatalog.service";
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
+  const [catalog, setCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState(null);
+
+  // Form State
   const [newVehicle, setNewVehicle] = useState({
     vehbrand: "",
     vehmodel: "",
@@ -30,29 +34,71 @@ const VehiclesPage = () => {
     vehplate: "",
   });
 
-  // Fetch vehicles on mount
+  // "Other" mode flags
+  const [isManualBrand, setIsManualBrand] = useState(false);
+  const [isManualModel, setIsManualModel] = useState(false);
+
+  // Fetch data on mount
   useEffect(() => {
-    fetchVehicles();
+    const initData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [vehRes, catRes] = await Promise.all([
+          vehicleService.getVehicles(),
+          catalogService.getCatalog().catch(() => ({ data: [] })), // Fail gracefully if catalog fails
+        ]);
+
+        setVehicles(vehRes || []);
+        // catRes might be { data: [...] } or just [...] depend on service
+        setCatalog(catRes.data || catRes || []);
+      } catch (err) {
+        console.error("Failed to load data:", err);
+        setError("Failed to load garage data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    initData();
   }, []);
 
-  const fetchVehicles = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const vehicleData = await vehicleService.getVehicles();
-      // vehicleData is already response.data?.data?.vehicles from service
-      setVehicles(vehicleData || []);
-    } catch (err) {
-      console.error("Failed to fetch vehicles:", err);
-      setError(err.message || "Failed to load vehicles. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Derived state for dropdowns
+  const availableBrands = [
+    ...new Set(catalog.map((item) => item.brand)),
+  ].sort();
+  const availableModels = catalog
+    .filter((item) => item.brand === newVehicle.vehbrand)
+    .map((item) => item.model)
+    .sort();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewVehicle((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleBrandChange = (e) => {
+    const value = e.target.value;
+    if (value === "OTHER_MANUAL") {
+      setIsManualBrand(true);
+      setNewVehicle((prev) => ({ ...prev, vehbrand: "", vehmodel: "" }));
+      setIsManualModel(true); // If brand is manual, model must be too
+    } else {
+      setIsManualBrand(false);
+      setIsManualModel(false);
+      setNewVehicle((prev) => ({ ...prev, vehbrand: value, vehmodel: "" }));
+    }
+  };
+
+  const handleModelChange = (e) => {
+    const value = e.target.value;
+    if (value === "OTHER_MANUAL") {
+      setIsManualModel(true);
+      setNewVehicle((prev) => ({ ...prev, vehmodel: "" }));
+    } else {
+      setIsManualModel(false);
+      setNewVehicle((prev) => ({ ...prev, vehmodel: value }));
+    }
   };
 
   const handleAddVehicle = async (e) => {
@@ -71,8 +117,9 @@ const VehiclesPage = () => {
 
       await vehicleService.createVehicle(vehicleData);
 
-      // Refresh the list
-      await fetchVehicles();
+      // Refresh list
+      const updatedList = await vehicleService.getVehicles();
+      setVehicles(updatedList || []);
 
       // Reset form
       setNewVehicle({
@@ -81,6 +128,8 @@ const VehiclesPage = () => {
         vehmileage: "",
         vehplate: "",
       });
+      setIsManualBrand(false);
+      setIsManualModel(false);
       setShowAddForm(false);
     } catch (err) {
       console.error("Failed to create vehicle:", err);
@@ -101,7 +150,8 @@ const VehiclesPage = () => {
     try {
       setError(null);
       await vehicleService.deleteVehicle(vehicleToDelete.id);
-      await fetchVehicles();
+      const updatedList = await vehicleService.getVehicles();
+      setVehicles(updatedList || []);
       setShowDeleteConfirm(false);
       setVehicleToDelete(null);
     } catch (err) {
@@ -110,11 +160,6 @@ const VehiclesPage = () => {
       setShowDeleteConfirm(false);
       setVehicleToDelete(null);
     }
-  };
-
-  const handleDeleteCancel = () => {
-    setShowDeleteConfirm(false);
-    setVehicleToDelete(null);
   };
 
   return (
@@ -186,6 +231,7 @@ const VehiclesPage = () => {
               <CardContent className="p-6">
                 <form onSubmit={handleAddVehicle} className="space-y-6">
                   <div className="grid gap-4 md:grid-cols-2">
+                    {/* Brand Selection */}
                     <div className="space-y-2">
                       <Label
                         htmlFor="vehbrand"
@@ -193,17 +239,58 @@ const VehiclesPage = () => {
                       >
                         Brand Name *
                       </Label>
-                      <Input
-                        id="vehbrand"
-                        name="vehbrand"
-                        value={newVehicle.vehbrand}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Toyota"
-                        className="focus:ring-red-500"
-                        required
-                        disabled={submitting}
-                      />
+                      {!isManualBrand ? (
+                        <select
+                          id="vehbrand"
+                          className="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                          value={newVehicle.vehbrand}
+                          onChange={handleBrandChange}
+                          required
+                          disabled={submitting}
+                        >
+                          <option value="">Select Brand</option>
+                          {availableBrands.map((brand) => (
+                            <option key={brand} value={brand}>
+                              {brand}
+                            </option>
+                          ))}
+                          <option
+                            value="OTHER_MANUAL"
+                            className="font-bold text-red-600"
+                          >
+                            + Other / Not Listed
+                          </option>
+                        </select>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                            name="vehbrand"
+                            value={newVehicle.vehbrand}
+                            onChange={handleInputChange}
+                            placeholder="Enter custom brand"
+                            className="focus:ring-red-500"
+                            required
+                            disabled={submitting}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setIsManualBrand(false);
+                              setNewVehicle((prev) => ({
+                                ...prev,
+                                vehbrand: "",
+                              }));
+                            }}
+                            title="Back to list"
+                          >
+                            <X size={16} />
+                          </Button>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Model Selection */}
                     <div className="space-y-2">
                       <Label
                         htmlFor="vehmodel"
@@ -211,17 +298,59 @@ const VehiclesPage = () => {
                       >
                         Model *
                       </Label>
-                      <Input
-                        id="vehmodel"
-                        name="vehmodel"
-                        value={newVehicle.vehmodel}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Corolla"
-                        className="focus:ring-red-500"
-                        required
-                        disabled={submitting}
-                      />
+                      {!isManualModel && !isManualBrand ? (
+                        <select
+                          id="vehmodel"
+                          className="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                          value={newVehicle.vehmodel}
+                          onChange={handleModelChange}
+                          required
+                          disabled={submitting || !newVehicle.vehbrand}
+                        >
+                          <option value="">Select Model</option>
+                          {availableModels.map((model) => (
+                            <option key={model} value={model}>
+                              {model}
+                            </option>
+                          ))}
+                          <option
+                            value="OTHER_MANUAL"
+                            className="font-bold text-red-600"
+                          >
+                            + Other / Not Listed
+                          </option>
+                        </select>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                            name="vehmodel"
+                            value={newVehicle.vehmodel}
+                            onChange={handleInputChange}
+                            placeholder="Enter custom model"
+                            className="focus:ring-red-500"
+                            required
+                            disabled={submitting}
+                          />
+                          {!isManualBrand && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setIsManualModel(false);
+                                setNewVehicle((prev) => ({
+                                  ...prev,
+                                  vehmodel: "",
+                                }));
+                              }}
+                              title="Back to list"
+                            >
+                              <X size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
+
                     <div className="space-y-2">
                       <Label
                         htmlFor="vehplate"
@@ -382,7 +511,10 @@ const VehiclesPage = () => {
                   </p>
                 </div>
                 <div className="flex gap-3 justify-center">
-                  <Button variant="outline" onClick={handleDeleteCancel}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
                     Cancel
                   </Button>
                   <Button

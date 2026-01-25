@@ -12,6 +12,7 @@ import {
   Users,
   Wrench,
   Settings,
+  Database,
   LogOut,
   Umbrella,
 } from "lucide-react";
@@ -73,6 +74,12 @@ const Sidebar = () => {
       to: "/dashboard/admin/services",
       icon: Settings,
       label: "Services",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/vehicle-catalog",
+      icon: Database,
+      label: "Vehicle Catalog",
       roles: ["owner"],
     },
     {
