@@ -84,3 +84,18 @@ export const getAllLeaves = async () => {
   );
   return result.rows;
 };
+
+/**
+ * Get leaves for a specific employee
+ */
+export const getLeavesByEmployee = async (empid) => {
+  const result = await pool.query(
+    `SELECT el.*, e.empname 
+     FROM employeeleave el
+     JOIN employee e ON el.empid = e.empid
+     WHERE el.empid = $1
+     ORDER BY el.leavestartdate DESC`,
+    [empid],
+  );
+  return result.rows;
+};

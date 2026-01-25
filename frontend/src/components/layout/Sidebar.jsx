@@ -13,6 +13,7 @@ import {
   Wrench,
   Settings,
   LogOut,
+  Umbrella,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -54,6 +55,12 @@ const Sidebar = () => {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
       label: "Service Queue",
+      roles: ["owner", "cashier", "employee"],
+    },
+    {
+      to: "/dashboard/employee/leaves",
+      icon: Umbrella,
+      label: "My Leaves",
       roles: ["owner", "cashier", "employee"],
     },
     {

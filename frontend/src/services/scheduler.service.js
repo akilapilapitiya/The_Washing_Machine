@@ -33,3 +33,11 @@ export const recordLeave = async (leaveData) => {
   const response = await api.post("/leave", leaveData);
   return response.data.data;
 };
+
+/**
+ * Fetch my leaves (Employee)
+ */
+export const getMyLeaves = async () => {
+  const response = await api.get("/leave/my-leaves");
+  return response.data.data;
+};
