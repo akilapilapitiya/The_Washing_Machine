@@ -17,8 +17,8 @@ export const addToCatalog = async (req, res, next) => {
   try {
     const { brand, model } = req.body;
 
-    if (!brand || !model) {
-      throw new ValidationError("Brand and model are required");
+    if (!brand) {
+      throw new ValidationError("Brand is required");
     }
 
     try {
