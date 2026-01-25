@@ -28,6 +28,8 @@ tags:
     description: Vehicle management endpoints
   - name: Service
     description: Service management endpoints
+  - name: Feedback
+    description: Customer feedback endpoints
 paths: {} # empty, will be dynamically merged from paths/*.yaml
 
 components:
