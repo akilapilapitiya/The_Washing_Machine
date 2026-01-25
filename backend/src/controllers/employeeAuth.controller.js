@@ -3,6 +3,8 @@ import {
   signUp,
   signIn,
   resetPassword,
+  getEmployeeById,
+  getAllRoles,
 } from "../services/employeeAuth.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -47,6 +49,8 @@ export const employeeSignIn = async (req, res, next) => {
       empname: employee.empname,
       email: employee.email,
       emptel: employee.emptel,
+      role: employee.role,
+      emptype: employee.emptype,
     };
 
     res.cookie("jwt", token, {
@@ -81,6 +85,33 @@ export const passwordReset = async (req, res, next) => {
     const result = await resetPassword({ email, newPassword });
 
     successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const employeeGetMe = async (req, res, next) => {
+  try {
+    const employee = await getEmployeeById(req.user.id);
+
+    // Normalize properties for frontend
+    const data = {
+      ...employee,
+      role: employee.rolename,
+      emptype: employee.rolename,
+      isAdmin: employee.is_admin, // Definitve admin flag
+    };
+
+    successResponse(res, 200, "Employee retrieved successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const employeeGetAllRoles = async (req, res, next) => {
+  try {
+    const roles = await getAllRoles();
+    successResponse(res, 200, "Roles retrieved successfully", roles);
   } catch (error) {
     next(error);
   }

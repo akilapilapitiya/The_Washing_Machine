@@ -24,12 +24,13 @@ import ServiceHistoryPage from "./features/dashboard/ServiceHistoryPage";
 import PaymentHistoryPage from "./features/dashboard/PaymentHistoryPage";
 import Feedback from "./pages/Feedback";
 import ChangePasswordPage from "./features/auth/ChangePasswordPage";
-import AssignedServicesPage from "./features/employee/AssignedServicesPage";
+import AllBookingsPage from "./features/admin/AllBookingsPage";
 import ServiceDetailsPage from "./features/employee/ServiceDetailsPage";
 import PaymentManagementPage from "./features/employee/PaymentManagementPage";
 import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
 import ManageServicesPage from "./features/admin/ManageServicesPage";
 import ManageCustomersPage from "./features/admin/ManageCustomersPage";
+import ViewFeedbackPage from "./features/admin/ViewFeedbackPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
@@ -167,15 +168,19 @@ const App = () => {
             <Route
               path="employee/assigned"
               element={
-                <EmployeeProtectedRoute>
-                  <AssignedServicesPage />
+                <EmployeeProtectedRoute
+                  allowedRoles={["owner", "employee", "cashier"]}
+                >
+                  <AllBookingsPage />
                 </EmployeeProtectedRoute>
               }
             />
             <Route
               path="employee/service/:id"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute
+                  allowedRoles={["owner", "employee", "cashier"]}
+                >
                   <ServiceDetailsPage />
                 </EmployeeProtectedRoute>
               }
@@ -183,7 +188,7 @@ const App = () => {
             <Route
               path="employee/payments"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <PaymentManagementPage />
                 </EmployeeProtectedRoute>
               }
@@ -193,7 +198,7 @@ const App = () => {
             <Route
               path="admin/employees"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <EmployeeManagementPage />
                 </EmployeeProtectedRoute>
               }
@@ -201,7 +206,7 @@ const App = () => {
             <Route
               path="admin/services"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ManageServicesPage />
                 </EmployeeProtectedRoute>
               }
@@ -209,8 +214,16 @@ const App = () => {
             <Route
               path="admin/customers"
               element={
-                <EmployeeProtectedRoute>
+                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <ManageCustomersPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/feedback"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <ViewFeedbackPage />
                 </EmployeeProtectedRoute>
               }
             />

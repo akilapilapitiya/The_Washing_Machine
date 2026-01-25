@@ -10,7 +10,7 @@ import {
   Edit,
   X,
   CheckCircle,
-  DollarSign,
+  Banknote,
   Clock,
   AlertCircle,
   Loader2,
@@ -243,7 +243,7 @@ const ManageServicesPage = () => {
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <DollarSign size={16} className="text-green-600" />
+                      <Banknote size={16} className="text-green-600" />
                       <span className="font-semibold text-green-600">
                         Rs. {service.serviceprice}
                       </span>

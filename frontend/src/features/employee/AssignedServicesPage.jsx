@@ -131,7 +131,7 @@ const AssignedServicesPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await bookingService.getAllBookings();
+      const data = await bookingService.getBookings();
       setServices(data || []);
     } catch (err) {
       console.error("Failed to fetch assigned services:", err);

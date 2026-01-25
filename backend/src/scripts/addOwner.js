@@ -18,7 +18,7 @@ async function addOwner() {
     // Check if owner already exists
     const existing = await pool.query(
       "SELECT empid FROM employee WHERE email = $1",
-      [ownerData.email]
+      [ownerData.email],
     );
 
     if (existing.rowCount > 0) {
@@ -31,14 +31,15 @@ async function addOwner() {
     // Hash password
     const passwordHash = await bcrypt.hash(
       ownerData.password,
-      Number(SALT_ROUNDS)
+      Number(SALT_ROUNDS),
     );
 
     // Insert owner
     const result = await pool.query(
-      `INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING empid, empname, email, emptype`,
+      `INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic, roleid)
+       VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = 'owner'))
+       RETURNING empid, empname, email, emptype, 
+         (SELECT rolename FROM role WHERE rolename = $5::VARCHAR) as rolename`,
       [
         ownerData.name,
         ownerData.email,
@@ -46,7 +47,7 @@ async function addOwner() {
         passwordHash,
         ownerData.type,
         ownerData.nic,
-      ]
+      ],
     );
 
     const owner = result.rows[0];

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ServiceCard = ({ service }) => {
   const formatPrice = (price) => {
-    return typeof price === "number" ? `$${price.toFixed(2)}` : price;
+    return typeof price === "number" ? `Rs. ${price.toFixed(2)}` : price;
   };
 
   const formatTime = (timeString) => {
@@ -22,8 +22,12 @@ const ServiceCard = ({ service }) => {
       <CardContent className="space-y-4">
         <p className="text-gray-600 line-clamp-2">{service.servicedetails}</p>
         <div className="flex items-center justify-between text-sm font-medium">
-          <span className="text-blue-600">Starting at {formatPrice(service.serviceprice)}</span>
-          <span className="text-gray-500">Approx. {formatTime(service.servicetime)}</span>
+          <span className="text-blue-600">
+            Starting at {formatPrice(service.serviceprice)}
+          </span>
+          <span className="text-gray-500">
+            Approx. {formatTime(service.servicetime)}
+          </span>
         </div>
       </CardContent>
     </Card>

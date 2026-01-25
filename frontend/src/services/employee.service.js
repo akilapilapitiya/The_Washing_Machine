@@ -34,3 +34,11 @@ export const updateEmployee = async (id, updates) => {
   const response = await api.put(`/employee/${id}`, updates);
   return response.data;
 };
+
+/**
+ * Get all available roles
+ */
+export const getRoles = async () => {
+  const response = await api.get("/authemployee/roles");
+  return response.data;
+};

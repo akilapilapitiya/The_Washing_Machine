@@ -71,3 +71,21 @@ export const employeeResetPassword = async (data) => {
   const response = await api.put("/authemployee/passwordreset", data);
   return response.data;
 };
+
+/**
+ * Get current employee profile
+ * @returns {Promise<Object>} - Employee profile and role
+ */
+export const getEmployeeMe = async () => {
+  const response = await api.get("/authemployee/me");
+  return response.data;
+};
+
+/**
+ * Get all available employee roles
+ * @returns {Promise<Object>} - List of roles
+ */
+export const getEmployeeRoles = async () => {
+  const response = await api.get("/authemployee/roles");
+  return response.data;
+};

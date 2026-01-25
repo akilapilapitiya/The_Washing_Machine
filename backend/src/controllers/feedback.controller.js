@@ -1,6 +1,7 @@
 import {
   createFeedbackService,
   getCustomerFeedbacksService,
+  getAllFeedbacksService,
 } from "../services/feedback.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -28,6 +29,17 @@ export const getMyFeedbacks = async (req, res, next) => {
     const feedbacks = await getCustomerFeedbacksService(customerId);
 
     successResponse(res, 200, "Feedbacks retrieved successfully", {
+      feedbacks,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const getAllFeedbacks = async (req, res, next) => {
+  try {
+    const feedbacks = await getAllFeedbacksService();
+
+    successResponse(res, 200, "All feedbacks retrieved successfully", {
       feedbacks,
     });
   } catch (error) {

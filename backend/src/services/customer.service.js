@@ -5,10 +5,20 @@ import { NotFoundError } from "../utils/errors.util.js";
 export const getAllCustomersService = async () => {
   const result = await pool.query(
     `
-		SELECT cusid, cusname, cusemail, custel, created_at, updated_at
-		FROM customer
-		ORDER BY created_at DESC
-		`
+    SELECT 
+      c.cusid, 
+      c.cusname, 
+      c.cusemail, 
+      c.custel, 
+      c.created_at, 
+      c.updated_at,
+      COUNT(b.bookingid)::int as totalbookings
+    FROM customer c
+    LEFT JOIN vehicle v ON c.cusid = v.cusid
+    LEFT JOIN booking b ON v.id = b.vehid
+    GROUP BY c.cusid
+    ORDER BY c.created_at DESC
+    `,
   );
   return result.rows;
 };
@@ -20,7 +30,7 @@ export const getCustomerService = async (cusid) => {
 		FROM customer
 		WHERE cusid = $1
 		`,
-    [cusid]
+    [cusid],
   );
 
   if (result.rowCount === 0) {
@@ -66,9 +76,9 @@ export const updateCustomerService = async (cusid, updates) => {
 
   const result = await pool.query(
     `UPDATE customer SET ${updateFields.join(
-      ", "
+      ", ",
     )} WHERE cusid = $${paramIndex} RETURNING cusid, cusname, cusemail, custel, created_at, updated_at`,
-    updateValues
+    updateValues,
   );
 
   if (result.rowCount === 0) {
