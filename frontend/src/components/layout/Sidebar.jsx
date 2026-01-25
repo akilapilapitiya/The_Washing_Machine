@@ -16,6 +16,7 @@ import {
   LogOut,
   Umbrella,
   ShieldAlert,
+  BarChart3,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -111,6 +112,12 @@ const Sidebar = () => {
       to: "/dashboard/admin/employees",
       icon: ShieldCheck,
       label: "Employees",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/reports/daily-income",
+      icon: BarChart3,
+      label: "Daily Income",
       roles: ["owner"],
     },
     {

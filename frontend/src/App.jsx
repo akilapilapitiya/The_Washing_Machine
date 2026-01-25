@@ -35,6 +35,7 @@ import LeaveManagementPage from "./features/admin/LeaveManagementPage";
 import MyLeavesPage from "./features/employee/MyLeavesPage";
 import ManageVehicleCatalogPage from "./features/admin/ManageVehicleCatalogPage";
 import ManageIncidentsPage from "./features/admin/ManageIncidentsPage";
+import DailyIncomeReportPage from "./features/admin/DailyIncomeReportPage";
 import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -271,6 +272,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ManageIncidentsPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/reports/daily-income"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <DailyIncomeReportPage />
                 </EmployeeProtectedRoute>
               }
             />
