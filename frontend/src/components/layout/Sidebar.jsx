@@ -15,6 +15,7 @@ import {
   Database,
   LogOut,
   Umbrella,
+  ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -59,6 +60,12 @@ const Sidebar = () => {
       roles: ["owner", "cashier", "employee"],
     },
     {
+      to: "/dashboard/employee/incidents",
+      icon: ShieldAlert,
+      label: "Report Incident",
+      roles: ["cashier", "employee"],
+    },
+    {
       to: "/dashboard/employee/leaves",
       icon: Umbrella,
       label: "My Leaves",
@@ -80,6 +87,12 @@ const Sidebar = () => {
       to: "/dashboard/admin/vehicle-catalog",
       icon: Database,
       label: "Vehicle Catalog",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/incidents",
+      icon: ShieldAlert,
+      label: "Incidents",
       roles: ["owner"],
     },
     {
