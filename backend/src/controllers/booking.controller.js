@@ -5,16 +5,17 @@ import {
   getAllBookingsService,
   getBookingService,
 } from "../services/booking.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const getAllBookings = async (req, res, next) => {
   try {
-    const bookings = await getAllBookingsService();
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    res.status(200).json({
-      status: "success",
-      message: "Bookings retrieved successfully",
-      bookings,
-    });
+    const bookings = await getAllBookingsService(userId, userRole, userEmptype);
+
+    successResponse(res, 200, "Bookings retrieved successfully", { bookings });
   } catch (error) {
     next(error);
   }
@@ -23,14 +24,13 @@ export const getAllBookings = async (req, res, next) => {
 export const getBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const booking = await getBookingService(id);
+    const booking = await getBookingService(id, userId, userRole, userEmptype);
 
-    res.status(200).json({
-      status: "success",
-      message: "Booking retrieved successfully",
-      booking,
-    });
+    successResponse(res, 200, "Booking retrieved successfully", { booking });
   } catch (error) {
     next(error);
   }
@@ -44,11 +44,11 @@ export const createBooking = async (req, res, next) => {
       status,
       date,
       startTime,
-      endTime,
       locationLatitude,
       locationLongitude,
       vehicleId,
       services, // array of service IDs
+      employeeId,
     } = req.body;
 
     const booking = await createBookingService({
@@ -56,19 +56,15 @@ export const createBooking = async (req, res, next) => {
       status,
       date,
       startTime,
-      endTime,
       locationLatitude,
       locationLongitude,
       vehicleId,
       services,
       userRole,
+      employeeId,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Booking created successfully",
-      booking,
-    });
+    successResponse(res, 201, "Booking created successfully", { booking });
   } catch (error) {
     next(error);
   }
@@ -78,14 +74,19 @@ export const updateBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updates = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    const booking = await updateBookingService(id, updates);
+    const booking = await updateBookingService(
+      id,
+      updates,
+      userId,
+      userRole,
+      userEmptype,
+    );
 
-    res.status(200).json({
-      status: "success",
-      message: "Booking updated successfully",
-      booking,
-    });
+    successResponse(res, 200, "Booking updated successfully", { booking });
   } catch (error) {
     next(error);
   }
@@ -94,13 +95,13 @@ export const updateBooking = async (req, res, next) => {
 export const deleteBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    await deleteBookingService(id);
+    await deleteBookingService(id, userId, userRole, userEmptype);
 
-    res.status(200).json({
-      status: "success",
-      message: "Booking deleted successfully",
-    });
+    successResponse(res, 200, "Booking deleted successfully");
   } catch (error) {
     next(error);
   }

@@ -1,4 +1,6 @@
 import pool from "../configs/database.js";
+import { assertAtLeastOneField } from "../utils/validation.util.js";
+import { NotFoundError } from "../utils/errors.util.js";
 
 export const getAllEmployeesService = async () => {
   const result = await pool.query(
@@ -22,23 +24,34 @@ export const getEmployeeService = async (empid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Employee not found");
+    throw new NotFoundError("Employee not found");
   }
 
   return result.rows[0];
 };
 
 export const updateEmployeeService = async (empid, updates) => {
-  const { empname, email, emptel, emptype, empnic } = updates;
+  // Map request body field names to database column names
+  const { name, email, telephone, type, nic, password } = updates;
+
+  // Service-layer guard: ensure at least one updatable field
+  assertAtLeastOneField(updates, [
+    "name",
+    "email",
+    "telephone",
+    "type",
+    "nic",
+    "password",
+  ]);
 
   // Build dynamic UPDATE query to only update provided fields
   const updateFields = [];
   const updateValues = [];
   let paramIndex = 1;
 
-  if (empname !== undefined) {
+  if (name !== undefined) {
     updateFields.push(`empname = $${paramIndex}`);
-    updateValues.push(empname);
+    updateValues.push(name);
     paramIndex++;
   }
 
@@ -48,31 +61,38 @@ export const updateEmployeeService = async (empid, updates) => {
     paramIndex++;
   }
 
-  if (emptel !== undefined) {
+  if (telephone !== undefined) {
     updateFields.push(`emptel = $${paramIndex}`);
-    updateValues.push(emptel);
+    updateValues.push(telephone);
     paramIndex++;
   }
 
-  if (emptype !== undefined) {
+  if (type !== undefined) {
     updateFields.push(`emptype = $${paramIndex}`);
-    updateValues.push(emptype);
+    updateValues.push(type);
     paramIndex++;
   }
 
-  if (empnic !== undefined) {
+  if (nic !== undefined) {
     updateFields.push(`empnic = $${paramIndex}`);
-    updateValues.push(empnic);
+    updateValues.push(nic);
+    paramIndex++;
+  }
+
+  if (password !== undefined) {
+    const bcrypt = await import("bcryptjs");
+    const { SALT_ROUNDS } = await import("../configs/env.js");
+    const passwordHash = await bcrypt.default.hash(
+      password,
+      Number(SALT_ROUNDS)
+    );
+    updateFields.push(`password_hash = $${paramIndex}`);
+    updateValues.push(passwordHash);
     paramIndex++;
   }
 
   // Always update updated_at
   updateFields.push(`updated_at = NOW()`);
-
-  if (updateFields.length === 1) {
-    // Only updated_at would be updated, nothing else provided
-    throw new Error("No fields provided for update");
-  }
 
   updateValues.push(empid);
 
@@ -84,7 +104,7 @@ export const updateEmployeeService = async (empid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Employee not found");
+    throw new NotFoundError("Employee not found");
   }
 
   return result.rows[0];
@@ -96,6 +116,6 @@ export const deleteEmployeeService = async (empid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Employee not found");
+    throw new NotFoundError("Employee not found");
   }
 };

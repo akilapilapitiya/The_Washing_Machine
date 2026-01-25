@@ -2,6 +2,12 @@ import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS } from "../configs/env.js";
 import { generateToken } from "../utils/generateToken.util.js";
+import {
+  AppError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "../utils/errors.util.js";
 
 // Signup function
 export const signUp = async ({
@@ -18,11 +24,11 @@ export const signUp = async ({
   );
 
   if (existing.rowCount > 0) {
-    throw new Error("Employee already exists");
+    throw new AppError("Employee already exists", 409);
   }
 
   if (password.length < 8) {
-    throw new Error("Password must be at least 8 characters");
+    throw new ValidationError("Password must be at least 8 characters");
   }
 
   const passwordHash = await bcrypt.hash(password, Number(SALT_ROUNDS));
@@ -37,7 +43,7 @@ export const signUp = async ({
   );
 
   const employee = result.rows[0];
-  const token = generateToken(employee.empid, "employee");
+  const token = generateToken(employee.empid, "employee", employee.emptype);
 
   return { employee, token };
 };
@@ -45,21 +51,55 @@ export const signUp = async ({
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT empid, empname, email, password_hash FROM employee WHERE email = $1",
+    "SELECT empid, empname, email, emptel, password_hash, emptype FROM employee WHERE email = $1",
     [email]
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Invalid email or password");
+    throw new UnauthorizedError("Invalid email or password");
   }
 
-  const employee = result.rows[0];
-  const isMatch = await bcrypt.compare(password, employee.password_hash);
+  const row = result.rows[0];
+  const isMatch = await bcrypt.compare(password, row.password_hash);
 
   if (!isMatch) {
-    throw new Error("Invalid email or password");
+    throw new UnauthorizedError("Invalid email or password");
   }
 
-  const token = generateToken(employee.empid, "employee");
+  const employee = { empid: row.empid, empname: row.empname, email: row.email, emptel: row.emptel };
+  const token = generateToken(row.empid, "employee", row.emptype);
   return { employee, token };
+};
+
+// Reset password
+export const resetPassword = async ({ email, newPassword }) => {
+  if (!email || !newPassword) {
+    throw new ValidationError("Email and new password are required");
+  }
+
+  if (newPassword.length < 8) {
+    throw new ValidationError("Password must be at least 8 characters");
+  }
+
+  const existing = await pool.query(
+    "SELECT empid FROM employee WHERE email = $1",
+    [email]
+  );
+
+  if (existing.rowCount === 0) {
+    throw new NotFoundError("Employee not found");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, Number(SALT_ROUNDS));
+
+  await pool.query(
+    `
+    UPDATE employee
+    SET password_hash = $1, updated_at = NOW()
+    WHERE email = $2
+    `,
+    [passwordHash, email]
+  );
+
+  return { message: "Password reset successful" };
 };

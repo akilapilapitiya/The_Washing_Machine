@@ -1,0 +1,185 @@
+SuccessResponse:
+  type: object
+  required:
+    - success
+    - message
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Operation completed successfully"
+    data:
+      type: object
+      description: Payload returned by the endpoint
+      additionalProperties: true
+
+ErrorResponse:
+  type: object
+  required:
+    - success
+    - message
+  properties:
+    success:
+      type: boolean
+      example: false
+    message:
+      type: string
+      example: "Validation Error"
+    errors:
+      type: array
+      description: Field-level validation or domain errors
+      items:
+        type: object
+        properties:
+          field:
+            type: string
+            example: email
+          message:
+            type: string
+            example: Email is already in use
+    debug:
+      type: object
+      description: Only returned in non-production environments
+      additionalProperties: true
+
+Customer:
+  type: object
+  properties:
+    cusid:
+      type: integer
+      example: 1
+    cusname:
+      type: string
+      example: Jane Doe
+    cusemail:
+      type: string
+      format: email
+      example: jane@example.com
+    custel:
+      type: string
+      example: "0771234567"
+
+Employee:
+  type: object
+  properties:
+    empid:
+      type: integer
+      example: 10
+    empname:
+      type: string
+      example: John Smith
+    email:
+      type: string
+      format: email
+      example: john@company.com
+    emptel:
+      type: string
+      example: "0711234567"
+    emptype:
+      type: string
+      example: manager
+
+Booking:
+  type: object
+  properties:
+    bookingid:
+      type: integer
+      example: 101
+    bookingstatus:
+      type: string
+      example: pending
+    bookingdate:
+      type: string
+      format: date
+      example: "2025-01-15"
+    bookingstarttime:
+      type: string
+      example: "09:00"
+    bookingendtime:
+      type: string
+      example: "10:00"
+    bookinglocationlatitude:
+      type: number
+      format: float
+      example: 6.9271
+    bookinglocationlongitude:
+      type: number
+      format: float
+      example: 79.8612
+    vehid:
+      type: string
+      example: "ABC1234"
+
+Vehicle:
+  type: object
+  properties:
+    vehid:
+      type: string
+      example: "ABC1234"
+    vehbrand:
+      type: string
+      example: Toyota
+    vehmodel:
+      type: string
+      example: Prius
+    vehmileage:
+      type: number
+      example: 12000
+
+Service:
+  type: object
+  properties:
+    serviceid:
+      type: integer
+      example: 5
+    servicename:
+      type: string
+      example: Exterior Wash
+    serviceprice:
+      type: number
+      format: float
+      example: 1500
+    serviceduration:
+      type: number
+      example: 45
+
+Payment:
+  type: object
+  properties:
+    paymentid:
+      type: integer
+      example: 2001
+    paymentamount:
+      type: number
+      format: float
+      example: 2500
+    paymentstatus:
+      type: string
+      example: completed
+    bookingid:
+      type: integer
+      example: 101
+
+Feedback:
+  type: object
+  properties:
+    feedbackid:
+      type: integer
+      example: 501
+    feedbackcomment:
+      type: string
+      example: "Great service, highly recommended!"
+    feedbackrating:
+      type: integer
+      minimum: 1
+      maximum: 5
+      example: 5
+    bookingid:
+      type: integer
+      example: 101
+    created_at:
+      type: string
+      format: date-time
+      example: "2025-01-20T10:00:00Z"

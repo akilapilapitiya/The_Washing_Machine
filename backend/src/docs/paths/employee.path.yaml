@@ -1,0 +1,108 @@
+/employee:
+  get:
+    tags:
+      - Employee
+    summary: Get All Employees
+    description: Returns a list of employees.
+    operationId: getAllEmployees
+    responses:
+      "200":
+        description: Employees retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        employees:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Employee"
+
+/employee/{empid}:
+  parameters:
+    - in: path
+      name: empid
+      required: true
+      schema:
+        type: integer
+      description: Employee ID
+  get:
+    tags:
+      - Employee
+    summary: Get Employee By ID
+    description: Returns a single employee by `empid`.
+    operationId: getEmployee
+    responses:
+      "200":
+        description: Employee retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        employee:
+                          $ref: "#/components/schemas/Employee"
+  put:
+    tags:
+      - Employee
+    summary: Update Employee
+    description: Updates fields of the employee with the given `empid`.
+    operationId: updateEmployee
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Jane Doe
+              email:
+                type: string
+                format: email
+                example: jane.doe@development.com
+              telephone:
+                type: string
+                example: "+0987654321"
+              job:
+                type: string
+                example: supervisor
+    responses:
+      "200":
+        description: Employee updated successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        employee:
+                          $ref: "#/components/schemas/Employee"
+  delete:
+    tags:
+      - Employee
+    summary: Delete Employee
+    description: Deletes the employee with the given `empid`.
+    operationId: deleteEmployee
+    responses:
+      "200":
+        description: Employee deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuccessResponse"

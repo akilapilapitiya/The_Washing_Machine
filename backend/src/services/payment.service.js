@@ -1,4 +1,11 @@
 import pool from "../configs/database.js";
+import {
+  assertAtLeastOneField,
+  assertEnum,
+  assertPositiveNumber,
+  assertRequiredFields,
+} from "../utils/validation.util.js";
+import { NotFoundError, ForbiddenError } from "../utils/errors.util.js";
 
 export const getAllPaymentsService = async () => {
   const result = await pool.query(
@@ -6,26 +13,86 @@ export const getAllPaymentsService = async () => {
 		SELECT paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
 		FROM payment
 		ORDER BY created_at DESC
-		`
+		`,
   );
   return result.rows;
 };
 
-export const getPaymentService = async (paymentid) => {
+export const getPaymentService = async (
+  paymentid,
+  userId,
+  userRole,
+  userEmptype,
+) => {
   const result = await pool.query(
     `
-		SELECT paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
-		FROM payment
-		WHERE paymentid = $1
+		SELECT p.paymentid, p.paymentdate, p.paymenttype, p.paymentamount, p.bookingid, p.created_at, p.updated_at,
+           v.cusid
+		FROM payment p
+      JOIN booking b ON p.bookingid = b.bookingid
+      JOIN vehicle v ON b.vehid = v.id
+		WHERE p.paymentid = $1
 		`,
-    [paymentid]
+    [paymentid],
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Payment not found");
+    throw new NotFoundError("Payment not found");
   }
 
-  return result.rows[0];
+  const payment = result.rows[0];
+  const effectiveRole = userEmptype || userRole;
+
+  // Customers can only view their own payments
+  if (userRole === "customer" && payment.cusid !== userId) {
+    throw new ForbiddenError("You can only view your own payments");
+  }
+
+  // Managers/Owners (and any other elevated roles) can view all
+  if (effectiveRole === "manager" || effectiveRole === "owner") {
+    return payment;
+  }
+
+  // If role is employee (non manager/owner) block access
+  if (
+    userRole === "employee" &&
+    effectiveRole !== "manager" &&
+    effectiveRole !== "owner"
+  ) {
+    throw new ForbiddenError("You do not have permission to view this payment");
+  }
+
+  return payment;
+};
+
+export const getCustomerPaymentsService = async (customerId) => {
+  const result = await pool.query(
+    `
+    SELECT 
+      p.paymentid, 
+      p.paymentdate, 
+      p.paymenttype, 
+      p.paymentamount, 
+      p.bookingid, 
+      p.created_at, 
+      p.updated_at,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehplate,
+      json_agg(s.servicename) FILTER (WHERE s.servicename IS NOT NULL) as services
+    FROM payment p
+    JOIN booking b ON p.bookingid = b.bookingid
+    JOIN vehicle v ON b.vehid = v.id
+    LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
+    LEFT JOIN service s ON sb.serviceid = s.serviceid
+    WHERE v.cusid = $1
+    GROUP BY p.paymentid, v.vehbrand, v.vehmodel, v.vehplate
+    ORDER BY p.created_at DESC
+    `,
+    [customerId],
+  );
+
+  return result.rows;
 };
 
 export const createPaymentService = async ({
@@ -34,16 +101,14 @@ export const createPaymentService = async ({
   paymentamount,
   bookingid,
 }) => {
-  // Validate paymenttype
   const validTypes = ["cash", "card", "online"];
-  if (paymenttype && !validTypes.includes(paymenttype)) {
-    throw new Error(
-      `Invalid payment type. Must be one of: ${validTypes.join(", ")}`
-    );
-  }
-  if (paymentamount !== undefined && Number(paymentamount) <= 0) {
-    throw new Error("Payment amount must be greater than 0");
-  }
+  assertRequiredFields({ paymentamount, bookingid, paymenttype }, [
+    "paymentamount",
+    "bookingid",
+    "paymenttype",
+  ]);
+  assertEnum(paymenttype, "paymenttype", validTypes);
+  assertPositiveNumber(paymentamount, "paymentamount");
 
   const client = await pool.connect();
   try {
@@ -52,19 +117,19 @@ export const createPaymentService = async ({
     // Ensure booking exists
     const bookingCheck = await client.query(
       `SELECT bookingid FROM booking WHERE bookingid = $1`,
-      [parseInt(bookingid)]
+      [parseInt(bookingid)],
     );
     if (bookingCheck.rowCount === 0) {
-      throw new Error("Related booking not found");
+      throw new NotFoundError("Related booking not found");
     }
 
     // Ensure not already paid for booking (bookingid unique in payment)
     const existing = await client.query(
       `SELECT paymentid FROM payment WHERE bookingid = $1`,
-      [parseInt(bookingid)]
+      [parseInt(bookingid)],
     );
     if (existing.rowCount > 0) {
-      throw new Error("Payment already exists for this booking");
+      throw new ForbiddenError("Payment already exists for this booking");
     }
 
     const result = await client.query(
@@ -73,7 +138,7 @@ export const createPaymentService = async ({
 			VALUES (COALESCE($1::date, CURRENT_DATE), $2, $3, $4)
 			RETURNING paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
 			`,
-      [paymentdate || null, paymenttype, paymentamount, parseInt(bookingid)]
+      [paymentdate || null, paymenttype, paymentamount, parseInt(bookingid)],
     );
 
     await client.query("COMMIT");
@@ -86,20 +151,17 @@ export const createPaymentService = async ({
   }
 };
 
+// Customer-facing payment creation with ownership check
 export const updatePaymentService = async (paymentid, updates) => {
   const { paymentdate, paymenttype, paymentamount } = updates;
-
-  if (paymenttype !== undefined) {
-    const validTypes = ["cash", "card", "online"];
-    if (!validTypes.includes(paymenttype)) {
-      throw new Error(
-        `Invalid payment type. Must be one of: ${validTypes.join(", ")}`
-      );
-    }
-  }
-  if (paymentamount !== undefined && Number(paymentamount) <= 0) {
-    throw new Error("Payment amount must be greater than 0");
-  }
+  const validTypes = ["cash", "card", "online"];
+  assertAtLeastOneField(updates, [
+    "paymentdate",
+    "paymenttype",
+    "paymentamount",
+  ]);
+  assertEnum(paymenttype, "paymenttype", validTypes);
+  assertPositiveNumber(paymentamount, "paymentamount");
 
   const result = await pool.query(
     `
@@ -111,11 +173,16 @@ export const updatePaymentService = async (paymentid, updates) => {
 		WHERE paymentid = $4
 		RETURNING paymentid, paymentdate, paymenttype, paymentamount, bookingid, created_at, updated_at
 		`,
-    [paymentdate || null, paymenttype || null, paymentamount || null, paymentid]
+    [
+      paymentdate || null,
+      paymenttype || null,
+      paymentamount || null,
+      paymentid,
+    ],
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Payment not found");
+    throw new NotFoundError("Payment not found");
   }
 
   return result.rows[0];
@@ -127,6 +194,6 @@ export const deletePaymentService = async (paymentid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Payment not found");
+    throw new NotFoundError("Payment not found");
   }
 };

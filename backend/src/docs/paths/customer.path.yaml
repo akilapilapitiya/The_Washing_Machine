@@ -1,0 +1,105 @@
+/customer:
+  get:
+    tags:
+      - Customer
+    summary: Get All Customers
+    description: Returns a list of customers.
+    operationId: getAllCustomers
+    responses:
+      "200":
+        description: Customers retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        customers:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Customer"
+
+/customer/{cusid}:
+  parameters:
+    - in: path
+      name: cusid
+      required: true
+      schema:
+        type: integer
+      description: Customer ID
+  get:
+    tags:
+      - Customer
+    summary: Get Customer By ID
+    description: Returns a single customer by `cusid`.
+    operationId: getCustomer
+    responses:
+      "200":
+        description: Customer retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        customer:
+                          $ref: "#/components/schemas/Customer"
+  put:
+    tags:
+      - Customer
+    summary: Update Customer
+    description: Updates fields of the customer with the given `cusid`.
+    operationId: updateCustomer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Jane Doe
+              email:
+                type: string
+                format: email
+                example: jane.doe@development.com
+              telephone:
+                type: string
+                example: "+0987654321"
+    responses:
+      "200":
+        description: Customer updated successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        customer:
+                          $ref: "#/components/schemas/Customer"
+  delete:
+    tags:
+      - Customer
+    summary: Delete Customer
+    description: Deletes the customer with the given `cusid`.
+    operationId: deleteCustomer
+    responses:
+      "200":
+        description: Customer deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuccessResponse"

@@ -1,0 +1,194 @@
+/booking:
+  get:
+    tags:
+      - Booking
+    summary: Get All Bookings
+    description: Employees see all bookings; customers see only their own bookings.
+    operationId: getAllBookings
+    responses:
+      "200":
+        description: Bookings retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        bookings:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Booking"
+
+/booking/{id}:
+  parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      description: Booking ID
+  get:
+    tags:
+      - Booking
+    summary: Get Booking By ID
+    description: Employees can view any booking; customers can view only their own booking by `id`.
+    operationId: getBooking
+    responses:
+      "200":
+        description: Booking retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        booking:
+                          $ref: "#/components/schemas/Booking"
+                    vehid:
+                      type: integer
+                      example: 55
+                    services:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          serviceId:
+                            type: integer
+                            example: 3
+                          serviceName:
+                            type: string
+                            example: Exterior Wash
+  post:
+    tags:
+      - Booking
+    summary: Create Booking
+    description: Creates a new booking.
+    operationId: createBooking
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+              - date
+              - startTime
+              - endTime
+              - locationLatitude
+              - locationLongitude
+              - vehicleId
+            properties:
+              status:
+                type: string
+                enum: [pending, inProgress, completed, paid]
+                example: pending
+              date:
+                type: string
+                format: date
+                example: "2025-01-15"
+              startTime:
+                type: string
+                example: "09:00"
+              endTime:
+                type: string
+                example: "10:00"
+              locationLatitude:
+                type: number
+                format: float
+                example: 6.9271
+              locationLongitude:
+                type: number
+                format: float
+                example: 79.8612
+              vehicleId:
+                type: integer
+                example: 55
+              services:
+                type: array
+                items:
+                  type: integer
+                example: [1, 2, 3]
+    responses:
+      "201":
+        description: Booking created successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        booking:
+                          $ref: "#/components/schemas/Booking"
+  put:
+    tags:
+      - Booking
+    summary: Update Booking
+    description: Employees can update any booking; customers can update only their own booking by `id`.
+    operationId: updateBooking
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [pending, inProgress, completed, paid]
+                example: inProgress
+              date:
+                type: string
+                format: date
+                example: "2025-01-16"
+              startTime:
+                type: string
+                example: "11:00"
+              endTime:
+                type: string
+                example: "12:00"
+              services:
+                type: array
+                items:
+                  type: integer
+                example: [2, 4]
+    responses:
+      "200":
+        description: Booking updated successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        booking:
+                          $ref: "#/components/schemas/Booking"
+  delete:
+    tags:
+      - Booking
+    summary: Delete Booking
+    description: Employees can delete any booking; customers can delete only their own booking by `id`.
+    operationId: deleteBooking
+    responses:
+      "200":
+        description: Booking deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuccessResponse"

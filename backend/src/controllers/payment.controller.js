@@ -1,21 +1,28 @@
 import {
   getPaymentService,
   getAllPaymentsService,
+  getCustomerPaymentsService,
   createPaymentService,
   updatePaymentService,
   deletePaymentService,
 } from "../services/payment.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const getPayment = async (req, res, next) => {
   try {
     const { paymentid } = req.params;
-    const payment = await getPaymentService(paymentid);
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const userEmptype = req.user.emptype;
 
-    res.status(200).json({
-      status: "success",
-      message: "Payment retrieved successfully",
-      payment,
-    });
+    const payment = await getPaymentService(
+      paymentid,
+      userId,
+      userRole,
+      userEmptype
+    );
+
+    successResponse(res, 200, "Payment retrieved successfully", { payment });
   } catch (error) {
     next(error);
   }
@@ -25,11 +32,18 @@ export const getAllPayments = async (req, res, next) => {
   try {
     const payments = await getAllPaymentsService();
 
-    res.status(200).json({
-      status: "success",
-      message: "Payments retrieved successfully",
-      payments,
-    });
+    successResponse(res, 200, "Payments retrieved successfully", { payments });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyPayments = async (req, res, next) => {
+  try {
+    const customerId = req.user.id;
+    const payments = await getCustomerPaymentsService(customerId);
+
+    successResponse(res, 200, "Payments retrieved successfully", { payments });
   } catch (error) {
     next(error);
   }
@@ -46,11 +60,7 @@ export const createPayment = async (req, res, next) => {
       bookingid,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Payment created successfully",
-      payment,
-    });
+    successResponse(res, 201, "Payment created successfully", { payment });
   } catch (error) {
     next(error);
   }
@@ -63,11 +73,7 @@ export const updatePayment = async (req, res, next) => {
 
     const payment = await updatePaymentService(paymentid, updates);
 
-    res.status(200).json({
-      status: "success",
-      message: "Payment updated successfully",
-      payment,
-    });
+    successResponse(res, 200, "Payment updated successfully", { payment });
   } catch (error) {
     next(error);
   }
@@ -78,10 +84,7 @@ export const deletePayment = async (req, res, next) => {
     const { paymentid } = req.params;
     await deletePaymentService(paymentid);
 
-    res.status(200).json({
-      status: "success",
-      message: "Payment deleted successfully",
-    });
+    successResponse(res, 200, "Payment deleted successfully");
   } catch (error) {
     next(error);
   }

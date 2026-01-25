@@ -1,0 +1,182 @@
+/payment:
+  get:
+    tags:
+      - Payment
+    summary: Get All Payments
+    description: Managers/Owners can view all payments.
+    operationId: getAllPayments
+    responses:
+      "200":
+        description: Payments retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payments:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Payment"
+  post:
+    tags:
+      - Payment
+    summary: Create Payment
+    description: Managers/Owners can create a new payment for a booking.
+    operationId: createPayment
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - paymenttype
+              - paymentamount
+              - bookingid
+            properties:
+              paymentdate:
+                type: string
+                format: date
+                description: Defaults to current date if omitted
+                example: "2025-01-15"
+              paymenttype:
+                type: string
+                enum: [cash, card, online]
+                example: cash
+              paymentamount:
+                type: number
+                format: float
+                minimum: 0.01
+                example: 1250.00
+              bookingid:
+                type: integer
+                example: 101
+    responses:
+      "201":
+        description: Payment created successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payment:
+                          $ref: "#/components/schemas/Payment"
+
+/payment/my:
+  get:
+    tags:
+      - Payment
+    summary: Get My Payments
+    description: Customers can view their own payments.
+    operationId: getMyPayments
+    responses:
+      "200":
+        description: Payments retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payments:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Payment"
+
+/payment/{paymentid}:
+  parameters:
+    - in: path
+      name: paymentid
+      required: true
+      schema:
+        type: integer
+      description: Payment ID
+  get:
+    tags:
+      - Payment
+    summary: Get Payment By ID
+    description: Customers can view their own payment; managers/owners can view any payment by `paymentid`.
+    operationId: getPayment
+    responses:
+      "200":
+        description: Payment retrieved successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payment:
+                          $ref: "#/components/schemas/Payment"
+  put:
+    tags:
+      - Payment
+    summary: Update Payment
+    description: Managers/Owners can update fields of the payment with the given `paymentid`.
+    operationId: updatePayment
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              paymentdate:
+                type: string
+                format: date
+                example: "2025-01-16"
+              paymenttype:
+                type: string
+                enum: [cash, card, online]
+                example: online
+              paymentamount:
+                type: number
+                format: float
+                minimum: 0.01
+                example: 1500.00
+    responses:
+      "200":
+        description: Payment updated successfully
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/SuccessResponse"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        payment:
+                          $ref: "#/components/schemas/Payment"
+  delete:
+    tags:
+      - Payment
+    summary: Delete Payment
+    description: Managers/Owners can delete the payment with the given `paymentid`.
+    operationId: deletePayment
+    responses:
+      "200":
+        description: Payment deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuccessResponse"

@@ -1,4 +1,6 @@
 import pool from "../configs/database.js";
+import { assertAtLeastOneField } from "../utils/validation.util.js";
+import { NotFoundError } from "../utils/errors.util.js";
 
 export const getAllCustomersService = async () => {
   const result = await pool.query(
@@ -22,7 +24,7 @@ export const getCustomerService = async (cusid) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Customer not found");
+    throw new NotFoundError("Customer not found");
   }
 
   return result.rows[0];
@@ -30,6 +32,9 @@ export const getCustomerService = async (cusid) => {
 
 export const updateCustomerService = async (cusid, updates) => {
   const { cusname, cusemail, custel } = updates;
+
+  // Service-layer guard: ensure at least one updatable field
+  assertAtLeastOneField(updates, ["cusname", "cusemail", "custel"]);
 
   // Build dynamic UPDATE query to only update provided fields
   const updateFields = [];
@@ -57,11 +62,6 @@ export const updateCustomerService = async (cusid, updates) => {
   // Always update updated_at
   updateFields.push(`updated_at = NOW()`);
 
-  if (updateFields.length === 1) {
-    // Only updated_at would be updated, nothing else provided
-    throw new Error("No fields provided for update");
-  }
-
   updateValues.push(cusid);
 
   const result = await pool.query(
@@ -72,7 +72,7 @@ export const updateCustomerService = async (cusid, updates) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Customer not found");
+    throw new NotFoundError("Customer not found");
   }
 
   return result.rows[0];
@@ -84,6 +84,6 @@ export const deleteCustomerService = async (cusid) => {
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Customer not found");
+    throw new NotFoundError("Customer not found");
   }
 };

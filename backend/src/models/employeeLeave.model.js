@@ -22,7 +22,6 @@ const createEmployeeLeaveTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Leave table created");
 };
 
 export default createEmployeeLeaveTable;

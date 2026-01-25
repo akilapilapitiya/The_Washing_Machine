@@ -1,8 +1,9 @@
 const createVehicleTable = async (pool) => {
   const queryText = `
     CREATE TABLE IF NOT EXISTS vehicle (
-      vehid VARCHAR(7) PRIMARY KEY CHECK (vehid ~ '^[A-Z0-9-]{7}$'),
-      vehmileage INT NOT NULL CHECK (vehmileage >= 0),
+      id SERIAL PRIMARY KEY,
+      vehplate VARCHAR(20) NOT NULL UNIQUE CHECK (LENGTH(TRIM(vehplate)) > 0),
+      vehmileage INT NOT NULL DEFAULT 0 CHECK (vehmileage >= 0),
       vehbrand VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(vehbrand)) > 0),
       vehmodel VARCHAR(50) NOT NULL CHECK (LENGTH(TRIM(vehmodel)) > 0),
       cusid INT NOT NULL,
@@ -16,10 +17,10 @@ const createVehicleTable = async (pool) => {
     );
     
     CREATE INDEX IF NOT EXISTS idx_vehicle_customer ON vehicle(cusid);
+    CREATE INDEX IF NOT EXISTS idx_vehicle_plate ON vehicle(vehplate);
   `;
 
   await pool.query(queryText);
-  console.log("Vehicle table created");
 };
 
 export default createVehicleTable;

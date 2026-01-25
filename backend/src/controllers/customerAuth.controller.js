@@ -1,5 +1,10 @@
-import { signUp, signIn } from "../services/customerAuth.service.js";
+import {
+  signUp,
+  signIn,
+  resetPassword,
+} from "../services/customerAuth.service.js";
 import { NODE_ENV, COOKIE_AGE } from "../configs/env.js";
+import { successResponse } from "../utils/response.util.js";
 
 export const customerSignUp = async (req, res, next) => {
   try {
@@ -20,9 +25,7 @@ export const customerSignUp = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    res.status(201).json({
-      status: "success",
-      message: "Customer registered successfully",
+    successResponse(res, 201, "Customer registered successfully", {
       customer,
       token,
     });
@@ -37,6 +40,13 @@ export const customerSignIn = async (req, res, next) => {
 
     const { customer, token } = await signIn({ email, password });
 
+    const safeCustomer = {
+      cusid: customer.cusid,
+      cusname: customer.cusname,
+      cusemail: customer.cusemail,
+      custel: customer.custel,
+    };
+
     // Set cookie
     res.cookie("jwt", token, {
       httpOnly: true,
@@ -45,10 +55,8 @@ export const customerSignIn = async (req, res, next) => {
       maxAge: 1000 * 60 * 60 * 24 * COOKIE_AGE,
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "Login successful",
-      customer,
+    successResponse(res, 200, "Login successful", {
+      customer: safeCustomer,
       token,
     });
   } catch (error) {
@@ -64,5 +72,16 @@ export const customerSignOut = async (req, res, next) => {
     secure: NODE_ENV === "production",
   });
 
-  res.status(200).json({ message: "Customer signed out" });
+  successResponse(res, 200, "Customer signed out");
+};
+export const passwordReset = async (req, res, next) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    const result = await resetPassword({ email, newPassword });
+
+    successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
 };

@@ -20,7 +20,6 @@ const createPaymentTable = async (pool) => {
   `;
 
   await pool.query(queryText);
-  console.log("Payment table created");
 };
 
 export default createPaymentTable;
