@@ -188,78 +188,93 @@ const ManageCustomersPage = () => {
           </CardContent>
         </Card>
 
-        {/* Customers Grid */}
-        {filteredCustomers.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredCustomers.map((customer) => (
-              <Card
-                key={customer.cusid}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center">
-                        <User size={24} className="text-white" />
+        {/* Customers Table */}
+        <Card className="overflow-hidden border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4 font-semibold text-gray-900">
+                    Name & ID
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900">
+                    Contact Info
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900">
+                    Joined Date
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-center">
+                    Total Bookings
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredCustomers.length > 0 ? (
+                  filteredCustomers.map((customer) => (
+                    <tr
+                      key={customer.cusid}
+                      className="hover:bg-gray-50 transition-colors group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                            {customer.cusname?.charAt(0) || "U"}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {customer.cusname}
+                            </p>
+                            <p className="text-xs text-gray-500 italic">
+                              #{customer.cusid}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Mail size={14} className="text-gray-400" />
+                            <span>{customer.cusemail}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Phone size={14} className="text-gray-400" />
+                            <span>{customer.custel}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} className="text-gray-400" />
+                          <span>
+                            {new Date(customer.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700">
+                          {customer.totalbookings || 0}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <Users size={48} className="text-gray-300" />
+                        <div className="text-gray-500 font-medium">
+                          {searchQuery
+                            ? "No customers found matching your search."
+                            : "No customers registered yet."}
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {customer.cusname}
-                        </CardTitle>
-                        <p className="text-xs text-gray-500 italic">
-                          #{customer.cusid}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail size={14} className="text-gray-500" />
-                      <span className="text-gray-700 truncate">
-                        {customer.cusemail}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone size={14} className="text-gray-500" />
-                      <span className="text-gray-700">{customer.custel}</span>
-                    </div>
-                  </div>
-                  <div className="pt-3 border-t space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Total Bookings:</span>
-                      <span className="font-semibold text-red-600">
-                        {customer.totalbookings || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={14} />
-                      <span>
-                        Joined{" "}
-                        {new Date(customer.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Users size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                {searchQuery ? "No customers found" : "No customers registered"}
-              </h3>
-              <p className="text-gray-600">
-                {searchQuery
-                  ? "Try adjusting your search criteria."
-                  : "Registered customers will appear here."}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        </Card>
       </div>
 
       {/* Add Customer Modal - Simplified based on feedback */}

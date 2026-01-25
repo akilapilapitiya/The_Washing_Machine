@@ -61,7 +61,7 @@ const Sidebar = () => {
       to: "/dashboard/employee/leaves",
       icon: Umbrella,
       label: "My Leaves",
-      roles: ["owner", "cashier", "employee"],
+      roles: ["cashier", "employee"],
     },
     {
       to: "/dashboard/employee/payments",
