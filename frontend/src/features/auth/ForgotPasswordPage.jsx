@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,52 +10,138 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
+import {
+  requestCustomerPasswordReset,
+  resetCustomerPassword,
+  requestEmployeePasswordReset,
+  resetEmployeePassword,
+} from "@/services/auth.service";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: email, 2: otp, 3: password
+  const location = useLocation();
+
+  // Determine user type from URL or previous page
+  const [userType, setUserType] = useState(
+    location.state?.userType || "customer",
+  );
+  const [step, setStep] = useState(userType ? 1 : 0); // 0: type selection, 1: email, 2: otp, 3: password
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleEmailSubmit = (e) => {
+  const handleUserTypeSelect = (type) => {
+    setUserType(type);
+    setStep(1);
+  };
+
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    // Simulate API call to send OTP
-    setTimeout(() => {
+
+    try {
+      const requestFn =
+        userType === "customer"
+          ? requestCustomerPasswordReset
+          : requestEmployeePasswordReset;
+
+      const response = await requestFn(email);
+
+      if (response.success) {
+        setStep(2);
+      } else {
+        setError(response.message || "Failed to send OTP. Please try again.");
+      }
+    } catch (err) {
+      console.error("Request OTP error:", err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Failed to send OTP. Please try again.");
+      }
+    } finally {
       setLoading(false);
-      setStep(2);
-    }, 1000);
+    }
   };
 
   const handleOtpSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    // Simulate API call to verify OTP
-    setTimeout(() => {
-      setLoading(false);
+    if (otp.length === 6) {
       setStep(3);
-    }, 1000);
+    } else {
+      setError("Please enter a valid 6-digit OTP");
+    }
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // Validate password
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
-    // Simulate API call to reset password
-    setTimeout(() => {
+
+    try {
+      const resetFn =
+        userType === "customer" ? resetCustomerPassword : resetEmployeePassword;
+
+      const response = await resetFn({
+        email,
+        otp,
+        newPassword: password,
+      });
+
+      if (response.success) {
+        // Navigate to appropriate login page
+        const loginPath =
+          userType === "customer" ? "/login" : "/employee/login";
+        navigate(loginPath, {
+          state: {
+            message:
+              "Password reset successful! Please login with your new password.",
+          },
+        });
+      } else {
+        setError(
+          response.message || "Failed to reset password. Please try again.",
+        );
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Failed to reset password. Please try again.");
+      }
+    } finally {
       setLoading(false);
-      navigate("/login");
-    }, 1000);
+    }
   };
 
   const handleBack = () => {
     if (step > 1) {
       setStep(step - 1);
+      setError("");
+    } else if (step === 1 && !location.state?.userType) {
+      setStep(0);
+      setUserType(null);
     } else {
-      navigate("/login");
+      const loginPath = userType === "customer" ? "/login" : "/employee/login";
+      navigate(loginPath);
     }
   };
 
@@ -74,12 +160,40 @@ const ForgotPasswordPage = () => {
           <CardHeader>
             <CardTitle>Reset Password</CardTitle>
             <CardDescription>
+              {step === 0 && "Select your account type"}
               {step === 1 && "Enter your email to get started"}
-              {step === 2 && "Enter the OTP sent to your email"}
+              {step === 2 && "Enter the OTP from the backend terminal"}
               {step === 3 && "Create your new password"}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200 flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-red-800">{error}</span>
+              </div>
+            )}
+
+            {/* Step 0: User Type Selection */}
+            {step === 0 && (
+              <div className="space-y-3">
+                <Button
+                  onClick={() => handleUserTypeSelect("customer")}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Customer Account
+                </Button>
+                <Button
+                  onClick={() => handleUserTypeSelect("employee")}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Employee Account
+                </Button>
+              </div>
+            )}
+
             {/* Step 1: Email */}
             {step === 1 && (
               <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -91,12 +205,16 @@ const ForgotPasswordPage = () => {
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
-                <p className="text-sm text-gray-600">
-                  We'll send a one-time password (OTP) to verify your identity.
-                </p>
+                <div className="p-3 rounded-md bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    📱 A 6-digit OTP will be printed in the{" "}
+                    <strong>backend terminal</strong> for verification.
+                  </p>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Sending..." : "Send OTP"}
                 </Button>
@@ -113,15 +231,19 @@ const ForgotPasswordPage = () => {
                     type="text"
                     placeholder="000000"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                     maxLength="6"
+                    disabled={loading}
                     required
                   />
                 </div>
-                <p className="text-sm text-gray-600">
-                  Check your email for the 6-digit code. It expires in 10
-                  minutes.
-                </p>
+                <div className="p-3 rounded-md bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    Check the <strong>backend terminal</strong> for your 6-digit
+                    OTP. It expires in 10 minutes and has a maximum of 3
+                    attempts.
+                  </p>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Verifying..." : "Verify OTP"}
                 </Button>
@@ -139,6 +261,7 @@ const ForgotPasswordPage = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -151,6 +274,7 @@ const ForgotPasswordPage = () => {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -163,6 +287,12 @@ const ForgotPasswordPage = () => {
                     </p>
                   )}
 
+                {password && password.length < 8 && (
+                  <p className="text-sm text-orange-600">
+                    Password must be at least 8 characters
+                  </p>
+                )}
+
                 <Button
                   type="submit"
                   className="w-full"
@@ -170,7 +300,8 @@ const ForgotPasswordPage = () => {
                     loading ||
                     !password ||
                     !confirmPassword ||
-                    password !== confirmPassword
+                    password !== confirmPassword ||
+                    password.length < 8
                   }
                 >
                   {loading ? "Resetting..." : "Reset Password"}
@@ -181,16 +312,18 @@ const ForgotPasswordPage = () => {
         </Card>
 
         {/* Progress Indicator */}
-        <div className="mt-6 flex justify-center gap-2">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                s <= step ? "bg-blue-600" : "bg-gray-300"
-              }`}
-            />
-          ))}
-        </div>
+        {step > 0 && (
+          <div className="mt-6 flex justify-center gap-2">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`h-2 w-2 rounded-full transition-colors ${
+                  s <= step ? "bg-blue-600" : "bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
