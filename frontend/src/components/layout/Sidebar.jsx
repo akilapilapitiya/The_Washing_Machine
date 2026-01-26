@@ -16,6 +16,8 @@ import {
   LogOut,
   Umbrella,
   ShieldAlert,
+  BarChart3,
+  ListChecks,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -58,6 +60,12 @@ const Sidebar = () => {
       icon: Wrench,
       label: "Service Queue",
       roles: ["owner", "cashier", "employee"],
+    },
+    {
+      to: "/dashboard/admin/bookings",
+      icon: ListChecks,
+      label: "Review Bookings",
+      roles: ["owner", "cashier"],
     },
     {
       to: "/dashboard/employee/incidents",
@@ -111,6 +119,12 @@ const Sidebar = () => {
       to: "/dashboard/admin/employees",
       icon: ShieldCheck,
       label: "Employees",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/reports/daily-income",
+      icon: BarChart3,
+      label: "Daily Income",
       roles: ["owner"],
     },
     {

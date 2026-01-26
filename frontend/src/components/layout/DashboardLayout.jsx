@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
-import { Menu, X, Bell, Search, User } from "lucide-react";
+import { Menu, X, Search, User } from "lucide-react";
 import Sidebar from "./Sidebar";
+import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
 
@@ -33,15 +34,24 @@ const DashboardLayout = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 lg:ml-64 flex flex-col min-h-[calc(100vh-4rem)]">
-        {/* Mobile Toggle (Only visible if header is removed) */}
-        <div className="lg:hidden p-4 bg-white border-b border-gray-200 sticky top-0 z-30 flex items-center">
-          <button
-            className="p-2 -ml-2 text-gray-600 hover:text-gray-900"
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-          <span className="ml-2 font-semibold text-gray-900">Dashboard</span>
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center">
+            <button
+              className="p-2 -ml-2 text-gray-600 hover:text-gray-900 lg:hidden"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+            <span className="ml-2 font-semibold text-gray-900">Dashboard</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <NotificationBell />
+            <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center lg:hidden">
+              <User size={16} className="text-gray-600" />
+            </div>
+          </div>
         </div>
 
         {/* Content */}

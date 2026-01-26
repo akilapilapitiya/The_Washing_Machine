@@ -17,6 +17,7 @@ export const createServiceService = async ({
   has_offer,
   offer_price,
   offer_description,
+  servicetype = "package",
 }) => {
   assertRequiredFields({ servicename, servicetime, serviceprice }, [
     "servicename",
@@ -27,8 +28,8 @@ export const createServiceService = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO service (servicename, servicetime, serviceprice, servicedetails, has_offer, offer_price, offer_description)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO service (servicename, servicetime, serviceprice, servicedetails, has_offer, offer_price, offer_description, servicetype)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *
     `,
     [
@@ -39,6 +40,7 @@ export const createServiceService = async ({
       has_offer || false,
       offer_price || null,
       offer_description || null,
+      servicetype,
     ],
   );
 
@@ -92,6 +94,7 @@ export const updateServiceService = async (serviceid, updates) => {
     has_offer,
     offer_price,
     offer_description,
+    servicetype,
   } = updates;
 
   assertAtLeastOneField(updates, [
@@ -102,6 +105,7 @@ export const updateServiceService = async (serviceid, updates) => {
     "has_offer",
     "offer_price",
     "offer_description",
+    "servicetype",
   ]);
 
   if (serviceprice) assertPositiveNumber(serviceprice, "serviceprice");
@@ -116,8 +120,9 @@ export const updateServiceService = async (serviceid, updates) => {
         has_offer = COALESCE($5, has_offer),
         offer_price = COALESCE($6, offer_price),
         offer_description = COALESCE($7, offer_description),
+        servicetype = COALESCE($8, servicetype),
         updated_at = NOW()
-    WHERE serviceid = $8
+    WHERE serviceid = $9
     RETURNING *
     `,
     [
@@ -128,6 +133,7 @@ export const updateServiceService = async (serviceid, updates) => {
       has_offer,
       offer_price,
       offer_description,
+      servicetype,
       serviceid,
     ],
   );

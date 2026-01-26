@@ -50,5 +50,8 @@ export const bookingValidator = {
     locationLatitude: Joi.number().min(-90).max(90),
     locationLongitude: Joi.number().min(-180).max(180),
     services: Joi.array().items(Joi.number().integer()).min(1),
+    employeeId: Joi.alternatives()
+      .try(Joi.number().integer(), Joi.string().allow("any", ""))
+      .allow(null),
   }).min(1),
 };

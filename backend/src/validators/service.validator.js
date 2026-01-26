@@ -24,7 +24,9 @@ export const serviceValidator = {
       }),
     has_offer: Joi.boolean(),
     offer_price: Joi.number().allow(null),
+    offer_price: Joi.number().allow(null),
     offer_description: Joi.string().allow(null, ""),
+    servicetype: Joi.string().valid("package", "addon").default("package"),
   }),
 
   updateService: Joi.object({
@@ -43,6 +45,8 @@ export const serviceValidator = {
       }),
     has_offer: Joi.boolean(),
     offer_price: Joi.number().allow(null),
+    offer_price: Joi.number().allow(null),
     offer_description: Joi.string().allow(null, ""),
+    servicetype: Joi.string().valid("package", "addon"),
   }).min(1),
 };

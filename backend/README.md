@@ -6,14 +6,14 @@ This backend is a robust RESTful API built using Node.js and Express. It powers 
 
 **Key Features:**
 
-- 🔐 Secure authentication with role-based access control (Customer/Employee)
-- 🚗 Vehicle management logic for registered customers
-- 📋 Complex booking management (many-to-many service relationships)
-- 💳 Integrated payment processing and tracking
-- 💬 Customer feedback and service rating system
-- 🧪 Comprehensive automated test suite with Jest
-- 📚 Interactive Swagger/OpenAPI documentation
-- 🛡️ Centralized validation and typed error handling
+-  Secure authentication with role-based access control (Customer/Employee)
+-  Vehicle management logic for registered customers
+-  Complex booking management (many-to-many service relationships)
+-  Integrated payment processing and tracking
+-  Customer feedback and service rating system
+-  Comprehensive automated test suite with Jest
+-  Interactive Swagger/OpenAPI documentation
+-  Centralized validation and typed error handling
 
 ## Tech Stack
 

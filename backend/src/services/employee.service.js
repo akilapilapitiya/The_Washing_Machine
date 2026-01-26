@@ -30,6 +30,31 @@ export const getEmployeeService = async (empid) => {
   return result.rows[0];
 };
 
+export const getAvailableEmployeesService = async (
+  date,
+  startTime,
+  endTime,
+) => {
+  const query = `
+    SELECT e.empid, e.empname, e.emptype 
+    FROM employee e
+    WHERE e.emptype NOT IN ('owner', 'cashier')
+    AND e.empid NOT IN (
+      SELECT ea.empid FROM employeeassigned ea
+      JOIN schedule s ON ea.bookingid = s.bookingid
+      WHERE s.schedulestartdate = $1::date
+      AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
+    )
+    AND e.empid NOT IN (
+      SELECT el.empid FROM employeeleave el 
+      WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
+    )
+  `;
+
+  const result = await pool.query(query, [date, startTime, endTime]);
+  return result.rows;
+};
+
 export const updateEmployeeService = async (empid, updates) => {
   // Map request body field names to database column names
   const { name, email, telephone, type, nic, password } = updates;

@@ -127,10 +127,33 @@ const ServicesSection = ({ id }) => {
         {/* Services Grid */}
         {!loading && !error && services.length > 0 && (
           <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {services.map((service) => (
-                <ServiceCard key={service.serviceid} service={service} />
-              ))}
+            <div className="space-y-16 mb-12">
+              {["package", "addon"].map((type) => {
+                const typeServices = services.filter(
+                  (s) => (s.servicetype || "package") === type,
+                );
+                if (typeServices.length === 0) return null;
+
+                return (
+                  <div key={type} className="space-y-8">
+                    <h3
+                      className={`text-2xl font-bold text-gray-900 border-l-4 pl-4 ${type === "package" ? "border-red-600" : "border-blue-600"}`}
+                    >
+                      {type === "package"
+                        ? "Signature Packages"
+                        : "Optional Enhancements"}
+                    </h3>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {typeServices.map((service) => (
+                        <ServiceCard
+                          key={service.serviceid}
+                          service={service}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* CTA Section */}

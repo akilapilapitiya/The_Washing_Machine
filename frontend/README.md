@@ -6,15 +6,15 @@ This is a modern, responsive React-based frontend for a vehicle service booking 
 
 **Key Features:**
 
-- 🎨 Modern UI with Tailwind CSS and shadcn/ui components
-- 📱 Fully responsive design (mobile-first approach)
-- 🔐 Secure authentication with role-based access control (Customer/Employee)
-- 📋 Streamlined 6-step booking flow with real-time availability
-- 🚗 Comprehensive vehicle management
-- 💳 Integrated payment history and recording
-- 💬 Feedback system for customer satisfaction
-- 👔 Specialized employee portal for service management
-- 🛠️ Full API integration with centralized service layer
+-  Modern UI with Tailwind CSS and shadcn/ui components
+-  Fully responsive design (mobile-first approach)
+-  Secure authentication with role-based access control (Customer/Employee)
+-  Streamlined 6-step booking flow with real-time availability
+-  Comprehensive vehicle management
+-  Integrated payment history and recording
+-  Feedback system for customer satisfaction
+-  Specialized employee portal for service management
+-  Full API integration with centralized service layer
 
 ## Tech Stack
 
@@ -103,14 +103,14 @@ npm run build
 
 ## Features Deep Dive
 
-### 🔐 Authentication System
+### Authentication System
 
 - Dual portal for Customers and Employees
 - JWT-based authentication via `AuthContext`
 - Protected routes for secure access
 - Password recovery and profile management
 
-### 📋 6-Step Booking Flow
+### 6-Step Booking Flow
 
 1. **Vehicle Selection:** Select from your registered fleet
 2. **Service Selection:** Choose multiple services with real-time pricing
@@ -119,7 +119,7 @@ npm run build
 5. **Date & Time:** Interactive calendar with slot availability
 6. **Confirmation:** Review and finalize booking details
 
-### 📊 Role-Based Dashboards
+### Role-Based Dashboards
 
 - **Customer:** Manage bookings, vehicles, payments, and feedback
 - **Employee:** Track assigned services, update status, and record payments
@@ -262,19 +262,19 @@ npm install -D typescript @types/react @types/react-dom
 
 ## Performance Optimization
 
-- ✅ Vite for fast HMR and optimized builds
-- ✅ Code splitting via React Router
-- ✅ Lazy loading ready for images
-- ✅ CSS purging with Tailwind
-- ✅ Optimized bundle size (~200KB gzipped)
+-  Vite for fast HMR and optimized builds
+-  Code splitting via React Router
+-  Lazy loading ready for images
+-  CSS purging with Tailwind
+-  Optimized bundle size (~200KB gzipped)
 
 ## Accessibility
 
-- ✅ Semantic HTML elements
-- ✅ ARIA labels where needed
-- ✅ Keyboard navigation support
-- ✅ Focus visible styles
-- ✅ Color contrast compliance
+-  Semantic HTML elements
+-  ARIA labels where needed
+-  Keyboard navigation support
+-  Focus visible styles
+-  Color contrast compliance
 
 ## Testing (Recommended Setup)
 
