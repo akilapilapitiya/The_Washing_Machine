@@ -3,7 +3,8 @@ import {
   customerSignIn,
   customerSignOut,
   customerSignUp,
-  passwordReset,
+  requestCustomerPasswordReset,
+  resetCustomerPassword,
 } from "../controllers/customerAuth.controller.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
 import { customerValidator } from "../validators/index.js";
@@ -13,13 +14,14 @@ const customerAuthRouter = Router();
 customerAuthRouter.post(
   "/signup",
   validateSchema(customerValidator.createCustomer),
-  customerSignUp
+  customerSignUp,
 );
 customerAuthRouter.post(
   "/signin",
   validateSchema(customerValidator.loginCustomer),
-  customerSignIn
+  customerSignIn,
 );
 customerAuthRouter.post("/signout", customerSignOut);
-customerAuthRouter.put("/passwordreset", passwordReset);
+customerAuthRouter.post("/forgot-password", requestCustomerPasswordReset);
+customerAuthRouter.post("/reset-password", resetCustomerPassword);
 export default customerAuthRouter;
