@@ -655,11 +655,17 @@ const EmployeeManagementPage = () => {
                       disabled={submitting}
                     >
                       <option value="">-- Select Role --</option>
-                      {roles.map((role) => (
-                        <option key={role.roleid} value={role.rolename}>
-                          {role.rolename}
-                        </option>
-                      ))}
+                      {roles.length > 0
+                        ? roles.map((role) => (
+                            <option key={role.roleid} value={role.rolename}>
+                              {role.rolename}
+                            </option>
+                          ))
+                        : initialRoleOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                       <svg
