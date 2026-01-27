@@ -130,90 +130,84 @@ const BookingConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
         <div className="space-y-4 text-center max-w-2xl mx-auto">
           <div className="flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50 shadow-inner">
-              <CheckCircle size={40} className="text-red-600" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
+              <CheckCircle size={32} className="text-green-600" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tighter text-gray-900">
-            Review & Confirm
-          </h1>
-          <p className="text-gray-600 font-medium leading-relaxed">
-            Please review your premium service details before we dispatch our
-            expert team.
-          </p>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              Review & Confirm
+            </h1>
+            <p className="text-gray-600">
+              Please review your service details before we dispatch our expert
+              team.
+            </p>
+          </div>
         </div>
 
         {error && (
-          <div className="max-w-3xl mx-auto bg-red-50 border-2 border-red-100 rounded-xl p-4 flex items-start gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-in fade-in zoom-in duration-300">
             <AlertCircle
-              size={24}
+              size={20}
               className="text-red-600 flex-shrink-0 mt-0.5"
             />
-            <p className="text-red-800 font-bold uppercase tracking-tight text-sm">
-              {error}
-            </p>
+            <p className="text-red-800 font-medium text-sm">{error}</p>
           </div>
         )}
 
         <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2">
           {/* Left Column: Details */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Vehicle Details */}
-            <Card className="border-2 border-transparent shadow-sm overflow-hidden group">
-              <div className="h-1 bg-red-600" />
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-sm font-bold text-gray-500 uppercase tracking-widest">
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="pb-2 pt-5 px-5">
+                <CardTitle className="flex items-center gap-3 text-sm font-medium text-gray-500">
                   <Car size={18} className="text-red-600" />
                   Target Vehicle
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-5 pb-5 pt-0">
                 <div className="space-y-1">
-                  <p className="font-bold text-2xl text-gray-900">
+                  <p className="font-bold text-lg text-gray-900">
                     {data.vehicle?.vehbrand} {data.vehicle?.vehmodel}
                   </p>
-                  <p className="text-red-600 font-mono font-bold tracking-widest bg-red-50 inline-block px-3 py-1 rounded">
+                  <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded inline-block">
                     {data.vehicle?.vehplate}
-                  </p>
+                  </span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Appointment */}
-            <Card className="border-2 border-transparent shadow-sm overflow-hidden">
-              <div className="h-1 bg-red-600" />
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-sm font-bold text-gray-500 uppercase tracking-widest">
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="pb-2 pt-5 px-5">
+                <CardTitle className="flex items-center gap-3 text-sm font-medium text-gray-500">
                   <Calendar size={18} className="text-red-600" />
                   Schedule
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-900 shadow-sm border border-gray-100">
-                    <Calendar size={20} />
+              <CardContent className="px-5 pb-5 pt-0 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100">
+                    <Calendar size={18} />
                   </div>
                   <div>
-                    <p className="text-xs uppercase font-bold text-gray-400">
-                      Date
-                    </p>
-                    <span className="font-bold text-gray-900">
+                    <p className="text-xs font-medium text-gray-500">Date</p>
+                    <span className="font-medium text-gray-900 text-sm">
                       {formatDate(date)}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-900 shadow-sm border border-gray-100">
-                    <Clock size={20} />
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100">
+                    <Clock size={18} />
                   </div>
                   <div>
-                    <p className="text-xs uppercase font-bold text-gray-400">
-                      Time
-                    </p>
-                    <span className="font-bold text-gray-900">
+                    <p className="text-xs font-medium text-gray-500">Time</p>
+                    <span className="font-medium text-gray-900 text-sm">
                       {formatTime(time)}
                     </span>
                   </div>
@@ -222,21 +216,20 @@ const BookingConfirmationPage = () => {
             </Card>
 
             {/* Location */}
-            <Card className="border-2 border-transparent shadow-sm overflow-hidden">
-              <div className="h-1 bg-red-600" />
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-sm font-bold text-gray-500 uppercase tracking-widest">
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="pb-2 pt-5 px-5">
+                <CardTitle className="flex items-center gap-3 text-sm font-medium text-gray-500">
                   <MapPin size={18} className="text-red-600" />
                   Location
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="font-bold text-gray-900 uppercase mb-1">
+              <CardContent className="px-5 pb-5 pt-0">
+                <p className="font-bold text-gray-900 text-sm mb-0.5">
                   {locationId === "home-visit"
                     ? "Home/On-Site Visit"
                     : "Main Branch Service Center"}
                 </p>
-                <p className="text-gray-500 text-sm font-medium">
+                <p className="text-gray-500 text-sm">
                   {locationId === "home-visit"
                     ? "Colombo & Suburbs Area"
                     : "Pannipitiya, Colombo"}
@@ -247,88 +240,88 @@ const BookingConfirmationPage = () => {
 
           {/* Right Column: Services & Summary */}
           <div className="space-y-6">
-            <Card className="border-2 border-red-600 shadow-xl overflow-hidden bg-white">
-              <div className="bg-gray-900 text-white p-6 pb-4">
-                <h3 className="text-xs uppercase font-black tracking-widest text-red-500 mb-1">
+            <Card className="border border-gray-200 shadow-md bg-white overflow-hidden">
+              <div className="bg-gray-50 p-5 border-b border-gray-200">
+                <h3 className="text-sm font-bold text-gray-900">
                   Order Summary
                 </h3>
-                <p className="text-2xl font-bold tracking-tighter">
-                  Premium Car Care
-                </p>
               </div>
-              <CardContent className="p-6 space-y-6">
-                <div className="space-y-4">
+              <CardContent className="p-5 space-y-5">
+                <div className="space-y-3">
                   {data.services.map((service) => (
                     <div
                       key={service.serviceid}
-                      className="flex justify-between items-start group"
+                      className="flex justify-between items-start"
                     >
                       <div className="flex gap-3">
-                        <div className="h-5 w-5 rounded-full bg-red-100 flex items-center justify-center mt-0.5">
-                          <div className="h-2 w-2 rounded-full bg-red-600" />
+                        <div className="h-4 w-4 rounded-full bg-red-100 flex items-center justify-center mt-0.5 flex-shrink-0">
+                          <div className="h-1.5 w-1.5 rounded-full bg-red-600" />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 uppercase tracking-tight leading-tight">
+                          <p className="font-medium text-sm text-gray-900 leading-tight">
                             {service.servicename}
                           </p>
-                          <p className="text-xs text-gray-500 font-medium">
+                          <p className="text-xs text-gray-500 mt-0.5">
                             Professional Detail
                           </p>
                         </div>
                       </div>
-                      <span className="text-gray-900 font-black font-mono">
+                      <span className="text-gray-700 font-medium text-sm">
                         Rs. {parseFloat(service.serviceprice).toLocaleString()}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-6 border-t-2 border-dashed border-gray-100 space-y-4">
-                  <div className="flex justify-between items-center text-gray-500 text-sm font-bold uppercase tracking-wider">
-                    <span>Subtotal</span>
-                    <span className="font-mono">
+                <div className="pt-5 border-t border-dashed border-gray-200 space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Subtotal</span>
+                    <span className="font-medium text-gray-900">
                       Rs. {totalPrice.toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-gray-500 text-sm font-bold uppercase tracking-wider">
-                    <span>Service Fee</span>
-                    <span className="font-mono">Included</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Service Fee</span>
+                    <span className="font-medium text-green-600">Included</span>
                   </div>
-                  <div className="flex justify-between items-center pt-4 border-t-2 border-gray-900">
-                    <span className="text-xl font-bold tracking-tighter text-gray-900">
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
+                    <span className="text-base font-bold text-gray-900">
                       Total Price
                     </span>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-red-600 font-mono">
+                      <p className="text-lg font-bold text-red-600">
                         Rs. {totalPrice.toLocaleString()}
                       </p>
-                      <p className="text-[10px] uppercase font-bold text-gray-400">
+                      <p className="text-[10px] text-gray-400 font-medium">
                         Pay after service
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <Button
-                  onClick={handleConfirm}
-                  disabled={submitting}
-                  className="w-full h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300 group disabled:opacity-50"
-                >
-                  {submitting ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    <>
-                      Confirm Booking
-                      <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-2" />
-                    </>
-                  )}
-                </Button>
-                <button
-                  onClick={() => navigate(-1)}
-                  className="w-full text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-red-600 transition-colors"
-                >
-                  Go Back & Edit
-                </button>
+                <div className="pt-2 space-y-3">
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={submitting}
+                    className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 group disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        Confirm Booking
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate(-1)}
+                    className="w-full h-11 text-gray-500 hover:text-gray-900"
+                  >
+                    Go Back & Edit
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
