@@ -16,6 +16,11 @@ import ServiceCard from "@/components/ServiceCard";
 import { getServices } from "@/services/service.service";
 import { COLORS } from "@/lib/colors";
 
+import img1 from "../../assets/serviceAssets/image1.png";
+import img2 from "../../assets/serviceAssets/image2.png";
+import img3 from "../../assets/serviceAssets/image3.png";
+import img4 from "../../assets/serviceAssets/image4.png";
+
 const ServicesSection = ({ id }) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,6 +109,22 @@ const ServicesSection = ({ id }) => {
             From quick washes to complete detailing, we offer a full range of
             professional car care services tailored to your needs.
           </p>
+        </div>
+
+        {/* Visual Showcase Gallery */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {[img1, img2, img3, img4].map((img, index) => (
+            <div
+              key={index}
+              className="relative group overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+            >
+              <img
+                src={img}
+                alt={`Premium Service ${index + 1}`}
+                className="w-full h-auto block"
+              />
+            </div>
+          ))}
         </div>
 
         {/* Loading State */}

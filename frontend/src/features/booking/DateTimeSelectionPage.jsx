@@ -150,33 +150,31 @@ const DateTimeSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Book Service
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Select date & time
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-red-600">Step 4 of 4</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Select Date & Time
           </h1>
           <p className="text-gray-600">
             Choose your preferred appointment date and time.
           </p>
         </div>
 
-        <div className="max-w-4xl space-y-8">
+        <div className="max-w-4xl space-y-6">
           {/* Date Selection */}
-          <Card className="border-2 border-transparent shadow-sm">
-            <CardHeader className="pb-2">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 pt-6 px-6">
               <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                <Calendar size={24} className="text-red-600" />
+                <Calendar size={20} className="text-red-600" />
                 Select Date
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6">
               <div className="space-y-3">
                 <Label
                   htmlFor="date"
-                  className="text-xs uppercase font-bold tracking-wider text-gray-500"
+                  className="text-sm font-medium text-gray-700"
                 >
                   Appointment Date
                 </Label>
@@ -188,19 +186,17 @@ const DateTimeSelectionPage = () => {
                     value={selectedDate}
                     onChange={handleDateChange}
                     className={cn(
-                      "pl-4 h-12 border-2 focus:border-red-600 focus:ring-0 rounded-lg font-mono font-medium",
+                      "pl-4 h-11 border focus:border-red-600 focus:ring-0 rounded-lg text-sm",
                       error
-                        ? "border-red-200 bg-red-50"
-                        : "border-gray-100 bg-white",
+                        ? "border-red-200 bg-red-50 focus:border-red-400"
+                        : "border-gray-300 bg-white",
                     )}
                   />
                 </div>
                 {error && (
-                  <div className="flex items-center gap-2 text-red-600 mt-2">
-                    <AlertCircle size={14} />
-                    <p className="text-xs font-bold uppercase tracking-tight">
-                      {error}
-                    </p>
+                  <div className="flex items-center gap-2 text-red-600 mt-2 bg-red-50 p-3 rounded-lg border border-red-100">
+                    <AlertCircle size={16} />
+                    <p className="text-sm font-medium">{error}</p>
                   </div>
                 )}
               </div>
@@ -209,19 +205,24 @@ const DateTimeSelectionPage = () => {
 
           {/* Time Selection */}
           {selectedDate && !error && (
-            <Card className="border-2 border-transparent shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <CardHeader className="pb-2">
+            <Card className="border border-gray-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <CardHeader className="pb-4 pt-6 px-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                    <Clock size={24} className="text-red-600" />
+                    <Clock size={20} className="text-red-600" />
                     Select Time
                   </CardTitle>
                   {loadingAvailability && (
-                    <Loader2 className="animate-spin text-red-600 h-5 w-5" />
+                    <div className="flex items-center gap-2 text-red-600">
+                      <Loader2 className="animate-spin h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        Loading slots...
+                      </span>
+                    </div>
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-6 pb-6 pt-2">
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {timeSlots.map((slot) => {
                     const available = isSlotAvailable(slot.value);
@@ -232,12 +233,12 @@ const DateTimeSelectionPage = () => {
                         onClick={() => available && setSelectedTime(slot.value)}
                         disabled={!available || loadingAvailability}
                         className={cn(
-                          "px-4 py-4 rounded-xl border-2 text-xs font-bold tracking-tight transition-all duration-200",
+                          "px-2 py-3 rounded-lg border text-sm font-medium transition-all duration-200 active:scale-95",
                           selectedTime === slot.value
-                            ? "border-red-600 bg-red-600 text-white shadow-lg shadow-red-200"
+                            ? "border-red-600 bg-red-600 text-white shadow-md ring-1 ring-red-600"
                             : !available
-                              ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed opacity-50"
-                              : "border-gray-100 bg-white text-gray-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600",
+                              ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
+                              : "border-gray-200 bg-white text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow-sm",
                         )}
                       >
                         {slot.display}
@@ -247,7 +248,8 @@ const DateTimeSelectionPage = () => {
                 </div>
                 {!loadingAvailability && availableSlots.length === 0 && (
                   <div className="flex items-center gap-2 text-red-600 mt-6 bg-red-50 p-4 rounded-lg border border-red-100">
-                    <p className="text-sm font-bold uppercase tracking-tight">
+                    <AlertCircle size={16} />
+                    <p className="text-sm font-medium">
                       No matching slots available for this operative on the
                       selected date.
                     </p>
@@ -258,18 +260,18 @@ const DateTimeSelectionPage = () => {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-4 items-center pt-8 border-t border-gray-200">
+        <div className="flex flex-wrap gap-3 items-center justify-end pt-6 border-t border-gray-100 bg-gray-50 sticky bottom-0 z-10 p-4 -mx-4 md:static md:p-0 md:bg-transparent md:border-t-0">
           <Button
             variant="outline"
             onClick={() => navigate(-1)}
-            className="px-8 h-14 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
+            className="px-6 h-11 border-gray-300 font-medium hover:bg-white hover:text-red-600 flex-1 md:flex-none"
           >
             Back
           </Button>
           <Button
             onClick={handleContinue}
             disabled={!selectedDate || !selectedTime || !!error}
-            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+            className="px-8 h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 flex-1 md:flex-none"
           >
             Continue
           </Button>

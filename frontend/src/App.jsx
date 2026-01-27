@@ -36,6 +36,7 @@ import MyLeavesPage from "./features/employee/MyLeavesPage";
 import ManageVehicleCatalogPage from "./features/admin/ManageVehicleCatalogPage";
 import ManageIncidentsPage from "./features/admin/ManageIncidentsPage";
 import DailyIncomeReportPage from "./features/admin/DailyIncomeReportPage";
+import EmployeePerformanceReportPage from "./features/admin/EmployeePerformanceReportPage";
 import BookingReviewPage from "./features/admin/BookingReviewPage";
 import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
@@ -45,257 +46,263 @@ const App = () => {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
-          {/* Public Routes */}
-          <Route index element={<Home />} />
+        {/* Public Routes - Wrapped in MainLayout */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
           <Route path="services" element={<Services />} />
           <Route path="signup" element={<Signup />} />
           <Route path="login" element={<CustomerLogin />} />
           <Route path="employee/login" element={<EmployeeLogin />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
-
-          {/* Dashboard Routes with Sidebar */}
-          <Route path="dashboard" element={<DashboardLayout />}>
-            <Route
-              index
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="book"
-              element={
-                <ProtectedRoute>
-                  <Booking />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="bookings"
-              element={
-                <ProtectedRoute>
-                  <ScheduledBookingsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="history"
-              element={
-                <ProtectedRoute>
-                  <ServiceHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="payments"
-              element={
-                <ProtectedRoute>
-                  <PaymentHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="feedback"
-              element={
-                <ProtectedRoute>
-                  <Feedback />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="change-password"
-              element={
-                <ProtectedRoute>
-                  <ChangePasswordPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="vehicles"
-              element={
-                <ProtectedRoute>
-                  <Vehicles />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Booking Flow Selection Steps */}
-            <Route
-              path="booking/services"
-              element={
-                <ProtectedRoute>
-                  <ServiceSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/location"
-              element={
-                <ProtectedRoute>
-                  <LocationSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/employee"
-              element={
-                <ProtectedRoute>
-                  <EmployeeSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/datetime"
-              element={
-                <ProtectedRoute>
-                  <DateTimeSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="booking/confirmation"
-              element={
-                <ProtectedRoute>
-                  <BookingConfirmationPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Employee Dashboard Routes */}
-            <Route
-              path="employee/assigned"
-              element={
-                <EmployeeProtectedRoute
-                  allowedRoles={["owner", "employee", "cashier"]}
-                >
-                  <AllBookingsPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="employee/service/:id"
-              element={
-                <EmployeeProtectedRoute
-                  allowedRoles={["owner", "employee", "cashier"]}
-                >
-                  <ServiceDetailsPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="employee/incidents"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["employee", "cashier"]}>
-                  <EmployeeIncidentPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="employee/payments"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
-                  <PaymentManagementPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="employee/leaves"
-              element={
-                <EmployeeProtectedRoute
-                  allowedRoles={["owner", "employee", "cashier"]}
-                >
-                  <MyLeavesPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-
-            {/* Admin Dashboard Routes */}
-            <Route
-              path="admin/employees"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <EmployeeManagementPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/attendance"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <LeaveManagementPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/services"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <ManageServicesPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/customers"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
-                  <ManageCustomersPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/feedback"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <ViewFeedbackPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/vehicle-catalog"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <ManageVehicleCatalogPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/incidents"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <ManageIncidentsPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/reports/daily-income"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
-                  <DailyIncomeReportPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/bookings"
-              element={
-                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
-                  <BookingReviewPage />
-                </EmployeeProtectedRoute>
-              }
-            />
-          </Route>
-
-          {/* 404 */}
           <Route path="*" element={<NotFound />} />
+        </Route>
+
+        {/* Dashboard Routes - Independent Layout */}
+        <Route path="dashboard" element={<DashboardLayout />}>
+          <Route
+            index
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="book"
+            element={
+              <ProtectedRoute>
+                <Booking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="bookings"
+            element={
+              <ProtectedRoute>
+                <ScheduledBookingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="history"
+            element={
+              <ProtectedRoute>
+                <ServiceHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="payments"
+            element={
+              <ProtectedRoute>
+                <PaymentHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="feedback"
+            element={
+              <ProtectedRoute>
+                <Feedback />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="vehicles"
+            element={
+              <ProtectedRoute>
+                <Vehicles />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Booking Flow Selection Steps */}
+          <Route
+            path="booking/services"
+            element={
+              <ProtectedRoute>
+                <ServiceSelectionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="booking/location"
+            element={
+              <ProtectedRoute>
+                <LocationSelectionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="booking/employee"
+            element={
+              <ProtectedRoute>
+                <EmployeeSelectionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="booking/datetime"
+            element={
+              <ProtectedRoute>
+                <DateTimeSelectionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="booking/confirmation"
+            element={
+              <ProtectedRoute>
+                <BookingConfirmationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Employee Dashboard Routes */}
+          <Route
+            path="employee/assigned"
+            element={
+              <EmployeeProtectedRoute
+                allowedRoles={["owner", "employee", "cashier"]}
+              >
+                <AllBookingsPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="employee/service/:id"
+            element={
+              <EmployeeProtectedRoute
+                allowedRoles={["owner", "employee", "cashier"]}
+              >
+                <ServiceDetailsPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="employee/incidents"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["employee", "cashier"]}>
+                <EmployeeIncidentPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="employee/payments"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
+                <PaymentManagementPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="employee/leaves"
+            element={
+              <EmployeeProtectedRoute
+                allowedRoles={["owner", "employee", "cashier"]}
+              >
+                <MyLeavesPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+
+          {/* Admin Dashboard Routes */}
+          <Route
+            path="admin/employees"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <EmployeeManagementPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/attendance"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <LeaveManagementPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/services"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <ManageServicesPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/customers"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
+                <ManageCustomersPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/feedback"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <ViewFeedbackPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/vehicle-catalog"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <ManageVehicleCatalogPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/incidents"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <ManageIncidentsPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/reports/daily-income"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <DailyIncomeReportPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/reports/employee-performance"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <EmployeePerformanceReportPage />
+              </EmployeeProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/bookings"
+            element={
+              <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
+                <BookingReviewPage />
+              </EmployeeProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </AuthProvider>

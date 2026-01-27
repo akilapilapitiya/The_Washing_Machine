@@ -1,6 +1,9 @@
 import express from "express";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
-import { getDailyIncomeReport } from "../controllers/report.controller.js";
+import {
+  getDailyIncomeReport,
+  getEmployeePerformanceReport,
+} from "../controllers/report.controller.js";
 
 const router = express.Router();
 
@@ -10,6 +13,13 @@ router.get(
   authMiddleware,
   restrictTo("owner"),
   getDailyIncomeReport,
+);
+
+router.get(
+  "/employee-performance",
+  authMiddleware,
+  restrictTo("owner"),
+  getEmployeePerformanceReport,
 );
 
 export default router;
