@@ -57,45 +57,45 @@ const DashboardLayout = () => {
             </button>
 
             {isProfileMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] py-2 ring-1 ring-black ring-opacity-5 z-50 animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
+                <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50 mx-1 rounded-t-lg mb-1">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
                     {user?.name || "User"}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 truncate font-medium">
                     {user?.email}
                   </p>
                 </div>
 
-                <div className="py-1">
+                <div className="py-1 px-1">
                   <Link
                     to="/dashboard/profile"
-                    className="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600"
+                    className="group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors mx-1"
                     onClick={() => setIsProfileMenuOpen(false)}
                   >
-                    <UserCircle className="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-500" />
-                    My Profile
+                    <UserCircle className="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-600 transition-colors" />
+                    <span className="font-medium">My Profile</span>
                   </Link>
                   <Link
                     to="/dashboard/change-password"
-                    className="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600"
+                    className="group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors mx-1"
                     onClick={() => setIsProfileMenuOpen(false)}
                   >
-                    <Settings className="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-500" />
-                    Settings
+                    <Settings className="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-600 transition-colors" />
+                    <span className="font-medium">Settings</span>
                   </Link>
                 </div>
 
-                <div className="border-t border-gray-100 py-1">
+                <div className="border-t border-gray-100 py-1 px-1 mt-1">
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
                       logout();
                     }}
-                    className="w-full group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+                    className="w-full group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors mx-1"
                   >
-                    <LogOut className="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-600" />
-                    Logout
+                    <LogOut className="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-600 transition-colors" />
+                    <span className="font-medium">Logout</span>
                   </button>
                 </div>
               </div>
