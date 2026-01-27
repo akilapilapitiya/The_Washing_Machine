@@ -98,7 +98,7 @@ const Navbar = () => {
                 <Link to="/login">
                   <Button
                     variant="ghost"
-                    className="text-gray-700 hover:text-red-600 font-medium px-4"
+                    className="text-gray-700 hover:text-red-700 hover:bg-red-50 font-medium px-4"
                   >
                     Log In
                   </Button>

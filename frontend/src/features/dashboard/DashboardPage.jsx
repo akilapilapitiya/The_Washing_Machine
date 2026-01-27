@@ -126,7 +126,7 @@ const DashboardPage = () => {
   const totalBookings = data.bookings.length;
   const totalVehicles = data.vehicles.length;
   const totalAmount = data.payments.reduce(
-    (sum, p) => sum + (p.paymentamount || 0),
+    (sum, p) => sum + (parseFloat(p.paymentamount) || 0),
     0,
   );
 
