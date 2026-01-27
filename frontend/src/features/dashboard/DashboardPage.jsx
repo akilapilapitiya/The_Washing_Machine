@@ -339,6 +339,13 @@ const DashboardPage = () => {
                 icon: BarChart3,
                 primary: false,
               },
+              {
+                title: "Employee Report",
+                description: "View staff performance and revenue.",
+                to: "/dashboard/admin/reports/employee-performance",
+                icon: BarChart3,
+                primary: false,
+              },
             ]
           : []),
         // Attendance - Owner

@@ -22,3 +22,36 @@ export const getDailyIncomeReportService = async (startDate, endDate) => {
 
   return result.rows;
 };
+
+/**
+ * Get employee performance report
+ * @param {string} startDate
+ * @param {string} endDate
+ */
+export const getEmployeePerformanceReportService = async (
+  startDate,
+  endDate,
+) => {
+  const result = await pool.query(
+    `
+    SELECT 
+      e.empid, 
+      e.empname, 
+      e.emptype,
+      COUNT(b.bookingid) as completed_jobs,
+      COALESCE(SUM(b.totalprice), 0) as total_revenue
+    FROM employee e
+    LEFT JOIN employeeassigned ea ON e.empid = ea.empid
+    LEFT JOIN booking b ON ea.bookingid = b.bookingid 
+      AND b.bookingstatus IN ('completed', 'paid')
+      AND b.bookingdate >= $1::date 
+      AND b.bookingdate <= $2::date
+    WHERE e.emptype != 'customer'
+    GROUP BY e.empid
+    ORDER BY total_revenue DESC
+    `,
+    [startDate, endDate],
+  );
+
+  return result.rows;
+};
