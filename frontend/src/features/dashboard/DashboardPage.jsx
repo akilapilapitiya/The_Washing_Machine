@@ -12,6 +12,12 @@ import {
   AlertCircle,
   History,
   Car,
+  ListChecks,
+  Database,
+  ShieldAlert,
+  MessageSquare,
+  ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -244,6 +250,18 @@ const DashboardPage = () => {
               },
             ]
           : []),
+        // Owner and cashier can Review Bookings
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Review Bookings",
+                description: "Approve or manage customer bookings.",
+                to: "/dashboard/admin/bookings",
+                icon: ListChecks,
+                primary: false,
+              },
+            ]
+          : []),
         // Only owner can manage services
         ...(isOwner
           ? [
@@ -252,6 +270,13 @@ const DashboardPage = () => {
                 description: "Update pricing and service availability.",
                 to: "/dashboard/admin/services",
                 icon: Settings,
+                primary: false,
+              },
+              {
+                title: "Vehicle Catalog",
+                description: "Manage supported vehicle types and data.",
+                to: "/dashboard/admin/vehicle-catalog",
+                icon: Database,
                 primary: false,
               },
             ]
@@ -264,6 +289,66 @@ const DashboardPage = () => {
                 description: "View and manage customer information.",
                 to: "/dashboard/admin/customers",
                 icon: Users,
+                primary: false,
+              },
+            ]
+          : []),
+        // Incidents - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Incidents",
+                description: "Review and manage reported incidents.",
+                to: "/dashboard/admin/incidents",
+                icon: ShieldAlert,
+                primary: false,
+              },
+            ]
+          : []),
+        // Feedback - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Feedback",
+                description: "View customer feedback and ratings.",
+                to: "/dashboard/admin/feedback",
+                icon: MessageSquare,
+                primary: false,
+              },
+            ]
+          : []),
+        // Employees - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Employees",
+                description: "Manage staff, roles and permissions.",
+                to: "/dashboard/admin/employees",
+                icon: ShieldCheck,
+                primary: false,
+              },
+            ]
+          : []),
+        // Daily Income - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Daily Income",
+                description: "View daily revenue reports.",
+                to: "/dashboard/admin/reports/daily-income",
+                icon: BarChart3,
+                primary: false,
+              },
+            ]
+          : []),
+        // Attendance - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Attendance",
+                description: "Track employee attendance records.",
+                to: "/dashboard/admin/attendance",
+                icon: Calendar,
                 primary: false,
               },
             ]
@@ -307,8 +392,22 @@ const DashboardPage = () => {
 
       {/* Main Content Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Activity/Bookings */}
+        {/* Left Column: Quick Actions */}
         <div className="lg:col-span-2 space-y-6">
+          <div className="mb-2">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Quick Actions
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quickActions.map((action, index) => (
+              <QuickAction key={index} {...action} />
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Activity/Bookings */}
+        <div className="space-y-6">
           <Card className="border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Recent Bookings</CardTitle>
@@ -385,37 +484,6 @@ const DashboardPage = () => {
                 )}
               </div>
             </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Quick Actions */}
-        <div className="space-y-6">
-          <div className="mb-2">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Quick Actions
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 text-left">
-            {quickActions.map((action, index) => (
-              <QuickAction key={index} {...action} />
-            ))}
-          </div>
-
-          <Card className="bg-gray-900 text-white border-none overflow-hidden relative">
-            <div className="p-6 relative z-10">
-              <h3 className="text-lg font-bold mb-2">Need Help?</h3>
-              <p className="text-xs text-gray-400 mb-4">
-                Our support team is available 24/7 for any urgent washing
-                matters.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full bg-transparent border-gray-700 hover:bg-gray-800 text-white text-xs"
-              >
-                Contact Support
-              </Button>
-            </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
           </Card>
         </div>
       </div>

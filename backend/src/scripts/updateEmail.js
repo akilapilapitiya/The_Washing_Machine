@@ -1,8 +1,8 @@
 import pool from "../configs/database.js";
 
 async function updateOwnerEmail() {
-  const newEmail = "akilapilapitiya4@gmail.com";
-  console.log(`Updating owner email to: ${newEmail}...`);
+  const newEmail = "owner@washingmachine.com";
+  console.log(`Reverting owner email to: ${newEmail}...`);
 
   try {
     const result = await pool.query(
@@ -14,7 +14,7 @@ async function updateOwnerEmail() {
     );
 
     if (result.rowCount > 0) {
-      console.log("✅ Update successful:");
+      console.log("✅ Revert successful:");
       console.log(result.rows[0]);
     } else {
       console.log("❌ Owner account not found.");
