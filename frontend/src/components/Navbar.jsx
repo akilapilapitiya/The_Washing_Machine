@@ -1,32 +1,42 @@
-import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "../assets/logo.svg";
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
 
-  // Navigation items - using hash links for homepage sections
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const navItems = [
     { path: "/#home", label: "Home", hash: "home" },
-    { path: "/#partners", label: "Partners", hash: "partners" },
     { path: "/#services", label: "Services", hash: "services" },
+    { path: "/#partners", label: "Partners", hash: "partners" },
     { path: "/#contact", label: "Contact", hash: "contact" },
   ];
 
-  const isActive = (path) => location.pathname === path;
-
-  // Handle smooth scroll to section
   const handleScrollToSection = (e, hash) => {
-    e.preventDefault();
-    const element = document.getElementById(hash);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    // If not on home page, let the link navigation happen usually to /#hash
+    // But since we are using HashRouter or similar mostly, if we are on /, prevent default
+    if (location.pathname === "/") {
+      e.preventDefault();
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        setIsMenuOpen(false);
+      }
+    } else {
       setIsMenuOpen(false);
     }
   };
@@ -37,79 +47,75 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex-shrink-0 flex items-center gap-2 group">
             <img
               src={logo}
               alt="The Washing Machine Logo"
-              className="h-auto w-50 object-cover rounded"
+              className="h-10 w-auto object-contain transition-transform transform group-hover:scale-105"
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <a
-                key={item.path}
+                key={item.label}
                 href={item.path}
                 onClick={(e) => handleScrollToSection(e, item.hash)}
+                className="text-sm font-medium text-gray-700 hover:text-red-600 transition-colors relative group"
               >
-                <Button
-                  variant={isActive(item.path) ? "default" : "ghost"}
-                  className="font-medium"
-                >
-                  {item.label}
-                </Button>
+                {item.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
               </a>
             ))}
           </div>
 
-          {/* CTA Buttons - Desktop */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
-              <>
-                {/* Authenticated user buttons */}
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col items-end hidden lg:flex">
+                  <span className="text-sm font-bold text-gray-900 leading-none">
+                    {user?.name || "User"}
+                  </span>
+                  <span className="text-[10px] text-gray-500 uppercase font-semibold tracking-wider">
+                    Logged In
+                  </span>
+                </div>
                 <Link to="/dashboard">
-                  <Button variant="outline">Dashboard</Button>
+                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-lg shadow-red-100 transition-all transform hover:-translate-y-0.5">
+                    Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </Link>
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-md">
-                    <User className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {user?.name || "User"}
-                    </span>
-                  </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login">
                   <Button
                     variant="ghost"
-                    onClick={handleLogout}
-                    className="flex items-center space-x-2"
+                    className="text-gray-700 hover:text-red-600 font-medium px-4"
                   >
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
+                    Log In
                   </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Guest user buttons */}
-                <Link to="/login">
-                  <Button variant="outline">Sign In</Button>
                 </Link>
                 <Link to="/signup">
-                  <Button>Sign Up</Button>
+                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-md shadow-red-500/20 transition-all transform hover:-translate-y-0.5">
+                    Sign Up
+                  </Button>
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-2 text-gray-600 hover:text-red-600 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
           >
             {isMenuOpen ? (
               <X className="h-6 w-6" />
@@ -118,68 +124,73 @@ const Navbar = () => {
             )}
           </button>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <div className="flex flex-col space-y-2">
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-b border-gray-100 animate-in slide-in-from-top-5 fade-in duration-200">
+          <div className="px-4 py-6 space-y-4">
+            <div className="flex flex-col space-y-3">
               {navItems.map((item) => (
                 <a
-                  key={item.path}
+                  key={item.label}
                   href={item.path}
                   onClick={(e) => handleScrollToSection(e, item.hash)}
+                  className="text-base font-medium text-gray-900 hover:text-red-600 py-2 border-b border-gray-50 last:border-0"
                 >
-                  <Button
-                    variant={isActive(item.path) ? "default" : "ghost"}
-                    className="w-full justify-start font-medium"
-                  >
-                    {item.label}
-                  </Button>
+                  {item.label}
                 </a>
               ))}
+            </div>
 
+            <div className="pt-4 flex flex-col gap-3">
               {isAuthenticated ? (
                 <>
-                  {/* Authenticated user - mobile */}
-                  <div className="px-3 py-2 bg-gray-100 rounded-md">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {user?.name || "User"}
-                      </span>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">
+                      {user?.name?.charAt(0) || "U"}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
                     </div>
                   </div>
                   <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">
-                      Dashboard
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full">
+                      Go to Dashboard
                     </Button>
                   </Link>
                   <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={handleLogout}
+                    variant="outline"
+                    className="w-full rounded-full border-gray-200"
+                    onClick={() => {
+                      handleLogout();
+                    }}
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
+                    Log Out
                   </Button>
                 </>
               ) : (
                 <>
-                  {/* Guest user - mobile */}
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">
-                      Sign In
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-full border-gray-200 text-gray-700"
+                    >
+                      Log In
                     </Button>
                   </Link>
                   <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full">Sign Up</Button>
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg shadow-red-100">
+                      Sign Up Now
+                    </Button>
                   </Link>
                 </>
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   );
 };
