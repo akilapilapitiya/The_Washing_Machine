@@ -232,7 +232,7 @@ const BookingConfirmationPage = () => {
                 <p className="text-gray-500 text-sm">
                   {locationId === "home-visit"
                     ? "Colombo & Suburbs Area"
-                    : "Pannipitiya, Colombo"}
+                    : "488, High level Road, Pannipitiya, Colombo, Sri Lanka"}
                 </p>
               </CardContent>
             </Card>

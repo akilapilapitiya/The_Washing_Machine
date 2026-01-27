@@ -10,7 +10,7 @@ const locations = [
     id: "main-branch",
     title: "The Washing Machine - Main Branch",
     type: "branch",
-    address: "Pannipitiya, Colombo, Sri Lanka",
+    address: "488, High level Road, Pannipitiya, Colombo, Sri Lanka",
     icon: MapPin,
     description:
       "Visit our main service center with full facilities and expert staff.",
