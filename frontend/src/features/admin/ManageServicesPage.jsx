@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Wrench,
   Plus,
   Trash2,
   Edit,
@@ -15,7 +14,6 @@ import {
   AlertCircle,
   Loader2,
   Tag,
-  Percent,
   Box,
   Layers,
 } from "lucide-react";
@@ -219,20 +217,19 @@ const ManageServicesPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-              Service Management
-            </p>
-            <h1 className="text-3xl font-bold">Manage Services</h1>
-            <p className="text-gray-600">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Service Registry
+            </h1>
+            <p className="text-gray-500">
               Add, edit, and manage all available services.
             </p>
           </div>
           <Button
             onClick={openAddForm}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
           >
             <Plus size={18} />
             Add Service
@@ -242,23 +239,25 @@ const ManageServicesPage = () => {
         {showSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
             <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">{successMessage}</p>
+            <p className="text-green-800 font-medium text-sm">
+              {successMessage}
+            </p>
           </div>
         )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
             <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
+            <p className="text-red-800 font-medium text-sm">{error}</p>
           </div>
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-24">
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
         ) : services.length > 0 ? (
-          <div className="space-y-12">
+          <div className="space-y-10">
             {["package", "addon"].map((type) => {
               const typeServices = services.filter(
                 (s) => (s.servicetype || "package") === type,
@@ -267,98 +266,86 @@ const ManageServicesPage = () => {
 
               return (
                 <div key={type} className="space-y-4">
-                  <div className="flex items-center gap-2 border-b pb-2">
+                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
                     {type === "package" ? (
-                      <Box className="text-red-600" />
+                      <Box className="text-red-600" size={20} />
                     ) : (
-                      <Layers className="text-blue-600" />
+                      <Layers className="text-blue-600" size={20} />
                     )}
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-lg font-bold text-gray-900">
                       {type === "package"
                         ? "Service Packages"
                         : "Optional Add-ons"}
                     </h2>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {typeServices.map((service) => (
                       <Card
                         key={service.serviceid}
-                        className={
-                          service.has_offer ? "border-2 border-red-200" : ""
-                        }
+                        className={`hover:shadow-md transition-all border-gray-200 h-full flex flex-col ${
+                          service.has_offer ? "border-red-200" : ""
+                        }`}
                       >
-                        <CardHeader>
+                        <CardHeader className="pb-3 pt-5 px-5">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">
+                              <CardTitle className="text-base font-bold text-gray-900">
                                 {service.servicename}
                               </CardTitle>
                               {service.has_offer && (
-                                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
-                                  <Tag size={12} /> Special Offer
+                                <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full mt-2 border border-red-100">
+                                  <Tag size={10} /> SPECIAL OFFER
                                 </span>
                               )}
                             </div>
-                            <button
-                              onClick={() =>
-                                handleDeleteService(service.serviceid)
-                              }
-                              disabled={isSubmitting}
-                              className="text-gray-400 hover:text-red-600 transition disabled:opacity-50"
-                              title="Delete service"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            <div className="flex gap-1 ml-2">
+                              <button
+                                onClick={() => openEditForm(service)}
+                                disabled={isSubmitting}
+                                className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-md transition"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteService(service.serviceid)
+                                }
+                                disabled={isSubmitting}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <p className="text-sm text-gray-600 line-clamp-2">
+                        <CardContent className="space-y-4 px-5 pb-5 flex-1 flex flex-col">
+                          <p className="text-sm text-gray-600 line-clamp-2 flex-1">
                             {service.servicedetails}
                           </p>
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Banknote
-                                size={16}
-                                className={
-                                  service.has_offer
-                                    ? "text-gray-400"
-                                    : "text-green-600"
-                                }
-                              />
+
+                          <div className="pt-4 border-t border-gray-100 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                                <Clock size={16} />
+                                <span>{service.servicetime} hrs</span>
+                              </div>
+
                               {service.has_offer ? (
-                                <div className="flex items-center gap-2">
-                                  <span className="line-through text-gray-400 font-medium">
+                                <div className="text-right">
+                                  <div className="text-xs text-gray-400 line-through font-medium">
                                     Rs. {service.serviceprice}
-                                  </span>
-                                  <span className="font-bold text-red-600 text-lg">
+                                  </div>
+                                  <div className="text-lg font-bold text-red-600">
                                     Rs. {service.offer_price}
-                                  </span>
+                                  </div>
                                 </div>
                               ) : (
-                                <span className="font-semibold text-green-600">
+                                <div className="text-lg font-bold text-gray-900">
                                   Rs. {service.serviceprice}
-                                </span>
+                                </div>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Clock size={16} className="text-gray-500" />
-                              <span className="text-gray-700">
-                                {service.servicetime}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="pt-2 border-t">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditForm(service)}
-                              disabled={isSubmitting}
-                              className="w-full flex items-center justify-center gap-2"
-                            >
-                              <Edit size={14} />
-                              Edit Service
-                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -369,216 +356,299 @@ const ManageServicesPage = () => {
             })}
           </div>
         ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Wrench size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No services yet</h3>
-              <p className="text-gray-600 mb-4">
-                Add your first service to get started.
-              </p>
-              <Button onClick={openAddForm}>
-                <Plus size={18} className="mr-2" />
-                Add Service
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
+            <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
+              <Box size={32} className="text-gray-300" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              No services yet
+            </h3>
+            <p className="text-gray-500 mb-6 text-sm">
+              Add your first service package to get started.
+            </p>
+            <Button
+              onClick={openAddForm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Plus size={16} className="mr-2" />
+              Add Service
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Add Service Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
+      {/* Add/Edit Modal */}
+      {(showAddForm || showEditForm) && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl border-0">
+            <CardHeader className="border-b border-gray-100 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Plus size={20} className="text-red-600" />
-                  Add New Service
+                <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                  {showAddForm ? (
+                    <>
+                      <div className="p-2 bg-red-50 rounded-lg">
+                        <Plus size={20} className="text-red-600" />
+                      </div>
+                      Add Service
+                    </>
+                  ) : (
+                    <>
+                      <div className="p-2 bg-gray-50 rounded-lg">
+                        <Edit size={20} className="text-gray-700" />
+                      </div>
+                      Edit Service
+                    </>
+                  )}
                 </CardTitle>
                 <button
-                  onClick={() => setShowAddForm(false)}
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setShowEditForm(false);
+                  }}
                   disabled={isSubmitting}
-                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddService} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="servicename">Service Name *</Label>
-                  <Input
-                    id="servicename"
-                    name="servicename"
-                    value={formData.servicename}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Exterior Wash"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Service Type</Label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
-                      <input
-                        type="radio"
-                        name="servicetype"
-                        value="package"
-                        checked={formData.servicetype === "package"}
-                        onChange={handleInputChange}
-                        className="text-red-600 focus:ring-red-500"
-                      />
-                      <Box size={16} className="text-gray-500" />
-                      <div className="text-sm">
-                        <span className="font-semibold block">Package</span>
-                        <span className="text-xs text-gray-500">
-                          Stand-alone service (Max 1)
-                        </span>
-                      </div>
-                    </label>
-                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
-                      <input
-                        type="radio"
-                        name="servicetype"
-                        value="addon"
-                        checked={formData.servicetype === "addon"}
-                        onChange={handleInputChange}
-                        className="text-red-600 focus:ring-red-500"
-                      />
-                      <Layers size={16} className="text-gray-500" />
-                      <div className="text-sm">
-                        <span className="font-semibold block">Add-on</span>
-                        <span className="text-xs text-gray-500">
-                          Extra service (Multiple allowed)
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="servicedetails">Description *</Label>
-                  <textarea
-                    id="servicedetails"
-                    name="servicedetails"
-                    value={formData.servicedetails}
-                    onChange={handleInputChange}
-                    placeholder="Describe what this service includes..."
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    required
-                  />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
+            <CardContent className="pt-6">
+              <form
+                onSubmit={showAddForm ? handleAddService : handleEditService}
+                className="space-y-6"
+              >
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="serviceprice">Price (Rs.) *</Label>
+                    <Label
+                      htmlFor="servicename"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Service Name <span className="text-red-500">*</span>
+                    </Label>
                     <Input
-                      id="serviceprice"
-                      name="serviceprice"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.serviceprice}
+                      id="servicename"
+                      name="servicename"
+                      value={formData.servicename}
                       onChange={handleInputChange}
-                      placeholder="e.g., 1500"
+                      placeholder="e.g., Premium Exterior Wash"
+                      className="h-11 border-gray-300 focus:ring-red-600"
                       required
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label>Duration *</Label>
-                    <div className="flex gap-3 items-end">
-                      <div className="flex-1">
-                        <Label
-                          htmlFor="hours"
-                          className="text-sm text-gray-600"
+                    <Label className="text-sm font-medium text-gray-700">
+                      Service Category
+                    </Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <label
+                        className={`flex items-center gap-3 border p-3 rounded-lg cursor-pointer transition-all ${formData.servicetype === "package" ? "border-red-600 bg-red-50/50 ring-1 ring-red-600" : "border-gray-200 hover:bg-gray-50"}`}
+                      >
+                        <input
+                          type="radio"
+                          name="servicetype"
+                          value="package"
+                          checked={formData.servicetype === "package"}
+                          onChange={handleInputChange}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`p-2 rounded-md ${formData.servicetype === "package" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-500"}`}
                         >
-                          Hours
-                        </Label>
+                          <Box size={18} />
+                        </div>
+                        <div className="text-sm">
+                          <span
+                            className={`font-semibold block ${formData.servicetype === "package" ? "text-red-900" : "text-gray-900"}`}
+                          >
+                            Package
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Stand-alone service
+                          </span>
+                        </div>
+                      </label>
+                      <label
+                        className={`flex items-center gap-3 border p-3 rounded-lg cursor-pointer transition-all ${formData.servicetype === "addon" ? "border-red-600 bg-red-50/50 ring-1 ring-red-600" : "border-gray-200 hover:bg-gray-50"}`}
+                      >
+                        <input
+                          type="radio"
+                          name="servicetype"
+                          value="addon"
+                          checked={formData.servicetype === "addon"}
+                          onChange={handleInputChange}
+                          className="text-red-600 focus:ring-red-500 sr-only"
+                        />
+                        <div
+                          className={`p-2 rounded-md ${formData.servicetype === "addon" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-500"}`}
+                        >
+                          <Layers size={18} />
+                        </div>
+                        <div className="text-sm">
+                          <span
+                            className={`font-semibold block ${formData.servicetype === "addon" ? "text-red-900" : "text-gray-900"}`}
+                          >
+                            Add-on
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Extra service
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="servicedetails"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Description <span className="text-red-500">*</span>
+                    </Label>
+                    <textarea
+                      id="servicedetails"
+                      name="servicedetails"
+                      value={formData.servicedetails}
+                      onChange={handleInputChange}
+                      placeholder="Detail what is included in this service..."
+                      rows={3}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none text-sm transition-shadow"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="serviceprice"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Price (Rs.) <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium sm:text-sm">
+                          Rs.
+                        </span>
                         <Input
-                          id="hours"
+                          id="serviceprice"
+                          name="serviceprice"
                           type="number"
+                          step="0.01"
                           min="0"
-                          max="23"
-                          value={getDurationParts().hours}
-                          onChange={(e) =>
-                            handleDurationChange(
-                              "hours",
-                              parseInt(e.target.value) || 0,
-                            )
-                          }
-                          className="mt-1"
+                          value={formData.serviceprice}
+                          onChange={handleInputChange}
+                          placeholder="0.00"
+                          className="pl-10 h-11 border-gray-300 focus:ring-red-600"
                           required
                         />
                       </div>
-                      <div className="flex-1">
-                        <Label
-                          htmlFor="minutes"
-                          className="text-sm text-gray-600"
-                        >
-                          Minutes
-                        </Label>
-                        <Input
-                          id="minutes"
-                          type="number"
-                          min="0"
-                          max="59"
-                          value={getDurationParts().minutes}
-                          onChange={(e) =>
-                            handleDurationChange(
-                              "minutes",
-                              parseInt(e.target.value) || 0,
-                            )
-                          }
-                          className="mt-1"
-                          required
-                        />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-gray-700">
+                        Duration <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="23"
+                            value={getDurationParts().hours}
+                            onChange={(e) =>
+                              handleDurationChange(
+                                "hours",
+                                parseInt(e.target.value) || 0,
+                              )
+                            }
+                            className="h-11 border-gray-300 focus:ring-red-600 pr-8"
+                            required
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                            HR
+                          </span>
+                        </div>
+                        <div className="relative flex-1">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="59"
+                            value={getDurationParts().minutes}
+                            onChange={(e) =>
+                              handleDurationChange(
+                                "minutes",
+                                parseInt(e.target.value) || 0,
+                              )
+                            }
+                            className="h-11 border-gray-300 focus:ring-red-600 pr-8"
+                            required
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
+                            MIN
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Offer Section */}
-                <div className="bg-red-50 p-4 rounded-lg border border-red-100 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="has_offer"
-                      name="has_offer"
-                      checked={formData.has_offer}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
-                    />
+                <div
+                  className={`p-5 rounded-xl border transition-all ${formData.has_offer ? "bg-red-50 border-red-100 ring-1 ring-red-100" : "bg-gray-50 border-gray-200"}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        id="has_offer"
+                        name="has_offer"
+                        checked={formData.has_offer}
+                        onChange={handleInputChange}
+                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-red-600 checked:bg-red-600 focus:ring-2 focus:ring-red-600 focus:ring-offset-1"
+                      />
+                      <CheckCircle
+                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                        size={12}
+                        strokeWidth={4}
+                      />
+                    </div>
+
                     <Label
                       htmlFor="has_offer"
-                      className="font-bold text-red-800 cursor-pointer"
+                      className={`font-bold cursor-pointer select-none text-sm ${formData.has_offer ? "text-red-900" : "text-gray-600"}`}
                     >
-                      Activate Promotional Offer
+                      Use Promotional Pricing
                     </Label>
                   </div>
 
                   {formData.has_offer && (
-                    <div className="grid gap-4 md:grid-cols-2 animate-in slide-in-from-top-2">
+                    <div className="grid gap-4 md:grid-cols-2 mt-4 animate-in slide-in-from-top-1">
                       <div className="space-y-2">
-                        <Label htmlFor="offer_price" className="text-red-900">
-                          Discounted Price (Rs.)
+                        <Label
+                          htmlFor="offer_price"
+                          className="text-xs font-semibold uppercase tracking-wide text-red-800"
+                        >
+                          Discounted Price
                         </Label>
-                        <Input
-                          id="offer_price"
-                          name="offer_price"
-                          type="number"
-                          value={formData.offer_price}
-                          onChange={handleInputChange}
-                          className="border-red-200 focus:ring-red-500"
-                          placeholder="e.g. 1200"
-                          required={formData.has_offer}
-                        />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-400 font-medium sm:text-sm">
+                            Rs.
+                          </span>
+                          <Input
+                            id="offer_price"
+                            name="offer_price"
+                            type="number"
+                            value={formData.offer_price}
+                            onChange={handleInputChange}
+                            className="pl-10 h-10 border-red-200 bg-white focus:ring-red-500"
+                            placeholder="0.00"
+                            required={formData.has_offer}
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label
                           htmlFor="offer_description"
-                          className="text-red-900"
+                          className="text-xs font-semibold uppercase tracking-wide text-red-800"
                         >
                           Offer Label
                         </Label>
@@ -587,7 +657,7 @@ const ManageServicesPage = () => {
                           name="offer_description"
                           value={formData.offer_description}
                           onChange={handleInputChange}
-                          className="border-red-200 focus:ring-red-500"
+                          className="h-10 border-red-200 bg-white focus:ring-red-500"
                           placeholder="e.g. Summer Sale"
                         />
                       </div>
@@ -595,261 +665,33 @@ const ManageServicesPage = () => {
                   )}
                 </div>
 
-                <div className="flex gap-3 justify-end pt-4">
+                <div className="flex gap-3 justify-end pt-2 border-t border-gray-100 mt-4">
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={() => setShowAddForm(false)}
+                    variant="ghost"
+                    onClick={() => {
+                      setShowAddForm(false);
+                      setShowEditForm(false);
+                    }}
                     disabled={isSubmitting}
+                    className="h-11 px-6 font-medium text-gray-600"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="h-11 px-8 bg-red-600 hover:bg-red-700 font-bold shadow-md shadow-red-100"
+                  >
                     {isSubmitting ? (
                       <>
                         <Loader2 size={18} className="mr-2 animate-spin" />
-                        Adding...
+                        Saving...
                       </>
-                    ) : (
+                    ) : showAddForm ? (
                       "Add Service"
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Edit Service Modal */}
-      {showEditForm && selectedService && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Edit size={20} className="text-red-600" />
-                  Edit Service
-                </CardTitle>
-                <button
-                  onClick={() => setShowEditForm(false)}
-                  disabled={isSubmitting}
-                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleEditService} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-servicename">Service Name *</Label>
-                  <Input
-                    id="edit-servicename"
-                    name="servicename"
-                    value={formData.servicename}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Exterior Wash"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Service Type</Label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
-                      <input
-                        type="radio"
-                        name="servicetype"
-                        value="package"
-                        checked={formData.servicetype === "package"}
-                        onChange={handleInputChange}
-                        className="text-red-600 focus:ring-red-500"
-                      />
-                      <Box size={16} className="text-gray-500" />
-                      <div className="text-sm">
-                        <span className="font-semibold block">Package</span>
-                        <span className="text-xs text-gray-500">
-                          Stand-alone (Max 1)
-                        </span>
-                      </div>
-                    </label>
-                    <label className="flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-gray-50 flex-1">
-                      <input
-                        type="radio"
-                        name="servicetype"
-                        value="addon"
-                        checked={formData.servicetype === "addon"}
-                        onChange={handleInputChange}
-                        className="text-red-600 focus:ring-red-500"
-                      />
-                      <Layers size={16} className="text-gray-500" />
-                      <div className="text-sm">
-                        <span className="font-semibold block">Add-on</span>
-                        <span className="text-xs text-gray-500">
-                          Extra service
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-servicedetails">Description *</Label>
-                  <textarea
-                    id="edit-servicedetails"
-                    name="servicedetails"
-                    value={formData.servicedetails}
-                    onChange={handleInputChange}
-                    placeholder="Describe what this service includes..."
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    required
-                  />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-serviceprice">Price (Rs.) *</Label>
-                    <Input
-                      id="edit-serviceprice"
-                      name="serviceprice"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.serviceprice}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 1500"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Duration *</Label>
-                    <div className="flex gap-3 items-end">
-                      <div className="flex-1">
-                        <Label
-                          htmlFor="edit-hours"
-                          className="text-sm text-gray-600"
-                        >
-                          Hours
-                        </Label>
-                        <Input
-                          id="edit-hours"
-                          type="number"
-                          min="0"
-                          max="23"
-                          value={getDurationParts().hours}
-                          onChange={(e) =>
-                            handleDurationChange(
-                              "hours",
-                              parseInt(e.target.value) || 0,
-                            )
-                          }
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <Label
-                          htmlFor="edit-minutes"
-                          className="text-sm text-gray-600"
-                        >
-                          Minutes
-                        </Label>
-                        <Input
-                          id="edit-minutes"
-                          type="number"
-                          min="0"
-                          max="59"
-                          value={getDurationParts().minutes}
-                          onChange={(e) =>
-                            handleDurationChange(
-                              "minutes",
-                              parseInt(e.target.value) || 0,
-                            )
-                          }
-                          className="mt-1"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Offer Section */}
-                <div className="bg-red-50 p-4 rounded-lg border border-red-100 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="edit-has_offer"
-                      name="has_offer"
-                      checked={formData.has_offer}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
-                    />
-                    <Label
-                      htmlFor="edit-has_offer"
-                      className="font-bold text-red-800 cursor-pointer"
-                    >
-                      Activate Promotional Offer
-                    </Label>
-                  </div>
-
-                  {formData.has_offer && (
-                    <div className="grid gap-4 md:grid-cols-2 animate-in slide-in-from-top-2">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="edit-offer_price"
-                          className="text-red-900"
-                        >
-                          Discounted Price (Rs.)
-                        </Label>
-                        <Input
-                          id="edit-offer_price"
-                          name="offer_price"
-                          type="number"
-                          value={formData.offer_price}
-                          onChange={handleInputChange}
-                          className="border-red-200 focus:ring-red-500"
-                          placeholder="e.g. 1200"
-                          required={formData.has_offer}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="edit-offer_description"
-                          className="text-red-900"
-                        >
-                          Offer Label
-                        </Label>
-                        <Input
-                          id="edit-offer_description"
-                          name="offer_description"
-                          value={formData.offer_description}
-                          onChange={handleInputChange}
-                          className="border-red-200 focus:ring-red-500"
-                          placeholder="e.g. Summer Sale"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-3 justify-end pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowEditForm(false)}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 size={18} className="mr-2 animate-spin" />
-                        Updating...
-                      </>
                     ) : (
-                      "Update Service"
+                      "Save Changes"
                     )}
                   </Button>
                 </div>
