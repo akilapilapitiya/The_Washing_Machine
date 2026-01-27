@@ -14,6 +14,7 @@ import {
   verifyOTP,
   logOTPToConsole,
 } from "../utils/otp.util.js";
+import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
 export const signUp = async ({
@@ -132,6 +133,13 @@ export const requestPasswordReset = async (email) => {
 
   // Log OTP to console (in production, send via email)
   logOTPToConsole(email, otp);
+
+  // Send OTP via email
+  try {
+    await sendOtpEmail(email, otp);
+  } catch (error) {
+    // Fail silently, error is logged in email service
+  }
 
   return {
     message:

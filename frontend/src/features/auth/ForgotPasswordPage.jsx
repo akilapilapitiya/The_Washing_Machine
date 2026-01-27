@@ -162,7 +162,7 @@ const ForgotPasswordPage = () => {
             <CardDescription>
               {step === 0 && "Select your account type"}
               {step === 1 && "Enter your email to get started"}
-              {step === 2 && "Enter the OTP from the backend terminal"}
+              {step === 2 && "Enter the verification code sent to your email"}
               {step === 3 && "Create your new password"}
             </CardDescription>
           </CardHeader>
@@ -211,8 +211,8 @@ const ForgotPasswordPage = () => {
                 </div>
                 <div className="p-3 rounded-md bg-blue-50 border border-blue-200">
                   <p className="text-sm text-blue-800">
-                    📱 A 6-digit OTP will be printed in the{" "}
-                    <strong>backend terminal</strong> for verification.
+                    A 6-digit verification code will be sent to your email
+                    address.
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -239,9 +239,9 @@ const ForgotPasswordPage = () => {
                 </div>
                 <div className="p-3 rounded-md bg-blue-50 border border-blue-200">
                   <p className="text-sm text-blue-800">
-                    Check the <strong>backend terminal</strong> for your 6-digit
-                    OTP. It expires in 10 minutes and has a maximum of 3
-                    attempts.
+                    Please check your email for the 6-digit verification code.
+                    The code expires in 10 minutes and can be used up to 3
+                    times.
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

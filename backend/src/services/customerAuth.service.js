@@ -14,6 +14,7 @@ import {
   verifyOTP,
   logOTPToConsole,
 } from "../utils/otp.util.js";
+import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
 export const signUp = async ({ name, email, password, telephone }) => {
@@ -112,6 +113,13 @@ export const requestPasswordReset = async (email) => {
 
   // Log OTP to console (in production, send via email)
   logOTPToConsole(email, otp);
+
+  // Send OTP via email
+  try {
+    await sendOtpEmail(email, otp);
+  } catch (error) {
+    console.error("Failed to send OTP email:", error);
+  }
 
   return {
     message:
