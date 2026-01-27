@@ -89,3 +89,53 @@ export const getEmployeeRoles = async () => {
   const response = await api.get("/authemployee/roles");
   return response.data;
 };
+
+// Password Reset Functions
+
+/**
+ * Request customer password reset OTP
+ * @param {string} email - Customer email
+ * @returns {Promise<Object>} - Success message
+ */
+export const requestCustomerPasswordReset = async (email) => {
+  const response = await api.post("/authcustomer/forgot-password", { email });
+  return response.data;
+};
+
+/**
+ * Reset customer password with OTP
+ * @param {Object} data - Email, OTP, and new password
+ * @returns {Promise<Object>} - Success message
+ */
+export const resetCustomerPassword = async ({ email, otp, newPassword }) => {
+  const response = await api.post("/authcustomer/reset-password", {
+    email,
+    otp,
+    newPassword,
+  });
+  return response.data;
+};
+
+/**
+ * Request employee password reset OTP
+ * @param {string} email - Employee email
+ * @returns {Promise<Object>} - Success message
+ */
+export const requestEmployeePasswordReset = async (email) => {
+  const response = await api.post("/authemployee/forgot-password", { email });
+  return response.data;
+};
+
+/**
+ * Reset employee password with OTP
+ * @param {Object} data - Email, OTP, and new password
+ * @returns {Promise<Object>} - Success message
+ */
+export const resetEmployeePassword = async ({ email, otp, newPassword }) => {
+  const response = await api.post("/authemployee/reset-password", {
+    email,
+    otp,
+    newPassword,
+  });
+  return response.data;
+};

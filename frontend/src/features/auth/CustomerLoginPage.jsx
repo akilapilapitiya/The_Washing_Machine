@@ -17,7 +17,7 @@ import { Loader2 } from "lucide-react";
 const CustomerLoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -50,7 +50,7 @@ const CustomerLoginPage = () => {
       // Check if signin was successful
       if (response.success && response.data) {
         const { customer, token } = response.data;
-        
+
         // Update auth context with customer type
         login(customer, token, "customer");
 
@@ -61,7 +61,7 @@ const CustomerLoginPage = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      
+
       // Handle different error types
       if (err.response?.data?.message) {
         setError(err.response.data.message);
@@ -126,9 +126,9 @@ const CustomerLoginPage = () => {
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    className="rounded" 
+                  <input
+                    type="checkbox"
+                    className="rounded"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                     disabled={loading}
@@ -137,6 +137,7 @@ const CustomerLoginPage = () => {
                 </label>
                 <Link
                   to="/forgot-password"
+                  state={{ userType: "customer" }}
                   className="text-blue-600 hover:underline"
                 >
                   Forgot password?

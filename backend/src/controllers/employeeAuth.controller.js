@@ -2,7 +2,8 @@ import { COOKIE_AGE, NODE_ENV } from "../configs/env.js";
 import {
   signUp,
   signIn,
-  resetPassword,
+  requestPasswordReset,
+  verifyOTPAndResetPassword,
   getEmployeeById,
   getAllRoles,
 } from "../services/employeeAuth.service.js";
@@ -78,11 +79,24 @@ export const employeeSignOut = async (req, res, next) => {
   });
   successResponse(res, 200, "Employee signed out");
 };
-export const passwordReset = async (req, res, next) => {
-  try {
-    const { email, newPassword } = req.body;
 
-    const result = await resetPassword({ email, newPassword });
+export const requestEmployeePasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const result = await requestPasswordReset(email);
+
+    successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetEmployeePassword = async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const result = await verifyOTPAndResetPassword({ email, otp, newPassword });
 
     successResponse(res, 200, result.message);
   } catch (error) {

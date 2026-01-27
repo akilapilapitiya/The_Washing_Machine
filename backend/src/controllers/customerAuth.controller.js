@@ -1,7 +1,8 @@
 import {
   signUp,
   signIn,
-  resetPassword,
+  requestPasswordReset,
+  verifyOTPAndResetPassword,
 } from "../services/customerAuth.service.js";
 import { NODE_ENV, COOKIE_AGE } from "../configs/env.js";
 import { successResponse } from "../utils/response.util.js";
@@ -74,11 +75,24 @@ export const customerSignOut = async (req, res, next) => {
 
   successResponse(res, 200, "Customer signed out");
 };
-export const passwordReset = async (req, res, next) => {
-  try {
-    const { email, newPassword } = req.body;
 
-    const result = await resetPassword({ email, newPassword });
+export const requestCustomerPasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const result = await requestPasswordReset(email);
+
+    successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetCustomerPassword = async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const result = await verifyOTPAndResetPassword({ email, otp, newPassword });
 
     successResponse(res, 200, result.message);
   } catch (error) {
