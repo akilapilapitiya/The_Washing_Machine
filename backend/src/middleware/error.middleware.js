@@ -37,11 +37,20 @@ const errorHandling = (err, req, res, next) => {
       message = "Database error";
     }
   }
-  // Validation Errors (from Joi and manual validation)
-  else if (err.isJoi || err.details) {
+  // Custom Application Errors
+  else if (err.name === "ValidationError") {
     status = 400;
-    message = "Validation Error";
-    errors = err.details;
+    message = err.message || "Validation Error";
+    errors = err.details || errors;
+  } else if (err.name === "NotFoundError") {
+    status = 404;
+    message = err.message || "Resource not found";
+  } else if (err.name === "UnauthorizedError") {
+    status = 401;
+    message = err.message || "Unauthorized";
+  } else if (err.name === "ForbiddenError") {
+    status = 403;
+    message = err.message || "Forbidden";
   }
   // JWT/Authentication Errors
   else if (err.name === "JsonWebTokenError") {
@@ -51,20 +60,11 @@ const errorHandling = (err, req, res, next) => {
     status = 401;
     message = "Token expired";
   }
-  // Custom Application Errors
-  else if (err.name === "NotFoundError") {
-    status = 404;
-    message = err.message || "Resource not found";
-  } else if (err.name === "UnauthorizedError") {
-    status = 401;
-    message = err.message || "Unauthorized";
-  } else if (err.name === "ForbiddenError") {
-    status = 403;
-    message = err.message || "Forbidden";
-  } else if (err.name === "ValidationError") {
+  // Validation Errors (from Joi)
+  else if (err.isJoi || (err.details && !err.message)) {
     status = 400;
-    message = err.message || "Validation Error";
-    errors = err.details || errors;
+    message = "Validation Error";
+    errors = err.details;
   }
   // Generic Error Messages
   else if (err.message) {

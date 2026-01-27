@@ -394,7 +394,7 @@ export const updateBookingService = async (
       throw new ForbiddenError("Unauthorized update");
     }
 
-    const { status, date, startTime, services, employeeId } = updates;
+    const { status = null, date, startTime, services, employeeId } = updates;
 
     // Status Change Notifications
     if (status === "cancelled" && current.bookingstatus !== "cancelled") {
