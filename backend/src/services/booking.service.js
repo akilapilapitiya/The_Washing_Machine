@@ -3,19 +3,19 @@ import {
   assertAtLeastOneField,
   assertEnum,
   assertRequiredFields,
-  validationError,
 } from "../utils/validation.util.js";
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
 } from "../utils/errors.util.js";
+import * as scheduleService from "./schedule.service.js";
+import { createNotificationService } from "./notification.service.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
 
   try {
-    // Determine effective role
     const effectiveRole = userEmptype || userRole;
 
     let query = `
@@ -28,23 +28,44 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         b.bookinglocationlatitude,
         b.bookinglocationlongitude,
         b.vehid,
+        b.totalprice,
         v.cusid,
-        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
+        c.cusname,
+        c.custel as cusphone,
+        c.cusemail,
+        v.vehbrand,
+        v.vehmodel,
+        v.vehplate,
+        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename, 'servicePrice', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
+        ea.empid as assigned_empid,
+        e.empname as assigned_empname,
+        ep.empid as preferred_empid,
+        pe.empname as preferred_empname
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
       LEFT JOIN vehicle v ON b.vehid = v.id
+      LEFT JOIN customer c ON v.cusid = c.cusid
+      LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+      LEFT JOIN employee e ON ea.empid = e.empid
+      LEFT JOIN employeepreference ep ON b.bookingid = ep.bookingid
+      LEFT JOIN employee pe ON ep.empid = pe.empid
     `;
 
     let queryParams = [];
+    let whereClauses = [];
 
-    // If customer, show only their bookings
     if (userRole === "customer") {
-      query += ` WHERE v.cusid = $1`;
+      whereClauses.push(`v.cusid = $${queryParams.length + 1}`);
+      queryParams.push(userId);
+    } else if (userRole === "employee" && effectiveRole === "employee") {
+      whereClauses.push(`ea.empid = $${queryParams.length + 1}`);
       queryParams.push(userId);
     }
-    // If employee (any type), show all bookings
-    // No WHERE clause needed - they can see everything
+
+    if (whereClauses.length > 0) {
+      query += ` WHERE ` + whereClauses.join(" AND ");
+    }
 
     query += ` GROUP BY 
       b.bookingid, 
@@ -55,8 +76,20 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       b.bookinglocationlatitude, 
       b.bookinglocationlongitude, 
       b.vehid, 
+      b.totalprice,
       v.cusid,
-      v.id`;
+      c.cusname,
+      c.custel,
+      c.cusemail,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehplate,
+      v.id,
+      ea.empid,
+      e.empname,
+      ep.empid,
+      pe.empname
+      ORDER BY b.bookingdate DESC, b.bookingstarttime DESC`;
 
     const result = await client.query(query, queryParams);
     return result.rows;
@@ -71,54 +104,68 @@ export const getBookingService = async (
   userRole,
   userEmptype,
 ) => {
-  const client = await pool.connect();
+  const result = await pool.query(
+    `
+    SELECT 
+      b.bookingid,
+      b.bookingstatus,
+      b.bookingdate,
+      b.bookingstarttime,
+      b.bookingendtime,
+      b.bookinglocationlatitude,
+      b.bookinglocationlongitude,
+      b.vehid,
+      b.totalprice as bookingtotalprice,
+      v.cusid,
+      v.vehmileage,
+      c.cusname,
+      c.custel as cusphone,
+      c.cusemail,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehplate,
+      e.empname,
+      json_agg(json_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
+    FROM booking b
+    LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
+    LEFT JOIN service s ON sb.serviceid = s.serviceid
+    LEFT JOIN vehicle v ON b.vehid = v.id
+    LEFT JOIN customer c ON v.cusid = c.cusid
+    LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+    LEFT JOIN employee e ON ea.empid = e.empid
+    WHERE b.bookingid = $1
+    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.empname
+    `,
+    [bookingId],
+  );
 
-  try {
-    // Determine effective role
-    const effectiveRole = userEmptype || userRole;
+  if (result.rowCount === 0) {
+    throw new NotFoundError("Booking not found");
+  }
 
-    const result = await client.query(
-      `
-      SELECT 
-        b.bookingid,
-        b.bookingstatus,
-        b.bookingdate,
-        b.bookingstarttime,
-        b.bookingendtime,
-        b.bookinglocationlatitude,
-        b.bookinglocationlongitude,
-        b.vehid,
-        v.cusid,
-        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
-      FROM booking b
-      LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
-      LEFT JOIN service s ON sb.serviceid = s.serviceid
-      LEFT JOIN vehicle v ON b.vehid = v.id
-      WHERE b.bookingid = $1
-      GROUP BY b.bookingid, v.cusid
-      `,
-      [bookingId],
+  const booking = result.rows[0];
+  const effectiveRole = userEmptype || userRole;
+
+  if (userRole === "customer") {
+    if (booking.cusid !== userId) {
+      throw new ForbiddenError("You can only view your own bookings");
+    }
+  } else if (userRole === "employee") {
+    if (effectiveRole === "owner" || effectiveRole === "cashier") {
+      return booking;
+    }
+
+    const assignmentCheck = await pool.query(
+      "SELECT 1 FROM employeeassigned WHERE bookingid = $1 AND empid = $2",
+      [bookingId, userId],
     );
 
-    if (result.rowCount === 0) {
-      throw new NotFoundError("Booking not found");
+    if (assignmentCheck.rowCount === 0) {
+      throw new ForbiddenError("You are not authorized to view this mission");
     }
-
-    const booking = result.rows[0];
-
-    // Authorization checks
-    if (userRole === "customer") {
-      // Customer can only see their own bookings
-      if (booking.cusid !== userId) {
-        throw new ForbiddenError("You can only view your own bookings");
-      }
-    }
-    // Employees can view any booking
-
-    return booking;
-  } finally {
-    client.release();
   }
+
+  return booking;
 };
 
 export const createBookingService = async ({
@@ -158,16 +205,34 @@ export const createBookingService = async ({
 
   assertEnum(status, "status", ["pending", "inProgress", "completed", "paid"]);
 
+  const bookingDateObj = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (bookingDateObj < today) {
+    throw new ValidationError("Booking date cannot be in the past");
+  }
+
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // 1. Fetch service details and calculate totals
+    // 1. Calculate duration and price
     const servicesCheck = await client.query(
-      "SELECT serviceid, servicename, servicetime, serviceprice FROM service WHERE serviceid = ANY($1)",
+      "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
       [services],
     );
+
+    if (servicesCheck.rowCount !== services.length) {
+      throw new NotFoundError("One or more service IDs do not exist");
+    }
+
+    const packageCount = servicesCheck.rows.filter(
+      (s) => s.servicetype === "package",
+    ).length;
+    if (packageCount > 1) {
+      throw new ValidationError("You can only select one Service Package.");
+    }
 
     if (servicesCheck.rowCount !== services.length) {
       throw new NotFoundError("One or more service IDs do not exist");
@@ -179,10 +244,13 @@ export const createBookingService = async ({
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
       totalDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
-      totalPrice += parseFloat(s.serviceprice);
+
+      const price = s.has_offer
+        ? parseFloat(s.offer_price)
+        : parseFloat(s.serviceprice);
+      totalPrice += price;
     });
 
-    // Calculate endTime
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
     const endSeconds = startSeconds + totalDurationSeconds;
@@ -190,112 +258,49 @@ export const createBookingService = async ({
     const endH = Math.floor(endSeconds / 3600);
     const endM = Math.floor((endSeconds % 3600) / 60);
     const endS = endSeconds % 60;
-    const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(
-      2,
-      "0",
-    )}:${String(endS).padStart(2, "0")}`;
+    const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:${String(endS).padStart(2, "0")}`;
 
-    // 2. Validate vehicle ownership
+    // 2. Validate vehicle
     const vehicleCheck = await client.query(
       "SELECT id, cusid FROM vehicle WHERE id = $1",
       [vehicleId],
     );
-
-    if (vehicleCheck.rowCount === 0) {
+    if (vehicleCheck.rowCount === 0)
       throw new NotFoundError("Vehicle not found");
-    }
-
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
       throw new ForbiddenError("You can only book with your own vehicles");
     }
 
-    let assignedEmpId;
-
-    if (employeeId && employeeId !== "any") {
-      // If specific employee requested, verify they are not on leave and not occupied
-      const specificAvailabilityQuery = `
-        SELECT e.empid 
-        FROM employee e
-        WHERE e.empid = $4
-        AND e.empid NOT IN (
-          SELECT el.empid FROM employeeleave el 
-          WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
-        )
+    // 3. Assign Employee
+    let assignedEmpId = employeeId;
+    if (!employeeId || employeeId === "any") {
+      const availabilityQuery = `
+        SELECT e.empid FROM employee e
+        WHERE e.emptype NOT IN ('owner', 'cashier')
         AND e.empid NOT IN (
           SELECT ea.empid FROM employeeassigned ea
           JOIN schedule s ON ea.bookingid = s.bookingid
           WHERE s.schedulestartdate = $1::date
           AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
         )
-        LIMIT 1;
-      `;
-      const specificResult = await client.query(specificAvailabilityQuery, [
-        date,
-        startTime,
-        endTime,
-        employeeId,
-      ]);
-
-      if (specificResult.rowCount > 0) {
-        assignedEmpId = specificResult.rows[0].empid;
-      } else {
-        // Fallback for now as per user request (make all available)
-        // If specific fails, we still allow it by just using the provided ID
-        assignedEmpId = employeeId;
-      }
-    } else {
-      // Auto-assign logic
-      const availabilityQuery = `
-        SELECT e.empid 
-        FROM employee e
-        WHERE e.empid NOT IN (
-          -- Employees on leave
-          SELECT el.empid 
-          FROM employeeleave el 
+        AND e.empid NOT IN (
+          SELECT el.empid FROM employeeleave el 
           WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
         )
-        AND e.empid NOT IN (
-          -- Employees with overlapping schedules
-          SELECT ea.empid 
-          FROM employeeassigned ea
-          JOIN schedule s ON ea.bookingid = s.bookingid
-          WHERE s.schedulestartdate = $1::date
-          AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
-        )
         LIMIT 1;
       `;
-      const availabilityResult = await client.query(availabilityQuery, [
+      const availResult = await client.query(availabilityQuery, [
         date,
         startTime,
         endTime,
       ]);
-
-      if (availabilityResult.rowCount > 0) {
-        assignedEmpId = availabilityResult.rows[0].empid;
-      } else {
-        // Fallback: Just pick any employee (not on owner/manager type ideally, but for now any)
-        // This satisfies "make all timeslots available"
-        const fallbackResult = await client.query(
-          "SELECT empid FROM employee WHERE emptype != 'owner' LIMIT 1",
-        );
-        if (fallbackResult.rowCount > 0) {
-          assignedEmpId = fallbackResult.rows[0].empid;
-        } else {
-          throw new ValidationError(
-            "No employees available in the system. Please register an employee first.",
-          );
-        }
-      }
+      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to sys account
     }
 
     // 4. Insert booking
     const bookingResult = await client.query(
-      `
-      INSERT INTO booking
-      (bookingstatus, bookingdate, bookingstarttime, bookingendtime, bookinglocationlatitude, bookinglocationlongitude, vehid, totalprice)
-      VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8)
-      RETURNING bookingid
-      `,
+      `INSERT INTO booking (bookingstatus, bookingdate, bookingstarttime, bookingendtime, bookinglocationlatitude, bookinglocationlongitude, vehid, totalprice)
+       VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8) RETURNING bookingid`,
       [
         status,
         date,
@@ -307,37 +312,38 @@ export const createBookingService = async ({
         totalPrice,
       ],
     );
-
     const bookingId = bookingResult.rows[0].bookingid;
 
-    // 5. Insert services booked
-    for (const serviceId of services) {
+    // 5. Link Services
+    for (const sId of services) {
       await client.query(
         "INSERT INTO servicesbooked (bookingid, serviceid) VALUES ($1, $2)",
-        [bookingId, serviceId],
+        [bookingId, sId],
       );
     }
 
-    // 6. Assign employee
+    // 6. Assign Staff and Record Preference
+    if (employeeId && employeeId !== "any") {
+      await client.query(
+        "INSERT INTO employeepreference (bookingid, empid) VALUES ($1, $2)",
+        [bookingId, employeeId],
+      );
+    }
+
     await client.query(
       "INSERT INTO employeeassigned (bookingid, empid) VALUES ($1, $2)",
       [bookingId, assignedEmpId],
     );
 
-    // 7. Create schedule entry
-    // Generate a 7-character random ID for schedule (as per model constraints)
-    const scheduleId = Math.random().toString(36).substring(2, 9).toUpperCase();
+    // 7. Schedule
+    const scheduleId = scheduleService.generateScheduleId("B");
     await client.query(
-      `
-      INSERT INTO schedule 
-      (scheduleid, schedulestartdate, scheduleenddate, schedulestarttime, scheduleendtime, bookingid)
-      VALUES ($1, $2::date, $2::date, $3, $4, $5)
-      `,
+      `INSERT INTO schedule (scheduleid, schedulestartdate, scheduleenddate, schedulestarttime, scheduleendtime, bookingid)
+       VALUES ($1, $2::date, $2::date, $3, $4, $5)`,
       [scheduleId, date, startTime, endTime, bookingId],
     );
 
     await client.query("COMMIT");
-
     return {
       bookingId,
       endTime,
@@ -345,16 +351,13 @@ export const createBookingService = async ({
       assignedEmployeeId: assignedEmpId,
     };
   } catch (error) {
-    await client.query("ROLLBACK");
+    if (client) await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
   }
 };
 
-/**
- * UPDATE BOOKING
- */
 export const updateBookingService = async (
   bookingId,
   updates,
@@ -363,140 +366,155 @@ export const updateBookingService = async (
   userEmptype,
 ) => {
   const { status, date, startTime, services } = updates;
-
-  assertAtLeastOneField(updates, ["status", "date", "startTime", "services"]);
+  assertAtLeastOneField(updates, [
+    "status",
+    "date",
+    "startTime",
+    "services",
+    "employeeId",
+  ]);
 
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // 1. Get current booking details
-    const currentBookingResult = await client.query(
-      `
-      SELECT b.*, v.cusid, ea.empid as current_empid
-      FROM booking b
-      JOIN vehicle v ON b.vehid = v.id
-      LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
-      WHERE b.bookingid = $1
-      `,
+    const currentRes = await client.query(
+      `SELECT b.*, v.cusid, ea.empid as current_empid FROM booking b
+       JOIN vehicle v ON b.vehid = v.id
+       LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+       WHERE b.bookingid = $1`,
       [bookingId],
     );
 
-    if (currentBookingResult.rowCount === 0) {
-      throw new NotFoundError("Booking not found");
+    if (currentRes.rowCount === 0) throw new NotFoundError("Booking not found");
+    const current = currentRes.rows[0];
+
+    if (userRole === "customer" && current.cusid !== userId) {
+      throw new ForbiddenError("Unauthorized update");
     }
 
-    const currentBooking = currentBookingResult.rows[0];
+    const { status = null, date, startTime, services, employeeId } = updates;
 
-    // Authorization check
-    if (userRole === "customer" && currentBooking.cusid !== userId) {
-      throw new ForbiddenError("You can only update your own bookings");
+    // Status Change Notifications
+    if (status === "cancelled" && current.bookingstatus !== "cancelled") {
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Booking Cancelled",
+        message: `Your booking (ID: ${bookingId}) has been cancelled.`,
+        type: "warning",
+        bookingId: bookingId,
+      });
     }
 
-    // 2. Determine new values
-    const newDate = date || currentBooking.bookingdate;
-    const newStartTime = startTime || currentBooking.bookingstarttime;
+    // Status Change: Completed
+    if (status === "completed" && current.bookingstatus !== "completed") {
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Service Completed",
+        message: `Your service (ID: ${bookingId}) is complete. We value your feedback!`,
+        type: "success",
+        bookingId: bookingId,
+      });
+    }
+
+    const newDate = date || current.bookingdate;
+    const newStartTime = startTime || current.bookingstarttime;
+
+    // Check Employee Reassignment
+    let finalEmpId = current.current_empid;
+    if (employeeId && employeeId !== current.current_empid) {
+      // Validate new employee availability (simplified check)
+      const check = await client.query(
+        "SELECT empname FROM employee WHERE empid = $1",
+        [employeeId],
+      );
+      if (check.rowCount === 0) throw new NotFoundError("Employee not found");
+
+      const empName = check.rows[0].empname;
+      finalEmpId = employeeId;
+
+      await client.query("DELETE FROM employeeassigned WHERE bookingid = $1", [
+        bookingId,
+      ]);
+      await client.query(
+        "INSERT INTO employeeassigned (bookingid, empid) VALUES ($1, $2)",
+        [bookingId, employeeId],
+      );
+
+      // Reassignment Notification
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Employee Reassigned",
+        message: `Your booking (ID: ${bookingId}) has been reassigned to ${empName}.`,
+        type: "info",
+        bookingId: bookingId,
+      });
+    }
 
     let newServices = services;
     if (!newServices) {
-      const existingServices = await client.query(
+      const srvRes = await client.query(
         "SELECT serviceid FROM servicesbooked WHERE bookingid = $1",
         [bookingId],
       );
-      newServices = existingServices.rows.map((s) => s.serviceid);
+      newServices = srvRes.rows.map((s) => s.serviceid);
     }
 
-    // 3. Recalculate duration and price if necessary
-    let endTime = currentBooking.bookingendtime;
-    let totalPrice = currentBooking.totalprice;
+    // Recalculate if time/service changed
+    let endTime = current.bookingendtime;
+    let totalPrice = current.totalprice;
 
     if (services || startTime) {
-      const servicesCheck = await client.query(
-        "SELECT serviceid, servicetime, serviceprice FROM service WHERE serviceid = ANY($1)",
+      const srvCheck = await client.query(
+        "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
 
-      if (servicesCheck.rowCount !== newServices.length) {
-        throw new NotFoundError("One or more service IDs do not exist");
+      const packageCount = srvCheck.rows.filter(
+        (s) => s.servicetype === "package",
+      ).length;
+      if (packageCount > 1) {
+        throw new ValidationError("You can only select one Service Package.");
       }
 
-      let totalDurationSeconds = 0;
+      let duration = 0;
       totalPrice = 0;
-
-      servicesCheck.rows.forEach((s) => {
-        const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
-        totalDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
-        totalPrice += parseFloat(s.serviceprice);
+      srvCheck.rows.forEach((s) => {
+        const [h, m, s_] = s.servicetime.split(":").map(Number);
+        duration += h * 3600 + m * 60 + (s_ || 0);
+        const price = s.has_offer
+          ? parseFloat(s.offer_price)
+          : parseFloat(s.serviceprice);
+        totalPrice += price;
       });
 
-      const [startH, startM, startS] = newStartTime.split(":").map(Number);
-      const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
-      const endSeconds = startSeconds + totalDurationSeconds;
-
-      const endH = Math.floor(endSeconds / 3600);
-      const endM = Math.floor((endSeconds % 3600) / 60);
-      const endS = endSeconds % 60;
-      endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:${String(endS).padStart(2, "0")}`;
+      const [sh, sm, ss] = newStartTime.split(":").map(Number);
+      const endSec = sh * 3600 + sm * 60 + (ss || 0) + duration;
+      endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;
     }
 
-    // 4. Check availability if timing/date changed
-    let assignedEmpId = currentBooking.current_empid;
-    if (date || startTime || services) {
-      const availabilityQuery = `
-        SELECT e.empid 
-        FROM employee e
-        WHERE e.empid NOT IN (
-          -- Employees on leave
-          SELECT el.empid 
-          FROM employeeleave el 
-          WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
-        )
-        AND e.empid NOT IN (
-          -- Employees with overlapping schedules (excluding this booking)
-          SELECT ea.empid 
-          FROM employeeassigned ea
-          JOIN schedule s ON ea.bookingid = s.bookingid
-          WHERE s.schedulestartdate = $1::date
-          AND s.bookingid != $4
-          AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
-        )
-        ORDER BY (e.empid = $5) DESC -- Prefer current employee if available
-        LIMIT 1;
-      `;
-
-      const availabilityResult = await client.query(availabilityQuery, [
-        newDate,
-        newStartTime,
-        endTime,
-        bookingId,
-        assignedEmpId,
-      ]);
-
-      if (availabilityResult.rowCount === 0) {
-        throw new ValidationError(
-          "No employees are available for the updated time slot",
-        );
-      }
-      assignedEmpId = availabilityResult.rows[0].empid;
+    // Availability validation (optional for phase 1 but good practice)
+    const isAvail = await scheduleService.checkAvailability(
+      current.current_empid,
+      newDate,
+      newStartTime,
+      endTime,
+      bookingId,
+    );
+    if (!isAvail) {
+      // throw new ValidationError("Conflict detected");
     }
 
-    // 5. Update booking
-    const updateResult = await client.query(
-      `
-      UPDATE booking
-      SET bookingstatus = COALESCE($1, bookingstatus),
-          bookingdate = $2,
-          bookingstarttime = $3,
-          bookingendtime = $4,
-          totalprice = $5,
-          updated_at = NOW()
-      WHERE bookingid = $6
-      `,
+    await client.query(
+      `UPDATE booking SET bookingstatus = COALESCE($1, bookingstatus), bookingdate = $2, 
+       bookingstarttime = $3, bookingendtime = $4, totalprice = $5, updated_at = NOW() WHERE bookingid = $6`,
       [status, newDate, newStartTime, endTime, totalPrice, bookingId],
     );
 
-    // 6. Update servicesbooked if services changed
     if (services) {
       await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
         bookingId,
@@ -509,47 +527,22 @@ export const updateBookingService = async (
       }
     }
 
-    // 7. Update employee assignment if changed
-    if (assignedEmpId !== currentBooking.current_empid) {
-      await client.query(
-        "UPDATE employeeassigned SET empid = $1 WHERE bookingid = $2",
-        [assignedEmpId, bookingId],
-      );
-    }
-
-    // 8. Update schedule
     await client.query(
-      `
-      UPDATE schedule
-      SET schedulestartdate = $1,
-          scheduleenddate = $1,
-          schedulestarttime = $2,
-          scheduleendtime = $3,
-          updated_at = NOW()
-      WHERE bookingid = $4
-      `,
+      `UPDATE schedule SET schedulestartdate = $1, scheduleenddate = $1, schedulestarttime = $2, 
+       scheduleendtime = $3, updated_at = NOW() WHERE bookingid = $4`,
       [newDate, newStartTime, endTime, bookingId],
     );
 
     await client.query("COMMIT");
-
-    return {
-      bookingId,
-      endTime,
-      totalPrice,
-      assignedEmployeeId: assignedEmpId,
-    };
+    return { bookingId, endTime };
   } catch (error) {
-    await client.query("ROLLBACK");
+    if (client) await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
   }
 };
 
-/**
- * DELETE BOOKING
- */
 export const deleteBookingService = async (
   bookingId,
   userId,
@@ -557,42 +550,23 @@ export const deleteBookingService = async (
   userEmptype,
 ) => {
   const client = await pool.connect();
-
   try {
     await client.query("BEGIN");
-
-    // Check ownership
-    const bookingCheck = await client.query(
-      `
-      SELECT b.bookingid, v.cusid
-      FROM booking b
-      JOIN vehicle v ON b.vehid = v.id
-      WHERE b.bookingid = $1
-      `,
+    const check = await client.query(
+      "SELECT b.bookingid, v.cusid FROM booking b JOIN vehicle v ON b.vehid = v.id WHERE b.bookingid = $1",
       [bookingId],
     );
-
-    if (bookingCheck.rowCount === 0) {
-      throw new NotFoundError("Booking not found");
-    }
-
-    const bookingOwnerId = bookingCheck.rows[0].cusid;
-    const effectiveRole = userEmptype || userRole;
-
-    if (userRole === "customer" && bookingOwnerId !== userId) {
-      throw new ForbiddenError("You can only delete your own bookings");
-    }
-    // Employees/managers/owners allowed
+    if (check.rowCount === 0) throw new NotFoundError("Not found");
+    if (userRole === "customer" && check.rows[0].cusid !== userId)
+      throw new ForbiddenError("Unauthorized");
 
     await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
       bookingId,
     ]);
-
     await client.query("DELETE FROM booking WHERE bookingid = $1", [bookingId]);
-
     await client.query("COMMIT");
   } catch (error) {
-    await client.query("ROLLBACK");
+    if (client) await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();

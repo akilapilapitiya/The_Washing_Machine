@@ -9,13 +9,24 @@ import { successResponse } from "../utils/response.util.js";
 
 export const createService = async (req, res, next) => {
   try {
-    const { servicename, servicetime, serviceprice, servicedetails } = req.body;
+    const {
+      servicename,
+      servicetime,
+      serviceprice,
+      servicedetails,
+      has_offer,
+      offer_price,
+      offer_description,
+    } = req.body;
 
     const service = await createServiceService({
       servicename,
       servicetime,
       serviceprice,
       servicedetails,
+      has_offer,
+      offer_price,
+      offer_description,
     });
 
     successResponse(res, 201, "Service created successfully", { service });

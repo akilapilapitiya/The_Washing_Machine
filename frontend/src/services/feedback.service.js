@@ -25,3 +25,15 @@ export const getMyFeedbacks = async () => {
     throw error;
   }
 };
+/**
+ * Get all feedbacks (Admin/Manager only)
+ */
+export const getAllFeedbacks = async () => {
+  try {
+    const response = await api.get("/feedback");
+    return response.data?.data?.feedbacks || [];
+  } catch (error) {
+    console.error("Error fetching all feedbacks:", error);
+    throw error;
+  }
+};

@@ -1,0 +1,84 @@
+/leave:
+  post:
+    tags:
+      - Leave
+    summary: Create a new leave record
+    description: Owner creates a leave record for an employee
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - empid
+              - leavedate
+              - reason
+            properties:
+              empid:
+                type: integer
+              leavedate:
+                type: string
+                format: date
+              reason:
+                type: string
+    responses:
+      201:
+        description: Leave created successfully
+      400:
+        $ref: "#/components/responses/BadRequest"
+      401:
+        $ref: "#/components/responses/Unauthorized"
+
+  get:
+    tags:
+      - Leave
+    summary: Get all leave records
+    description: Owner retrieves all employee leaves
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: List of leaves retrieved
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    leaves:
+                      type: array
+                      items:
+                        type: object
+
+/leave/my-leaves:
+  get:
+    tags:
+      - Leave
+    summary: Get my leave records
+    description: Employee retrieves their own leave history
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: List of own leaves retrieved
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    leaves:
+                      type: array
+                      items:
+                        type: object

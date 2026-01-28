@@ -17,7 +17,7 @@ import { Briefcase, Loader2 } from "lucide-react";
 const EmployeeLoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -50,7 +50,7 @@ const EmployeeLoginPage = () => {
       // Check if signin was successful
       if (response.success && response.data) {
         const { employee, token } = response.data;
-        
+
         // Update auth context with employee type
         login(employee, token, "employee");
 
@@ -61,7 +61,7 @@ const EmployeeLoginPage = () => {
       }
     } catch (err) {
       console.error("Employee login error:", err);
-      
+
       // Handle different error types
       if (err.response?.data?.message) {
         setError(err.response.data.message);
@@ -129,9 +129,9 @@ const EmployeeLoginPage = () => {
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    className="rounded" 
+                  <input
+                    type="checkbox"
+                    className="rounded"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                     disabled={loading}
@@ -140,6 +140,7 @@ const EmployeeLoginPage = () => {
                 </label>
                 <Link
                   to="/forgot-password"
+                  state={{ userType: "employee" }}
                   className="text-blue-600 hover:underline"
                 >
                   Forgot password?

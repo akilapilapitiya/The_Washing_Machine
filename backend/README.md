@@ -6,14 +6,14 @@ This backend is a robust RESTful API built using Node.js and Express. It powers 
 
 **Key Features:**
 
-- 🔐 Secure authentication with role-based access control (Customer/Employee)
-- 🚗 Vehicle management logic for registered customers
-- 📋 Complex booking management (many-to-many service relationships)
-- 💳 Integrated payment processing and tracking
-- 💬 Customer feedback and service rating system
-- 🧪 Comprehensive automated test suite with Jest
-- 📚 Interactive Swagger/OpenAPI documentation
-- 🛡️ Centralized validation and typed error handling
+- Secure authentication with role-based access control (Customer/Employee)
+- Vehicle management logic for registered customers
+- Complex booking management (many-to-many service relationships)
+- Integrated payment processing and tracking
+- Customer feedback and service rating system
+- Comprehensive automated test suite with Jest
+- Interactive Swagger/OpenAPI documentation
+- Centralized validation and typed error handling
 
 ## Tech Stack
 
@@ -111,6 +111,14 @@ npm test
 npm run test:watch
 ```
 
+### CI/CD Pipeline
+
+Automated testing is configured via GitHub Actions.
+
+- **Workflow:** `.github/workflows/backend-tests.yml`
+- **Trigger:** Pull Requests to `automate/testing` branch
+- **Action:** Runs `npm test` to verify all suites pass before merge.
+
 ## API Documentation (Swagger)
 
 Interactive API documentation is available in development mode.
@@ -147,6 +155,6 @@ Manage your PostgreSQL instance with built-in scripts:
 
 ---
 
-**Last Updated:** January 25, 2026
-**Version:** 1.2.0
+**Last Updated:** January 28, 2026
+**Version:** 1.2.1
 **Status:** Feature Complete & Tested

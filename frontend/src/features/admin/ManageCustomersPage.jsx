@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,78 +9,45 @@ import {
   User,
   Mail,
   Phone,
-  MapPin,
   Calendar,
   X,
   CheckCircle,
   Search,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-
-// Mock customers data
-const mockCustomers = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+94 77 123 4567",
-    address: "123 Main St, Colombo 07",
-    joinDate: "Jan 15, 2024",
-    totalBookings: 12,
-    status: "Active",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    phone: "+94 76 234 5678",
-    address: "456 Park Ave, Dehiwala",
-    joinDate: "Feb 20, 2024",
-    totalBookings: 8,
-    status: "Active",
-  },
-  {
-    id: "3",
-    name: "Mike Johnson",
-    email: "mike.j@example.com",
-    phone: "+94 75 345 6789",
-    address: "789 Beach Rd, Mount Lavinia",
-    joinDate: "Mar 10, 2024",
-    totalBookings: 15,
-    status: "Active",
-  },
-  {
-    id: "4",
-    name: "Sarah Williams",
-    email: "sarah.w@example.com",
-    phone: "+94 71 456 7890",
-    address: "321 Lake View, Nugegoda",
-    joinDate: "Apr 05, 2024",
-    totalBookings: 5,
-    status: "Active",
-  },
-  {
-    id: "5",
-    name: "David Brown",
-    email: "david.brown@example.com",
-    phone: "+94 70 567 8901",
-    address: "654 Hill St, Kandy",
-    joinDate: "May 12, 2024",
-    totalBookings: 3,
-    status: "Active",
-  },
-];
+import { getCustomers } from "@/services/customer.service";
 
 const ManageCustomersPage = () => {
-  const [customers, setCustomers] = useState(mockCustomers);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    address: "",
   });
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const data = await getCustomers();
+      setCustomers(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+      setError("Failed to load customers. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -92,52 +59,35 @@ const ManageCustomersPage = () => {
       name: "",
       email: "",
       phone: "",
-      address: "",
     });
   };
 
   const handleAddCustomer = (e) => {
     e.preventDefault();
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert("Please enter a valid email address");
-      return;
-    }
-
-    // Validate phone format
-    if (!formData.phone.match(/^[+]?[\d\s()-]+$/)) {
-      alert("Please enter a valid phone number");
-      return;
-    }
-
-    const newCustomer = {
-      id: Date.now().toString(),
-      ...formData,
-      joinDate: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      totalBookings: 0,
-      status: "Active",
-    };
-
-    setCustomers([newCustomer, ...customers]);
-    resetForm();
+    // In this app, customers usually sign up themselves.
+    // This UI is kept for visual completeness but currently just simulates adding to the list locally if mocked,
+    // or you'd call a POST /customer endpoint if one existed.
+    alert(
+      "New customer registration is handled via the Signup page or public API.",
+    );
     setShowAddForm(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   // Filter customers based on search query
   const filteredCustomers = customers.filter(
     (customer) =>
-      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.phone.includes(searchQuery),
+      customer.cusname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.cusemail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.custel.includes(searchQuery),
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -149,29 +99,30 @@ const ManageCustomersPage = () => {
             </p>
             <h1 className="text-3xl font-bold">Manage Customers</h1>
             <p className="text-gray-600">
-              Add new customers and view existing customer information.
+              View registered customers and their booking activity.
             </p>
           </div>
-          <Button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
-          >
-            <Plus size={18} />
-            Add Customer
-          </Button>
+          {/* Note: In a real scenario, admins might have a specialized registration tool */}
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600" />
+            <p className="text-red-800 font-medium">{error}</p>
+          </div>
+        )}
 
         {showSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
             <CheckCircle size={20} className="text-green-600" />
             <p className="text-green-800 font-medium">
-              Customer added successfully!
+              Action completed successfully!
             </p>
           </div>
         )}
 
         {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
@@ -185,21 +136,15 @@ const ManageCustomersPage = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">
-                  {customers.filter((c) => c.status === "Active").length}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Active</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
                 <p className="text-3xl font-bold text-purple-600">
-                  {Math.round(
-                    customers.reduce((sum, c) => sum + c.totalBookings, 0) /
-                      customers.length,
-                  ) || 0}
+                  {customers.length > 0
+                    ? (
+                        customers.reduce(
+                          (sum, c) => sum + (c.totalbookings || 0),
+                          0,
+                        ) / customers.length
+                      ).toFixed(1)
+                    : 0}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Avg. Bookings</p>
               </div>
@@ -211,7 +156,7 @@ const ManageCustomersPage = () => {
                 <p className="text-3xl font-bold text-orange-600">
                   {
                     customers.filter((c) => {
-                      const joinDate = new Date(c.joinDate);
+                      const joinDate = new Date(c.created_at);
                       const monthAgo = new Date();
                       monthAgo.setMonth(monthAgo.getMonth() - 1);
                       return joinDate >= monthAgo;
@@ -243,96 +188,104 @@ const ManageCustomersPage = () => {
           </CardContent>
         </Card>
 
-        {/* Customers Grid */}
-        {filteredCustomers.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredCustomers.map((customer) => (
-              <Card
-                key={customer.id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <User size={24} className="text-white" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {customer.name}
-                        </CardTitle>
-                        <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
-                          {customer.status}
+        {/* Customers Table */}
+        <Card className="overflow-hidden border-gray-200">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4 font-semibold text-gray-900">
+                    Name & ID
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900">
+                    Contact Info
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900">
+                    Joined Date
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 text-center">
+                    Total Bookings
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredCustomers.length > 0 ? (
+                  filteredCustomers.map((customer) => (
+                    <tr
+                      key={customer.cusid}
+                      className="hover:bg-gray-50 transition-colors group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                            {customer.cusname?.charAt(0) || "U"}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {customer.cusname}
+                            </p>
+                            <p className="text-xs text-gray-500 italic">
+                              #{customer.cusid}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Mail size={14} className="text-gray-400" />
+                            <span>{customer.cusemail}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Phone size={14} className="text-gray-400" />
+                            <span>{customer.custel}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} className="text-gray-400" />
+                          <span>
+                            {new Date(customer.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700">
+                          {customer.totalbookings || 0}
                         </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <Users size={48} className="text-gray-300" />
+                        <div className="text-gray-500 font-medium">
+                          {searchQuery
+                            ? "No customers found matching your search."
+                            : "No customers registered yet."}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail size={14} className="text-gray-500" />
-                      <span className="text-gray-700 truncate">
-                        {customer.email}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone size={14} className="text-gray-500" />
-                      <span className="text-gray-700">{customer.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin size={14} className="text-gray-500" />
-                      <span className="text-gray-700">{customer.address}</span>
-                    </div>
-                  </div>
-                  <div className="pt-3 border-t space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Total Bookings:</span>
-                      <span className="font-semibold text-red-600">
-                        {customer.totalBookings}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={14} />
-                      <span>Joined {customer.joinDate}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Users size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                {searchQuery ? "No customers found" : "No customers yet"}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {searchQuery
-                  ? "Try adjusting your search criteria."
-                  : "Add your first customer to get started."}
-              </p>
-              {!searchQuery && (
-                <Button onClick={() => setShowAddForm(true)}>
-                  <Plus size={18} className="mr-2" />
-                  Add Customer
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        </Card>
       </div>
 
-      {/* Add Customer Modal */}
+      {/* Add Customer Modal - Simplified based on feedback */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Plus size={20} className="text-blue-600" />
-                  Add New Customer
+                  <Plus size={20} className="text-red-600" />
+                  Register Customer
                 </CardTitle>
                 <button
                   onClick={() => setShowAddForm(false)}
@@ -343,70 +296,20 @@ const ManageCustomersPage = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleAddCustomer} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="e.g., John Doe"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="e.g., john.doe@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="e.g., +94 77 123 4567"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address *</Label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="Enter full address..."
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                    required
-                  />
-                </div>
-                <div className="flex gap-3 justify-end pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowAddForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Add Customer
-                  </Button>
-                </div>
-              </form>
+              <p className="text-sm text-gray-600 mb-4">
+                Please use the public{" "}
+                <strong className="text-red-600">Signup</strong> page or the API
+                to register new customers with full security.
+              </p>
+              <div className="flex justify-end pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Close
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -1,0 +1,63 @@
+/notification:
+  get:
+    tags:
+      - Notification
+    summary: Get notifications
+    description: Retrieve user notifications
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Notifications retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      message:
+                        type: string
+                      isRead:
+                        type: boolean
+
+/notification/{id}/read:
+  put:
+    tags:
+      - Notification
+    summary: Mark as read
+    description: Mark a specific notification as read
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Marked as read
+      401:
+        $ref: "#/components/responses/Unauthorized"
+
+/notification/read-all:
+  put:
+    tags:
+      - Notification
+    summary: Mark all as read
+    description: Mark all user notifications as read
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: All marked as read
+      401:
+        $ref: "#/components/responses/Unauthorized"
