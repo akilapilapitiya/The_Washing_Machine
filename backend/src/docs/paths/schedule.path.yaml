@@ -1,0 +1,31 @@
+/schedule/employee/{empid}:
+  get:
+    tags:
+      - Schedule
+    summary: Get employee schedule
+    description: specific employee schedule by ID
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: empid
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Schedule retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    schedule:
+                      type: array
+                      items:
+                        type: object
