@@ -9,7 +9,10 @@ const mockResetPassword = jest.fn();
 jest.unstable_mockModule("../../services/employeeAuth.service.js", () => ({
   signUp: mockSignUp,
   signIn: mockSignIn,
-  resetPassword: mockResetPassword,
+  requestPasswordReset: mockResetPassword,
+  verifyOTPAndResetPassword: jest.fn(),
+  getAllRoles: jest.fn(),
+  getEmployeeById: jest.fn(),
 }));
 
 // 2. Mock Middleware (for protected routes)
@@ -47,6 +50,7 @@ jest.unstable_mockModule("../../configs/env.js", () => ({
   RATE_LIMIT_WINDOW_MS: 900000,
   RATE_LIMIT_MAX_REQUESTS: 100,
   RATE_LIMIT_AUTH_MAX: 5,
+  OTP_EXPIRES_IN_MINUTES: 10,
 }));
 
 // 5. Import App
