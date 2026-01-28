@@ -8,7 +8,7 @@ export const getAllEmployeesService = async () => {
 		SELECT empid, empname, email, emptel, emptype, empnic, created_at, updated_at
 		FROM employee
 		ORDER BY created_at DESC
-		`
+		`,
   );
   return result.rows;
 };
@@ -20,7 +20,7 @@ export const getEmployeeService = async (empid) => {
 		FROM employee
 		WHERE empid = $1
 		`,
-    [empid]
+    [empid],
   );
 
   if (result.rowCount === 0) {
@@ -28,6 +28,31 @@ export const getEmployeeService = async (empid) => {
   }
 
   return result.rows[0];
+};
+
+export const getAvailableEmployeesService = async (
+  date,
+  startTime,
+  endTime,
+) => {
+  const query = `
+    SELECT e.empid, e.empname, e.emptype 
+    FROM employee e
+    WHERE e.emptype NOT IN ('owner', 'cashier')
+    AND e.empid NOT IN (
+      SELECT ea.empid FROM employeeassigned ea
+      JOIN schedule s ON ea.bookingid = s.bookingid
+      WHERE s.schedulestartdate = $1::date
+      AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
+    )
+    AND e.empid NOT IN (
+      SELECT el.empid FROM employeeleave el 
+      WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
+    )
+  `;
+
+  const result = await pool.query(query, [date, startTime, endTime]);
+  return result.rows;
 };
 
 export const updateEmployeeService = async (empid, updates) => {
@@ -69,6 +94,9 @@ export const updateEmployeeService = async (empid, updates) => {
 
   if (type !== undefined) {
     updateFields.push(`emptype = $${paramIndex}`);
+    updateFields.push(
+      `roleid = (SELECT roleid FROM role WHERE rolename = $${paramIndex}::VARCHAR)`,
+    );
     updateValues.push(type);
     paramIndex++;
   }
@@ -84,7 +112,7 @@ export const updateEmployeeService = async (empid, updates) => {
     const { SALT_ROUNDS } = await import("../configs/env.js");
     const passwordHash = await bcrypt.default.hash(
       password,
-      Number(SALT_ROUNDS)
+      Number(SALT_ROUNDS),
     );
     updateFields.push(`password_hash = $${paramIndex}`);
     updateValues.push(passwordHash);
@@ -98,9 +126,9 @@ export const updateEmployeeService = async (empid, updates) => {
 
   const result = await pool.query(
     `UPDATE employee SET ${updateFields.join(
-      ", "
+      ", ",
     )} WHERE empid = $${paramIndex} RETURNING empid, empname, email, emptel, emptype, empnic, created_at, updated_at`,
-    updateValues
+    updateValues,
   );
 
   if (result.rowCount === 0) {

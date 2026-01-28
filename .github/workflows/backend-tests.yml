@@ -3,8 +3,6 @@ name: Backend Tests
 on:
   pull_request:
     branches: ["automate/testing"]
-  push:
-    branches: ["automate/testing"]
 
 jobs:
   test-backend:

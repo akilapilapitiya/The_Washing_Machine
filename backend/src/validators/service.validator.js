@@ -22,6 +22,11 @@ export const serviceValidator = {
         "string.pattern.base": "Service time must be in HH:mm format",
         "any.required": "Service time is required",
       }),
+    has_offer: Joi.boolean(),
+    offer_price: Joi.number().allow(null),
+    offer_price: Joi.number().allow(null),
+    offer_description: Joi.string().allow(null, ""),
+    servicetype: Joi.string().valid("package", "addon").default("package"),
   }),
 
   updateService: Joi.object({
@@ -38,5 +43,10 @@ export const serviceValidator = {
       .messages({
         "string.pattern.base": "Service time must be in HH:mm format",
       }),
+    has_offer: Joi.boolean(),
+    offer_price: Joi.number().allow(null),
+    offer_price: Joi.number().allow(null),
+    offer_description: Joi.string().allow(null, ""),
+    servicetype: Joi.string().valid("package", "addon"),
   }).min(1),
 };

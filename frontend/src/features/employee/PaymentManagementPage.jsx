@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,90 +6,34 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DollarSign,
-  Car,
-  Calendar,
   CheckCircle,
-  AlertCircle,
   Plus,
-  ArrowRight,
+  Loader2,
+  AlertCircle,
+  Download,
 } from "lucide-react";
-
-// Mock payment data
-const mockPendingPayments = [
-  {
-    id: "1",
-    bookingId: "BK-2025-001",
-    customer: { name: "John Doe", phone: "+94 77 123 4567" },
-    vehicle: { brand: "Toyota", model: "Corolla", plate: "ABC-123" },
-    services: ["Exterior Wash", "Interior Detailing"],
-    date: "2025-12-31",
-    totalAmount: 80,
-    amountPaid: 0,
-    paymentMethod: null,
-    status: "pending",
-  },
-  {
-    id: "2",
-    bookingId: "BK-2025-002",
-    customer: { name: "Sarah Smith", phone: "+94 77 987 6543" },
-    vehicle: { brand: "Honda", model: "Civic", plate: "XYZ-789" },
-    services: ["Full Service Detail"],
-    date: "2025-12-30",
-    totalAmount: 120,
-    amountPaid: 50,
-    paymentMethod: "Partial - Cash",
-    status: "partial",
-  },
-];
-
-const mockCompletedPayments = [
-  {
-    id: "3",
-    bookingId: "BK-2025-003",
-    customer: { name: "Michael Brown", phone: "+94 77 555 1234" },
-    vehicle: { brand: "Ford", model: "F-150", plate: "TRK-555" },
-    services: ["Oil Change", "Tire & Wheel Care"],
-    date: "2025-12-28",
-    totalAmount: 75,
-    amountPaid: 75,
-    paymentMethod: "Credit Card",
-    status: "paid",
-    completedDate: "2025-12-28",
-  },
-  {
-    id: "4",
-    bookingId: "BK-2025-004",
-    customer: { name: "Emma Wilson", phone: "+94 77 321 9876" },
-    vehicle: { brand: "Nissan", model: "Altima", plate: "DEF-456" },
-    services: ["Engine Bay Clean", "Exterior Wash"],
-    date: "2025-12-25",
-    totalAmount: 90,
-    amountPaid: 90,
-    paymentMethod: "Cash",
-    status: "paid",
-    completedDate: "2025-12-25",
-  },
-];
+import { getBookings } from "@/services/booking.service";
+import { getAllPayments, createPayment } from "@/services/payment.service";
+import { printReceipt } from "@/utils/receipt";
 
 const paymentMethods = [
-  "Cash",
-  "Credit Card",
-  "Debit Card",
-  "Mobile Payment",
-  "Bank Transfer",
-  "Cheque",
+  { value: "cash", label: "Cash" },
+  { value: "card", label: "Credit/Debit Card" },
+  { value: "online", label: "Online Payment" },
 ];
 
 const StatusBadge = ({ status }) => {
   const styles = {
     pending: "bg-amber-50 text-amber-700 border-amber-100",
-    partial: "bg-orange-50 text-orange-700 border-orange-100",
+    inProgress: "bg-blue-50 text-blue-700 border-blue-100",
+    completed: "bg-purple-50 text-purple-700 border-purple-100",
     paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
   };
 
   const labels = {
     pending: "Pending",
-    partial: "Partial Payment",
+    inProgress: "In Progress",
+    completed: "Completed",
     paid: "Paid",
   };
 
@@ -97,91 +41,119 @@ const StatusBadge = ({ status }) => {
     <span
       className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status]}`}
     >
-      {labels[status]}
+      {labels[status] || status}
     </span>
   );
 };
 
-const PaymentCard = ({ payment, onRecordPayment }) => {
-  const remainingAmount = payment.totalAmount - payment.amountPaid;
-  const isPaid = payment.status === "paid";
+const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
+  // item is either a booking (pending payment) or a payment object (completed)
+  const bookingId = isPayment ? item.bookingid : item.bookingid;
+  const status = isPayment ? "paid" : item.bookingstatus;
+  const brand = item.vehbrand || "Vehicle";
+  const model = item.vehmodel || "";
+  const plate = item.vehplate || "";
+  const customerName = item.cusname || "Customer";
+  const totalAmount = isPayment
+    ? item.paymentamount
+    : item.totalprice || item.total_price || 0;
+  const date = isPayment ? item.paymentdate : item.bookingdate;
+  const services = item.services || [];
 
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg">{payment.bookingId}</CardTitle>
+            <CardTitle className="text-lg">
+              BK-{bookingId.toString().padStart(4, "0")}
+            </CardTitle>
             <p className="text-sm text-gray-600">
-              {payment.vehicle.brand} {payment.vehicle.model} (
-              {payment.vehicle.plate})
+              {brand} {model} ({plate})
             </p>
           </div>
-          <StatusBadge status={payment.status} />
+          <StatusBadge status={status} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1 flex flex-col">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs text-gray-600 uppercase font-semibold">
               Customer
             </p>
-            <p className="text-sm font-medium">{payment.customer.name}</p>
+            <p className="text-sm font-medium">{customerName}</p>
           </div>
           <div>
             <p className="text-xs text-gray-600 uppercase font-semibold">
               Date
             </p>
             <p className="text-sm font-medium">
-              {new Date(payment.date).toLocaleDateString("en-US", {
+              {new Date(date).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
+                year: "numeric",
               })}
             </p>
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+        <div className="flex-1">
+          <p className="text-xs text-gray-600 uppercase font-semibold mb-1">
+            Services
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {services.map((s, idx) => (
+              <span
+                key={idx}
+                className="bg-gray-100 text-[10px] px-2 py-0.5 rounded text-gray-700 italic"
+              >
+                {typeof s === "string" ? s : s.serviceName || s.servicename}
+              </span>
+            ))}
+            {services.length === 0 && (
+              <span className="text-xs text-gray-400 italic">
+                No services listed
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-3 mt-auto">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-700">Total Amount</span>
+            <span className="text-sm text-gray-700">
+              {isPayment ? "Amount Paid" : "Amount Due"}
+            </span>
             <span className="text-lg font-bold text-gray-900">
-              ${payment.totalAmount}
-            </span>
-          </div>
-          <div className="border-t pt-2 flex justify-between items-center">
-            <span className="text-sm text-gray-700">Amount Paid</span>
-            <span
-              className={`text-sm font-semibold ${
-                payment.amountPaid > 0 ? "text-green-600" : "text-gray-400"
-              }`}
-            >
-              ${payment.amountPaid}
-            </span>
-          </div>
-          <div className="border-t pt-2 flex justify-between items-center">
-            <span className="text-sm text-gray-700">Outstanding</span>
-            <span
-              className={`text-lg font-bold ${
-                remainingAmount > 0 ? "text-red-600" : "text-green-600"
-              }`}
-            >
-              ${remainingAmount}
+              Rs.{totalAmount}
             </span>
           </div>
         </div>
 
-        {payment.paymentMethod && (
+        {isPayment && item.paymenttype && (
           <div>
             <p className="text-xs text-gray-600 uppercase font-semibold mb-1">
               Payment Method
             </p>
-            <p className="text-sm font-medium">{payment.paymentMethod}</p>
+            <p className="text-sm font-medium capitalize">{item.paymenttype}</p>
           </div>
         )}
 
-        {!isPaid && (
+        {isPayment && (
+          <div className="pt-2 mt-2 border-t border-gray-100">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2 border-dashed"
+              onClick={() => printReceipt(item)}
+            >
+              <Download size={14} /> Print Receipt
+            </Button>
+          </div>
+        )}
+
+        {!isPayment && (
           <Button
-            onClick={() => onRecordPayment(payment)}
+            onClick={() => onRecordPayment(item)}
             className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold"
           >
             <Plus size={16} />
@@ -194,24 +166,55 @@ const PaymentCard = ({ payment, onRecordPayment }) => {
 };
 
 const PaymentManagementPage = () => {
-  const [payments, setPayments] = useState(mockPendingPayments);
-  const [completedPayments, setCompletedPayments] = useState(
-    mockCompletedPayments,
-  );
-  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [pendingBookings, setPendingBookings] = useState([]);
+  const [completedPayments, setCompletedPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [paymentData, setPaymentData] = useState({
-    amountPaid: "",
-    paymentMethod: "",
-    notes: "",
+    paymentamount: "",
+    paymenttype: "",
+    paymentdate: new Date().toISOString().split("T")[0],
   });
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleRecordPayment = (payment) => {
-    setSelectedPayment(payment);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [bookingsData, paymentsData] = await Promise.all([
+        getBookings(),
+        getAllPayments(),
+      ]);
+
+      // Filter bookings that are completed but not yet paid
+      // We know they aren't paid because there's no payment record joined or status is 'completed'
+      const pending = bookingsData.filter(
+        (b) => b.bookingstatus === "completed",
+      );
+      setPendingBookings(pending);
+      setCompletedPayments(paymentsData);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching payment data:", err);
+      setError(
+        "Failed to load payment information. Please check your connection.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleRecordPayment = (booking) => {
+    setSelectedBooking(booking);
     setPaymentData({
-      amountPaid: "",
-      paymentMethod: "",
-      notes: "",
+      paymentamount: booking.totalprice || booking.total_price || "",
+      paymenttype: "cash",
+      paymentdate: new Date().toISOString().split("T")[0],
     });
   };
 
@@ -220,39 +223,43 @@ const PaymentManagementPage = () => {
     setPaymentData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitPayment = (e) => {
+  const handleSubmitPayment = async (e) => {
     e.preventDefault();
 
-    if (!paymentData.amountPaid || !paymentData.paymentMethod) {
+    if (!paymentData.paymentamount || !paymentData.paymenttype) {
       return;
     }
 
-    const amountToAdd = parseFloat(paymentData.amountPaid);
-    const newAmountPaid = selectedPayment.amountPaid + amountToAdd;
-    const totalAmount = selectedPayment.totalAmount;
-    const newStatus = newAmountPaid >= totalAmount ? "paid" : "partial";
+    try {
+      setSubmitting(true);
+      await createPayment({
+        bookingid: selectedBooking.bookingid,
+        paymentamount: parseFloat(paymentData.paymentamount),
+        paymenttype: paymentData.paymenttype,
+        paymentdate: paymentData.paymentdate,
+      });
 
-    const updatedPayment = {
-      ...selectedPayment,
-      amountPaid: newAmountPaid,
-      paymentMethod: paymentData.paymentMethod,
-      status: newStatus,
-    };
+      setSelectedBooking(null);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
 
-    // Update or move to completed
-    if (newStatus === "paid") {
-      setPayments(payments.filter((p) => p.id !== selectedPayment.id));
-      setCompletedPayments([updatedPayment, ...completedPayments]);
-    } else {
-      setPayments(
-        payments.map((p) => (p.id === selectedPayment.id ? updatedPayment : p)),
-      );
+      // Refresh data
+      await fetchData();
+    } catch (err) {
+      console.error("Error recording payment:", err);
+      alert("Failed to record payment. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setSelectedPayment(null);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -267,33 +274,41 @@ const PaymentManagementPage = () => {
           </p>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600" />
+            <p className="text-red-800 font-medium">{error}</p>
+          </div>
+        )}
+
         {showSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
             <CheckCircle size={20} className="text-green-600" />
             <p className="text-green-800 font-medium">
-              Payment recorded successfully!
+              Payment recorded successfully and booking marked as paid!
             </p>
           </div>
         )}
 
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="pending">
-              Pending ({payments.length})
+            <TabsTrigger value="pending" className="font-bold">
+              Pending ({pendingBookings.length})
             </TabsTrigger>
-            <TabsTrigger value="completed">
+            <TabsTrigger value="completed" className="font-bold">
               Completed ({completedPayments.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="space-y-4">
-            {payments.length > 0 ? (
+            {pendingBookings.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {payments.map((payment) => (
+                {pendingBookings.map((booking) => (
                   <PaymentCard
-                    key={payment.id}
-                    payment={payment}
+                    key={booking.bookingid}
+                    item={booking}
                     onRecordPayment={handleRecordPayment}
+                    isPayment={false}
                   />
                 ))}
               </div>
@@ -308,7 +323,7 @@ const PaymentManagementPage = () => {
                     No pending payments
                   </h3>
                   <p className="text-gray-600">
-                    All payments have been recorded.
+                    No completed bookings are awaiting payment.
                   </p>
                 </CardContent>
               </Card>
@@ -319,7 +334,11 @@ const PaymentManagementPage = () => {
             {completedPayments.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {completedPayments.map((payment) => (
-                  <PaymentCard key={payment.id} payment={payment} />
+                  <PaymentCard
+                    key={payment.paymentid}
+                    item={payment}
+                    isPayment={true}
+                  />
                 ))}
               </div>
             ) : (
@@ -333,7 +352,7 @@ const PaymentManagementPage = () => {
                     No completed payments
                   </h3>
                   <p className="text-gray-600">
-                    Paid invoices will appear here.
+                    Recorded payments will appear here.
                   </p>
                 </CardContent>
               </Card>
@@ -342,101 +361,89 @@ const PaymentManagementPage = () => {
         </Tabs>
 
         {/* Payment Recording Modal */}
-        {selectedPayment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-2xl">
+        {selectedBooking && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg shadow-2xl">
               <CardHeader className="border-b bg-gray-50/50">
                 <CardTitle className="flex items-center gap-2 text-xl font-bold">
                   <DollarSign size={24} className="text-red-600" />
-                  Record Payment - {selectedPayment.bookingId}
+                  Record Payment - BK-
+                  {selectedBooking.bookingid.toString().padStart(4, "0")}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <form onSubmit={handleSubmitPayment} className="space-y-6">
                   {/* Payment Summary */}
                   <div className="bg-red-50 rounded-lg p-4 space-y-2 border border-red-100">
                     <div className="flex justify-between">
                       <span className="text-gray-600 text-sm font-medium">
-                        Total Amount Due
+                        Booking Date
                       </span>
-                      <span className="text-lg font-bold text-gray-900">
-                        ${selectedPayment.totalAmount}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 text-sm font-medium">
-                        Already Paid
-                      </span>
-                      <span className="text-lg font-semibold text-emerald-600">
-                        ${selectedPayment.amountPaid}
+                      <span className="text-sm font-bold text-gray-900">
+                        {new Date(
+                          selectedBooking.bookingdate,
+                        ).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="border-t border-red-200 pt-2 flex justify-between">
                       <span className="text-gray-800 font-bold">
-                        Remaining Balance
+                        Total Amount Due
                       </span>
                       <span className="text-xl font-black text-red-600">
-                        $
-                        {selectedPayment.totalAmount -
-                          selectedPayment.amountPaid}
+                        Rs.
+                        {selectedBooking.totalprice ||
+                          selectedBooking.total_price ||
+                          0}
                       </span>
                     </div>
                   </div>
 
                   {/* Payment Amount */}
                   <div className="space-y-2">
-                    <Label htmlFor="amountPaid">Amount to Record ($) *</Label>
+                    <Label htmlFor="paymentamount">
+                      Confirm Amount (Rs.) *
+                    </Label>
                     <Input
-                      id="amountPaid"
-                      name="amountPaid"
+                      id="paymentamount"
+                      name="paymentamount"
                       type="number"
                       step="0.01"
-                      min="0"
-                      max={
-                        selectedPayment.totalAmount - selectedPayment.amountPaid
-                      }
-                      value={paymentData.amountPaid}
+                      min="0.01"
+                      value={paymentData.paymentamount}
                       onChange={handleInputChange}
                       placeholder="Enter amount"
                       required
                     />
-                    <p className="text-xs text-gray-500">
-                      Maximum: $
-                      {selectedPayment.totalAmount - selectedPayment.amountPaid}
-                    </p>
                   </div>
 
                   {/* Payment Method */}
                   <div className="space-y-2">
-                    <Label htmlFor="paymentMethod">Payment Method *</Label>
+                    <Label htmlFor="paymenttype">Payment Method *</Label>
                     <select
-                      id="paymentMethod"
-                      name="paymentMethod"
-                      value={paymentData.paymentMethod}
+                      id="paymenttype"
+                      name="paymenttype"
+                      value={paymentData.paymenttype}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
                       required
                     >
-                      <option value="">-- Select payment method --</option>
                       {paymentMethods.map((method) => (
-                        <option key={method} value={method}>
-                          {method}
+                        <option key={method.value} value={method.value}>
+                          {method.label}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  {/* Notes */}
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Notes (Optional)</Label>
-                    <textarea
-                      id="notes"
-                      name="notes"
-                      value={paymentData.notes}
+                    <Label htmlFor="paymentdate">Payment Date *</Label>
+                    <Input
+                      id="paymentdate"
+                      name="paymentdate"
+                      type="date"
+                      value={paymentData.paymentdate}
                       onChange={handleInputChange}
-                      placeholder="Add any notes about this payment..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none bg-white"
+                      required
                     />
                   </div>
 
@@ -444,16 +451,22 @@ const PaymentManagementPage = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setSelectedPayment(null)}
+                      onClick={() => setSelectedBooking(null)}
+                      disabled={submitting}
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
-                      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold"
+                      disabled={submitting}
+                      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold min-w-[140px]"
                     >
-                      <CheckCircle size={18} />
-                      Record Payment
+                      {submitting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle size={18} />
+                      )}
+                      Confirm Payment
                     </Button>
                   </div>
                 </form>

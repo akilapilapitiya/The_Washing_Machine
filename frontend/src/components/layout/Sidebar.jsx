@@ -12,7 +12,12 @@ import {
   Users,
   Wrench,
   Settings,
+  Database,
   LogOut,
+  Umbrella,
+  ShieldAlert,
+  BarChart3,
+  ListChecks,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -36,7 +41,7 @@ const SidebarItem = ({ to, icon: Icon, label, active }) => (
 
 const Sidebar = () => {
   const location = useLocation();
-  const { user, isCustomer, isEmployee, logout } = useAuth();
+  const { user, isCustomer, isEmployee, emptype, logout } = useAuth();
 
   const customerLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -53,19 +58,89 @@ const Sidebar = () => {
     {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
-      label: "Assigned Jobs",
+      label: "Service Queue",
+      roles: ["owner", "cashier", "employee"],
+    },
+    {
+      to: "/dashboard/admin/bookings",
+      icon: ListChecks,
+      label: "Review Bookings",
+      roles: ["owner", "cashier"],
+    },
+    {
+      to: "/dashboard/employee/incidents",
+      icon: ShieldAlert,
+      label: "Report Incident",
+      roles: ["cashier", "employee"],
+    },
+    {
+      to: "/dashboard/employee/leaves",
+      icon: Umbrella,
+      label: "My Leaves",
+      roles: ["cashier", "employee"],
     },
     {
       to: "/dashboard/employee/payments",
       icon: CreditCard,
       label: "Record Payment",
+      roles: ["owner", "cashier"],
     },
-    { to: "/dashboard/admin/services", icon: Settings, label: "Services" },
-    { to: "/dashboard/admin/customers", icon: Users, label: "Customers" },
-    { to: "/dashboard/admin/employees", icon: ShieldCheck, label: "Employees" },
+    {
+      to: "/dashboard/admin/services",
+      icon: Settings,
+      label: "Services",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/vehicle-catalog",
+      icon: Database,
+      label: "Vehicle Catalog",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/incidents",
+      icon: ShieldAlert,
+      label: "Incidents",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/customers",
+      icon: Users,
+      label: "Customers",
+      roles: ["owner", "cashier"],
+    },
+    {
+      to: "/dashboard/admin/feedback",
+      icon: MessageSquare,
+      label: "Feedback",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/employees",
+      icon: ShieldCheck,
+      label: "Employees",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/reports/daily-income",
+      icon: BarChart3,
+      label: "Daily Income",
+      roles: ["owner"],
+    },
+    {
+      to: "/dashboard/admin/attendance",
+      icon: Calendar,
+      label: "Attendance",
+      roles: ["owner"],
+    },
   ];
 
-  const links = isCustomer ? customerLinks : employeeLinks;
+  const filteredEmployeeLinks = employeeLinks.filter((link) => {
+    if (!link.roles) return true; // Default to public for employees (e.g. Overview)
+    return link.roles.includes(emptype);
+  });
+
+  const links = isCustomer ? customerLinks : filteredEmployeeLinks;
 
   return (
     <aside className="fixed top-16 bottom-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col z-40">
@@ -91,19 +166,22 @@ const Sidebar = () => {
 
       {/* Sidebar Footer */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center space-x-3 px-2 py-2 mb-2">
-          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-            <User className="h-4 w-4 text-gray-600" />
+        <Link
+          to="/dashboard/profile"
+          className="flex items-center space-x-3 px-2 py-2 mb-2 hover:bg-gray-50 rounded-md transition-colors group"
+        >
+          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 group-hover:border-red-200 group-hover:bg-red-50">
+            <User className="h-4 w-4 text-gray-600 group-hover:text-red-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-gray-900 truncate group-hover:text-red-700">
               {user?.name || "User"}
             </p>
             <p className="text-xs text-gray-500 truncate capitalize">
-              {isCustomer ? "Customer" : "Staff"}
+              {isCustomer ? "Customer" : emptype || "Staff"}
             </p>
           </div>
-        </div>
+        </Link>
         <button
           onClick={logout}
           className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors rounded-md border border-transparent hover:border-gray-200"

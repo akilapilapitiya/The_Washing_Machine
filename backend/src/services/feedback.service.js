@@ -91,3 +91,21 @@ export const getCustomerFeedbacksService = async (customerId) => {
   );
   return result.rows;
 };
+export const getAllFeedbacksService = async () => {
+  const result = await pool.query(
+    `
+    SELECT 
+      f.*,
+      c.cusname,
+      e.empname as assigned_employee,
+      b.bookingdate
+    FROM feedback f
+    JOIN customer c ON f.cusid = c.cusid
+    JOIN booking b ON f.bookingid = b.bookingid
+    LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+    LEFT JOIN employee e ON ea.empid = e.empid
+    ORDER BY f.created_at DESC
+    `,
+  );
+  return result.rows;
+};

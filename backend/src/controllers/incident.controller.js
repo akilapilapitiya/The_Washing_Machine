@@ -1,0 +1,74 @@
+import pool from "../configs/database.js";
+import { successResponse } from "../utils/response.util.js";
+import { assertRequiredFields } from "../utils/validation.util.js";
+
+// Create Incident (Employee)
+export const createIncident = async (req, res, next) => {
+  try {
+    const { customerId, bookingId, description, severity } = req.body;
+    const employeeId = req.user.id;
+
+    assertRequiredFields({ description }, ["description"]);
+
+    const result = await pool.query(
+      `INSERT INTO incident (employee_id, customer_id, booking_id, description, severity, status)
+       VALUES ($1, $2, $3, $4, $5, 'open')
+       RETURNING *`,
+      [
+        employeeId,
+        customerId || null,
+        bookingId || null,
+        description,
+        severity || "medium",
+      ],
+    );
+
+    successResponse(
+      res,
+      201,
+      "Incident reported successfully. Access control notified.",
+      result.rows[0],
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get Incidents (Owner)
+export const getIncidents = async (req, res, next) => {
+  try {
+    // Join with customer and employee tables to get names
+    const result = await pool.query(`
+      SELECT 
+        i.*,
+        c.cusname as customer_name,
+        c.cusemail as customer_email,
+        e.empname as employee_name
+      FROM incident i
+      LEFT JOIN customer c ON i.customer_id = c.cusid
+      LEFT JOIN employee e ON i.employee_id = e.empid
+      ORDER BY i.created_at DESC
+    `);
+
+    successResponse(res, 200, "Incidents retrieved", result.rows);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update Incident Status (Owner)
+export const updateIncidentStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const result = await pool.query(
+      "UPDATE incident SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
+      [status, id],
+    );
+
+    successResponse(res, 200, "Incident status updated", result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};

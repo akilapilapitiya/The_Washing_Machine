@@ -40,12 +40,10 @@ const BookingPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Book Service
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-red-600">Book Service</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Select a vehicle
           </h1>
           <p className="text-gray-600">
@@ -54,22 +52,20 @@ const BookingPage = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 border-2 border-red-100 rounded-xl p-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-red-50 border border-red-100 rounded-lg p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
             <AlertCircle
-              size={24}
+              size={20}
               className="text-red-600 flex-shrink-0 mt-0.5"
             />
             <div className="flex-1">
-              <p className="text-red-800 font-bold tracking-tight">
-                System Error
-              </p>
-              <p className="text-red-700 text-sm font-medium">{error}</p>
+              <p className="text-red-800 font-semibold text-sm">System Error</p>
+              <p className="text-red-700 text-sm mt-0.5">{error}</p>
             </div>
             <Button
               size="sm"
               variant="outline"
               onClick={fetchVehicles}
-              className="font-bold border-red-200 text-red-600"
+              className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
               Retry
             </Button>
@@ -80,40 +76,40 @@ const BookingPage = () => {
           <div className="flex items-center justify-center py-24">
             <div className="text-center space-y-4">
               <div className="relative">
-                <Loader2 className="h-12 w-12 animate-spin mx-auto text-red-600" />
+                <Loader2 className="h-10 w-10 animate-spin mx-auto text-red-600" />
                 <Car className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-red-400" />
               </div>
-              <p className="text-gray-400 font-semibold tracking-widest text-xs uppercase">
-                Scanning Inventory...
+              <p className="text-gray-500 font-medium text-sm">
+                Loading vehicles...
               </p>
             </div>
           </div>
         ) : vehicles.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-200 bg-white">
-            <CardContent className="text-center py-16 space-y-6">
-              <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
-                <Car size={32} className="text-gray-300" />
+          <Card className="border border-dashed border-gray-200 bg-white shadow-none">
+            <CardContent className="text-center py-12 space-y-4">
+              <div className="h-12 w-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                <Car size={24} className="text-gray-400" />
               </div>
-              <div className="space-y-2">
-                <p className="text-xl font-bold text-gray-900">
+              <div className="space-y-1">
+                <p className="text-lg font-semibold text-gray-900">
                   No Vehicles Found
                 </p>
-                <p className="text-gray-500 max-w-sm mx-auto">
-                  You don't have any vehicles registered in our high-performance
-                  database.
+                <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                  You don't have any vehicles registered yet. Add one to get
+                  started.
                 </p>
               </div>
-              <Link to="/dashboard/vehicles" className="inline-block">
-                <Button className="bg-red-600 hover:bg-black font-bold tracking-wide px-8 h-14 shadow-lg shadow-red-200">
-                  <Plus size={20} className="mr-2" />
-                  Add Your Machine
+              <Link to="/dashboard/vehicles" className="inline-block mt-2">
+                <Button className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 h-10 shadow-sm">
+                  <Plus size={18} className="mr-2" />
+                  Add Vehicle
                 </Button>
               </Link>
             </CardContent>
           </Card>
         ) : (
           <>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {vehicles.map((vehicle) => (
                 <VehicleCard
                   key={vehicle.id}
@@ -128,35 +124,29 @@ const BookingPage = () => {
                 />
               ))}
               <Link to="/dashboard/vehicles" className="h-full">
-                <div className="group h-full rounded-xl border-2 border-dashed border-gray-200 bg-white p-8 text-left transition-all duration-300 hover:border-red-400 hover:bg-red-50/30">
-                  <div className="flex h-full flex-col justify-between gap-8">
-                    <div className="flex items-center gap-4">
-                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-50 text-gray-400 transition-all duration-300 group-hover:bg-red-600 group-hover:text-white group-hover:rotate-90">
-                        <Plus size={24} />
-                      </span>
-                      <div>
-                        <p className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">
-                          Add Machine
-                        </p>
-                        <p className="text-xs font-bold uppercase tracking-tight text-gray-400">
-                          Register a new ride
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-red-600 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
-                      <span>Enter Garage</span>
-                      <ArrowRight size={14} />
+                <div className="group h-full rounded-xl border border-dashed border-gray-300 bg-gray-50/50 p-6 text-left transition-all duration-200 hover:border-red-400 hover:bg-red-50 hover:shadow-sm">
+                  <div className="flex h-full flex-col justify-center items-center gap-3 py-4 text-center">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 text-gray-400 transition-all duration-200 group-hover:border-red-200 group-hover:text-red-600">
+                      <Plus size={20} />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-red-700 transition-colors">
+                        Add New Vehicle
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Register another car
+                      </p>
                     </div>
                   </div>
                 </div>
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center pt-8 border-t border-gray-200">
+            <div className="flex flex-wrap gap-4 items-center justify-end pt-6 border-t border-gray-100">
               <Link to="/dashboard/vehicles">
                 <Button
                   variant="outline"
-                  className="px-8 h-14 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
+                  className="px-6 h-11 font-medium text-gray-700"
                 >
                   Manage Garage
                 </Button>
@@ -164,13 +154,10 @@ const BookingPage = () => {
               <Button
                 onClick={handleContinue}
                 disabled={!selectedVehicleId}
-                className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 disabled:opacity-50 disabled:shadow-none transition-all duration-300 group"
+                className="px-8 h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 disabled:opacity-50"
               >
-                <span>Initialize Booking</span>
-                <ArrowRight
-                  size={20}
-                  className="ml-2 transition-transform group-hover:translate-x-1"
-                />
+                <span>Continue</span>
+                <ArrowRight size={16} className="ml-2" />
               </Button>
             </div>
           </>

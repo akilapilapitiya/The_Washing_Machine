@@ -1,0 +1,43 @@
+/report/daily-income:
+  get:
+    tags:
+      - Report
+    summary: Daily Income Report
+    description: Owner views daily income statistics
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Report retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  additionalProperties: true
+
+/report/employee-performance:
+  get:
+    tags:
+      - Report
+    summary: Employee Performance Report
+    description: Owner views employee performance metrics
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Report retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  additionalProperties: true
