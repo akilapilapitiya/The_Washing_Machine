@@ -19,6 +19,24 @@ fs.readdirSync(pathsDir).forEach((file) => {
   }
 });
 
+// Dynamically merge components specifications
+const componentsDir = path.join(__dirname, "../docs/components");
+if (fs.existsSync(componentsDir)) {
+  fs.readdirSync(componentsDir).forEach((file) => {
+    if (file.endsWith(".yaml") || file.endsWith(".yml")) {
+      const componentSpec = YAML.load(path.join(componentsDir, file));
+      const category = file.split(".")[0]; // e.g., 'schemas', 'responses', 'security'
+
+      if (!swaggerDocument.components) swaggerDocument.components = {};
+
+      swaggerDocument.components[category] = {
+        ...swaggerDocument.components[category],
+        ...componentSpec,
+      };
+    }
+  });
+}
+
 // Setup Swagger UI (non-production only)
 const setupSwagger = (app) => {
   if (process.env.NODE_ENV !== "production") {

@@ -1,0 +1,69 @@
+/vehicle-catalog:
+  get:
+    tags:
+      - Vehicle Catalog
+    summary: Get vehicle catalog
+    description: Retrieve the list of supported vehicle makes and models
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Catalog retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: array
+                  items:
+                    type: object
+
+  post:
+    tags:
+      - Vehicle Catalog
+    summary: Add to catalog
+    description: Owner adds a new vehicle make/model to the catalog
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - make
+              - model
+            properties:
+              make:
+                type: string
+              model:
+                type: string
+    responses:
+      201:
+        description: Added to catalog successfully
+      401:
+        $ref: "#/components/responses/Unauthorized"
+
+/vehicle-catalog/{id}:
+  delete:
+    tags:
+      - Vehicle Catalog
+    summary: Remove from catalog
+    description: Owner removes a vehicle make/model from the catalog
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Removed from catalog successfully
+      401:
+        $ref: "#/components/responses/Unauthorized"

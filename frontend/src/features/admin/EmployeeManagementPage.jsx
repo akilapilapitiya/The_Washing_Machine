@@ -7,58 +7,57 @@ import {
   Users,
   Plus,
   Trash2,
-  TrendingUp,
   Mail,
   Phone,
-  Badge,
-  AlertCircle,
   CheckCircle,
   X,
   CreditCard,
+  Edit,
+  UserCog,
+  Shield,
+  Briefcase,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import * as employeeService from "@/services/employee.service";
-import { COLORS } from "@/lib/colors";
 
-const roleOptions = [
-  { value: "junior", label: "Frontline Detailer" },
-  { value: "mid", label: "Service Specialist" },
-  { value: "senior", label: "Senior Technician" },
-  { value: "lead", label: "Floor Manager" },
-  { value: "master", label: "Master Detailer" },
-  { value: "owner", label: "Strategic Owner" },
+// Initial fallback if roles haven't loaded yet
+const initialRoleOptions = [
+  { value: "owner", label: "Owner" },
+  { value: "cashier", label: "Cashier" },
+  { value: "employee", label: "Employee" },
 ];
 
 const levelColors = {
-  junior: {
-    bg: "bg-blue-100",
-    text: "text-blue-800",
-    border: "border-blue-300",
+  owner: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
+  cashier: {
+    bg: "bg-purple-50",
+    text: "text-purple-700",
+    border: "border-purple-200",
   },
-  mid: {
-    bg: "bg-purple-100",
-    text: "text-purple-800",
-    border: "border-purple-300",
+  employee: {
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-200",
   },
-  senior: {
-    bg: "bg-green-100",
-    text: "text-green-800",
-    border: "border-green-300",
-  },
-  lead: {
-    bg: "bg-orange-100",
-    text: "text-orange-800",
-    border: "border-orange-300",
-  },
-  master: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
 };
 
-const LevelBadge = ({ level }) => {
-  const colors = levelColors[level] || levelColors.junior;
+const getRoleBadgeInfo = (level, roles) => {
+  const role = roles.find((r) => r.rolename === level);
+  const colors = levelColors[level] || levelColors.employee;
+  return {
+    label: role ? role.rolename : level,
+    colors,
+  };
+};
+
+const LevelBadge = ({ level, roles }) => {
+  const { label, colors } = getRoleBadgeInfo(level, roles);
   return (
     <span
-      className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase font-bold border ${colors.bg} ${colors.text} ${colors.border} tracking-wider`}
+      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${colors.bg} ${colors.text} ${colors.border}`}
     >
-      {roleOptions.find((r) => r.value === level)?.label || level}
+      {label}
     </span>
   );
 };
@@ -75,16 +74,29 @@ const EmployeeManagementPage = () => {
     name: "",
     email: "",
     telephone: "",
-    type: "junior",
+    type: "employee",
     nic: "",
   });
+  const [roles, setRoles] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
+    fetchRoles();
   }, []);
+
+  const fetchRoles = async () => {
+    try {
+      const response = await employeeService.getRoles();
+      if (response.success) {
+        setRoles(response.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -113,18 +125,21 @@ const EmployeeManagementPage = () => {
     try {
       setSubmitting(true);
       setError(null);
-      await employeeService.addEmployee(newEmployee);
+      await employeeService.addEmployee({
+        ...newEmployee,
+        password: "Employee@123",
+      });
 
       await fetchEmployees();
       setNewEmployee({
         name: "",
         email: "",
         telephone: "",
-        type: "junior",
+        type: "employee",
         nic: "",
       });
       setShowAddForm(false);
-      setSuccessMessage("New operative registered successfully!");
+      setSuccessMessage("New employee registered successfully!");
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
@@ -153,12 +168,12 @@ const EmployeeManagementPage = () => {
       setShowPromoteForm(false);
       setSelectedEmployee(null);
       setNewRole("");
-      setSuccessMessage("Operational rank updated successfully!");
+      setSuccessMessage("Employee role updated successfully!");
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
       console.error("Failed to update rank:", err);
-      setError("Failed to update employee rank.");
+      setError("Failed to update employee role.");
     } finally {
       setSubmitting(false);
     }
@@ -173,7 +188,7 @@ const EmployeeManagementPage = () => {
       try {
         await employeeService.deleteEmployee(id);
         await fetchEmployees();
-        setSuccessMessage("Employee records purged.");
+        setSuccessMessage("Employee removed.");
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       } catch (err) {
@@ -191,22 +206,19 @@ const EmployeeManagementPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-              Force Management
-            </p>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Manage Employees
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Team Management
             </h1>
-            <p className="text-gray-600">
-              Register, promote, and coordinate your service team.
+            <p className="text-gray-500">
+              Register new staff and manage roles.
             </p>
           </div>
           <Button
             onClick={() => setShowAddForm(true)}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-200"
+            className="bg-red-600 hover:bg-red-700 text-white font-medium h-10 px-4 rounded-lg shadow-sm"
           >
             <Plus size={18} className="mr-2" />
             Add Employee
@@ -214,73 +226,83 @@ const EmployeeManagementPage = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
+            <AlertCircle size={20} />
+            <p className="font-medium text-sm">{error}</p>
           </div>
         )}
 
         {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">{successMessage}</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 text-green-700">
+            <CheckCircle size={20} />
+            <p className="font-medium text-sm">{successMessage}</p>
           </div>
         )}
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="shadow-sm">
+          <Card className="shadow-sm border-gray-200">
             <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-red-600">
-                  {employees.length}
-                </p>
-                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Total Force
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gray-100 rounded-lg text-gray-600">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Staff
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {employees.length}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm">
+
+          <Card className="shadow-sm border-gray-200">
             <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-gray-900">
-                  {
-                    employees.filter(
-                      (e) =>
-                        e.emptype === "senior" ||
-                        e.emptype === "master" ||
-                        e.emptype === "lead",
-                    ).length
-                  }
-                </p>
-                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Senior Elite
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-50 rounded-lg text-red-600">
+                  <Shield size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Owners</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {employees.filter((e) => e.emptype === "owner").length}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm">
+
+          <Card className="shadow-sm border-gray-200">
             <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-gray-900">
-                  {employees.filter((e) => e.emptype === "mid").length}
-                </p>
-                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Mid-Level
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-50 rounded-lg text-purple-600">
+                  <CreditCard size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Cashiers</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {employees.filter((e) => e.emptype === "cashier").length}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm">
+
+          <Card className="shadow-sm border-gray-200">
             <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-gray-900">
-                  {employees.filter((e) => e.emptype === "junior").length}
-                </p>
-                <p className="text-xs uppercase font-semibold text-gray-500 mt-1 tracking-wider">
-                  Junior Staff
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
+                  <Briefcase size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Staff</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {employees.filter((e) => e.emptype === "employee").length}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -288,107 +310,125 @@ const EmployeeManagementPage = () => {
 
         {/* Employees Table/Cards */}
         <div className="space-y-4">
-          {employees.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <Loader2 size={32} className="animate-spin text-red-600" />
+              <p className="text-sm font-medium text-gray-500">
+                Loading directory...
+              </p>
+            </div>
+          ) : employees.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {employees.map((employee) => (
                 <Card
                   key={employee.empid}
-                  className="group border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm"
+                  className="group hover:shadow-md transition-all border-gray-200 h-full flex flex-col"
                 >
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-3 border-b border-gray-50 bg-white pt-5 px-5">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">
-                          Operative
-                        </p>
-                        <CardTitle className="text-lg font-bold">
+                      <div>
+                        <CardTitle className="text-base font-bold text-gray-900">
                           {employee.empname}
                         </CardTitle>
-                        <div className="mt-2">
-                          <LevelBadge level={employee.emptype} />
+                        <div className="mt-1.5 flex flex-wrap gap-2">
+                          <LevelBadge level={employee.emptype} roles={roles} />
+                          <span className="text-[10px] text-gray-400 font-medium px-2 py-0.5 bg-gray-50 rounded border border-gray-100 flex items-center">
+                            ID: {employee.empid}
+                          </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteEmployee(employee.empid)}
-                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
-                        title="Purge records"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex gap-1 ml-2">
+                        <button
+                          onClick={() => openPromoteForm(employee)}
+                          className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-md transition"
+                          title="Edit Role"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEmployee(employee.empid)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                          title="Remove Employee"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-3">
-                        <Mail size={14} className="text-gray-400" />
-                        <span className="text-gray-600 truncate">
+                  <CardContent className="pt-4 px-5 pb-5 space-y-4 flex-1 flex flex-col">
+                    <div className="space-y-3 flex-1">
+                      <div className="flex items-center gap-3 text-sm">
+                        <Mail size={14} className="text-gray-400 shrink-0" />
+                        <span className="text-gray-600 truncate font-medium">
                           {employee.email}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Phone size={14} className="text-gray-400" />
-                        <span className="text-gray-600">{employee.emptel}</span>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Phone size={14} className="text-gray-400 shrink-0" />
+                        <span className="text-gray-600 font-medium">
+                          {employee.emptel}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <CreditCard size={14} className="text-gray-400" />
-                        <span className="text-gray-600 font-mono text-xs">
+                      <div className="flex items-center gap-3 text-sm">
+                        <CreditCard
+                          size={14}
+                          className="text-gray-400 shrink-0"
+                        />
+                        <span className="text-gray-600 font-medium">
                           {employee.empnic}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <span className="text-[10px] text-gray-400 font-bold uppercase">
-                        Joined:{" "}
+
+                    <div className="pt-3 border-t border-dashed border-gray-100 mt-auto">
+                      <span className="text-xs text-gray-400 flex items-center gap-1.5">
+                        <CheckCircle size={12} />
+                        Joined{" "}
                         {new Date(employee.created_at).toLocaleDateString()}
                       </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openPromoteForm(employee)}
-                        className="h-8 text-xs font-bold"
-                      >
-                        <TrendingUp size={12} className="mr-1" />
-                        Rank
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card className="border-dashed border-2">
-              <CardContent className="text-center py-20 px-6">
-                <Users size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-bold">No operatives deployed</h3>
-                <p className="text-gray-500 mb-6 text-sm max-w-xs mx-auto">
-                  Enlist your first team member to start managing detailing
-                  operations.
-                </p>
-                <Button
-                  onClick={() => setShowAddForm(true)}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  <Plus size={18} className="mr-2" />
-                  Add Employee
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
+              <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
+                <Users size={32} className="text-gray-300" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                No employees yet
+              </h3>
+              <p className="text-gray-500 mb-6 text-sm">
+                Add your first team member to get started.
+              </p>
+              <Button
+                onClick={() => setShowAddForm(true)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Plus size={16} className="mr-2" />
+                Add Employee
+              </Button>
+            </div>
           )}
         </div>
       </div>
 
       {/* Add Employee Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md shadow-xl">
-            <CardHeader className="border-b bg-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md shadow-2xl border-0">
+            <CardHeader className="border-b border-gray-100 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold">
-                  Add New Operative
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <div className="p-2 bg-red-50 rounded-lg text-red-600">
+                    <UserCog size={20} />
+                  </div>
+                  Add New Employee
                 </CardTitle>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
                 >
                   <X size={20} />
                 </button>
@@ -396,9 +436,12 @@ const EmployeeManagementPage = () => {
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleAddEmployee} className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="name" className="text-sm font-medium">
-                    Full Name
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="name"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Full Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
@@ -407,14 +450,17 @@ const EmployeeManagementPage = () => {
                       setNewEmployee({ ...newEmployee, name: e.target.value })
                     }
                     placeholder="Enter full name..."
-                    className="focus:ring-red-500"
+                    className="h-10 focus:ring-red-600 border-gray-300"
                     required
                     disabled={submitting}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email Address
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
@@ -424,15 +470,18 @@ const EmployeeManagementPage = () => {
                       setNewEmployee({ ...newEmployee, email: e.target.value })
                     }
                     placeholder="name@example.com"
-                    className="focus:ring-red-500"
+                    className="h-10 focus:ring-red-600 border-gray-300"
                     required
                     disabled={submitting}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="telephone" className="text-sm font-medium">
-                      Phone
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="telephone"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Phone <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="telephone"
@@ -444,14 +493,17 @@ const EmployeeManagementPage = () => {
                         })
                       }
                       placeholder="0771234567"
-                      className="focus:ring-red-500"
+                      className="h-10 focus:ring-red-600 border-gray-300"
                       required
                       disabled={submitting}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="nic" className="text-sm font-medium">
-                      NIC
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="nic"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      NIC <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="nic"
@@ -460,55 +512,85 @@ const EmployeeManagementPage = () => {
                         setNewEmployee({ ...newEmployee, nic: e.target.value })
                       }
                       placeholder="NIC Number"
-                      className="focus:ring-red-500"
+                      className="h-10 focus:ring-red-600 border-gray-300"
                       required
                       disabled={submitting}
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="role" className="text-sm font-medium">
-                    Operational Rank
-                  </Label>
-                  <select
-                    id="role"
-                    value={newEmployee.type}
-                    onChange={(e) =>
-                      setNewEmployee({ ...newEmployee, type: e.target.value })
-                    }
-                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                    disabled={submitting}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="role"
+                    className="text-sm font-medium text-gray-700"
                   >
-                    {roleOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    Role <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <select
+                      id="role"
+                      value={newEmployee.type}
+                      onChange={(e) =>
+                        setNewEmployee({ ...newEmployee, type: e.target.value })
+                      }
+                      className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none capitalize bg-white appearance-none transition-shadow"
+                      disabled={submitting}
+                    >
+                      {roles.length > 0
+                        ? roles.map((role) => (
+                            <option key={role.roleid} value={role.rolename}>
+                              {role.rolename}
+                            </option>
+                          ))
+                        : initialRoleOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                      <svg
+                        className="fill-current h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="bg-gray-50 p-3 rounded-lg border text-xs text-gray-600">
-                  <p className="font-bold mb-1">Default Password:</p>
-                  <code className="bg-white px-1 py-0.5 border rounded">
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs text-gray-600 flex items-center justify-between">
+                  <span className="font-medium text-gray-900">
+                    Default Password:
+                  </span>
+                  <code className="bg-white px-2 py-1 border rounded text-red-600 font-mono font-bold">
                     Employee@123
                   </code>
                 </div>
 
-                <div className="flex gap-3 justify-end pt-4 border-t">
+                <div className="flex gap-3 justify-end pt-4 border-t border-gray-100 mt-6">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => setShowAddForm(false)}
                     disabled={submitting}
+                    className="h-10 font-medium text-gray-600"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-red-600 hover:bg-red-700 text-white"
+                    className="bg-red-600 hover:bg-red-700 text-white h-10 px-6 font-bold shadow-md shadow-red-100"
                   >
-                    {submitting ? "Processing..." : "Enlist Operative"}
+                    {submitting ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Add Employee"
+                    )}
                   </Button>
                 </div>
               </form>
@@ -519,14 +601,19 @@ const EmployeeManagementPage = () => {
 
       {/* Promote Employee Modal */}
       {showPromoteForm && selectedEmployee && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md shadow-xl">
-            <CardHeader className="border-b bg-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md shadow-2xl border-0">
+            <CardHeader className="border-b border-gray-100 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold">Update Rank</CardTitle>
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <UserCog size={20} />
+                  </div>
+                  Update Role
+                </CardTitle>
                 <button
                   onClick={() => setShowPromoteForm(false)}
-                  className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
                 >
                   <X size={20} />
                 </button>
@@ -534,45 +621,71 @@ const EmployeeManagementPage = () => {
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handlePromoteEmployee} className="space-y-6">
-                <div className="text-center space-y-1">
-                  <p className="text-lg font-bold">
+                <div className="text-center space-y-2 pb-4 border-b border-gray-100">
+                  <div className="h-16 w-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center text-gray-500 mb-3">
+                    <span className="text-xl font-bold">
+                      {selectedEmployee.empname.charAt(0)}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">
                     {selectedEmployee.empname}
-                  </p>
-                  <p className="text-xs text-gray-500 uppercase font-semibold">
-                    Current:{" "}
-                    {
-                      roleOptions.find(
-                        (r) => r.value === selectedEmployee.emptype,
-                      )?.label
-                    }
-                  </p>
+                  </h3>
+                  <div className="inline-flex">
+                    <LevelBadge
+                      level={selectedEmployee.emptype}
+                      roles={roles}
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="newRole" className="text-sm font-medium">
-                    New Operational Rank
-                  </Label>
-                  <select
-                    id="newRole"
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value)}
-                    className="w-full h-10 px-3 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                    required
-                    disabled={submitting}
+                  <Label
+                    htmlFor="newRole"
+                    className="text-sm font-medium text-gray-700"
                   >
-                    <option value="">-- Select Rank --</option>
-                    {roleOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    New Role <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <select
+                      id="newRole"
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      className="w-full h-10 pl-3 pr-8 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none capitalize bg-white appearance-none transition-shadow"
+                      required
+                      disabled={submitting}
+                    >
+                      <option value="">-- Select Role --</option>
+                      {roles.length > 0
+                        ? roles.map((role) => (
+                            <option key={role.roleid} value={role.rolename}>
+                              {role.rolename}
+                            </option>
+                          ))
+                        : initialRoleOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                      <svg
+                        className="fill-current h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-3 justify-end pt-4 border-t">
+
+                <div className="flex gap-3 justify-end pt-2 mt-4">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => setShowPromoteForm(false)}
                     disabled={submitting}
+                    className="h-10 font-medium text-gray-600"
                   >
                     Cancel
                   </Button>
@@ -581,9 +694,16 @@ const EmployeeManagementPage = () => {
                     disabled={
                       newRole === selectedEmployee.emptype || submitting
                     }
-                    className="bg-red-600 hover:bg-red-700 text-white"
+                    className="bg-red-600 hover:bg-red-700 text-white h-10 px-6 font-bold shadow-md shadow-red-100"
                   >
-                    {submitting ? "Updating..." : "Confirm Rank Change"}
+                    {submitting ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Role"
+                    )}
                   </Button>
                 </div>
               </form>

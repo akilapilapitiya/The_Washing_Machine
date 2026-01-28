@@ -6,6 +6,7 @@ const createServiceTable = async (pool) => {
       servicetime TIME NOT NULL,
       serviceprice DECIMAL(10,2) NOT NULL CHECK (serviceprice >= 0),
       servicedetails VARCHAR(200) NOT NULL,
+      servicetype VARCHAR(20) DEFAULT 'package',
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );

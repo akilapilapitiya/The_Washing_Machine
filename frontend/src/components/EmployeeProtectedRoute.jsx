@@ -3,8 +3,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
-const EmployeeProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isEmployee, loading } = useAuth();
+const EmployeeProtectedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, isStaff, emptype, loading } = useAuth();
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -23,9 +23,18 @@ const EmployeeProtectedRoute = ({ children }) => {
     return <Navigate to="/employee/login" replace />;
   }
 
-  // Redirect to employee login if authenticated but not an employee
-  if (!isEmployee) {
+  // Redirect to employee login if authenticated but not staff
+  if (!isStaff) {
     return <Navigate to="/employee/login" replace />;
+  }
+
+  // Check for specific role requirements if provided
+  if (allowedRoles && !allowedRoles.includes(emptype)) {
+    // If user is owner, they pass regardless!
+    if (emptype === "owner") return children;
+
+    // Otherwise, redirect to general dashboard
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Render protected content

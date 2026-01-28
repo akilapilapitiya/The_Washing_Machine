@@ -2,157 +2,63 @@
 
 ## Overview
 
-This backend is a RESTful API built using Node.js and Express. It powers a vehicle service booking platform with role-based access control and comprehensive management of customers, employees, bookings, payments, and services.
+This backend is a robust RESTful API built using Node.js and Express. It powers a vehicle service booking platform with role-based access control and comprehensive management of customers, employees, bookings, payments, and services.
 
 **Key Features:**
-- Customer and employee authentication with JWT
-- Vehicle management for customers
-- Booking management with multiple services per booking (many-to-many)
-- Payment processing and tracking
-- Employee and customer profile management
-- Role-based access control (RBAC)
-- JWT-based authentication with HTTP-only cookies
-- Centralized validation and typed error handling with consistent API envelopes
+
+- Secure authentication with role-based access control (Customer/Employee)
+- Vehicle management logic for registered customers
+- Complex booking management (many-to-many service relationships)
+- Integrated payment processing and tracking
+- Customer feedback and service rating system
+- Comprehensive automated test suite with Jest
+- Interactive Swagger/OpenAPI documentation
+- Centralized validation and typed error handling
 
 ## Tech Stack
 
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **Database:** PostgreSQL
-- **Authentication:** JWT (JSON Web Tokens)
-- **Password Hashing:** bcryptjs
-- **HTTP Parsing:** Body-parser, cookie-parser
-- **Validation:** Joi (for request validation)
-- **Error Handling:** Centralized middleware with typed errors (AppError, Validation/Unauthorized/Forbidden/NotFound)
-- **Security:** Helmet (security headers), CORS, Rate Limiting, Response Compression
-- **API Documentation:** Swagger/OpenAPI
+- **Runtime:** Node.js (v18+)
+- **Framework:** Express.js ~4.16.1
+- **Database:** PostgreSQL ^8.16.3
+- **Authentication:** JWT (jsonwebtoken ^9.0.3)
+- **Validation:** Joi ^18.0.2
+- **Testing:** Jest ^29.7.0, Supertest ^7.0.0
+- **Security:** Helmet ^8.1.0, CORS ^2.8.5, bcryptjs ^3.0.3
+- **Optimizations:** Compression (gzip) ^1.8.1
 
 ## Project Architecture
 
-The backend follows a layered architecture for scalability, maintainability, and separation of concerns:
+The backend follows a strictly layered architecture for maximum maintainability:
 
-- **Routes:** API endpoint definitions with authentication/authorization middleware
-- **Controllers:** Handle HTTP requests/responses and delegate to services
-- **Services:** Business logic, validation, and database operations
-- **Middleware:** Authentication, authorization, error handling, body parsing
-- **Models:** Database schema definitions
-- **Configs:** Environment and database pool configuration
-- **Utils:** Shared utilities (JWT token generation, helpers)
-  - `utils/errors.util.js` for typed errors and `utils/validation.util.js` for service-layer guards
+- **Routes:** API endpoint definitions and middleware mounting
+- **Controllers:** Request parsing and response formatting (API envelopes)
+- **Services:** Core business logic, validation, and database orchestration
+- **Models:** Database schema definitions and pool interactions
+- **Middleware:** Security, Auth, Body Parsing, and Error Handling
+- **Scripts:** Database maintenance and seeding utilities
 
 ## Folder Structure
 
 ```
 src/
-├── configs/
-│   ├── database.js       # PostgreSQL pool configuration
-│   └── env.js            # Environment variables
-├── controllers/
-│   ├── booking.controller.js
-│   ├── customer.controller.js
-│   ├── customerAuth.controller.js
-│   ├── employee.controller.js
-│   ├── employeeAuth.controller.js
-│   ├── payment.controller.js
-│   ├── service.controller.js
-│   ├── test.controller.js
-│   └── vehicle.controller.js
-├── middleware/
-│   ├── auth.middleware.js           # JWT verification & role-based access
-│   ├── bodyParser.middleware.js     # Request body validation
-│   ├── compression.middleware.js    # Response compression (gzip)
-│   ├── cors.middleware.js           # Cross-Origin Resource Sharing
-│   ├── error.middleware.js          # Centralized error handling
-│   ├── helmet.middleware.js         # Security headers
-│   └── rateLimit.middleware.js      # Rate limiting & abuse prevention
-├── models/
-│   ├── booking.model.js
-│   ├── customer.model.js
-│   ├── employee.model.js
-│   ├── employeeAssigned.model.js
-│   ├── employeeLeave.model.js
-│   ├── employeePreference.model.js
-│   ├── feedback.model.js
-│   ├── payment.model.js
-│   ├── schedule.model.js
-│   ├── service.model.js
-│   ├── servicesBooked.model.js
-│   ├── vehicle.model.js
-│   └── index.js
-├── routes/
-│   ├── booking.route.js
-│   ├── customer.route.js
-│   ├── customerAuth.route.js
-│   ├── employee.route.js
-│   ├── employeeAuth.route.js
-│   ├── payment.route.js
-│   ├── service.routes.js
-│   ├── test.route.js
-│   └── vehicle.route.js
-├── services/
-│   ├── booking.service.js
-│   ├── customer.service.js
-│   ├── customerAuth.service.js
-│   ├── employee.service.js
-│   ├── employeeAuth.service.js
-│   ├── payment.service.js
-│   ├── service.service.js
-│   └── vehicle.service.js
-├── scripts/
-│   ├── dataClean.script.js       # Truncate all tables (clear data)
-│   ├── dbReset.script.js         # Drop and recreate all tables
-│   ├── addOwner.js               # Create initial owner account
-│   ├── runClean.js               # Script runner for db:clean
-│   └── runReset.js               # Script runner for db:reset
-├── utils/
-│   └── generateToken.util.js
-└── app.js                # Express app setup & route mounting
+├── configs/          # Database & Environment config
+├── controllers/      # Route handlers
+├── docs/             # Swagger/OpenAPI specifications
+├── middleware/       # Express middlewares (Auth, Errors, Security)
+├── models/           # Database models & index
+├── routes/           # API route definitions
+├── services/         # Business logic layer
+├── scripts/          # DB reset, clean, and seed scripts
+├── utils/            # Shared utility functions
+├── __tests__/        # Automated test suites
+└── app.js            # Express application entry
 ```
-
-## Database Management Scripts
-
-Use these npm scripts to manage your database:
-
-### `npm run db:clean`
-**Truncates all tables** (clears data but keeps schema intact).  
-Use when you want to wipe data while keeping the table structure.
-
-```bash
-npm run db:clean
-```
-
-### `npm run db:reset`
-**Drops and recreates all tables** (full schema reset).  
-Use after making schema changes (like adding/removing columns or tables).
-
-```bash
-npm run db:reset
-```
-
-### `npm run db:reset:seed`
-**Drops, recreates all tables, and seeds owner account**.  
-Use for a fresh setup with pre-created owner credentials.
-
-```bash
-npm run db:reset:seed
-```
-
-### `npm run db:seed-owner`
-**Creates an owner account** on existing database.  
-Use to add the initial owner account without resetting the database.
-
-```bash
-npm run db:seed-owner
-```
-
-**Default Owner Credentials:**
-- Email: `owner@washingmachine.com`
-- Password: `Owner@123`
 
 ## Installation & Setup
 
 ### Prerequisites
-- Node.js (v16 or higher)
+
+- Node.js (v18 or higher)
 - PostgreSQL database
 
 ### Install Dependencies
@@ -163,336 +69,92 @@ npm install
 
 ### Environment Configuration
 
-Create environment files for your deployment:
-- `.env.development.local` (development)
-- `.env.production.local` (production)
+Create a `.env` file based on `.env.example`:
 
-Required variables:
 ```
 PORT=5000
-NODE_ENV=development
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=washing_machine
 DB_USER=postgres
 DB_PASSWORD=your_password
-JWT_SECRET=your_jwt_secret_key
-JWT_EXPIRES_IN=1d
-SALT_ROUNDS=12
-COOKIE_AGE=7
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-RATE_LIMIT_AUTH_MAX=5
+JWT_SECRET=your_secret
 ```
 
-### Running the Application
+## Running the Application
 
-**Development mode** (with nodemon auto-reload):
+### Development Mode
+
 ```bash
 npm run dev
 ```
 
-**Production mode**:
+### Production Mode
+
 ```bash
 npm start
 ```
 
-## API Docs (Swagger)
+## Testing
 
-Interactive API documentation is available via Swagger UI in non-production environments.
+The project uses Jest for comprehensive integration testing across all modules.
 
-- Access: http://localhost:5000/api-docs (replace `5000` with your `PORT`)
-- Availability: Disabled when `NODE_ENV=production`
-- Source files:
-  - Base spec: [src/docs/openapi.yaml](src/docs/openapi.yaml)
-  - Path specs (auto-merged): [src/docs/paths](src/docs/paths)
-  - Components (schemas/responses/security): [src/docs/components](src/docs/components)
-  - Loader/merger: [src/configs/swagger.js](src/configs/swagger.js)
-
-Quick start to view docs:
+### Run All Tests
 
 ```bash
-npm run dev
-# then open http://localhost:$PORT/api-docs (default PORT=5000)
+npm test
 ```
 
-Notes:
-- Paths are defined as separate YAML files under `src/docs/paths` and are merged at startup.
-- If your server runs on a different port than shown in the Swagger `servers` section, use your actual base URL for requests.
+### Run Tests in Watch Mode
 
-### Database Scripts
-
-Clean database (removes all data, keeps schema):
 ```bash
-npm run db:clean
+npm run test:watch
 ```
 
-Seed initial owner account (required for first-time setup or after cleaning database):
-```bash
-npm run db:seed-owner
-```
+### CI/CD Pipeline
 
-**Important:** After running `db:clean`, you must run `db:seed-owner` to create an owner account. This owner can then sign in and create other employees.
+Automated testing is configured via GitHub Actions.
 
-**Default Owner Credentials:**
-- Email: `owner@washingmachine.com`
-- Password: `Owner@123`
+- **Workflow:** `.github/workflows/backend-tests.yml`
+- **Trigger:** Pull Requests to `automate/testing` branch
+- **Action:** Runs `npm test` to verify all suites pass before merge.
 
-**Security Note:** Change these credentials immediately in production environments!
+## API Documentation (Swagger)
+
+Interactive API documentation is available in development mode.
+
+- **URL:** `http://localhost:5000/api-docs`
+- **Spec:** Managed via `src/docs/` (YAML based components and paths)
+
+## Database Management
+
+Manage your PostgreSQL instance with built-in scripts:
+
+- `npm run db:clean`: Truncates all tables (preserves schema)
+- `npm run db:reset`: Drops and recreates all tables (schema reset)
+- `npm run db:reset:seed`: Reset schema and create default owner account
+- `npm run db:seed-owner`: Add initial owner account to existing DB
+
+**Default Owner:** `owner@washingmachine.com` / `Owner@123`
 
 ## API Endpoints
 
-All endpoints (except public service GET) require JWT authentication via `Authorization: Bearer <token>` header or `jwt` cookie.
+### 🔐 Authentication
 
-### Authentication Routes
+- `POST /api/authcustomer/signup`: Customer registration
+- `POST /api/authcustomer/signin`: Customer login
+- `POST /api/authemployee/signin`: Employee/Admin login
 
-#### Customer Authentication
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/authcustomer/signup` | Customer registration | ❌ |
-| POST | `/api/authcustomer/signin` | Customer login | ❌ |
-| POST | `/api/authcustomer/signout` | Customer logout | ✅ |
+### 🚗 Core Modules
 
-#### Employee Authentication
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| POST | `/api/authemployee/signup` | Employee registration | ✅ | Owner |
-| POST | `/api/authemployee/signin` | Employee login | ❌ | - |
-| POST | `/api/authemployee/signout` | Employee logout | ✅ | Employee |
+- **Vehicles:** `GET`, `POST`, `PUT`, `DELETE` on `/api/vehicle`
+- **Bookings:** `GET`, `POST`, `PUT`, `DELETE` on `/api/booking`
+- **Services:** `GET`, `POST`, `PUT`, `DELETE` on `/api/service`
+- **Payments:** `GET`, `POST`, `PUT`, `DELETE` on `/api/payment`
+- **Feedback:** `GET`, `POST` on `/api/feedback`
 
-### Customer Management (Protected - Employees Only)
+---
 
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/customer` | Get all customers | ✅ | Employee |
-| GET | `/api/customer/:cusid` | Get single customer | ✅ | Employee |
-| PUT | `/api/customer/:cusid` | Update customer profile | ✅ | Employee |
-| DELETE | `/api/customer/:cusid` | Delete customer | ✅ | Employee |
-
-### Employee Management (Protected - Employees Only)
-
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/employee` | Get all employees | ✅ | Owner |
-| GET | `/api/employee/:empid` | Get single employee | ✅ | Employee |
-| PUT | `/api/employee/:empid` | Update employee profile | ✅ | Employee |
-| DELETE | `/api/employee/:empid` | Delete employee | ✅ | Owner |
-
-### Vehicle Management
-
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/vehicle` | Get vehicles (customers see their own; managers/owners see all) | ✅ | Customer/Manager/Owner |
-| GET | `/api/vehicle/:vehid` | Get vehicle by ID (customers can only see their own vehicle; employees/managers/owners can see any) | ✅ | All authenticated |
-| POST | `/api/vehicle` | Create new vehicle | ✅ | Customer |
-| PUT | `/api/vehicle/:vehid` | Update vehicle mileage only | ✅ | Employee |
-| DELETE | `/api/vehicle/:vehid` | Delete vehicle (owner customer) | ✅ | Customer |
-
-### Booking Management (Protected - Customers & Employees)
-
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/booking` | Employees see all bookings; customers see their own | ✅ | Customer/Employee |
-| GET | `/api/booking/:id` | Employees can view any; customers only their own booking | ✅ | Customer/Employee |
-| POST | `/api/booking` | Create booking | ✅ | Customer/Employee |
-| PUT | `/api/booking/:id` | Employees can update any; customers only their own booking | ✅ | Customer/Employee |
-| DELETE | `/api/booking/:id` | Employees can delete any; customers only their own booking | ✅ | Customer/Employee |
-
-### Service Management
-
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/service` | Get all services | ❌ | - |
-| GET | `/api/service/:serviceid` | Get single service | ❌ | - |
-| POST | `/api/service` | Create service | ✅ | Manager/Owner |
-| PUT | `/api/service/:serviceid` | Update service | ✅ | Manager/Owner |
-| DELETE | `/api/service/:serviceid` | Delete service | ✅ | Manager/Owner |
-
-### Payment Management
-
-| Method | Endpoint | Description | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/payment` | Get all payments | ✅ | Manager/Owner |
-| GET | `/api/payment/my` | Get my payments | ✅ | Customer |
-| GET | `/api/payment/:paymentid` | Get single payment (customers own only; managers/owners any) | ✅ | Customer/Manager/Owner |
-| POST | `/api/payment` | Create payment | ✅ | Manager/Owner |
-| PUT | `/api/payment/:paymentid` | Update payment | ✅ | Manager/Owner |
-| DELETE | `/api/payment/:paymentid` | Delete payment | ✅ | Manager/Owner |
-
-## Authentication & Authorization
-
-### Role-Based Access Control (RBAC)
-
-The system implements a 4-tier role-based access control:
-
-1. **Customer** - Can manage their own vehicles and bookings
-2. **Employee** (normal) - Can view employee/customer data and manage bookings
-3. **Manager** - Can create/update/delete services and payments, plus all employee permissions
-4. **Owner** - Full system access including creating/deleting employees, plus all manager permissions
-
-**Role Hierarchy:**
-```
-Owner (highest privilege)
-  ↓
-Manager
-  ↓
-Employee
-  ↓
-Customer (lowest privilege)
-```
-
-### Authentication Design
-
-- Authentication routes (`/authcustomer`, `/authemployee`) handle **identity management only**
-- CRUD operations on resources use **separate protected routes**
-- Tokens are issued as HTTP-only cookies and via response body
-
-### JWT Payload
-
-**Customer Token:**
-```json
-{
-  "id": 1,
-  "role": "customer"
-}
-```
-
-**Employee Token (includes emptype):**
-```json
-{
-  "id": 1,
-  "role": "employee",
-  "emptype": "owner" // or "manager", "employee", etc.
-}
-```
-
-### Authorization Strategy
-
-**Middleware Stack:**
-- `authMiddleware`: Verifies JWT and attaches `req.user` (id, role)
-- `restrictTo(...roles)`: Checks user role against allowed roles
-- Service layer: Enforces ownership/business logic checks
-
-**Example Protected Route:**
-```javascript
-router.use(authMiddleware, restrictTo('employee'));
-router.get('/', getAllEmployees); // Only authenticated employees
-```
-
-## Security Measures
-
-- **Password Hashing:** bcryptjs with salt rounds (configurable)
-- **JWT Authentication:** Stateless token-based auth with HTTP-only cookies
-- **HTTP-Only Cookies:** Tokens stored securely (XSS protection)
-- **CORS:** Cross-origin resource sharing with configurable allowed origins
-- **Security Headers:** Helmet.js for CSP, HSTS, frameguard, and more
-- **Rate Limiting:** DDoS protection with:
-  - General endpoints: 100 requests/15 min
-  - Authentication endpoints: 5 attempts/15 min (stricter)
-  - Disabled in development for easier testing
-- **Response Compression:** gzip compression for optimized bandwidth usage
-- **Role-Based Access Control (RBAC):** Granular permission enforcement
-- **SQL Injection Prevention:** Parameterized queries throughout
-- **Centralized Error Handling:** Consistent error response format
-- **Database Validation:** Constraints, indexes, foreign keys
-
-## Request/Response Format
-
-### Success Response
-```json
-{
-  "success": true,
-  "message": "Operation completed",
-  "data": {}
-}
-```
-
-### Error Response
-```json
-{
-  "success": false,
-  "message": "Resource not found",
-  "errors": [
-    {
-      "field": "email",
-      "message": "This field is required"
-    }
-  ],
-  "debug": {
-    "error": "Internal stack/message (non-production only)",
-    "stack": "..."
-  }
-}
-```
-
-- Errors thrown from services/controllers use typed errors (`AppError`, `ValidationError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError`), which the error middleware maps to appropriate HTTP status codes and the envelope above.
-
-## Example Usage
-
-### Create Payment
-
-**Request:**
-```bash
-curl -X POST http://localhost:5000/api/payment \
-  -H "Authorization: Bearer <jwt_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "paymentdate": "2026-12-25",
-    "paymenttype": "cash",
-    "paymentamount": 12000.00,
-    "bookingid": 1
-  }'
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Payment created successfully",
-  "payment": {
-    "paymentid": 1,
-    "paymentdate": "2026-12-25",
-    "paymenttype": "cash",
-    "paymentamount": 12000.00,
-    "bookingid": 1,
-    "created_at": "2025-12-25T14:30:00Z",
-    "updated_at": "2025-12-25T14:30:00Z"
-  }
-}
-```
-
-### Update Customer Profile
-
-**Request:**
-```bash
-curl -X PUT http://localhost:5000/api/customer/1 \
-  -H "Authorization: Bearer <jwt_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "cusname": "John Updated",
-    "custel": "0712345678"
-  }'
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Customer updated successfully",
-  "customer": {
-    "cusid": 1,
-    "cusname": "John Updated",
-    "cusemail": "john@example.com",
-    "custel": "0712345678",
-    "created_at": "2025-12-20T10:00:00Z",
-    "updated_at": "2025-12-25T14:30:00Z"
-  }
-}
-```
-
-## Development Notes
-
-- **Partial updates supported:** Send only the fields you want to update
-- **Database transactions:** Used for multi-table operations (bookings, payments)
-- **Service layer validation:** All business logic centralized
-- **Dynamic query building:** Updates only modify provided fields (prevents accidental overwrites)
+**Last Updated:** January 28, 2026
+**Version:** 1.2.1
+**Status:** Feature Complete & Tested

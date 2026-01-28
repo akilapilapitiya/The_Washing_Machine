@@ -12,6 +12,12 @@ import {
   AlertCircle,
   History,
   Car,
+  ListChecks,
+  Database,
+  ShieldAlert,
+  MessageSquare,
+  ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,7 +81,8 @@ const QuickAction = ({ title, description, to, icon: Icon, primary }) => (
 );
 
 const DashboardPage = () => {
-  const { user, isCustomer, isEmployee } = useAuth();
+  const { user, isCustomer, isEmployee, emptype, isOwner, isCashier } =
+    useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     bookings: [],
@@ -87,10 +94,17 @@ const DashboardPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        // Only fetch payments for customers, owners, and cashiers
+        const shouldFetchPayments = isCustomer || isOwner || isCashier;
+
         const [bookingsRes, vehiclesRes, paymentsRes] = await Promise.all([
           getBookings(),
           isCustomer ? getVehicles() : Promise.resolve([]),
-          isCustomer ? getMyPayments() : getAllPayments(),
+          shouldFetchPayments
+            ? isCustomer
+              ? getMyPayments()
+              : getAllPayments()
+            : Promise.resolve([]),
         ]);
 
         setData({
@@ -106,26 +120,28 @@ const DashboardPage = () => {
     };
 
     fetchData();
-  }, [isCustomer]);
+  }, [isCustomer, isOwner, isCashier]);
 
   // Derived metrics
   const totalBookings = data.bookings.length;
   const totalVehicles = data.vehicles.length;
   const totalAmount = data.payments.reduce(
-    (sum, p) => sum + (p.paymentamount || 0),
+    (sum, p) => sum + (parseFloat(p.paymentamount) || 0),
     0,
   );
 
   const upcomingBooking = data.bookings
-    .filter((b) => b.status === "confirmed" || b.status === "pending")
-    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+    .filter(
+      (b) => b.bookingstatus === "confirmed" || b.bookingstatus === "pending",
+    )
+    .sort((a, b) => new Date(a.bookingdate) - new Date(b.bookingdate))[0];
 
   const assignedJobs = data.bookings.filter(
-    (b) => b.status === "confirmed" || b.status === "in-progress",
+    (b) => b.bookingstatus === "confirmed" || b.bookingstatus === "inProgress",
   ).length;
 
   const completedJobs = data.bookings.filter(
-    (b) => b.status === "completed",
+    (b) => b.bookingstatus === "completed",
   ).length;
 
   const customerMetrics = [
@@ -138,11 +154,11 @@ const DashboardPage = () => {
     {
       title: "Upcoming",
       value: upcomingBooking
-        ? new Date(upcomingBooking.date).toLocaleDateString()
+        ? new Date(upcomingBooking.bookingdate).toLocaleDateString()
         : "None",
       icon: Clock,
       description: upcomingBooking
-        ? `Status: ${upcomingBooking.status}`
+        ? `Status: ${upcomingBooking.bookingstatus}`
         : "Book a service now",
     },
     {
@@ -153,6 +169,7 @@ const DashboardPage = () => {
     },
   ];
 
+  // Employee metrics - only show revenue for owner/cashier
   const employeeMetrics = [
     {
       title: "Active Jobs",
@@ -166,16 +183,21 @@ const DashboardPage = () => {
       icon: CheckCircle2,
       description: "This month's summary",
     },
-    {
-      title: "Revenue Logged",
-      value: `Rs. ${totalAmount.toLocaleString()}`,
-      icon: CreditCard,
-      description: "Total through the platform",
-    },
+    ...(isOwner || isCashier
+      ? [
+          {
+            title: "Revenue Logged",
+            value: `Rs. ${totalAmount.toLocaleString()}`,
+            icon: CreditCard,
+            description: "Total through the platform",
+          },
+        ]
+      : []),
   ];
 
   const metrics = isCustomer ? customerMetrics : employeeMetrics;
 
+  // Quick actions based on user role
   const quickActions = isCustomer
     ? [
         {
@@ -208,38 +230,140 @@ const DashboardPage = () => {
         },
       ]
     : [
-        {
-          title: "Record Payment",
-          description: "Log a completed transaction for a customer.",
-          to: "/dashboard/employee/payments",
-          icon: Plus,
-          primary: true,
-        },
+        // Generic employees only see active services
         {
           title: "Active Services",
           description: "Manage jobs currently in progress.",
           to: "/dashboard/employee/assigned",
           icon: Wrench,
-          primary: false,
+          primary: true,
         },
-        {
-          title: "Manage Services",
-          description: "Update pricing and service availability.",
-          to: "/dashboard/admin/services",
-          icon: Settings,
-          primary: false,
-        },
-        {
-          title: "Customer Database",
-          description: "View and manage customer information.",
-          to: "/dashboard/admin/customers",
-          icon: Users,
-          primary: false,
-        },
+        // Owner and cashier can record payments
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Record Payment",
+                description: "Log a completed transaction for a customer.",
+                to: "/dashboard/employee/payments",
+                icon: Plus,
+                primary: false,
+              },
+            ]
+          : []),
+        // Owner and cashier can Review Bookings
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Review Bookings",
+                description: "Approve or manage customer bookings.",
+                to: "/dashboard/admin/bookings",
+                icon: ListChecks,
+                primary: false,
+              },
+            ]
+          : []),
+        // Only owner can manage services
+        ...(isOwner
+          ? [
+              {
+                title: "Manage Services",
+                description: "Update pricing and service availability.",
+                to: "/dashboard/admin/services",
+                icon: Settings,
+                primary: false,
+              },
+              {
+                title: "Vehicle Catalog",
+                description: "Manage supported vehicle types and data.",
+                to: "/dashboard/admin/vehicle-catalog",
+                icon: Database,
+                primary: false,
+              },
+            ]
+          : []),
+        // Owner and cashier can access customer database
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Customer Database",
+                description: "View and manage customer information.",
+                to: "/dashboard/admin/customers",
+                icon: Users,
+                primary: false,
+              },
+            ]
+          : []),
+        // Incidents - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Incidents",
+                description: "Review and manage reported incidents.",
+                to: "/dashboard/admin/incidents",
+                icon: ShieldAlert,
+                primary: false,
+              },
+            ]
+          : []),
+        // Feedback - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Feedback",
+                description: "View customer feedback and ratings.",
+                to: "/dashboard/admin/feedback",
+                icon: MessageSquare,
+                primary: false,
+              },
+            ]
+          : []),
+        // Employees - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Employees",
+                description: "Manage staff, roles and permissions.",
+                to: "/dashboard/admin/employees",
+                icon: ShieldCheck,
+                primary: false,
+              },
+            ]
+          : []),
+        // Daily Income - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Daily Income",
+                description: "View daily revenue reports.",
+                to: "/dashboard/admin/reports/daily-income",
+                icon: BarChart3,
+                primary: false,
+              },
+              {
+                title: "Employee Report",
+                description: "View staff performance and revenue.",
+                to: "/dashboard/admin/reports/employee-performance",
+                icon: BarChart3,
+                primary: false,
+              },
+            ]
+          : []),
+        // Attendance - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Attendance",
+                description: "Track employee attendance records.",
+                to: "/dashboard/admin/attendance",
+                icon: Calendar,
+                primary: false,
+              },
+            ]
+          : []),
       ];
 
   const recentActivity = data.bookings
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => new Date(b.bookingdate) - new Date(a.bookingdate))
     .slice(0, 3);
 
   return (
@@ -275,8 +399,22 @@ const DashboardPage = () => {
 
       {/* Main Content Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Activity/Bookings */}
+        {/* Left Column: Quick Actions */}
         <div className="lg:col-span-2 space-y-6">
+          <div className="mb-2">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Quick Actions
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quickActions.map((action, index) => (
+              <QuickAction key={index} {...action} />
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Activity/Bookings */}
+        <div className="space-y-6">
           <Card className="border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Recent Bookings</CardTitle>
@@ -315,14 +453,14 @@ const DashboardPage = () => {
                     >
                       <div
                         className={`p-2 rounded ${
-                          activity.status === "completed"
+                          activity.bookingstatus === "completed"
                             ? "bg-green-50 text-green-600"
-                            : activity.status === "confirmed"
+                            : activity.bookingstatus === "confirmed"
                               ? "bg-blue-50 text-blue-600"
                               : "bg-yellow-50 text-yellow-600"
                         }`}
                       >
-                        {activity.status === "completed" ? (
+                        {activity.bookingstatus === "completed" ? (
                           <CheckCircle2 className="h-4 w-4" />
                         ) : (
                           <Calendar className="h-4 w-4" />
@@ -331,15 +469,15 @@ const DashboardPage = () => {
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <p className="text-sm font-medium capitalize">
-                            {activity.status} Service
+                            {activity.bookingstatus} Service
                           </p>
                           <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-                            {activity.startTime}
+                            {activity.bookingstarttime}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
                           Scheduled for{" "}
-                          {new Date(activity.date).toLocaleDateString()}
+                          {new Date(activity.bookingdate).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -353,37 +491,6 @@ const DashboardPage = () => {
                 )}
               </div>
             </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Quick Actions */}
-        <div className="space-y-6">
-          <div className="mb-2">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Quick Actions
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 text-left">
-            {quickActions.map((action, index) => (
-              <QuickAction key={index} {...action} />
-            ))}
-          </div>
-
-          <Card className="bg-gray-900 text-white border-none overflow-hidden relative">
-            <div className="p-6 relative z-10">
-              <h3 className="text-lg font-bold mb-2">Need Help?</h3>
-              <p className="text-xs text-gray-400 mb-4">
-                Our support team is available 24/7 for any urgent washing
-                matters.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full bg-transparent border-gray-700 hover:bg-gray-800 text-white text-xs"
-              >
-                Contact Support
-              </Button>
-            </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
           </Card>
         </div>
       </div>

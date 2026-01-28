@@ -14,6 +14,10 @@ export const createServiceService = async ({
   servicetime,
   serviceprice,
   servicedetails,
+  has_offer,
+  offer_price,
+  offer_description,
+  servicetype = "package",
 }) => {
   assertRequiredFields({ servicename, servicetime, serviceprice }, [
     "servicename",
@@ -24,11 +28,20 @@ export const createServiceService = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO service (servicename, servicetime, serviceprice, servicedetails)
-    VALUES ($1, $2, $3, $4)
-    RETURNING serviceid, servicename, servicetime, serviceprice, servicedetails
+    INSERT INTO service (servicename, servicetime, serviceprice, servicedetails, has_offer, offer_price, offer_description, servicetype)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *
     `,
-    [servicename, servicetime, serviceprice, servicedetails]
+    [
+      servicename,
+      servicetime,
+      serviceprice,
+      servicedetails,
+      has_offer || false,
+      offer_price || null,
+      offer_description || null,
+      servicetype,
+    ],
   );
 
   return result.rows[0];
@@ -40,10 +53,10 @@ export const createServiceService = async ({
 export const getAllServicesService = async () => {
   const result = await pool.query(
     `
-    SELECT serviceid, servicename, servicetime, serviceprice, servicedetails, created_at, updated_at
+    SELECT *
     FROM service
     ORDER BY created_at DESC
-    `
+    `,
   );
 
   return result.rows;
@@ -55,11 +68,11 @@ export const getAllServicesService = async () => {
 export const getServiceService = async (serviceid) => {
   const result = await pool.query(
     `
-    SELECT serviceid, servicename, servicetime, serviceprice, servicedetails, created_at, updated_at
+    SELECT *
     FROM service
     WHERE serviceid = $1
     `,
-    [serviceid]
+    [serviceid],
   );
 
   if (result.rowCount === 0) {
@@ -73,15 +86,29 @@ export const getServiceService = async (serviceid) => {
  * UPDATE SERVICE
  */
 export const updateServiceService = async (serviceid, updates) => {
-  const { servicename, servicetime, serviceprice, servicedetails } = updates;
+  const {
+    servicename,
+    servicetime,
+    serviceprice,
+    servicedetails,
+    has_offer,
+    offer_price,
+    offer_description,
+    servicetype,
+  } = updates;
 
   assertAtLeastOneField(updates, [
     "servicename",
     "servicetime",
     "serviceprice",
     "servicedetails",
+    "has_offer",
+    "offer_price",
+    "offer_description",
+    "servicetype",
   ]);
-  assertPositiveNumber(serviceprice, "serviceprice");
+
+  if (serviceprice) assertPositiveNumber(serviceprice, "serviceprice");
 
   const result = await pool.query(
     `
@@ -90,11 +117,25 @@ export const updateServiceService = async (serviceid, updates) => {
         servicetime = COALESCE($2, servicetime),
         serviceprice = COALESCE($3, serviceprice),
         servicedetails = COALESCE($4, servicedetails),
+        has_offer = COALESCE($5, has_offer),
+        offer_price = COALESCE($6, offer_price),
+        offer_description = COALESCE($7, offer_description),
+        servicetype = COALESCE($8, servicetype),
         updated_at = NOW()
-    WHERE serviceid = $5
-    RETURNING serviceid, servicename, servicetime, serviceprice, servicedetails
+    WHERE serviceid = $9
+    RETURNING *
     `,
-    [servicename, servicetime, serviceprice, servicedetails, serviceid]
+    [
+      servicename,
+      servicetime,
+      serviceprice,
+      servicedetails,
+      has_offer,
+      offer_price,
+      offer_description,
+      servicetype,
+      serviceid,
+    ],
   );
 
   if (result.rowCount === 0) {

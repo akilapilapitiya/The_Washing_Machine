@@ -2,10 +2,14 @@ import request from "supertest";
 import { jest } from "@jest/globals";
 
 // 1. Mock Modules before importing app
-jest.unstable_mockModule(
-  "../../services/payment.service.js",
-  () => import("../../services/__mocks__/payment.service.js"),
-);
+jest.unstable_mockModule("../../services/payment.service.js", () => ({
+  createPaymentService: jest.fn(),
+  getAllPaymentsService: jest.fn(),
+  getCustomerPaymentsService: jest.fn(),
+  getPaymentService: jest.fn(),
+  updatePaymentService: jest.fn(),
+  deletePaymentService: jest.fn(),
+}));
 
 // Mock Middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
@@ -45,6 +49,7 @@ jest.unstable_mockModule("../../configs/env.js", () => ({
   RATE_LIMIT_WINDOW_MS: 900000,
   RATE_LIMIT_MAX_REQUESTS: 100,
   RATE_LIMIT_AUTH_MAX: 5,
+  OTP_EXPIRES_IN_MINUTES: 10,
 }));
 
 // Import the service after mocking

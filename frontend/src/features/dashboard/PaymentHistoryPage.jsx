@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Calendar,
   CreditCard,
@@ -7,10 +8,11 @@ import {
   CheckCircle,
   DollarSign,
   Loader2,
-  AlertCircle,
   Hash,
+  Download,
 } from "lucide-react";
 import { getMyPayments } from "@/services/payment.service";
+import { printReceipt } from "@/utils/receipt";
 import { COLORS } from "@/lib/colors";
 
 const PaymentHistoryCard = ({ payment }) => {
@@ -32,63 +34,73 @@ const PaymentHistoryCard = ({ payment }) => {
     : "General Service";
 
   return (
-    <Card className="hover:shadow-md transition-all border-gray-100">
-      <CardHeader className="pb-3">
+    <Card className="hover:shadow-md transition-all border-gray-200">
+      <CardHeader className="pb-3 pt-5 px-5">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg font-bold">{vehicleName}</CardTitle>
-            <p className={`text-sm ${COLORS.text.secondary}`}>
+            <CardTitle className="text-base font-bold text-gray-900">
+              {vehicleName}
+            </CardTitle>
+            <p className="text-sm text-gray-500 font-medium bg-gray-100 inline-block px-2 py-0.5 rounded mt-1">
               {payment.vehplate}
             </p>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100">
-            <CheckCircle size={12} />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
+            <CheckCircle size={10} />
             Paid
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 pb-4 border-b border-gray-50">
+      <CardContent className="space-y-4 px-5 pb-5">
+        <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-100">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-              Method
-            </span>
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <CreditCard size={14} className={COLORS.text.brand} />
+            <span className="text-xs font-medium text-gray-500">Method</span>
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <CreditCard size={14} className="text-gray-400" />
               <span className="capitalize">{payment.paymenttype}</span>
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-              Reference
-            </span>
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Hash size={14} className={COLORS.text.brand} />
-              <span>#{payment.paymentid}</span>
+            <span className="text-xs font-medium text-gray-500">Reference</span>
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <Hash size={14} className="text-gray-400" />
+              <span>{payment.paymentid}</span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-start gap-2 text-sm">
-            <Calendar size={16} className={`${COLORS.icon.brand} mt-0.5`} />
-            <span className="text-gray-700 font-medium">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar size={14} className="text-red-600" />
+            <span className="text-gray-600 font-medium">
               {formatDate(payment.paymentdate)}
             </span>
           </div>
           <div className="flex items-start gap-2 text-sm">
-            <FileText size={16} className={`${COLORS.icon.brand} mt-0.5`} />
-            <span className="text-gray-700 line-clamp-1">{servicesList}</span>
+            <FileText size={14} className="text-red-600 mt-0.5" />
+            <span className="text-gray-600 font-medium line-clamp-1">
+              {servicesList}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 bg-gray-50/50 -mx-6 px-6 -mb-6 py-4 rounded-b-lg">
-          <span className="text-sm font-semibold text-gray-500">
-            Amount Released
-          </span>
-          <span className={`text-lg font-bold ${COLORS.text.brand}`}>
-            Rs. {Number(payment.paymentamount).toLocaleString()}
-          </span>
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-medium text-gray-500">
+              Amount Paid
+            </span>
+            <span className="text-lg font-bold text-gray-900">
+              Rs. {Number(payment.paymentamount).toLocaleString()}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => printReceipt(payment)}
+            className="w-full h-9 text-xs font-medium border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <Download size={12} className="mr-2" />
+            Download Receipt
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -126,16 +138,12 @@ const PaymentHistoryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto px-4 py-12 space-y-10 max-w-7xl">
-        <div className="space-y-2">
-          <p
-            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
-          >
-            Financial Records
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
-          <p className="text-gray-500 max-w-2xl">
-            Access your complete transaction history, billing statements, and
-            proof of payments here.
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Payment History
+          </h1>
+          <p className="text-gray-500">
+            Access your complete transaction history and receipts.
           </p>
         </div>
 

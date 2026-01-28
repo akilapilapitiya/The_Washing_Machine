@@ -16,6 +16,11 @@ import ServiceCard from "@/components/ServiceCard";
 import { getServices } from "@/services/service.service";
 import { COLORS } from "@/lib/colors";
 
+import img1 from "../../assets/serviceAssets/image1.png";
+import img2 from "../../assets/serviceAssets/image2.png";
+import img3 from "../../assets/serviceAssets/image3.png";
+import img4 from "../../assets/serviceAssets/image4.png";
+
 const ServicesSection = ({ id }) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +111,22 @@ const ServicesSection = ({ id }) => {
           </p>
         </div>
 
+        {/* Visual Showcase Gallery */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {[img1, img2, img3, img4].map((img, index) => (
+            <div
+              key={index}
+              className="relative group overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+            >
+              <img
+                src={img}
+                alt={`Premium Service ${index + 1}`}
+                className="w-full h-auto block"
+              />
+            </div>
+          ))}
+        </div>
+
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center py-20">
@@ -127,10 +148,33 @@ const ServicesSection = ({ id }) => {
         {/* Services Grid */}
         {!loading && !error && services.length > 0 && (
           <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {services.map((service) => (
-                <ServiceCard key={service.serviceid} service={service} />
-              ))}
+            <div className="space-y-16 mb-12">
+              {["package", "addon"].map((type) => {
+                const typeServices = services.filter(
+                  (s) => (s.servicetype || "package") === type,
+                );
+                if (typeServices.length === 0) return null;
+
+                return (
+                  <div key={type} className="space-y-8">
+                    <h3
+                      className={`text-2xl font-bold text-gray-900 border-l-4 pl-4 ${type === "package" ? "border-red-600" : "border-blue-600"}`}
+                    >
+                      {type === "package"
+                        ? "Signature Packages"
+                        : "Optional Enhancements"}
+                    </h3>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {typeServices.map((service) => (
+                        <ServiceCard
+                          key={service.serviceid}
+                          service={service}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* CTA Section */}

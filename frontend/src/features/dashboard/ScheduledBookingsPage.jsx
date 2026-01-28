@@ -11,15 +11,21 @@ import {
   XCircle,
   Loader2,
   AlertCircle,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getBookings } from "@/services/booking.service";
+import {
+  getBookings,
+  updateBooking,
+  deleteBooking,
+} from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 
 const StatusBadge = ({ status }) => {
   const styles = {
     pending: "bg-amber-50 text-amber-700 border-amber-100",
-    inProgress: "bg-red-50 text-red-700 border-red-100",
+    inProgress: "bg-blue-50 text-blue-700 border-blue-100",
     completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
     paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
     cancelled: "bg-gray-50 text-gray-700 border-gray-100",
@@ -46,7 +52,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const BookingCard = ({ booking }) => {
+const BookingCard = ({ booking, onManage }) => {
   // Format services list
   const servicesList = booking.services
     ? booking.services.map((s) => s.serviceName).join(", ")
@@ -58,22 +64,17 @@ const BookingCard = ({ booking }) => {
     : `Vehicle ID: ${booking.vehid}`;
 
   const plate = booking.vehplate || "";
-  const location = "Main Branch - Pannipitiya"; // Fallback as location is just lat/long in DB
+  const location = "Main Branch - Pannipitiya";
   const employee = booking.assigned_employee || "Assigned on arrival";
 
-  // Calculate total price (using fallback RS 0 for now as pricing might not be in basic query)
-  const totalPrice = booking.services
-    ? booking.services.reduce(
-        (sum, s) => sum + (Number(s.servicePrice) || 0),
-        0,
-      )
-    : 0;
+  // Calculate total price
+  const totalPrice = booking.bookingtotalprice || 0; // Use totalprice from DB if available
 
   const formattedTotalPrice =
-    totalPrice > 0 ? `Rs. ${totalPrice.toLocaleString()}` : "---";
+    totalPrice > 0 ? `Rs. ${Number(totalPrice).toLocaleString()}` : "---";
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow relative">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -136,9 +137,11 @@ const BookingCard = ({ booking }) => {
           <Button
             variant="outline"
             size="sm"
-            className="border-gray-300 text-gray-700 hover:text-red-600 hover:border-red-600 transition-colors font-bold"
+            onClick={() => onManage(booking)}
+            className="border-gray-300 text-gray-700 hover:text-red-600 hover:border-red-600 transition-colors font-bold gap-2"
           >
-            View Details
+            <Edit2 size={14} />
+            Manage
           </Button>
         </div>
       </CardContent>
@@ -146,26 +149,202 @@ const BookingCard = ({ booking }) => {
   );
 };
 
+const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (booking) {
+      setDate(new Date(booking.bookingdate).toISOString().split("T")[0]);
+      setTime(booking.bookingstarttime);
+    }
+  }, [booking]);
+
+  if (!isOpen || !booking) return null;
+
+  const isPending = booking.bookingstatus === "pending";
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      await onUpdate(booking.bookingid, { date, startTime: time });
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to cancel this booking? This action cannot be undone.",
+      )
+    )
+      return;
+
+    setIsLoading(true);
+    try {
+      await onCancel(booking.bookingid);
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden scale-100">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Manage Booking</h3>
+            <p className="text-sm text-gray-500">
+              Service #{booking.bookingid}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <XCircle size={24} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Status Alert */}
+          {!isPending && (
+            <div className="bg-amber-50 text-amber-800 p-3 rounded-lg text-sm flex gap-2">
+              <AlertCircle size={16} className="mt-0.5" />
+              <p>
+                This booking is <strong>{booking.bookingstatus}</strong>. Only
+                pending bookings can be modified.
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Date</label>
+              <div className="relative">
+                <Calendar
+                  className="absolute left-3 top-2.5 text-gray-400"
+                  size={16}
+                />
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  disabled={!isPending || isLoading}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-50 disabled:text-gray-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Time</label>
+              <div className="relative">
+                <Clock
+                  className="absolute left-3 top-2.5 text-gray-400"
+                  size={16}
+                />
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  disabled={!isPending || isLoading}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-50 disabled:text-gray-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-3 justify-end">
+          {isPending && (
+            <Button
+              variant="destructive"
+              variantType="outline"
+              onClick={handleCancelBooking}
+              disabled={isLoading}
+              className="mr-auto text-red-600 border-red-200 hover:bg-red-50 gap-2"
+            >
+              <Trash2 size={16} />
+              Cancel Booking
+            </Button>
+          )}
+
+          <Button variant="ghost" onClick={onClose} disabled={isLoading}>
+            Close
+          </Button>
+
+          {isPending && (
+            <Button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700 text-white shadow-sm"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ScheduledBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        const data = await getBookings();
-        setBookings(data || []);
-      } catch (err) {
-        setError("Failed to load your bookings. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBookings();
   }, []);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const data = await getBookings();
+      setBookings(data || []);
+    } catch (err) {
+      setError("Failed to load your bookings. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async (id, updates) => {
+    try {
+      await updateBooking(id, updates);
+      fetchBookings();
+      alert("Booking updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update booking. Please try again.");
+    }
+  };
+
+  const handleCancel = async (id) => {
+    try {
+      await deleteBooking(id);
+      fetchBookings();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel booking. Please try again.");
+    }
+  };
 
   const upcomingBookings = bookings.filter(
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
@@ -213,7 +392,11 @@ const ScheduledBookingsPage = () => {
           {upcomingBookings.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {upcomingBookings.map((booking) => (
-                <BookingCard key={booking.bookingid} booking={booking} />
+                <BookingCard
+                  key={booking.bookingid}
+                  booking={booking}
+                  onManage={setSelectedBooking}
+                />
               ))}
             </div>
           ) : (
@@ -234,6 +417,14 @@ const ScheduledBookingsPage = () => {
           )}
         </div>
       </div>
+
+      <EditBookingModal
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        onUpdate={handleUpdate}
+        onCancel={handleCancel}
+      />
     </div>
   );
 };

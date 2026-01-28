@@ -2,7 +2,10 @@ import { COOKIE_AGE, NODE_ENV } from "../configs/env.js";
 import {
   signUp,
   signIn,
-  resetPassword,
+  requestPasswordReset,
+  verifyOTPAndResetPassword,
+  getEmployeeById,
+  getAllRoles,
 } from "../services/employeeAuth.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -47,6 +50,8 @@ export const employeeSignIn = async (req, res, next) => {
       empname: employee.empname,
       email: employee.email,
       emptel: employee.emptel,
+      role: employee.role,
+      emptype: employee.emptype,
     };
 
     res.cookie("jwt", token, {
@@ -74,13 +79,53 @@ export const employeeSignOut = async (req, res, next) => {
   });
   successResponse(res, 200, "Employee signed out");
 };
-export const passwordReset = async (req, res, next) => {
-  try {
-    const { email, newPassword } = req.body;
 
-    const result = await resetPassword({ email, newPassword });
+export const requestEmployeePasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const result = await requestPasswordReset(email);
 
     successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetEmployeePassword = async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const result = await verifyOTPAndResetPassword({ email, otp, newPassword });
+
+    successResponse(res, 200, result.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const employeeGetMe = async (req, res, next) => {
+  try {
+    const employee = await getEmployeeById(req.user.id);
+
+    // Normalize properties for frontend
+    const data = {
+      ...employee,
+      role: employee.rolename,
+      emptype: employee.rolename,
+      isAdmin: employee.is_admin, // Definitve admin flag
+    };
+
+    successResponse(res, 200, "Employee retrieved successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const employeeGetAllRoles = async (req, res, next) => {
+  try {
+    const roles = await getAllRoles();
+    successResponse(res, 200, "Roles retrieved successfully", roles);
   } catch (error) {
     next(error);
   }
