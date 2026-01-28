@@ -4,12 +4,14 @@ import { jest } from "@jest/globals";
 // 1. Mock the Service Layer
 const mockSignUp = jest.fn();
 const mockSignIn = jest.fn();
-const mockResetPassword = jest.fn();
+const mockRequestPasswordReset = jest.fn();
+const mockVerifyOTPAndResetPassword = jest.fn();
 
 jest.unstable_mockModule("../../services/customerAuth.service.js", () => ({
   signUp: mockSignUp,
   signIn: mockSignIn,
-  resetPassword: mockResetPassword,
+  requestPasswordReset: mockRequestPasswordReset,
+  verifyOTPAndResetPassword: mockVerifyOTPAndResetPassword,
 }));
 
 // 2. Mock Database (accessed by app.js initialization or other middlewares)
@@ -33,6 +35,7 @@ jest.unstable_mockModule("../../configs/env.js", () => ({
   RATE_LIMIT_WINDOW_MS: 900000,
   RATE_LIMIT_MAX_REQUESTS: 100,
   RATE_LIMIT_AUTH_MAX: 5,
+  OTP_EXPIRES_IN_MINUTES: 10,
 }));
 
 // 3. Import App (after mocks)

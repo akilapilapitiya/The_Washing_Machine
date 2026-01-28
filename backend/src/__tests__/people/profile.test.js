@@ -65,6 +65,7 @@ jest.unstable_mockModule("../../configs/env.js", () => ({
   RATE_LIMIT_WINDOW_MS: 900000,
   RATE_LIMIT_MAX_REQUESTS: 100,
   RATE_LIMIT_AUTH_MAX: 5,
+  OTP_EXPIRES_IN_MINUTES: 10,
 }));
 
 // 5. Import App
