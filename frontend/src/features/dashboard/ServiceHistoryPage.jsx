@@ -44,9 +44,15 @@ const StatusBadge = ({ status }) => {
 };
 
 const HistoryCard = ({ booking }) => {
-  const servicesList = booking.services
-    ? booking.services.map((s) => s.serviceName).join(", ")
-    : "No services selected";
+  // Improved null checking for services with property name fallbacks
+  const servicesList =
+    booking.services &&
+    Array.isArray(booking.services) &&
+    booking.services.length > 0
+      ? booking.services
+          .map((s) => s.servicename || s.serviceName || "Unknown Service")
+          .join(", ")
+      : "Services not available";
 
   const vehicleName = booking.vehbrand
     ? `${booking.vehbrand} ${booking.vehmodel}`
@@ -56,12 +62,8 @@ const HistoryCard = ({ booking }) => {
   const location = "Main Branch - Pannipitiya";
   const employee = booking.assigned_employee || "Service Team";
 
-  const totalPrice = booking.services
-    ? booking.services.reduce(
-        (sum, s) => sum + (Number(s.servicePrice) || 0),
-        0,
-      )
-    : 0;
+  // Use totalprice from booking (already calculated at booking time)
+  const totalPrice = Number(booking.totalprice) || 0;
 
   const formattedTotalPrice =
     totalPrice > 0 ? `Rs. ${totalPrice.toLocaleString()}` : "---";
@@ -139,6 +141,15 @@ const ServiceHistoryPage = () => {
       try {
         setLoading(true);
         const data = await getBookings();
+
+        // Debug logging to verify data structure
+        console.log("Service History - Bookings data:", data);
+        if (data && data.length > 0) {
+          console.log("First booking structure:", data[0]);
+          console.log("First booking services:", data[0].services);
+          console.log("First booking totalprice:", data[0].totalprice);
+        }
+
         setBookings(data || []);
       } catch (err) {
         setError("Failed to load your service history. Please try again.");
