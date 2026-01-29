@@ -27,6 +27,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
+import { toast } from "sonner";
 
 const ServiceDetailsPage = () => {
   const { id } = useParams();
@@ -105,8 +106,9 @@ const ServiceDetailsPage = () => {
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
       console.error("Failed to report incident:", err);
-      // Don't show global error, maybe alert?
-      alert("Failed to create report. Please try again.");
+      toast.error("Failed to create report", {
+        description: "Please try again later",
+      });
     } finally {
       setReporting(false);
     }

@@ -15,6 +15,7 @@ import {
 import { getBookings } from "@/services/booking.service";
 import { getAllPayments, createPayment } from "@/services/payment.service";
 import { printReceipt } from "@/utils/receipt";
+import { toast } from "sonner";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -247,7 +248,9 @@ const PaymentManagementPage = () => {
       await fetchData();
     } catch (err) {
       console.error("Error recording payment:", err);
-      alert("Failed to record payment. Please try again.");
+      toast.error("Failed to record payment", {
+        description: "Please try again later",
+      });
     } finally {
       setSubmitting(false);
     }

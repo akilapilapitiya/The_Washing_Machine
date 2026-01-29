@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
+import { toast } from "sonner";
 
 const EmployeeIncidentPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -78,7 +79,10 @@ const EmployeeIncidentPage = () => {
       setDescription("");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert("Failed to report incident");
+      console.error(err);
+      toast.error("Failed to report incident", {
+        description: "Please try again later",
+      });
     } finally {
       setSubmitting(false);
     }

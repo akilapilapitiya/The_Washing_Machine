@@ -15,6 +15,7 @@ import {
   Edit,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const ProfilePage = () => {
   const { user, updateUser, userType } = useAuth();
@@ -40,7 +41,7 @@ const ProfilePage = () => {
     e.preventDefault();
     // Validate mobile number format (basic validation)
     if (formData.mobile && !formData.mobile.match(/^[+]?[\d\s()-]+$/)) {
-      alert("Please enter a valid mobile number");
+      toast.error("Please enter a valid mobile number");
       return;
     }
     // Update user profile in context (and localStorage)

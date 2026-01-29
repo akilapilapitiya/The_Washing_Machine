@@ -21,6 +21,7 @@ import {
   deleteBooking,
 } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
+import { toast } from "sonner";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -329,10 +330,12 @@ const ScheduledBookingsPage = () => {
     try {
       await updateBooking(id, updates);
       fetchBookings();
-      alert("Booking updated successfully!");
+      toast.success("Booking updated successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to update booking. Please try again.");
+      toast.error("Failed to update booking", {
+        description: "Please try again later",
+      });
     }
   };
 
@@ -340,9 +343,12 @@ const ScheduledBookingsPage = () => {
     try {
       await deleteBooking(id);
       fetchBookings();
+      toast.success("Booking cancelled successfully");
     } catch (err) {
       console.error(err);
-      alert("Failed to cancel booking. Please try again.");
+      toast.error("Failed to cancel booking", {
+        description: "Please try again later",
+      });
     }
   };
 
