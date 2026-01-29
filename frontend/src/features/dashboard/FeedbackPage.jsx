@@ -24,6 +24,7 @@ import {
 import { getBookings } from "@/services/booking.service";
 import { submitFeedback, getMyFeedbacks } from "@/services/feedback.service";
 import { COLORS } from "@/lib/colors";
+import { formatDateShortSL } from "@/lib/dateFormat";
 
 const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
@@ -95,12 +96,7 @@ const FeedbackPage = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShortSL(dateString);
   };
 
   const renderStars = (count, size = 16) => {

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
+import { formatDateShortSL } from "@/lib/dateFormat";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -40,13 +41,7 @@ const StatusBadge = ({ status }) => {
 const ServiceCard = ({ service }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateShortSL(dateString);
   };
 
   return (
