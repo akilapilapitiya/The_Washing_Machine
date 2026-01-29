@@ -22,6 +22,7 @@ import {
 } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
+import { formatDateShortSL } from "@/lib/dateFormat";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -114,11 +115,7 @@ const BookingCard = ({ booking, onManage }) => {
               className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
             />
             <span className={COLORS.text.primary}>
-              {new Date(booking.bookingdate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatDateShortSL(booking.bookingdate)}
             </span>
           </div>
           <div className="flex items-start gap-2 text-sm">

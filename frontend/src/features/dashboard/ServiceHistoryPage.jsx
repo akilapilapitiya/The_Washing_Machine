@@ -16,6 +16,7 @@ import {
 import { Link } from "react-router-dom";
 import { getBookings } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
+import { formatDateShortSL } from "@/lib/dateFormat";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -93,13 +94,7 @@ const HistoryCard = ({ booking }) => {
               size={16}
               className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
             />
-            <span>
-              {new Date(booking.bookingdate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
+            <span>{formatDateShortSL(booking.bookingdate)}</span>
           </div>
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <User
@@ -141,15 +136,6 @@ const ServiceHistoryPage = () => {
       try {
         setLoading(true);
         const data = await getBookings();
-
-        // Debug logging to verify data structure
-        console.log("Service History - Bookings data:", data);
-        if (data && data.length > 0) {
-          console.log("First booking structure:", data[0]);
-          console.log("First booking services:", data[0].services);
-          console.log("First booking totalprice:", data[0].totalprice);
-        }
-
         setBookings(data || []);
       } catch (err) {
         setError("Failed to load your service history. Please try again.");
