@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import * as catalogService from "@/services/vehicleCatalog.service";
+import { toast } from "sonner";
 
 const ManageVehicleCatalogPage = () => {
   const [catalog, setCatalog] = useState([]);
@@ -46,10 +47,11 @@ const ManageVehicleCatalogPage = () => {
       setLoading(true);
       const output = await catalogService.getCatalog();
       setCatalog(output.data || output || []);
-      setError(null);
     } catch (err) {
       console.error("Failed to fetch catalog:", err);
-      setError("Failed to load vehicle catalog.");
+      toast.error("Failed to load vehicle catalog", {
+        description: "Please refresh the page",
+      });
     } finally {
       setLoading(false);
     }
@@ -63,12 +65,16 @@ const ManageVehicleCatalogPage = () => {
       setSubmittingBrand(true);
       // Create with empty model to establish the brand
       await catalogService.addToCatalog({ brand: newBrandName, model: "" });
-      setSuccess(`Brand "${newBrandName}" added.`);
+
+      toast.success(`Brand "${newBrandName}" added to catalog`);
+
       setNewBrandName("");
       fetchCatalog();
-      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to add brand");
+      console.error(err);
+      toast.error("Failed to add brand", {
+        description: err.response?.data?.message || "Please try again",
+      });
     } finally {
       setSubmittingBrand(false);
     }
@@ -84,12 +90,18 @@ const ManageVehicleCatalogPage = () => {
         brand: selectedBrand,
         model: newModelName,
       });
-      setSuccess(`Model "${newModelName}" added to ${selectedBrand}.`);
+
+      toast.success(`Model "${newModelName}" added`, {
+        description: `Added to ${selectedBrand} lineup`,
+      });
+
       setNewModelName("");
       fetchCatalog();
-      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to add model");
+      console.error(err);
+      toast.error("Failed to add model", {
+        description: err.response?.data?.message || "Please try again",
+      });
     } finally {
       setSubmittingModel(false);
     }
@@ -99,9 +111,13 @@ const ManageVehicleCatalogPage = () => {
     if (!window.confirm("Are you sure you want to remove this model?")) return;
     try {
       await catalogService.removeFromCatalog(id);
+      toast.success("Model removed from catalog");
       fetchCatalog();
     } catch (err) {
-      setError("Failed to delete item");
+      console.error(err);
+      toast.error("Failed to delete model", {
+        description: "Please try again",
+      });
     }
   };
 
@@ -146,20 +162,6 @@ const ManageVehicleCatalogPage = () => {
             </div>
           </div>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">{success}</p>
-          </div>
-        )}
 
         {/* Action Blocks (The 2 Blocks) */}
         <div className="grid md:grid-cols-2 gap-6">
