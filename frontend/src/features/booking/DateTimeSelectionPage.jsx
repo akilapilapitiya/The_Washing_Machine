@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { Calendar, Clock Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as schedulerService from "@/services/scheduler.service";
 
+import { toast } from "sonner";
 // Generate time slots between 9 AM and 4 PM
 const generateTimeSlots = () => {
   const slots = [];
@@ -34,7 +35,6 @@ const DateTimeSelectionPage = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [blockedDates, setBlockedDates] = useState([]);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
-  const [error, setError] = useState(null);
 
   const { vehicleId, serviceIds, locationId, coords, employeeId } =
     location.state || {};
@@ -69,13 +69,13 @@ const DateTimeSelectionPage = () => {
   useEffect(() => {
     if (selectedDate) {
       if (blockedDates.includes(selectedDate)) {
-        setError(
+        toast.error(
           "This operative is offline on the selected date. Please choose another date.",
         );
         setAvailableSlots([]);
         return;
       }
-      setError(null);
+      toast.error(null);
       fetchDaySchedule();
     }
   }, [selectedDate, blockedDates]);
@@ -118,7 +118,7 @@ const DateTimeSelectionPage = () => {
       setAvailableSlots(filtered.map((s) => s.value));
     } catch (err) {
       console.error("Schedule fetch failed:", err.message);
-      setError("Strategic error. Could not retrieve real-time availability.");
+      toast.error("Strategic error. Could not retrieve real-time availability.");
     } finally {
       setLoadingAvailability(false);
     }
@@ -139,9 +139,7 @@ const DateTimeSelectionPage = () => {
         coords,
         employeeId,
         date: selectedDate,
-        time: selectedTime,
-      },
-    });
+        time: selectedTime}});
   };
 
   const isSlotAvailable = (slotValue) => {
@@ -193,13 +191,8 @@ const DateTimeSelectionPage = () => {
                     )}
                   />
                 </div>
-                {error && (
-                  <div className="flex items-center gap-2 text-red-600 mt-2 bg-red-50 p-3 rounded-lg border border-red-100">
-                    <AlertCircle size={16} />
-                    <p className="text-sm font-medium">{error}</p>
-                  </div>
-                )}
-              </div>
+
+</div>
             </CardContent>
           </Card>
 
@@ -248,7 +241,7 @@ const DateTimeSelectionPage = () => {
                 </div>
                 {!loadingAvailability && availableSlots.length === 0 && (
                   <div className="flex items-center gap-2 text-red-600 mt-6 bg-red-50 p-4 rounded-lg border border-red-100">
-                    <AlertCircle size={16} />
+                    < size={16} />
                     <p className="text-sm font-medium">
                       No matching slots available for this operative on the
                       selected date.

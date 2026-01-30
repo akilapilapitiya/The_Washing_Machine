@@ -10,7 +10,6 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle,
   Edit2,
   Trash2,
 } from "lucide-react";
@@ -304,7 +303,6 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
 const ScheduledBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
@@ -317,7 +315,7 @@ const ScheduledBookingsPage = () => {
       const data = await getBookings();
       setBookings(data || []);
     } catch (err) {
-      setError("Failed to load your bookings. Please try again.");
+      toast.error("Failed to load your bookings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -377,13 +375,6 @@ const ScheduledBookingsPage = () => {
             </Button>
           </Link>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p>{error}</p>
-          </div>
-        )}
 
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">

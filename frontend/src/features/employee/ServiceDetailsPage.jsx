@@ -12,8 +12,7 @@ import {
   User,
   Phone,
   CheckCircle,
-  ArrowLeft,
-  AlertCircle,
+  ArrowLeft
   Loader2,
   Mail,
   Smartphone,
@@ -35,12 +34,10 @@ const ServiceDetailsPage = () => {
 
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
 
   const [currentMileage, setCurrentMileage] = useState("");
   const [nextServiceMileage, setNextServiceMileage] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
   // Incident Reporting State
@@ -56,7 +53,7 @@ const ServiceDetailsPage = () => {
   const fetchServiceDetails = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await bookingService.getBookingById(id);
       if (data) {
         setService(data);
@@ -64,7 +61,7 @@ const ServiceDetailsPage = () => {
       }
     } catch (err) {
       console.error("Failed to fetch service details:", err);
-      setError("Operation failed. Could not retrieve service details.");
+      toast.error("Operation failed. Could not retrieve service details.");
     } finally {
       setLoading(false);
     }
@@ -76,11 +73,9 @@ const ServiceDetailsPage = () => {
       await bookingService.updateBookingStatus(id, newStatus);
       setService((prev) => ({ ...prev, bookingstatus: newStatus }));
       setSuccessMessage(`Service status updated to ${newStatus}`);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
+      toast.success("Operation completed successfully");    } catch (err) {
       console.error("Failed to update status:", err);
-      setError("Failed to update status. Please try again.");
+      toast.error("Failed to update status. Please try again.");
     } finally {
       setUpdating(false);
     }
@@ -102,9 +97,7 @@ const ServiceDetailsPage = () => {
       setReportDesc("");
       setReportSeverity("medium");
       setSuccessMessage("Incident reported successfully.");
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
+      toast.success("Operation completed successfully");    } catch (err) {
       console.error("Failed to report incident:", err);
       toast.error("Failed to create report", {
         description: "Please try again later",
@@ -136,7 +129,7 @@ const ServiceDetailsPage = () => {
   if (error || !service) {
     return (
       <div className="flex h-screen flex-col items-center justify-center space-y-4 bg-gray-50">
-        <AlertCircle className="h-12 w-12 text-red-600" />
+        < className="h-12 w-12 text-red-600" />
         <h2 className="text-xl font-bold text-gray-900">
           Service Data Unavailable
         </h2>

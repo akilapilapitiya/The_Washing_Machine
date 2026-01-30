@@ -5,16 +5,14 @@ import {
   Star,
   User,
   Calendar,
-  Loader2,
-  AlertCircle,
-  Briefcase,
-} from "lucide-react";
+  Loader2
+  Briefcase} from "lucide-react";
 import { getAllFeedbacks } from "@/services/feedback.service";
 
+import { toast } from "sonner";
 const ViewFeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -22,10 +20,10 @@ const ViewFeedbackPage = () => {
         setLoading(true);
         const data = await getAllFeedbacks();
         setFeedbacks(data);
-        setError(null);
+        toast.error(null);
       } catch (err) {
         console.error("Error fetching feedbacks:", err);
-        setError("Failed to load feedback records. Please try again.");
+        toast.error("Failed to load feedback records. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -75,14 +73,7 @@ const ViewFeedbackPage = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {feedbacks.length > 0 ? (
+{feedbacks.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {feedbacks.map((item) => (
               <Card

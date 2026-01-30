@@ -16,11 +16,11 @@ import {
   UserCog,
   Shield,
   Briefcase,
-  Loader2,
-  AlertCircle,
+  Loader2
 } from "lucide-react";
 import * as employeeService from "@/services/employee.service";
 
+import { toast } from "sonner";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -33,22 +33,18 @@ const levelColors = {
   cashier: {
     bg: "bg-purple-50",
     text: "text-purple-700",
-    border: "border-purple-200",
-  },
+    border: "border-purple-200"},
   employee: {
     bg: "bg-blue-50",
     text: "text-blue-700",
-    border: "border-blue-200",
-  },
-};
+    border: "border-blue-200"}};
 
 const getRoleBadgeInfo = (level, roles) => {
   const role = roles.find((r) => r.rolename === level);
   const colors = levelColors[level] || levelColors.employee;
   return {
     label: role ? role.rolename : level,
-    colors,
-  };
+    colors};
 };
 
 const LevelBadge = ({ level, roles }) => {
@@ -65,7 +61,6 @@ const LevelBadge = ({ level, roles }) => {
 const EmployeeManagementPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPromoteForm, setShowPromoteForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -75,10 +70,8 @@ const EmployeeManagementPage = () => {
     email: "",
     telephone: "",
     type: "employee",
-    nic: "",
-  });
+    nic: ""});
   const [roles, setRoles] = useState([]);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -101,12 +94,12 @@ const EmployeeManagementPage = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await employeeService.getEmployees();
       setEmployees(data);
     } catch (err) {
       console.error("Failed to fetch employees:", err);
-      setError("Failed to load employee directory.");
+      toast.error("Failed to load employee directory.");
     } finally {
       setLoading(false);
     }
@@ -118,17 +111,16 @@ const EmployeeManagementPage = () => {
     // NIC Validation (Sri Lankan Format: 9 digits + V/v or 12 digits)
     const nicRegex = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
     if (!nicRegex.test(newEmployee.nic)) {
-      setError("Invalid NIC format. Must be 9 digits + V or 12 digits.");
+      toast.error("Invalid NIC format. Must be 9 digits + V or 12 digits.");
       return;
     }
 
     try {
       setSubmitting(true);
-      setError(null);
+      toast.error(null);
       await employeeService.addEmployee({
         ...newEmployee,
-        password: "Employee@123",
-      });
+        password: "Employee@123"});
 
       await fetchEmployees();
       setNewEmployee({
@@ -136,15 +128,12 @@ const EmployeeManagementPage = () => {
         email: "",
         telephone: "",
         type: "employee",
-        nic: "",
-      });
+        nic: ""});
       setShowAddForm(false);
       setSuccessMessage("New employee registered successfully!");
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
+      toast.success("Operation completed successfully");    } catch (err) {
       console.error("Failed to register employee:", err);
-      setError(err.response?.data?.message || "Failed to register employee.");
+      toast.error(err.response?.data?.message || "Failed to register employee.");
     } finally {
       setSubmitting(false);
     }
@@ -159,21 +148,18 @@ const EmployeeManagementPage = () => {
 
     try {
       setSubmitting(true);
-      setError(null);
+      toast.error(null);
       await employeeService.updateEmployee(selectedEmployee.empid, {
-        type: newRole,
-      });
+        type: newRole});
 
       await fetchEmployees();
       setShowPromoteForm(false);
       setSelectedEmployee(null);
       setNewRole("");
       setSuccessMessage("Employee role updated successfully!");
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
+      toast.success("Operation completed successfully");    } catch (err) {
       console.error("Failed to update rank:", err);
-      setError("Failed to update employee role.");
+      toast.error("Failed to update employee role.");
     } finally {
       setSubmitting(false);
     }
@@ -189,11 +175,9 @@ const EmployeeManagementPage = () => {
         await employeeService.deleteEmployee(id);
         await fetchEmployees();
         setSuccessMessage("Employee removed.");
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
-      } catch (err) {
+        toast.success("Operation completed successfully");      } catch (err) {
         console.error("Failed to delete employee:", err);
-        setError("Failed to remove employee record.");
+        toast.error("Failed to remove employee record.");
       }
     }
   };
@@ -225,21 +209,7 @@ const EmployeeManagementPage = () => {
           </Button>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium text-sm">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 text-green-700">
-            <CheckCircle size={20} />
-            <p className="font-medium text-sm">{successMessage}</p>
-          </div>
-        )}
-
-        {/* Statistics */}
+{/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="shadow-sm border-gray-200">
             <CardContent className="pt-6">
@@ -489,8 +459,7 @@ const EmployeeManagementPage = () => {
                       onChange={(e) =>
                         setNewEmployee({
                           ...newEmployee,
-                          telephone: e.target.value,
-                        })
+                          telephone: e.target.value})
                       }
                       placeholder="0771234567"
                       className="h-10 focus:ring-red-600 border-gray-300"

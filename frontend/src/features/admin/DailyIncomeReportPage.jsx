@@ -9,15 +9,14 @@ import {
   Calendar,
   Loader2,
   TrendingUp,
-  DollarSign,
-  AlertCircle,
+  DollarSign
 } from "lucide-react";
 import * as reportService from "@/services/report.service";
 
+import { toast } from "sonner";
 const DailyIncomeReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Default to current month
   const today = new Date();
@@ -35,12 +34,12 @@ const DailyIncomeReportPage = () => {
   const fetchReport = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await reportService.getDailyIncomeReport(startDate, endDate);
       setReport(data || []);
     } catch (err) {
       console.error(err);
-      setError("Failed to load report data");
+      toast.error("Failed to load report data");
     } finally {
       setLoading(false);
     }
@@ -134,14 +133,7 @@ const DailyIncomeReportPage = () => {
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg flex items-center gap-2">
-            <AlertCircle size={20} />
-            {error}
-          </div>
-        )}
-
-        {/* Summary Cards */}
+{/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardContent className="pt-6">

@@ -3,13 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Check,
-  Loader2,
-  AlertCircle,
+  Loader2
   Clock,
   Tag,
   Box,
-  Layers,
-} from "lucide-react";
+  Layers} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
@@ -23,7 +21,6 @@ const ServiceSelectionPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const vehicleId = location.state?.vehicleId;
 
@@ -36,7 +33,7 @@ const ServiceSelectionPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
+        toast.error(null);
 
         const [servicesData, vehicleData] = await Promise.all([
           serviceService.getServices(),
@@ -47,7 +44,7 @@ const ServiceSelectionPage = () => {
         setSelectedVehicle(vehicleData);
       } catch (err) {
         console.error("Failed to fetch booking data:", err);
-        setError("Failed to load services. Please try again.");
+        toast.error("Failed to load services. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -90,8 +87,7 @@ const ServiceSelectionPage = () => {
 
   const handleContinue = () => {
     navigate("/dashboard/booking/location", {
-      state: { vehicleId, serviceIds: selectedServiceIds },
-    });
+      state: { vehicleId, serviceIds: selectedServiceIds }});
   };
 
   if (loading) {
@@ -195,20 +191,7 @@ const ServiceSelectionPage = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <div className="flex-1">
-              <p className="text-red-800 font-medium text-sm">Error</p>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Selected Vehicle Summary */}
+{/* Selected Vehicle Summary */}
         {selectedVehicle && (
           <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
             <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">

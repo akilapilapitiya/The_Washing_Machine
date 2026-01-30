@@ -15,6 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -116,7 +117,6 @@ const ServiceCard = ({ service }) => {
 const AssignedServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAssignedServices();
@@ -124,13 +124,11 @@ const AssignedServicesPage = () => {
 
   const fetchAssignedServices = async () => {
     try {
-      setLoading(true);
-      setError(null);
       const data = await bookingService.getBookings();
       setServices(data || []);
     } catch (err) {
       console.error("Failed to fetch assigned services:", err);
-      setError("Failed to synchronize task queue. Please re-authenticate.");
+      toast.error("Failed to synchronize task queue. Please re-authenticate.");
     } finally {
       setLoading(false);
     }
@@ -158,13 +156,6 @@ const AssignedServicesPage = () => {
             View and manage your assigned detailing missions.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">

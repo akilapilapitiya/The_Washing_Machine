@@ -15,6 +15,7 @@ import { getMyPayments } from "@/services/payment.service";
 import { printReceipt } from "@/utils/receipt";
 import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
 
 const PaymentHistoryCard = ({ payment }) => {
   const formatDate = (dateString) => {
@@ -106,7 +107,6 @@ const PaymentHistoryCard = ({ payment }) => {
 const PaymentHistoryPage = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -115,7 +115,7 @@ const PaymentHistoryPage = () => {
         const data = await getMyPayments();
         setPayments(data);
       } catch (err) {
-        setError("Could not load payment history. Please refresh.");
+        toast.error("Could not load payment history. Please refresh.");
       } finally {
         setLoading(false);
       }
@@ -142,13 +142,6 @@ const PaymentHistoryPage = () => {
             Access your complete transaction history and receipts.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium">{error}</p>
-          </div>
-        )}
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {payments.length > 0 ? (

@@ -10,19 +10,17 @@ import {
   X,
   CheckCircle,
   Banknote,
-  Clock,
-  AlertCircle,
+  Clock
   Loader2,
   Tag,
   Box,
-  Layers,
-} from "lucide-react";
+  Layers} from "lucide-react";
 import * as serviceService from "@/services/service.service";
 
+import { toast } from "sonner";
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -34,9 +32,7 @@ const ManageServicesPage = () => {
     has_offer: false,
     offer_price: "",
     offer_description: "",
-    servicetype: "package",
-  });
-  const [showSuccess, setShowSuccess] = useState(false);
+    servicetype: "package"});
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,11 +44,11 @@ const ManageServicesPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await serviceService.getServices();
       setServices(data);
     } catch (err) {
-      setError(err.message || "Failed to load services");
+      toast.error(err.message || "Failed to load services");
     } finally {
       setLoading(false);
     }
@@ -62,8 +58,7 @@ const ManageServicesPage = () => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+      [name]: type === "checkbox" ? checked : value}));
   };
 
   const handleDurationChange = (field, value) => {
@@ -95,8 +90,7 @@ const ManageServicesPage = () => {
       has_offer: false,
       offer_price: "",
       offer_description: "",
-      servicetype: "package",
-    });
+      servicetype: "package"});
   };
 
   const handleAddService = async (e) => {
@@ -115,17 +109,14 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
-        servicetype: formData.servicetype,
-      };
+        servicetype: formData.servicetype};
       await serviceService.createService(payload);
       resetForm();
       setShowAddForm(false);
       setSuccessMessage("Service added successfully!");
-      setShowSuccess(true);
-      await fetchServices();
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      setError(err.message || "Failed to add service");
+      toast.success("Operation completed successfully");
+      await fetchServices();    } catch (err) {
+      toast.error(err.message || "Failed to add service");
     } finally {
       setIsSubmitting(false);
     }
@@ -146,8 +137,7 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
-        servicetype: formData.servicetype,
-      };
+        servicetype: formData.servicetype};
       // Only include serviceprice if it's a valid number
       const price = parseFloat(formData.serviceprice);
       if (!isNaN(price) && formData.serviceprice !== "") {
@@ -158,11 +148,9 @@ const ManageServicesPage = () => {
       setShowEditForm(false);
       setSelectedService(null);
       setSuccessMessage("Service updated successfully!");
-      setShowSuccess(true);
-      await fetchServices();
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      setError(err.message || "Failed to update service");
+      toast.success("Operation completed successfully");
+      await fetchServices();    } catch (err) {
+      toast.error(err.message || "Failed to update service");
     } finally {
       setIsSubmitting(false);
     }
@@ -178,11 +166,9 @@ const ManageServicesPage = () => {
         setIsSubmitting(true);
         await serviceService.deleteService(serviceid);
         setSuccessMessage("Service deleted successfully!");
-        setShowSuccess(true);
-        await fetchServices();
-        setTimeout(() => setShowSuccess(false), 3000);
-      } catch (err) {
-        setError(err.message || "Failed to delete service");
+        toast.success("Operation completed successfully");
+        await fetchServices();      } catch (err) {
+        toast.error(err.message || "Failed to delete service");
       } finally {
         setIsSubmitting(false);
       }
@@ -205,8 +191,7 @@ const ManageServicesPage = () => {
       has_offer: service.has_offer || false,
       offer_price: service.offer_price ? service.offer_price.toString() : "",
       offer_description: service.offer_description || "",
-      servicetype: service.servicetype || "package",
-    });
+      servicetype: service.servicetype || "package"});
     setShowEditForm(true);
   };
 
@@ -236,23 +221,7 @@ const ManageServicesPage = () => {
           </Button>
         </div>
 
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium text-sm">
-              {successMessage}
-            </p>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium text-sm">{error}</p>
-          </div>
-        )}
-
-        {loading ? (
+{loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>

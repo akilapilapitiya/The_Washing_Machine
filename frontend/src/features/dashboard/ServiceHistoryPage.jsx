@@ -10,13 +10,13 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle,
   History,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getBookings } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -129,7 +129,6 @@ const HistoryCard = ({ booking }) => {
 const ServiceHistoryPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -138,7 +137,7 @@ const ServiceHistoryPage = () => {
         const data = await getBookings();
         setBookings(data || []);
       } catch (err) {
-        setError("Failed to load your service history. Please try again.");
+        toast.error("Failed to load your service history. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -173,13 +172,6 @@ const ServiceHistoryPage = () => {
             A record of all your past vehicle maintenance and detailing.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p>{error}</p>
-          </div>
-        )}
 
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">

@@ -8,10 +8,8 @@ import {
   DollarSign,
   CheckCircle,
   Plus,
-  Loader2,
-  AlertCircle,
-  Download,
-} from "lucide-react";
+  Loader2
+  Download} from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { getAllPayments, createPayment } from "@/services/payment.service";
 import { printReceipt } from "@/utils/receipt";
@@ -28,15 +26,13 @@ const StatusBadge = ({ status }) => {
     pending: "bg-amber-50 text-amber-700 border-amber-100",
     inProgress: "bg-blue-50 text-blue-700 border-blue-100",
     completed: "bg-purple-50 text-purple-700 border-purple-100",
-    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  };
+    paid: "bg-emerald-50 text-emerald-700 border-emerald-100"};
 
   const labels = {
     pending: "Pending",
     inProgress: "In Progress",
     completed: "Completed",
-    paid: "Paid",
-  };
+    paid: "Paid"};
 
   return (
     <span
@@ -92,8 +88,7 @@ const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
               {new Date(date).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
-                year: "numeric",
-              })}
+                year: "numeric"})}
             </p>
           </div>
         </div>
@@ -171,14 +166,11 @@ const PaymentManagementPage = () => {
   const [completedPayments, setCompletedPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [paymentData, setPaymentData] = useState({
     paymentamount: "",
     paymenttype: "",
-    paymentdate: new Date().toISOString().split("T")[0],
-  });
-  const [showSuccess, setShowSuccess] = useState(false);
+    paymentdate: new Date().toISOString().split("T")[0]});
 
   const fetchData = async () => {
     try {
@@ -195,10 +187,10 @@ const PaymentManagementPage = () => {
       );
       setPendingBookings(pending);
       setCompletedPayments(paymentsData);
-      setError(null);
+      toast.error(null);
     } catch (err) {
       console.error("Error fetching payment data:", err);
-      setError(
+      toast.error(
         "Failed to load payment information. Please check your connection.",
       );
     } finally {
@@ -215,8 +207,7 @@ const PaymentManagementPage = () => {
     setPaymentData({
       paymentamount: booking.totalprice || booking.total_price || "",
       paymenttype: "cash",
-      paymentdate: new Date().toISOString().split("T")[0],
-    });
+      paymentdate: new Date().toISOString().split("T")[0]});
   };
 
   const handleInputChange = (e) => {
@@ -237,20 +228,16 @@ const PaymentManagementPage = () => {
         bookingid: selectedBooking.bookingid,
         paymentamount: parseFloat(paymentData.paymentamount),
         paymenttype: paymentData.paymenttype,
-        paymentdate: paymentData.paymentdate,
-      });
+        paymentdate: paymentData.paymentdate});
 
       setSelectedBooking(null);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-
+      toast.success("Operation completed successfully");
       // Refresh data
       await fetchData();
     } catch (err) {
       console.error("Error recording payment:", err);
       toast.error("Failed to record payment", {
-        description: "Please try again later",
-      });
+        description: "Please try again later"});
     } finally {
       setSubmitting(false);
     }
@@ -277,23 +264,7 @@ const PaymentManagementPage = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">
-              Payment recorded successfully and booking marked as paid!
-            </p>
-          </div>
-        )}
-
-        <Tabs defaultValue="pending" className="space-y-6">
+<Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
             <TabsTrigger value="pending" className="font-bold">
               Pending ({pendingBookings.length})

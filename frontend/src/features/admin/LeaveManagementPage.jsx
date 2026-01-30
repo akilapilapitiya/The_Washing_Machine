@@ -8,29 +8,25 @@ import {
   User,
   Briefcase,
   Trash2,
-  Plus,
-  AlertCircle,
+  Plus
   Loader2,
   CheckCircle,
-  FileText,
-} from "lucide-react";
+  FileText} from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 import * as employeeService from "@/services/employee.service";
 
+import { toast } from "sonner";
 const LeaveManagementPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
 
   const [formData, setFormData] = useState({
     empid: "",
     startDate: "",
     endDate: "",
-    reason: "",
-  });
+    reason: ""});
 
   useEffect(() => {
     fetchData();
@@ -46,7 +42,7 @@ const LeaveManagementPage = () => {
       setLeaves(leavesData || []);
       setEmployees(empsData.filter((e) => e.emptype !== "owner") || []);
     } catch (err) {
-      setError("Failed to synchronize attendance registry.");
+      toast.error("Failed to synchronize attendance registry.");
     } finally {
       setLoading(false);
     }
@@ -56,14 +52,14 @@ const LeaveManagementPage = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      setError(null);
+      toast.error(null);
       await schedulerService.recordLeave(formData);
-      setSuccess("Leave deployment finalized successfully.");
+      toast.success("Leave deployment finalized successfully.");
       setFormData({ empid: "", startDate: "", endDate: "", reason: "" });
       fetchData();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(
+      toast.error(
         err.response?.data?.message ||
           "Conflict detected in schedule deployment.",
       );
@@ -174,25 +170,7 @@ const LeaveManagementPage = () => {
                   />
                 </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-100 p-3 rounded-lg flex items-center gap-2 text-red-600 animate-in fade-in slide-in-from-top-1">
-                    <AlertCircle size={16} className="flex-shrink-0" />
-                    <p className="text-[10px] font-bold uppercase tracking-tight leading-tight">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-green-50 border border-green-100 p-3 rounded-lg flex items-center gap-2 text-green-600 animate-in fade-in slide-in-from-top-1">
-                    <CheckCircle size={16} className="flex-shrink-0" />
-                    <p className="text-[10px] font-bold uppercase tracking-tight leading-tight">
-                      {success}
-                    </p>
-                  </div>
-                )}
-
-                <Button
+<Button
                   type="submit"
                   disabled={submitting}
                   className="w-full bg-red-600 hover:bg-black text-white font-black uppercase tracking-widest h-12 shadow-lg shadow-red-100"

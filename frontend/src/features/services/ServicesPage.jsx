@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ServiceCard from "./ServiceCard";
 import * as serviceService from "@/services/service.service";
 
+import { toast } from "sonner";
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchServices();
@@ -16,12 +16,12 @@ const ServicesPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const response = await serviceService.getServices();
       setServices(response || []);
     } catch (err) {
       console.error("Failed to fetch services:", err);
-      setError(err.message || "Failed to load services. Please try again.");
+      toast.error(err.message || "Failed to load services. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -41,17 +41,7 @@ const ServicesPage = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-red-800 font-medium">Error</p>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {loading ? (
+{loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
