@@ -180,6 +180,7 @@ const EmployeeManagementPage = () => {
 
   const handleDeleteEmployee = async (id) => {
     const confirmed = await confirm({
+      variant: "destructive",
       title: "Remove Employee?",
       description:
         "Are you sure you want to remove this employee? This action cannot be undone.",

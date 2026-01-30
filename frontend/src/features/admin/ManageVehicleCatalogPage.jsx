@@ -114,6 +114,7 @@ const ManageVehicleCatalogPage = () => {
 
   const handleRemoveModel = async (catalogid) => {
     const confirmed = await confirm({
+      variant: "destructive",
       title: "Remove Vehicle Model?",
       description: "Are you sure you want to remove this model?",
       confirmText: "Remove",

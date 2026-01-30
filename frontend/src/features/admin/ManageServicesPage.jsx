@@ -169,6 +169,7 @@ const ManageServicesPage = () => {
 
   const handleDeleteService = async (serviceid) => {
     const confirmed = await confirm({
+      variant: "destructive",
       title: "Delete Service?",
       description:
         "Are you sure you want to delete this service? This action cannot be undone.",

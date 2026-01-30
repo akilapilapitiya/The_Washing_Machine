@@ -178,6 +178,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
 
   const handleCancelBooking = async () => {
     const confirmed = await confirm({
+      variant: "destructive",
       title: "Cancel Booking?",
       description:
         "Are you sure you want to cancel this booking? This action cannot be undone.",
