@@ -22,6 +22,7 @@ import {
 import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
 import { formatDateShortSL } from "@/lib/dateFormat";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -150,6 +151,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     if (booking) {
@@ -175,12 +177,15 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
   };
 
   const handleCancelBooking = async () => {
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      title: "Cancel Booking?",
+      description:
         "Are you sure you want to cancel this booking? This action cannot be undone.",
-      )
-    )
-      return;
+      confirmText: "Cancel Booking",
+      cancelText: "Keep Booking",
+    });
+
+    if (!confirmed) return;
 
     setIsLoading(true);
     try {
@@ -296,6 +301,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 };

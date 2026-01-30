@@ -10,14 +10,17 @@ import {
   X,
   CheckCircle,
   Banknote,
-  Clock
+  Clock,
   Loader2,
   Tag,
   Box,
-  Layers} from "lucide-react";
+  Layers,
+} from "lucide-react";
 import * as serviceService from "@/services/service.service";
 
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,9 +35,11 @@ const ManageServicesPage = () => {
     has_offer: false,
     offer_price: "",
     offer_description: "",
-    servicetype: "package"});
+    servicetype: "package",
+  });
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   // Fetch services on mount
   useEffect(() => {
@@ -58,7 +63,8 @@ const ManageServicesPage = () => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value}));
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleDurationChange = (field, value) => {
@@ -90,7 +96,8 @@ const ManageServicesPage = () => {
       has_offer: false,
       offer_price: "",
       offer_description: "",
-      servicetype: "package"});
+      servicetype: "package",
+    });
   };
 
   const handleAddService = async (e) => {
@@ -109,13 +116,15 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
-        servicetype: formData.servicetype};
+        servicetype: formData.servicetype,
+      };
       await serviceService.createService(payload);
       resetForm();
       setShowAddForm(false);
       setSuccessMessage("Service added successfully!");
       toast.success("Operation completed successfully");
-      await fetchServices();    } catch (err) {
+      await fetchServices();
+    } catch (err) {
       toast.error(err.message || "Failed to add service");
     } finally {
       setIsSubmitting(false);
@@ -137,7 +146,8 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
-        servicetype: formData.servicetype};
+        servicetype: formData.servicetype,
+      };
       // Only include serviceprice if it's a valid number
       const price = parseFloat(formData.serviceprice);
       if (!isNaN(price) && formData.serviceprice !== "") {
@@ -149,7 +159,8 @@ const ManageServicesPage = () => {
       setSelectedService(null);
       setSuccessMessage("Service updated successfully!");
       toast.success("Operation completed successfully");
-      await fetchServices();    } catch (err) {
+      await fetchServices();
+    } catch (err) {
       toast.error(err.message || "Failed to update service");
     } finally {
       setIsSubmitting(false);
@@ -157,21 +168,26 @@ const ManageServicesPage = () => {
   };
 
   const handleDeleteService = async (serviceid) => {
-    if (
-      window.confirm(
+    const confirmed = await confirm({
+      title: "Delete Service?",
+      description:
         "Are you sure you want to delete this service? This action cannot be undone.",
-      )
-    ) {
-      try {
-        setIsSubmitting(true);
-        await serviceService.deleteService(serviceid);
-        setSuccessMessage("Service deleted successfully!");
-        toast.success("Operation completed successfully");
-        await fetchServices();      } catch (err) {
-        toast.error(err.message || "Failed to delete service");
-      } finally {
-        setIsSubmitting(false);
-      }
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setIsSubmitting(true);
+      await serviceService.deleteService(serviceid);
+      setSuccessMessage("Service deleted successfully!");
+      toast.success("Operation completed successfully");
+      await fetchServices();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete service");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -191,7 +207,8 @@ const ManageServicesPage = () => {
       has_offer: service.has_offer || false,
       offer_price: service.offer_price ? service.offer_price.toString() : "",
       offer_description: service.offer_description || "",
-      servicetype: service.servicetype || "package"});
+      servicetype: service.servicetype || "package",
+    });
     setShowEditForm(true);
   };
 
@@ -221,7 +238,7 @@ const ManageServicesPage = () => {
           </Button>
         </div>
 
-{loading ? (
+        {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
