@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import VehicleCard from "./VehicleCard";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Loader2 Car, ArrowRight } from "lucide-react";
+import { Plus, Loader2, Car, ArrowRight } from "lucide-react";
 import * as vehicleService from "@/services/vehicle.service";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ const BookingPage = () => {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      toast.error(null);
+      toast.dismiss();
       const vehicles = await vehicleService.getVehicles();
       setVehicles(vehicles);
     } catch (err) {
@@ -34,7 +34,8 @@ const BookingPage = () => {
 
   const handleContinue = () => {
     navigate("/dashboard/booking/services", {
-      state: { vehicleId: selectedVehicleId }});
+      state: { vehicleId: selectedVehicleId },
+    });
   };
 
   return (
@@ -50,7 +51,7 @@ const BookingPage = () => {
           </p>
         </div>
 
-{loading ? (
+        {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="text-center space-y-4">
               <div className="relative">
@@ -95,7 +96,8 @@ const BookingPage = () => {
                     id: vehicle.id,
                     make: vehicle.vehbrand,
                     model: vehicle.vehmodel,
-                    plate: vehicle.vehplate}}
+                    plate: vehicle.vehplate,
+                  }}
                   selected={vehicle.id === selectedVehicleId}
                   onSelect={setSelectedVehicleId}
                 />

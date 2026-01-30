@@ -5,8 +5,9 @@ import {
   Star,
   User,
   Calendar,
-  Loader2
-  Briefcase} from "lucide-react";
+  Loader2,
+  Briefcase,
+} from "lucide-react";
 import { getAllFeedbacks } from "@/services/feedback.service";
 
 import { toast } from "sonner";
@@ -73,7 +74,7 @@ const ViewFeedbackPage = () => {
           </p>
         </div>
 
-{feedbacks.length > 0 ? (
+        {feedbacks.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {feedbacks.map((item) => (
               <Card

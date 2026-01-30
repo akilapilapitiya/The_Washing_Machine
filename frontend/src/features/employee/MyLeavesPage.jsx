@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Calendar,
-  Clock,
-  FileText,
-  Loader2
-  CheckCircle} from "lucide-react";
+import { Calendar, Clock, FileText, Loader2, CheckCircle } from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 
 import { toast } from "sonner";
@@ -17,7 +12,8 @@ const LeaveCard = ({ leave }) => {
       weekday: "short",
       month: "short",
       day: "numeric",
-      year: "numeric"});
+      year: "numeric",
+    });
   };
 
   const calculateDuration = (startDate, endDate) => {
@@ -83,7 +79,7 @@ const MyLeavesPage = () => {
   const fetchMyLeaves = async () => {
     try {
       setLoading(true);
-      toast.error(null);
+      toast.dismiss();
       const data = await schedulerService.getMyLeaves();
       setLeaves(data || []);
     } catch (err) {
@@ -118,7 +114,7 @@ const MyLeavesPage = () => {
           </p>
         </div>
 
-{loading ? (
+        {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 size={32} className="animate-spin text-red-600" />
             <p className="text-gray-500 font-medium italic">

@@ -7,10 +7,11 @@ import {
   Car,
   User,
   ChevronRight,
-  Loader2
+  Loader2,
   Briefcase,
   Wrench,
-  CheckCircle} from "lucide-react";
+  CheckCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,14 +23,16 @@ const StatusBadge = ({ status }) => {
     scheduled: "bg-blue-50 text-blue-700 border-blue-200",
     inProgress: "bg-purple-50 text-purple-700 border-purple-200",
     completed: "bg-green-50 text-green-700 border-green-200",
-    paid: "bg-green-50 text-green-700 border-green-200"};
+    paid: "bg-green-50 text-green-700 border-green-200",
+  };
 
   const labels = {
     pending: "Pending",
     scheduled: "Scheduled",
     inProgress: "In Progress",
     completed: "Completed",
-    paid: "Paid"};
+    paid: "Paid",
+  };
 
   return (
     <span
@@ -47,7 +50,8 @@ const ServiceCard = ({ service }) => {
     return date.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
-      day: "numeric"});
+      day: "numeric",
+    });
   };
 
   return (
@@ -171,7 +175,7 @@ const AllBookingsPage = () => {
           </p>
         </div>
 
-{loading ? (
+        {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 size={32} className="animate-spin text-red-600" />
             <p className="text-sm font-medium text-gray-500">

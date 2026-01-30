@@ -13,7 +13,7 @@ import {
   X,
   CheckCircle,
   Search,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { getCustomers } from "@/services/customer.service";
 
@@ -26,7 +26,8 @@ const ManageCustomersPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: ""});
+    phone: "",
+  });
 
   const fetchCustomers = async () => {
     try {
@@ -55,7 +56,8 @@ const ManageCustomersPage = () => {
     setFormData({
       name: "",
       email: "",
-      phone: ""});
+      phone: "",
+    });
   };
 
   const handleAddCustomer = (e) => {
@@ -101,7 +103,7 @@ const ManageCustomersPage = () => {
           {/* Note: In a real scenario, admins might have a specialized registration tool */}
         </div>
 
-{/* Statistics */}
+        {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardContent className="pt-6">

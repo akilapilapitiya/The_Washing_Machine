@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Users, Loader2 } from "lucide-react";
+import { User, Users, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
@@ -28,6 +28,7 @@ const EmployeeSelectionPage = () => {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("any");
 
   const { vehicleId, serviceIds, locationId } = location.state || {};
@@ -87,7 +88,7 @@ const EmployeeSelectionPage = () => {
           </div>
         ) : error ? (
           <div className="bg-red-50 border-2 border-red-100 rounded-xl p-8 flex flex-col items-center text-center gap-4">
-            < size={40} className="text-red-600" />
+            <AlertCircle size={40} className="text-red-600" />
             <div className="space-y-1">
               <p className="text-red-800 font-bold tracking-tight">
                 System Fault

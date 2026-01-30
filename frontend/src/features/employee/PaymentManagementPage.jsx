@@ -4,12 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DollarSign,
-  CheckCircle,
-  Plus,
-  Loader2
-  Download} from "lucide-react";
+import { DollarSign, CheckCircle, Plus, Loader2, Download } from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { getAllPayments, createPayment } from "@/services/payment.service";
 import { printReceipt } from "@/utils/receipt";
@@ -26,13 +21,15 @@ const StatusBadge = ({ status }) => {
     pending: "bg-amber-50 text-amber-700 border-amber-100",
     inProgress: "bg-blue-50 text-blue-700 border-blue-100",
     completed: "bg-purple-50 text-purple-700 border-purple-100",
-    paid: "bg-emerald-50 text-emerald-700 border-emerald-100"};
+    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  };
 
   const labels = {
     pending: "Pending",
     inProgress: "In Progress",
     completed: "Completed",
-    paid: "Paid"};
+    paid: "Paid",
+  };
 
   return (
     <span
@@ -88,7 +85,8 @@ const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
               {new Date(date).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
-                year: "numeric"})}
+                year: "numeric",
+              })}
             </p>
           </div>
         </div>
@@ -170,11 +168,13 @@ const PaymentManagementPage = () => {
   const [paymentData, setPaymentData] = useState({
     paymentamount: "",
     paymenttype: "",
-    paymentdate: new Date().toISOString().split("T")[0]});
+    paymentdate: new Date().toISOString().split("T")[0],
+  });
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      toast.dismiss();
       const [bookingsData, paymentsData] = await Promise.all([
         getBookings(),
         getAllPayments(),
@@ -207,7 +207,8 @@ const PaymentManagementPage = () => {
     setPaymentData({
       paymentamount: booking.totalprice || booking.total_price || "",
       paymenttype: "cash",
-      paymentdate: new Date().toISOString().split("T")[0]});
+      paymentdate: new Date().toISOString().split("T")[0],
+    });
   };
 
   const handleInputChange = (e) => {
@@ -228,7 +229,8 @@ const PaymentManagementPage = () => {
         bookingid: selectedBooking.bookingid,
         paymentamount: parseFloat(paymentData.paymentamount),
         paymenttype: paymentData.paymenttype,
-        paymentdate: paymentData.paymentdate});
+        paymentdate: paymentData.paymentdate,
+      });
 
       setSelectedBooking(null);
       toast.success("Operation completed successfully");
@@ -237,7 +239,8 @@ const PaymentManagementPage = () => {
     } catch (err) {
       console.error("Error recording payment:", err);
       toast.error("Failed to record payment", {
-        description: "Please try again later"});
+        description: "Please try again later",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -264,7 +267,7 @@ const PaymentManagementPage = () => {
           </p>
         </div>
 
-<Tabs defaultValue="pending" className="space-y-6">
+        <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
             <TabsTrigger value="pending" className="font-bold">
               Pending ({pendingBookings.length})

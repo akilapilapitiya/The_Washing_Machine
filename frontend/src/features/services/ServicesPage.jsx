@@ -16,7 +16,7 @@ const ServicesPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      toast.error(null);
+      toast.dismiss();
       const response = await serviceService.getServices();
       setServices(response || []);
     } catch (err) {
@@ -41,7 +41,7 @@ const ServicesPage = () => {
           </p>
         </div>
 
-{loading ? (
+        {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
@@ -51,7 +51,9 @@ const ServicesPage = () => {
         ) : services.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-gray-600">No services available at the moment.</p>
+              <p className="text-gray-600">
+                No services available at the moment.
+              </p>
             </CardContent>
           </Card>
         ) : (

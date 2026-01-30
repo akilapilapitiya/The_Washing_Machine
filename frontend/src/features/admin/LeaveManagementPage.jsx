@@ -8,10 +8,11 @@ import {
   User,
   Briefcase,
   Trash2,
-  Plus
+  Plus,
   Loader2,
   CheckCircle,
-  FileText} from "lucide-react";
+  FileText,
+} from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 import * as employeeService from "@/services/employee.service";
 
@@ -26,7 +27,8 @@ const LeaveManagementPage = () => {
     empid: "",
     startDate: "",
     endDate: "",
-    reason: ""});
+    reason: "",
+  });
 
   useEffect(() => {
     fetchData();
@@ -170,7 +172,7 @@ const LeaveManagementPage = () => {
                   />
                 </div>
 
-<Button
+                <Button
                   type="submit"
                   disabled={submitting}
                   className="w-full bg-red-600 hover:bg-black text-white font-black uppercase tracking-widest h-12 shadow-lg shadow-red-100"

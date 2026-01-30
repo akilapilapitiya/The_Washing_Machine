@@ -135,7 +135,7 @@ const ManageVehicleCatalogPage = () => {
     }
   };
 
-  const groupedCatalog = catalog.reduce((acc, item) => {
+  const groupedCatalog = models.reduce((acc, item) => {
     if (!acc[item.brand]) acc[item.brand] = [];
     acc[item.brand].push(item);
     return acc;
@@ -170,7 +170,7 @@ const ManageVehicleCatalogPage = () => {
             <div className="flex items-center gap-2">
               <Car size={16} />
               <span className="font-bold text-gray-900">
-                {catalog.filter((i) => i.model).length}
+                {models.filter((i) => i.model).length}
               </span>{" "}
               Models
             </div>
@@ -309,7 +309,7 @@ const ManageVehicleCatalogPage = () => {
                               {item.model}
                             </span>
                             <button
-                              onClick={() => handleDelete(item.id)}
+                              onClick={() => handleRemoveModel(item.id)}
                               className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Remove"
                             >

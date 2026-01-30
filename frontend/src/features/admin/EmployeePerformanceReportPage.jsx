@@ -7,9 +7,10 @@ import {
   Calendar,
   Loader2,
   TrendingUp,
-  DollarSign
+  DollarSign,
   Users,
-  Briefcase} from "lucide-react";
+  Briefcase,
+} from "lucide-react";
 import * as reportService from "@/services/report.service";
 
 import { toast } from "sonner";
@@ -143,7 +144,7 @@ const EmployeePerformanceReportPage = () => {
           </div>
         </div>
 
-{/* Summary Cards */}
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardContent className="pt-6">

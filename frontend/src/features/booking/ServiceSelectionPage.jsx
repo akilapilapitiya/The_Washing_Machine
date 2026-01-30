@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Check,
-  Loader2
-  Clock,
-  Tag,
-  Box,
-  Layers} from "lucide-react";
+import { Check, Loader2, Clock, Tag, Box, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import * as vehicleService from "@/services/vehicle.service";
+import { toast } from "sonner";
 import { COLORS } from "@/lib/colors"; // Keep for consistency if used elsewhere
 
 const ServiceSelectionPage = () => {
@@ -33,7 +28,7 @@ const ServiceSelectionPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        toast.error(null);
+        toast.dismiss();
 
         const [servicesData, vehicleData] = await Promise.all([
           serviceService.getServices(),
@@ -87,7 +82,8 @@ const ServiceSelectionPage = () => {
 
   const handleContinue = () => {
     navigate("/dashboard/booking/location", {
-      state: { vehicleId, serviceIds: selectedServiceIds }});
+      state: { vehicleId, serviceIds: selectedServiceIds },
+    });
   };
 
   if (loading) {
@@ -191,7 +187,7 @@ const ServiceSelectionPage = () => {
           </p>
         </div>
 
-{/* Selected Vehicle Summary */}
+        {/* Selected Vehicle Summary */}
         {selectedVehicle && (
           <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
             <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">
