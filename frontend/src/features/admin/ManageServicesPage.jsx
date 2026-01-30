@@ -686,6 +686,7 @@ const ManageServicesPage = () => {
           </Card>
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 };

@@ -21,14 +21,17 @@ import {
   Layers,
   ArrowRight,
 } from "lucide-react";
-import * as catalogService from "@/services/vehicleCatalog.service";
+import * as vehicleCatalogService from "@/services/vehicleCatalog.service";
+import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 const ManageVehicleCatalogPage = () => {
-  const [catalog, setCatalog] = useState([]);
+  const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newModel, setNewModel] = useState({ brand: "", model: "" });
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
   // Creation state
   const [newBrandName, setNewBrandName] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -36,17 +39,16 @@ const ManageVehicleCatalogPage = () => {
 
   const [submittingBrand, setSubmittingBrand] = useState(false);
   const [submittingModel, setSubmittingModel] = useState(false);
-  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    fetchCatalog();
+    fetchModels();
   }, []);
 
-  const fetchCatalog = async () => {
+  const fetchModels = async () => {
     try {
       setLoading(true);
-      const output = await catalogService.getCatalog();
-      setCatalog(output.data || output || []);
+      const output = await vehicleCatalogService.getVehicleModels();
+      setModels(output.data || output || []);
     } catch (err) {
       console.error("Failed to fetch catalog:", err);
       toast.error("Failed to load vehicle catalog", {
@@ -64,12 +66,15 @@ const ManageVehicleCatalogPage = () => {
     try {
       setSubmittingBrand(true);
       // Create with empty model to establish the brand
-      await catalogService.addToCatalog({ brand: newBrandName, model: "" });
+      await vehicleCatalogService.addVehicleModel({
+        brand: newBrandName,
+        model: "",
+      });
 
       toast.success(`Brand "${newBrandName}" added to catalog`);
 
       setNewBrandName("");
-      fetchCatalog();
+      fetchModels();
     } catch (err) {
       console.error(err);
       toast.error("Failed to add brand", {
@@ -86,7 +91,7 @@ const ManageVehicleCatalogPage = () => {
 
     try {
       setSubmittingModel(true);
-      await catalogService.addToCatalog({
+      await vehicleCatalogService.addVehicleModel({
         brand: selectedBrand,
         model: newModelName,
       });
@@ -96,7 +101,7 @@ const ManageVehicleCatalogPage = () => {
       });
 
       setNewModelName("");
-      fetchCatalog();
+      fetchModels();
     } catch (err) {
       console.error(err);
       toast.error("Failed to add model", {
@@ -107,12 +112,20 @@ const ManageVehicleCatalogPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to remove this model?")) return;
+  const handleRemoveModel = async (catalogid) => {
+    const confirmed = await confirm({
+      title: "Remove Vehicle Model?",
+      description: "Are you sure you want to remove this model?",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
     try {
-      await catalogService.removeFromCatalog(id);
-      toast.success("Model removed from catalog");
-      fetchCatalog();
+      await vehicleCatalogService.deleteVehicleModel(catalogid);
+      toast.success("Vehicle model removed successfully!");
+      fetchModels();
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete model", {
@@ -311,6 +324,7 @@ const ManageVehicleCatalogPage = () => {
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 };

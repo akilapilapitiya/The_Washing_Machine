@@ -16,11 +16,11 @@ import {
   UserCog,
   Shield,
   Briefcase,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import * as employeeService from "@/services/employee.service";
-
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -33,18 +33,22 @@ const levelColors = {
   cashier: {
     bg: "bg-purple-50",
     text: "text-purple-700",
-    border: "border-purple-200"},
+    border: "border-purple-200",
+  },
   employee: {
     bg: "bg-blue-50",
     text: "text-blue-700",
-    border: "border-blue-200"}};
+    border: "border-blue-200",
+  },
+};
 
 const getRoleBadgeInfo = (level, roles) => {
   const role = roles.find((r) => r.rolename === level);
   const colors = levelColors[level] || levelColors.employee;
   return {
     label: role ? role.rolename : level,
-    colors};
+    colors,
+  };
 };
 
 const LevelBadge = ({ level, roles }) => {
@@ -70,10 +74,12 @@ const EmployeeManagementPage = () => {
     email: "",
     telephone: "",
     type: "employee",
-    nic: ""});
+    nic: "",
+  });
   const [roles, setRoles] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     fetchEmployees();
@@ -120,7 +126,8 @@ const EmployeeManagementPage = () => {
       toast.error(null);
       await employeeService.addEmployee({
         ...newEmployee,
-        password: "Employee@123"});
+        password: "Employee@123",
+      });
 
       await fetchEmployees();
       setNewEmployee({
@@ -128,12 +135,16 @@ const EmployeeManagementPage = () => {
         email: "",
         telephone: "",
         type: "employee",
-        nic: ""});
+        nic: "",
+      });
       setShowAddForm(false);
       setSuccessMessage("New employee registered successfully!");
-      toast.success("Operation completed successfully");    } catch (err) {
+      toast.success("Operation completed successfully");
+    } catch (err) {
       console.error("Failed to register employee:", err);
-      toast.error(err.response?.data?.message || "Failed to register employee.");
+      toast.error(
+        err.response?.data?.message || "Failed to register employee.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -150,14 +161,16 @@ const EmployeeManagementPage = () => {
       setSubmitting(true);
       toast.error(null);
       await employeeService.updateEmployee(selectedEmployee.empid, {
-        type: newRole});
+        type: newRole,
+      });
 
       await fetchEmployees();
       setShowPromoteForm(false);
       setSelectedEmployee(null);
       setNewRole("");
       setSuccessMessage("Employee role updated successfully!");
-      toast.success("Operation completed successfully");    } catch (err) {
+      toast.success("Operation completed successfully");
+    } catch (err) {
       console.error("Failed to update rank:", err);
       toast.error("Failed to update employee role.");
     } finally {
@@ -166,19 +179,24 @@ const EmployeeManagementPage = () => {
   };
 
   const handleDeleteEmployee = async (id) => {
-    if (
-      window.confirm(
+    const confirmed = await confirm({
+      title: "Remove Employee?",
+      description:
         "Are you sure you want to remove this employee? This action cannot be undone.",
-      )
-    ) {
-      try {
-        await employeeService.deleteEmployee(id);
-        await fetchEmployees();
-        setSuccessMessage("Employee removed.");
-        toast.success("Operation completed successfully");      } catch (err) {
-        console.error("Failed to delete employee:", err);
-        toast.error("Failed to remove employee record.");
-      }
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await employeeService.deleteEmployee(id);
+      await fetchEmployees();
+      setSuccessMessage("Employee removed.");
+      toast.success("Operation completed successfully");
+    } catch (err) {
+      console.error("Failed to delete employee:", err);
+      toast.error("Failed to remove employee record.");
     }
   };
 
@@ -209,7 +227,7 @@ const EmployeeManagementPage = () => {
           </Button>
         </div>
 
-{/* Statistics */}
+        {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="shadow-sm border-gray-200">
             <CardContent className="pt-6">
@@ -459,7 +477,8 @@ const EmployeeManagementPage = () => {
                       onChange={(e) =>
                         setNewEmployee({
                           ...newEmployee,
-                          telephone: e.target.value})
+                          telephone: e.target.value,
+                        })
                       }
                       placeholder="0771234567"
                       className="h-10 focus:ring-red-600 border-gray-300"
@@ -680,6 +699,7 @@ const EmployeeManagementPage = () => {
           </Card>
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 };
