@@ -1,1 +1,13 @@
 .vscode
+# Scripts (migration/debug)
+migrate_*.py
+migrate_*.sh
+fix_*.sh
+
+# Environment variables (contains sensitive data)
+.env
+.env.local
+.env.production
+
+# Docker
+docker-compose.override.yml

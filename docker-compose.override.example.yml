@@ -1,0 +1,19 @@
+# Docker Development Override
+# This file is for local development and testing
+# Copy this to docker-compose.override.yml and customize as needed
+
+version: "3.8"
+
+services:
+  backend:
+    # Mount source code for hot reload in development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    # Use nodemon for auto-restart
+    command: npm run dev
+
+  # Uncomment to expose PostgreSQL port for external tools
+  # postgres:
+  #   ports:
+  #     - "5432:5432"
