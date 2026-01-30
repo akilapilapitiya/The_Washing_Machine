@@ -9,9 +9,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
 /**
- * Custom hook for non-blocking confirmation dialogs
+ * Custom hook for non-blocking confirmation dialogs with loading state
  * Replaces window.confirm() with a modern, accessible AlertDialog
  *
  * @returns {object} - confirm function and Dialog component
@@ -41,6 +42,7 @@ import {
  */
 export function useConfirmDialog() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [config, setConfig] = useState({
     title: "",
     description: "",
@@ -67,36 +69,58 @@ export function useConfirmDialog() {
     return new Promise((resolve) => {
       setConfig({ title, description, confirmText, cancelText });
       setIsOpen(true);
+      setIsLoading(false);
       setResolver(() => resolve);
     });
   };
 
   const handleConfirm = () => {
-    setIsOpen(false);
-    if (resolver) resolver(true);
+    setIsLoading(true);
+    // Keep dialog open briefly to show loading state
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsLoading(false);
+      if (resolver) resolver(true);
+    }, 300);
   };
 
   const handleCancel = () => {
     setIsOpen(false);
+    setIsLoading(false);
     if (resolver) resolver(false);
   };
 
   const Dialog = () => (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !isLoading) {
+          handleCancel();
+        }
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{config.title}</AlertDialogTitle>
           <AlertDialogDescription>{config.description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>
+          <AlertDialogCancel onClick={handleCancel} disabled={isLoading}>
             {config.cancelText}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={isLoading}
+            className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
           >
-            {config.confirmText}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              config.confirmText
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
