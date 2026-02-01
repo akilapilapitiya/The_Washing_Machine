@@ -17,25 +17,24 @@ import {
   CheckCircle,
   Star,
   Loader2,
-  AlertCircle,
   History,
   ClipboardList,
 } from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { submitFeedback, getMyFeedbacks } from "@/services/feedback.service";
 import { COLORS } from "@/lib/colors";
+import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
 
 const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [completedBookings, setCompletedBookings] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
 
   const [selectedBookingId, setSelectedBookingId] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState(5);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -60,7 +59,7 @@ const FeedbackPage = () => {
       setCompletedBookings(eligibleBookings);
       setFeedbacks(feedbacksData);
     } catch (err) {
-      setError("Failed to load feedback records. Please try again.");
+      toast.error("Failed to load feedback records. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,29 +77,22 @@ const FeedbackPage = () => {
         rating: rating,
       });
 
-      setShowSuccess(true);
+      toast.success("Thank you! Your feedback has been recorded.");
       setFeedbackText("");
       setSelectedBookingId("");
       setRating(5);
 
       // Refresh data to update "Previous Feedback" list
       await fetchInitialData();
-
-      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
-      setError(err.message || "Failed to submit feedback.");
+      toast.error(err.message || "Failed to submit feedback.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShortSL(dateString);
   };
 
   const renderStars = (count, size = 16) => {
@@ -138,22 +130,6 @@ const FeedbackPage = () => {
             Tell us about your service experience.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium text-sm">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 text-green-700 animate-in fade-in slide-in-from-top-4">
-            <CheckCircle size={20} />
-            <p className="font-medium text-sm">
-              Thank you! Your feedback has been recorded.
-            </p>
-          </div>
-        )}
 
         <Tabs defaultValue="submit" className="space-y-8">
           <TabsList className="bg-white border p-1 rounded-lg shadow-sm">

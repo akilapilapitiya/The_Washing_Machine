@@ -26,6 +26,7 @@ import { COLORS } from "@/lib/colors";
 import { getBookings } from "@/services/booking.service";
 import { getVehicles } from "@/services/vehicle.service";
 import { getMyPayments, getAllPayments } from "@/services/payment.service";
+import { formatDateSL } from "@/lib/dateFormat";
 
 const MetricCard = ({ title, value, icon: Icon, description, loading }) => (
   <Card className="border-gray-200 shadow-sm overflow-hidden min-h-[120px]">
@@ -154,7 +155,7 @@ const DashboardPage = () => {
     {
       title: "Upcoming",
       value: upcomingBooking
-        ? new Date(upcomingBooking.bookingdate).toLocaleDateString()
+        ? formatDateSL(upcomingBooking.bookingdate)
         : "None",
       icon: Clock,
       description: upcomingBooking
@@ -476,8 +477,7 @@ const DashboardPage = () => {
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
-                          Scheduled for{" "}
-                          {new Date(activity.bookingdate).toLocaleDateString()}
+                          Scheduled for {formatDateSL(activity.bookingdate)}
                         </p>
                       </div>
                     </div>

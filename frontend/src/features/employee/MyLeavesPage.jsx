@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Calendar,
-  Clock,
-  FileText,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
+import { Calendar, Clock, FileText, Loader2, CheckCircle } from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 
+import { toast } from "sonner";
 const LeaveCard = ({ leave }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -77,7 +71,6 @@ const LeaveCard = ({ leave }) => {
 const MyLeavesPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchMyLeaves();
@@ -86,12 +79,12 @@ const MyLeavesPage = () => {
   const fetchMyLeaves = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.dismiss();
       const data = await schedulerService.getMyLeaves();
       setLeaves(data || []);
     } catch (err) {
       console.error("Failed to fetch leaves:", err);
-      setError("Failed to load your leave records. Please try again.");
+      toast.error("Failed to load your leave records. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -120,13 +113,6 @@ const MyLeavesPage = () => {
             View your approved leave requests and time off.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">

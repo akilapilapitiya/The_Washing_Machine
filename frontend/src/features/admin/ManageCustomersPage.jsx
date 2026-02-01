@@ -14,14 +14,13 @@ import {
   CheckCircle,
   Search,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { getCustomers } from "@/services/customer.service";
 
+import { toast } from "sonner";
 const ManageCustomersPage = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,17 +28,16 @@ const ManageCustomersPage = () => {
     email: "",
     phone: "",
   });
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const fetchCustomers = async () => {
     try {
       setLoading(true);
       const data = await getCustomers();
       setCustomers(data);
-      setError(null);
+      toast.error(null);
     } catch (err) {
       console.error("Error fetching customers:", err);
-      setError("Failed to load customers. Please try again.");
+      toast.error("Failed to load customers. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -104,22 +102,6 @@ const ManageCustomersPage = () => {
           </div>
           {/* Note: In a real scenario, admins might have a specialized registration tool */}
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">
-              Action completed successfully!
-            </p>
-          </div>
-        )}
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-3">

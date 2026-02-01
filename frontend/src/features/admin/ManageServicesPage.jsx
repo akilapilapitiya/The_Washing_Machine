@@ -11,7 +11,6 @@ import {
   CheckCircle,
   Banknote,
   Clock,
-  AlertCircle,
   Loader2,
   Tag,
   Box,
@@ -19,10 +18,12 @@ import {
 } from "lucide-react";
 import * as serviceService from "@/services/service.service";
 
+import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -36,9 +37,9 @@ const ManageServicesPage = () => {
     offer_description: "",
     servicetype: "package",
   });
-  const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   // Fetch services on mount
   useEffect(() => {
@@ -48,11 +49,11 @@ const ManageServicesPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await serviceService.getServices();
       setServices(data);
     } catch (err) {
-      setError(err.message || "Failed to load services");
+      toast.error(err.message || "Failed to load services");
     } finally {
       setLoading(false);
     }
@@ -121,11 +122,10 @@ const ManageServicesPage = () => {
       resetForm();
       setShowAddForm(false);
       setSuccessMessage("Service added successfully!");
-      setShowSuccess(true);
+      toast.success("Operation completed successfully");
       await fetchServices();
-      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
-      setError(err.message || "Failed to add service");
+      toast.error(err.message || "Failed to add service");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,34 +158,37 @@ const ManageServicesPage = () => {
       setShowEditForm(false);
       setSelectedService(null);
       setSuccessMessage("Service updated successfully!");
-      setShowSuccess(true);
+      toast.success("Operation completed successfully");
       await fetchServices();
-      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
-      setError(err.message || "Failed to update service");
+      toast.error(err.message || "Failed to update service");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteService = async (serviceid) => {
-    if (
-      window.confirm(
+    const confirmed = await confirm({
+      variant: "destructive",
+      title: "Delete Service?",
+      description:
         "Are you sure you want to delete this service? This action cannot be undone.",
-      )
-    ) {
-      try {
-        setIsSubmitting(true);
-        await serviceService.deleteService(serviceid);
-        setSuccessMessage("Service deleted successfully!");
-        setShowSuccess(true);
-        await fetchServices();
-        setTimeout(() => setShowSuccess(false), 3000);
-      } catch (err) {
-        setError(err.message || "Failed to delete service");
-      } finally {
-        setIsSubmitting(false);
-      }
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setIsSubmitting(true);
+      await serviceService.deleteService(serviceid);
+      setSuccessMessage("Service deleted successfully!");
+      toast.success("Operation completed successfully");
+      await fetchServices();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete service");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -235,22 +238,6 @@ const ManageServicesPage = () => {
             Add Service
           </Button>
         </div>
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium text-sm">
-              {successMessage}
-            </p>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium text-sm">{error}</p>
-          </div>
-        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -700,6 +687,7 @@ const ManageServicesPage = () => {
           </Card>
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 };

@@ -15,6 +15,9 @@ import {
   Edit,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
+import { updateCustomer } from "@/services/customer.service";
+import { updateEmployee } from "@/services/employee.service";
 
 const ProfilePage = () => {
   const { user, updateUser, userType } = useAuth();
@@ -40,15 +43,36 @@ const ProfilePage = () => {
     e.preventDefault();
     // Validate mobile number format (basic validation)
     if (formData.mobile && !formData.mobile.match(/^[+]?[\d\s()-]+$/)) {
-      alert("Please enter a valid mobile number");
+      toast.error("Please enter a valid mobile number");
       return;
     }
-    // Update user profile in context (and localStorage)
-    updateUser({ name: formData.name, mobile: formData.mobile });
-    setIsEditing(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
     // TODO: API call to update profile in backend
+    const updateProfile = async () => {
+      try {
+        if (userType === "customer") {
+          await updateCustomer(user.id, {
+            cusname: formData.name,
+            custel: formData.mobile,
+          });
+        } else if (userType === "employee") {
+          await updateEmployee(user.id, {
+            empname: formData.name,
+            emptel: formData.mobile,
+          });
+        }
+
+        updateUser({ name: formData.name, mobile: formData.mobile });
+        setIsEditing(false);
+        setShowSuccess(true);
+        toast.success("Profile updated successfully");
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch (error) {
+        console.error("Failed to update profile:", error);
+        toast.error("Failed to update profile. Please try again.");
+      }
+    };
+
+    updateProfile();
   };
 
   const handleCancel = () => {

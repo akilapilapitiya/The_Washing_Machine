@@ -17,10 +17,10 @@ import {
   Shield,
   Briefcase,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import * as employeeService from "@/services/employee.service";
-
+import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -65,7 +65,6 @@ const LevelBadge = ({ level, roles }) => {
 const EmployeeManagementPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPromoteForm, setShowPromoteForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -78,9 +77,9 @@ const EmployeeManagementPage = () => {
     nic: "",
   });
   const [roles, setRoles] = useState([]);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     fetchEmployees();
@@ -101,12 +100,12 @@ const EmployeeManagementPage = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await employeeService.getEmployees();
       setEmployees(data);
     } catch (err) {
       console.error("Failed to fetch employees:", err);
-      setError("Failed to load employee directory.");
+      toast.error("Failed to load employee directory.");
     } finally {
       setLoading(false);
     }
@@ -118,13 +117,13 @@ const EmployeeManagementPage = () => {
     // NIC Validation (Sri Lankan Format: 9 digits + V/v or 12 digits)
     const nicRegex = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
     if (!nicRegex.test(newEmployee.nic)) {
-      setError("Invalid NIC format. Must be 9 digits + V or 12 digits.");
+      toast.error("Invalid NIC format. Must be 9 digits + V or 12 digits.");
       return;
     }
 
     try {
       setSubmitting(true);
-      setError(null);
+      toast.error(null);
       await employeeService.addEmployee({
         ...newEmployee,
         password: "Employee@123",
@@ -140,11 +139,12 @@ const EmployeeManagementPage = () => {
       });
       setShowAddForm(false);
       setSuccessMessage("New employee registered successfully!");
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      toast.success("Operation completed successfully");
     } catch (err) {
       console.error("Failed to register employee:", err);
-      setError(err.response?.data?.message || "Failed to register employee.");
+      toast.error(
+        err.response?.data?.message || "Failed to register employee.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -159,7 +159,7 @@ const EmployeeManagementPage = () => {
 
     try {
       setSubmitting(true);
-      setError(null);
+      toast.error(null);
       await employeeService.updateEmployee(selectedEmployee.empid, {
         type: newRole,
       });
@@ -169,32 +169,35 @@ const EmployeeManagementPage = () => {
       setSelectedEmployee(null);
       setNewRole("");
       setSuccessMessage("Employee role updated successfully!");
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      toast.success("Operation completed successfully");
     } catch (err) {
       console.error("Failed to update rank:", err);
-      setError("Failed to update employee role.");
+      toast.error("Failed to update employee role.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteEmployee = async (id) => {
-    if (
-      window.confirm(
+    const confirmed = await confirm({
+      variant: "destructive",
+      title: "Remove Employee?",
+      description:
         "Are you sure you want to remove this employee? This action cannot be undone.",
-      )
-    ) {
-      try {
-        await employeeService.deleteEmployee(id);
-        await fetchEmployees();
-        setSuccessMessage("Employee removed.");
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
-      } catch (err) {
-        console.error("Failed to delete employee:", err);
-        setError("Failed to remove employee record.");
-      }
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await employeeService.deleteEmployee(id);
+      await fetchEmployees();
+      setSuccessMessage("Employee removed.");
+      toast.success("Operation completed successfully");
+    } catch (err) {
+      console.error("Failed to delete employee:", err);
+      toast.error("Failed to remove employee record.");
     }
   };
 
@@ -224,20 +227,6 @@ const EmployeeManagementPage = () => {
             Add Employee
           </Button>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium text-sm">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 text-green-700">
-            <CheckCircle size={20} />
-            <p className="font-medium text-sm">{successMessage}</p>
-          </div>
-        )}
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -711,6 +700,7 @@ const EmployeeManagementPage = () => {
           </Card>
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 };

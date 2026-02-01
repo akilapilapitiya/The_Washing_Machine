@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
@@ -45,6 +46,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 const App = () => {
   return (
     <AuthProvider>
+      <Toaster position="top-right" richColors expand={true} />
       <Routes>
         {/* Public Routes - Wrapped in MainLayout */}
         <Route element={<MainLayout />}>

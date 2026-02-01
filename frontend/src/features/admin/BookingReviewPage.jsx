@@ -14,6 +14,7 @@ import {
 import { getBookings, updateBooking } from "@/services/booking.service";
 import { getAvailableEmployees } from "@/services/employee.service";
 import { COLORS } from "@/lib/colors";
+import { toast } from "sonner";
 
 const ReassignModal = ({ booking, onClose, onConfirm }) => {
   const [availableEmployees, setAvailableEmployees] = useState([]);
@@ -158,8 +159,12 @@ const BookingReviewPage = () => {
       });
       setShowReassignModal(false);
       fetchBookings(); // Refresh list
+      toast.success("Employee reassigned successfully");
     } catch (err) {
-      alert("Failed to reassign employee.");
+      console.error(err);
+      toast.error("Failed to reassign employee", {
+        description: "Please try again later",
+      });
     }
   };
 

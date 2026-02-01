@@ -14,10 +14,10 @@ import {
 import * as incidentService from "@/services/incident.service";
 import { COLORS } from "@/lib/colors";
 
+import { toast } from "sonner";
 const ManageIncidentsPage = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchIncidents();
@@ -30,7 +30,7 @@ const ManageIncidentsPage = () => {
       setIncidents(data.data || data || []);
     } catch (err) {
       console.error("Failed to load incidents:", err);
-      setError("Failed to monitor safety channels.");
+      toast.error("Failed to monitor safety channels.");
     } finally {
       setLoading(false);
     }

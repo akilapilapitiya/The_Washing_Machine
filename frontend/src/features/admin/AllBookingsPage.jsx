@@ -8,7 +8,6 @@ import {
   User,
   ChevronRight,
   Loader2,
-  AlertCircle,
   Briefcase,
   Wrench,
   CheckCircle,
@@ -17,6 +16,7 @@ import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { useAuth } from "@/contexts/AuthContext";
 
+import { toast } from "sonner";
 const StatusBadge = ({ status }) => {
   const styles = {
     pending: "bg-amber-50 text-amber-700 border-amber-200",
@@ -131,7 +131,6 @@ const ServiceCard = ({ service }) => {
 const AllBookingsPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { isOwner, isCashier } = useAuth();
 
   useEffect(() => {
@@ -141,12 +140,12 @@ const AllBookingsPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
       const data = await bookingService.getBookings();
       setServices(data || []);
     } catch (err) {
       console.error("Failed to fetch services:", err);
-      setError("Unable to load bookings.");
+      toast.error("Unable to load bookings.");
     } finally {
       setLoading(false);
     }
@@ -175,13 +174,6 @@ const AllBookingsPage = () => {
               : "View your upcoming and active service tasks."}
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium text-sm">{error}</p>
-          </div>
-        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">

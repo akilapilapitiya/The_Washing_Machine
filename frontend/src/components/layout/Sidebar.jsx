@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import logo from "../../assets/logo.svg";
 
 const SidebarItem = ({ to, icon: Icon, label, active }) => (
@@ -42,6 +43,21 @@ const SidebarItem = ({ to, icon: Icon, label, active }) => (
 const Sidebar = () => {
   const location = useLocation();
   const { user, isCustomer, isEmployee, emptype, logout } = useAuth();
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
+
+  const handleLogout = async () => {
+    const confirmed = await confirm({
+      variant: "warning",
+      title: "Logout?",
+      description: "Are you sure you want to log out of your account?",
+      confirmText: "Logout",
+      cancelText: "Stay Logged In",
+    });
+
+    if (confirmed) {
+      logout();
+    }
+  };
 
   const customerLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -183,13 +199,14 @@ const Sidebar = () => {
           </div>
         </Link>
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors rounded-md border border-transparent hover:border-gray-200"
         >
           <LogOut className="h-4 w-4" />
           <span>Logout</span>
         </button>
       </div>
+      <ConfirmDialog />
     </aside>
   );
 };

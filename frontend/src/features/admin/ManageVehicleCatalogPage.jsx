@@ -21,13 +21,17 @@ import {
   Layers,
   ArrowRight,
 } from "lucide-react";
-import * as catalogService from "@/services/vehicleCatalog.service";
+import * as vehicleCatalogService from "@/services/vehicleCatalog.service";
+import { COLORS } from "@/lib/colors";
+import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 const ManageVehicleCatalogPage = () => {
-  const [catalog, setCatalog] = useState([]);
+  const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newModel, setNewModel] = useState({ brand: "", model: "" });
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
   // Creation state
   const [newBrandName, setNewBrandName] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -35,21 +39,21 @@ const ManageVehicleCatalogPage = () => {
 
   const [submittingBrand, setSubmittingBrand] = useState(false);
   const [submittingModel, setSubmittingModel] = useState(false);
-  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    fetchCatalog();
+    fetchModels();
   }, []);
 
-  const fetchCatalog = async () => {
+  const fetchModels = async () => {
     try {
       setLoading(true);
-      const output = await catalogService.getCatalog();
-      setCatalog(output.data || output || []);
-      setError(null);
+      const output = await vehicleCatalogService.getVehicleModels();
+      setModels(Array.isArray(output) ? output : []);
     } catch (err) {
       console.error("Failed to fetch catalog:", err);
-      setError("Failed to load vehicle catalog.");
+      toast.error("Failed to load vehicle catalog", {
+        description: "Please refresh the page",
+      });
     } finally {
       setLoading(false);
     }
@@ -62,13 +66,20 @@ const ManageVehicleCatalogPage = () => {
     try {
       setSubmittingBrand(true);
       // Create with empty model to establish the brand
-      await catalogService.addToCatalog({ brand: newBrandName, model: "" });
-      setSuccess(`Brand "${newBrandName}" added.`);
+      await vehicleCatalogService.addVehicleModel({
+        brand: newBrandName,
+        model: "",
+      });
+
+      toast.success(`Brand "${newBrandName}" added to catalog`);
+
       setNewBrandName("");
-      fetchCatalog();
-      setTimeout(() => setSuccess(""), 3000);
+      fetchModels();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to add brand");
+      console.error(err);
+      toast.error("Failed to add brand", {
+        description: err.response?.data?.message || "Please try again",
+      });
     } finally {
       setSubmittingBrand(false);
     }
@@ -80,32 +91,51 @@ const ManageVehicleCatalogPage = () => {
 
     try {
       setSubmittingModel(true);
-      await catalogService.addToCatalog({
+      await vehicleCatalogService.addVehicleModel({
         brand: selectedBrand,
         model: newModelName,
       });
-      setSuccess(`Model "${newModelName}" added to ${selectedBrand}.`);
+
+      toast.success(`Model "${newModelName}" added`, {
+        description: `Added to ${selectedBrand} lineup`,
+      });
+
       setNewModelName("");
-      fetchCatalog();
-      setTimeout(() => setSuccess(""), 3000);
+      fetchModels();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to add model");
+      console.error(err);
+      toast.error("Failed to add model", {
+        description: err.response?.data?.message || "Please try again",
+      });
     } finally {
       setSubmittingModel(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to remove this model?")) return;
+  const handleRemoveModel = async (catalogid) => {
+    const confirmed = await confirm({
+      variant: "destructive",
+      title: "Remove Vehicle Model?",
+      description: "Are you sure you want to remove this model?",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
     try {
-      await catalogService.removeFromCatalog(id);
-      fetchCatalog();
+      await vehicleCatalogService.deleteVehicleModel(catalogid);
+      toast.success("Vehicle model removed successfully!");
+      fetchModels();
     } catch (err) {
-      setError("Failed to delete item");
+      console.error(err);
+      toast.error("Failed to delete model", {
+        description: "Please try again",
+      });
     }
   };
 
-  const groupedCatalog = catalog.reduce((acc, item) => {
+  const groupedCatalog = models.reduce((acc, item) => {
     if (!acc[item.brand]) acc[item.brand] = [];
     acc[item.brand].push(item);
     return acc;
@@ -140,26 +170,12 @@ const ManageVehicleCatalogPage = () => {
             <div className="flex items-center gap-2">
               <Car size={16} />
               <span className="font-bold text-gray-900">
-                {catalog.filter((i) => i.model).length}
+                {models.filter((i) => i.model).length}
               </span>{" "}
               Models
             </div>
           </div>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">{success}</p>
-          </div>
-        )}
 
         {/* Action Blocks (The 2 Blocks) */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -293,7 +309,7 @@ const ManageVehicleCatalogPage = () => {
                               {item.model}
                             </span>
                             <button
-                              onClick={() => handleDelete(item.id)}
+                              onClick={() => handleRemoveModel(item.id)}
                               className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Remove"
                             >
@@ -309,6 +325,7 @@ const ManageVehicleCatalogPage = () => {
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 };

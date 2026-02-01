@@ -36,7 +36,16 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         v.vehbrand,
         v.vehmodel,
         v.vehplate,
-        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename, 'servicePrice', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'serviceId', sb.serviceid, 
+              'servicename', s.servicename, 
+              'serviceprice', s.serviceprice
+            )
+          ) FILTER (WHERE sb.serviceid IS NOT NULL),
+          '[]'::json
+        ) as services,
         ea.empid as assigned_empid,
         e.empname as assigned_empname,
         ep.empid as preferred_empid,

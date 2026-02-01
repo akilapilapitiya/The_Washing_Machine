@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { Calendar, Clock, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as schedulerService from "@/services/scheduler.service";
 
+import { toast } from "sonner";
 // Generate time slots between 9 AM and 4 PM
 const generateTimeSlots = () => {
   const slots = [];
@@ -118,7 +119,9 @@ const DateTimeSelectionPage = () => {
       setAvailableSlots(filtered.map((s) => s.value));
     } catch (err) {
       console.error("Schedule fetch failed:", err.message);
-      setError("Strategic error. Could not retrieve real-time availability.");
+      toast.error(
+        "Strategic error. Could not retrieve real-time availability.",
+      );
     } finally {
       setLoadingAvailability(false);
     }
@@ -193,12 +196,6 @@ const DateTimeSelectionPage = () => {
                     )}
                   />
                 </div>
-                {error && (
-                  <div className="flex items-center gap-2 text-red-600 mt-2 bg-red-50 p-3 rounded-lg border border-red-100">
-                    <AlertCircle size={16} />
-                    <p className="text-sm font-medium">{error}</p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>

@@ -19,13 +19,13 @@ import * as vehicleService from "@/services/vehicle.service";
 import * as bookingService from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [data, setData] = useState({
     vehicle: null,
     services: [],
@@ -58,7 +58,7 @@ const BookingConfirmationPage = () => {
         });
       } catch (err) {
         console.error("Failed to fetch confirmation data:", err);
-        setError("Failed to load booking details.");
+        toast.error("Failed to load booking details.");
       } finally {
         setLoading(false);
       }
@@ -75,7 +75,6 @@ const BookingConfirmationPage = () => {
   const handleConfirm = async () => {
     try {
       setSubmitting(true);
-      setError(null);
 
       const bookingData = {
         vehicleId: parseInt(vehicleId),
@@ -89,10 +88,13 @@ const BookingConfirmationPage = () => {
       };
 
       await bookingService.createBooking(bookingData);
+      toast.success("Booking confirmed successfully!");
       navigate("/dashboard/bookings", { state: { success: true } });
     } catch (err) {
       console.error("Failed to create booking:", err);
-      setError(err.message || "Failed to confirm booking. Please try again.");
+      toast.error(
+        err.message || "Failed to confirm booking. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -147,16 +149,6 @@ const BookingConfirmationPage = () => {
             </p>
           </div>
         </div>
-
-        {error && (
-          <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-in fade-in zoom-in duration-300">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <p className="text-red-800 font-medium text-sm">{error}</p>
-          </div>
-        )}
 
         <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2">
           {/* Left Column: Details */}

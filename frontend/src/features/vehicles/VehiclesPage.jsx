@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import * as vehicleService from "@/services/vehicle.service";
 import * as catalogService from "@/services/vehicleCatalog.service";
+import { toast } from "sonner";
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -60,7 +61,9 @@ const VehiclesPage = () => {
         setCatalog(catRes.data || catRes || []);
       } catch (err) {
         console.error("Failed to load data:", err);
-        setError("Failed to load garage data.");
+        toast.error("Failed to load garage data", {
+          description: "Please refresh the page",
+        });
       } finally {
         setLoading(false);
       }
@@ -133,18 +136,33 @@ const VehiclesPage = () => {
     // Plate Validation
     if (plateType === "modern") {
       if (platePart1.length < 2) {
-        setError("Modern plates need at least 2 letters (e.g., WP, CAB).");
+        toast.error("Invalid plate format", {
+          description: "Modern plates need at least 2 letters (e.g., WP, CAB)",
+        });
         return;
       }
     } else {
       if (platePart1 === "") {
-        setError("Please enter the numeric prefix.");
+        toast.error("Invalid plate format", {
+          description: "Please enter the numeric prefix",
+        });
         return;
       }
     }
 
     if (platePart2.length !== 4) {
-      setError("The second part of the plate must be exactly 4 digits.");
+      toast.error("Invalid plate format", {
+        description: "The second part must be exactly 4 digits",
+      });
+      return;
+    }
+
+    // Mileage Validation
+    const mileageValue = parseInt(newVehicle.vehmileage) || 0;
+    if (mileageValue < 0) {
+      toast.error("Invalid mileage", {
+        description: "Mileage cannot be negative",
+      });
       return;
     }
 
@@ -152,7 +170,6 @@ const VehiclesPage = () => {
 
     try {
       setSubmitting(true);
-      setError(null);
 
       const vehicleData = {
         vehplate: finalPlate,
@@ -166,6 +183,11 @@ const VehiclesPage = () => {
       // Refresh list
       const updatedList = await vehicleService.getVehicles();
       setVehicles(updatedList || []);
+
+      // Success toast
+      toast.success("Vehicle added to your garage!", {
+        description: `${vehicleData.vehbrand} ${vehicleData.vehmodel} (${finalPlate})`,
+      });
 
       // Reset form
       setNewVehicle({
@@ -181,7 +203,30 @@ const VehiclesPage = () => {
       setShowAddForm(false);
     } catch (err) {
       console.error("Failed to create vehicle:", err);
-      setError(err.message || "Failed to add vehicle. Please try again.");
+
+      // Parse validation errors from backend
+      let errorMessage = "Failed to add vehicle";
+      let errorDescription = "Please try again";
+
+      if (
+        err.response?.data?.errors &&
+        Array.isArray(err.response.data.errors)
+      ) {
+        // Joi validation errors
+        const firstError = err.response.data.errors[0];
+        errorMessage = firstError.field
+          ? `Invalid ${firstError.field}`
+          : "Validation error";
+        errorDescription = firstError.message || "Please check your input";
+      } else if (err.response?.data?.message) {
+        errorDescription = err.response.data.message;
+      } else if (err.message) {
+        errorDescription = err.message;
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -196,15 +241,21 @@ const VehiclesPage = () => {
     if (!vehicleToDelete) return;
 
     try {
-      setError(null);
       await vehicleService.deleteVehicle(vehicleToDelete.id);
       const updatedList = await vehicleService.getVehicles();
       setVehicles(updatedList || []);
+
+      toast.success("Vehicle removed from garage", {
+        description: `${vehicleToDelete.vehbrand} ${vehicleToDelete.vehmodel}`,
+      });
+
       setShowDeleteConfirm(false);
       setVehicleToDelete(null);
     } catch (err) {
       console.error("Failed to delete vehicle:", err);
-      setError(err.message || "Failed to delete vehicle. Please try again.");
+      toast.error("Failed to remove vehicle", {
+        description: err.message || "Please try again",
+      });
       setShowDeleteConfirm(false);
       setVehicleToDelete(null);
     }
@@ -234,28 +285,6 @@ const VehiclesPage = () => {
             Add Vehicle
           </Button>
         </div>
-
-        {/* Error Alert */}
-        {error && (
-          <div className="bg-red-50 border border-red-100 rounded-lg p-4 flex items-start gap-4">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <div className="flex-1">
-              <p className="text-red-800 font-bold text-sm">
-                Operation Failure
-              </p>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-600 hover:text-red-800 transition-colors"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        )}
 
         {/* Add Vehicle Form Modal */}
         {showAddForm && (
@@ -483,6 +512,7 @@ const VehiclesPage = () => {
                         id="vehmileage"
                         name="vehmileage"
                         type="number"
+                        min="0"
                         value={newVehicle.vehmileage}
                         onChange={handleInputChange}
                         placeholder="e.g., 45000"

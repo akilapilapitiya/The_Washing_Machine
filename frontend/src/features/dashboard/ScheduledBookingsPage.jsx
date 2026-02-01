@@ -10,9 +10,9 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle,
   Edit2,
   Trash2,
+  AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -21,6 +21,9 @@ import {
   deleteBooking,
 } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
+import { toast } from "sonner";
+import { formatDateShortSL } from "@/lib/dateFormat";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -113,11 +116,7 @@ const BookingCard = ({ booking, onManage }) => {
               className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
             />
             <span className={COLORS.text.primary}>
-              {new Date(booking.bookingdate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatDateShortSL(booking.bookingdate)}
             </span>
           </div>
           <div className="flex items-start gap-2 text-sm">
@@ -153,6 +152,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     if (booking) {
@@ -178,12 +178,16 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
   };
 
   const handleCancelBooking = async () => {
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      variant: "destructive",
+      title: "Cancel Booking?",
+      description:
         "Are you sure you want to cancel this booking? This action cannot be undone.",
-      )
-    )
-      return;
+      confirmText: "Cancel Booking",
+      cancelText: "Keep Booking",
+    });
+
+    if (!confirmed) return;
 
     setIsLoading(true);
     try {
@@ -299,6 +303,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 };
@@ -306,7 +311,6 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
 const ScheduledBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
@@ -319,7 +323,7 @@ const ScheduledBookingsPage = () => {
       const data = await getBookings();
       setBookings(data || []);
     } catch (err) {
-      setError("Failed to load your bookings. Please try again.");
+      toast.error("Failed to load your bookings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -329,10 +333,12 @@ const ScheduledBookingsPage = () => {
     try {
       await updateBooking(id, updates);
       fetchBookings();
-      alert("Booking updated successfully!");
+      toast.success("Booking updated successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to update booking. Please try again.");
+      toast.error("Failed to update booking", {
+        description: "Please try again later",
+      });
     }
   };
 
@@ -340,9 +346,12 @@ const ScheduledBookingsPage = () => {
     try {
       await deleteBooking(id);
       fetchBookings();
+      toast.success("Booking cancelled successfully");
     } catch (err) {
       console.error(err);
-      alert("Failed to cancel booking. Please try again.");
+      toast.error("Failed to cancel booking", {
+        description: "Please try again later",
+      });
     }
   };
 
@@ -374,13 +383,6 @@ const ScheduledBookingsPage = () => {
             </Button>
           </Link>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p>{error}</p>
-          </div>
-        )}
 
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">

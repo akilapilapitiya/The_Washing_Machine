@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
 
+import { toast } from "sonner";
 const roleLabels = {
   junior: "Frontline Detailer",
   mid: "Service Specialist",
@@ -42,7 +43,7 @@ const EmployeeSelectionPage = () => {
         setEmployees(filtered);
       } catch (err) {
         console.error("Failed to fetch employees:", err);
-        setError("Failed to load employee list. Please try again.");
+        toast.error("Failed to load employee list. Please try again.");
       } finally {
         setLoading(false);
       }

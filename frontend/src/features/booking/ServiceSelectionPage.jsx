@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Check,
-  Loader2,
-  AlertCircle,
-  Clock,
-  Tag,
-  Box,
-  Layers,
-} from "lucide-react";
+import { Check, Loader2, Clock, Tag, Box, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import * as vehicleService from "@/services/vehicle.service";
+import { toast } from "sonner";
 import { COLORS } from "@/lib/colors"; // Keep for consistency if used elsewhere
 
 const ServiceSelectionPage = () => {
@@ -23,7 +16,6 @@ const ServiceSelectionPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const vehicleId = location.state?.vehicleId;
 
@@ -36,7 +28,7 @@ const ServiceSelectionPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
+        toast.dismiss();
 
         const [servicesData, vehicleData] = await Promise.all([
           serviceService.getServices(),
@@ -47,7 +39,7 @@ const ServiceSelectionPage = () => {
         setSelectedVehicle(vehicleData);
       } catch (err) {
         console.error("Failed to fetch booking data:", err);
-        setError("Failed to load services. Please try again.");
+        toast.error("Failed to load services. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -194,19 +186,6 @@ const ServiceSelectionPage = () => {
             Choose a main package and any optional add-ons.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <div className="flex-1">
-              <p className="text-red-800 font-medium text-sm">Error</p>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
 
         {/* Selected Vehicle Summary */}
         {selectedVehicle && (

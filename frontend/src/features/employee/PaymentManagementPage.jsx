@@ -4,17 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DollarSign,
-  CheckCircle,
-  Plus,
-  Loader2,
-  AlertCircle,
-  Download,
-} from "lucide-react";
+import { DollarSign, CheckCircle, Plus, Loader2, Download } from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { getAllPayments, createPayment } from "@/services/payment.service";
 import { printReceipt } from "@/utils/receipt";
+import { toast } from "sonner";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -170,18 +164,17 @@ const PaymentManagementPage = () => {
   const [completedPayments, setCompletedPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [paymentData, setPaymentData] = useState({
     paymentamount: "",
     paymenttype: "",
     paymentdate: new Date().toISOString().split("T")[0],
   });
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      toast.dismiss();
       const [bookingsData, paymentsData] = await Promise.all([
         getBookings(),
         getAllPayments(),
@@ -194,10 +187,10 @@ const PaymentManagementPage = () => {
       );
       setPendingBookings(pending);
       setCompletedPayments(paymentsData);
-      setError(null);
+      toast.error(null);
     } catch (err) {
       console.error("Error fetching payment data:", err);
-      setError(
+      toast.error(
         "Failed to load payment information. Please check your connection.",
       );
     } finally {
@@ -240,14 +233,14 @@ const PaymentManagementPage = () => {
       });
 
       setSelectedBooking(null);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-
+      toast.success("Operation completed successfully");
       // Refresh data
       await fetchData();
     } catch (err) {
       console.error("Error recording payment:", err);
-      alert("Failed to record payment. Please try again.");
+      toast.error("Failed to record payment", {
+        description: "Please try again later",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -273,22 +266,6 @@ const PaymentManagementPage = () => {
             Manage and record customer payments for completed services.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">
-              Payment recorded successfully and booking marked as paid!
-            </p>
-          </div>
-        )}
 
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
