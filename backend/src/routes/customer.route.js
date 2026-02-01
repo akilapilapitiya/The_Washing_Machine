@@ -11,15 +11,15 @@ import { customerValidator } from "../validators/index.js";
 
 const customerRouter = Router();
 
-// Protect all customer routes; employees only
-customerRouter.use(authMiddleware, restrictTo("employee"));
+// Protect all customer routes; allow employees and customers
+customerRouter.use(authMiddleware, restrictTo("employee", "customer"));
 
 customerRouter.get("/", getAllCustomers);
 customerRouter.get("/:cusid", getCustomer);
 customerRouter.put(
   "/:cusid",
   validateSchema(customerValidator.updateCustomer),
-  updateCustomer
+  updateCustomer,
 );
 customerRouter.delete("/:cusid", deleteCustomer);
 

@@ -98,18 +98,30 @@ const ProfilePage = () => {
     try {
       if (userType === "customer") {
         const updatedProfile = await updateCustomer(user.id, {
+          title: formData.title,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           telephone: formData.mobile,
+          nic: formData.nic,
         });
         updateUser({
           ...user,
+          title: updatedProfile.title,
+          firstName: updatedProfile.first_name,
+          lastName: updatedProfile.last_name,
+          name: `${updatedProfile.first_name || ""} ${updatedProfile.last_name || ""}`.trim(),
           mobile: updatedProfile.custel,
+          nic: updatedProfile.nic,
+          dob: updatedProfile.dob,
         });
       } else {
         await updateEmployee(user.id, {
+          empname: `${formData.firstName} ${formData.lastName}`.trim(),
           emptel: formData.mobile,
         });
         updateUser({
           ...user,
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
           mobile: formData.mobile,
         });
       }
@@ -257,16 +269,27 @@ const ProfilePage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Title</Label>
-                      <Input
+                      <Label htmlFor="title">Title</Label>
+                      <select
+                        id="title"
+                        name="title"
                         value={formData.title}
-                        disabled
-                        className="bg-gray-100"
-                      />
+                        onChange={handleInputChange}
+                        required
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">Select Title</option>
+                        <option value="Mr.">Mr.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Ms.">Ms.</option>
+                        <option value="Ven.">Ven.</option>
+                        <option value="Rev.">Rev.</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Mobile Number</Label>
+                      <Label htmlFor="mobile">Mobile Number</Label>
                       <Input
+                        id="mobile"
                         name="mobile"
                         value={formData.mobile}
                         onChange={handleInputChange}
@@ -275,36 +298,43 @@ const ProfilePage = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>First Name</Label>
+                      <Label htmlFor="firstName">First Name</Label>
                       <Input
+                        id="firstName"
+                        name="firstName"
                         value={formData.firstName}
-                        disabled
-                        className="bg-gray-100"
+                        onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Last Name</Label>
+                      <Label htmlFor="lastName">Last Name</Label>
                       <Input
+                        id="lastName"
+                        name="lastName"
                         value={formData.lastName}
-                        disabled
-                        className="bg-gray-100"
+                        onChange={handleInputChange}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>NIC</Label>
+                      <Label htmlFor="nic">NIC</Label>
                       <Input
+                        id="nic"
+                        name="nic"
                         value={formData.nic}
-                        disabled
-                        className="bg-gray-100"
+                        onChange={handleInputChange}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Date of Birth</Label>
+                      <Label htmlFor="dob">Date of Birth (Read-only)</Label>
                       <Input
+                        id="dob"
+                        name="dob"
                         type="date"
                         value={formData.dob}
                         disabled
-                        className="bg-gray-100"
+                        className="bg-gray-100 cursor-not-allowed"
                       />
                     </div>
                   </div>
