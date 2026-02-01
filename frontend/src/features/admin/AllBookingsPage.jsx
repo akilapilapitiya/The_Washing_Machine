@@ -56,7 +56,17 @@ const ServiceCard = ({ service }) => {
 
   return (
     <Link to={`/dashboard/employee/service/${service.bookingid}`}>
-      <Card className="hover:shadow-md transition-all border-gray-200 h-full group">
+      <Card className="hover:shadow-md transition-all border-gray-200 h-full group relative overflow-hidden">
+        {/* Decorative Color Ribbon */}
+        {service.vehcolor && (
+          <div
+            className="absolute top-0 right-0 w-10 h-10 pointer-events-none z-10"
+            style={{
+              background: `linear-gradient(225deg, ${service.vehcolor} 50%, transparent 50%)`,
+              opacity: 0.8,
+            }}
+          />
+        )}
         <CardHeader className="pb-3 border-b border-gray-100 bg-white pt-5 px-5">
           <div className="flex items-start justify-between">
             <div>

@@ -567,17 +567,40 @@ const VehiclesPage = () => {
                         htmlFor="vehcolor"
                         className="text-sm font-medium text-gray-700"
                       >
-                        Color
+                        Vehicle Color
                       </Label>
-                      <Input
-                        id="vehcolor"
-                        name="vehcolor"
-                        value={newVehicle.vehcolor}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Silver"
-                        className="focus:ring-red-500"
-                        disabled={submitting}
-                      />
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="h-10 w-10 rounded-md border border-gray-200 cursor-pointer shadow-sm transition-transform hover:scale-105"
+                          style={{
+                            backgroundColor: newVehicle.vehcolor || "#ffffff",
+                          }}
+                          onClick={() =>
+                            document.getElementById("color-picker").click()
+                          }
+                        />
+                        <Input
+                          id="vehcolor"
+                          name="vehcolor"
+                          value={newVehicle.vehcolor}
+                          onChange={handleInputChange}
+                          placeholder="#000000"
+                          className="flex-1 focus:ring-red-500 font-mono"
+                          disabled={submitting}
+                        />
+                        <input
+                          id="color-picker"
+                          type="color"
+                          className="sr-only"
+                          value={newVehicle.vehcolor || "#ffffff"}
+                          onChange={(e) => {
+                            setNewVehicle((prev) => ({
+                              ...prev,
+                              vehcolor: e.target.value,
+                            }));
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -688,8 +711,18 @@ const VehiclesPage = () => {
             {vehicles.map((vehicle) => (
               <Card
                 key={vehicle.id}
-                className="group border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="group relative border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm hover:shadow-md overflow-hidden"
               >
+                {/* Decorative Color Ribbon */}
+                {vehicle.vehcolor && (
+                  <div
+                    className="absolute top-0 right-0 w-12 h-12 pointer-events-none z-10"
+                    style={{
+                      background: `linear-gradient(225deg, ${vehicle.vehcolor} 50%, transparent 50%)`,
+                      opacity: 0.8,
+                    }}
+                  />
+                )}
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -745,9 +778,15 @@ const VehiclesPage = () => {
                     {vehicle.vehcolor && (
                       <div className="space-y-1">
                         <p className="text-xs text-gray-500">Color</p>
-                        <p className="font-semibold text-gray-900">
-                          {vehicle.vehcolor}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded-full border border-gray-200"
+                            style={{ backgroundColor: vehicle.vehcolor }}
+                          />
+                          <p className="font-semibold text-gray-900">
+                            {vehicle.vehcolor}
+                          </p>
+                        </div>
                       </div>
                     )}
                     {vehicle.manufacture_year && (
@@ -782,12 +821,14 @@ const VehiclesPage = () => {
                         <p
                           className={cn(
                             "text-xs font-bold px-2 py-0.5 rounded-full",
-                            vehicle.next_service_mileage === 0
+                            vehicle.next_service_mileage === 0 ||
+                              !vehicle.next_service_mileage
                               ? "bg-blue-50 text-blue-600"
                               : "bg-red-50 text-red-600",
                           )}
                         >
-                          {vehicle.next_service_mileage === 0
+                          {vehicle.next_service_mileage === 0 ||
+                          !vehicle.next_service_mileage
                             ? "Pending Employee Check"
                             : `${vehicle.next_service_mileage.toLocaleString()} KM`}
                         </p>
