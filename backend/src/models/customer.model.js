@@ -2,7 +2,7 @@ const createCustomerTable = async (pool) => {
   const queryText = `
     CREATE TABLE IF NOT EXISTS customer (
       cusid SERIAL PRIMARY KEY,
-      title VARCHAR(10) CHECK (title IN ('Mr.', 'Mrs.', 'Ms.', 'Ven.', 'Dr.', 'Rev.')),
+      title VARCHAR(10) CHECK (title IN ('Mr.', 'Mrs.', 'Ms.', 'Ven.', 'Rev.')),
       first_name VARCHAR(100) NOT NULL CHECK (LENGTH(TRIM(first_name)) > 0),
       last_name VARCHAR(100) NOT NULL CHECK (LENGTH(TRIM(last_name)) > 0),
       cusemail VARCHAR(100) UNIQUE NOT NULL
