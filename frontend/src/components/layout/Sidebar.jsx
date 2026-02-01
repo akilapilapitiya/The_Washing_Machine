@@ -182,22 +182,6 @@ const Sidebar = () => {
 
       {/* Sidebar Footer */}
       <div className="p-4 border-t border-gray-200">
-        <Link
-          to="/dashboard/profile"
-          className="flex items-center space-x-3 px-2 py-2 mb-2 hover:bg-gray-50 rounded-md transition-colors group"
-        >
-          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 group-hover:border-red-200 group-hover:bg-red-50">
-            <User className="h-4 w-4 text-gray-600 group-hover:text-red-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate group-hover:text-red-700">
-              {user?.name || "User"}
-            </p>
-            <p className="text-xs text-gray-500 truncate capitalize">
-              {isCustomer ? "Customer" : emptype || "Staff"}
-            </p>
-          </div>
-        </Link>
         <button
           onClick={handleLogout}
           className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors rounded-md border border-transparent hover:border-gray-200"

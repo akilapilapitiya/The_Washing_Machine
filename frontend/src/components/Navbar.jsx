@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { IMAGE_BASE_URL } from "@/configs/env";
 import logo from "../assets/logo.svg";
 
 const Navbar = () => {
@@ -10,6 +11,13 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("Navbar: User object for profile picture check:", user);
+      console.log("Navbar: Profile picture URL:", user?.profile_picture_url);
+    }
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,7 +94,19 @@ const Navbar = () => {
                     Logged In
                   </span>
                 </div>
-                <Link to="/dashboard">
+                <Link to="/dashboard" className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform">
+                    {user?.profile_picture_url ? (
+                      <img
+                        src={`${IMAGE_BASE_URL}${user.profile_picture_url}`}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      user?.name?.charAt(0) || "U"
+                    )}
+                  </div>
                   <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-lg shadow-red-100 transition-all transform hover:-translate-y-0.5">
                     Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -147,8 +167,17 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">
-                      {user?.name?.charAt(0) || "U"}
+                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg overflow-hidden border-2 border-white">
+                      {user?.profile_picture_url ? (
+                        <img
+                          src={`${IMAGE_BASE_URL}${user.profile_picture_url}`}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                          crossOrigin="anonymous"
+                        />
+                      ) : (
+                        user?.name?.charAt(0) || "U"
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-gray-900">{user?.name}</p>

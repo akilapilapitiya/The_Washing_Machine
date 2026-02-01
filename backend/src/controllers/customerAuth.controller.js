@@ -9,13 +9,26 @@ import { successResponse } from "../utils/response.util.js";
 
 export const customerSignUp = async (req, res, next) => {
   try {
-    const { name, email, password, telephone } = req.body;
-
-    const { customer, token } = await signUp({
-      name,
+    const {
+      title,
+      firstName,
+      lastName,
       email,
       password,
       telephone,
+      latitude,
+      longitude,
+    } = req.body;
+
+    const { customer, token } = await signUp({
+      title,
+      firstName,
+      lastName,
+      email,
+      password,
+      telephone,
+      latitude,
+      longitude,
     });
 
     // Set cookie in controller
@@ -43,9 +56,16 @@ export const customerSignIn = async (req, res, next) => {
 
     const safeCustomer = {
       cusid: customer.cusid,
-      cusname: customer.cusname,
+      title: customer.title,
+      first_name: customer.first_name,
+      last_name: customer.last_name,
       cusemail: customer.cusemail,
       custel: customer.custel,
+      nic: customer.nic,
+      dob: customer.dob,
+      latitude: customer.latitude,
+      longitude: customer.longitude,
+      profile_picture_url: customer.profile_picture_url,
     };
 
     // Set cookie

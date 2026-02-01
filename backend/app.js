@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cookieParser from "cookie-parser";
 import { PORT } from "./src/configs/env.js";
 import pool from "./src/configs/database.js";
@@ -49,6 +50,9 @@ const createApp = () => {
   app.use(express.json({ limit: "10mb", strict: false }));
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
+
+  // Static files serving
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // Body parser error handling
   app.use(bodyParser);
