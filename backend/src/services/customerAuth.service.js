@@ -46,7 +46,7 @@ export const signUp = async ({
     `
     INSERT INTO customer (title, first_name, last_name, cusemail, custel, password_hash, latitude, longitude)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING cusid, title, first_name, last_name, cusemail, custel, latitude, longitude
+    RETURNING cusid, title, first_name, last_name, cusemail, custel, latitude, longitude, profile_picture_url
     `,
     [
       title,
@@ -69,7 +69,7 @@ export const signUp = async ({
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, password_hash FROM customer WHERE cusemail = $1",
+    "SELECT cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, profile_picture_url, password_hash FROM customer WHERE cusemail = $1",
     [email],
   );
 
@@ -94,6 +94,7 @@ export const signIn = async ({ email, password }) => {
     dob: row.dob,
     latitude: row.latitude,
     longitude: row.longitude,
+    profile_picture_url: row.profile_picture_url,
   };
   const token = generateToken(row.cusid, "customer");
   return { customer, token };

@@ -65,6 +65,7 @@ export const customerSignIn = async (req, res, next) => {
       dob: customer.dob,
       latitude: customer.latitude,
       longitude: customer.longitude,
+      profile_picture_url: customer.profile_picture_url,
     };
 
     // Set cookie

@@ -72,6 +72,27 @@ export const updateCustomer = async (req, res, next) => {
   }
 };
 
+export const updateProfilePicture = async (req, res, next) => {
+  try {
+    const { cusid } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const profile_picture_url = `/uploads/profiles/${req.file.filename}`;
+    const customer = await updateCustomerService(cusid, {
+      profile_picture_url,
+    });
+
+    successResponse(res, 200, "Profile picture updated successfully", {
+      customer,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;

@@ -22,8 +22,11 @@ import { toast } from "sonner";
 import {
   getCustomer,
   updateCustomer,
+  updateProfilePicture,
   deleteCustomer,
 } from "@/services/customer.service";
+import { Camera } from "lucide-react";
+import { IMAGE_BASE_URL } from "@/configs/env";
 import { updateEmployee } from "@/services/employee.service";
 
 const ProfilePage = () => {
@@ -62,6 +65,7 @@ const ProfilePage = () => {
             nic: profile.nic,
             dob: profile.dob,
             email: profile.cusemail,
+            profile_picture_url: profile.profile_picture_url,
             latitude: profile.latitude,
             longitude: profile.longitude,
           };
@@ -86,6 +90,36 @@ const ProfilePage = () => {
     };
     fetchFreshData();
   }, [user?.id, userType]);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Basic validation
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should be less than 5MB");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const updatedProfile = await updateProfilePicture(user.id, file);
+      updateUser({
+        ...user,
+        profile_picture_url: updatedProfile.profile_picture_url,
+      });
+      toast.success("Profile picture updated successfully");
+    } catch (error) {
+      console.error("Photo upload failed:", error);
+      toast.error("Failed to upload photo");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -187,8 +221,33 @@ const ProfilePage = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-red-200">
-                  <User size={48} className="text-white" />
+                <div className="relative group">
+                  <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-red-200 overflow-hidden">
+                    {user?.profile_picture_url ? (
+                      <img
+                        src={`${IMAGE_BASE_URL}${user.profile_picture_url}`}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      <User size={48} className="text-white" />
+                    )}
+                  </div>
+                  <label
+                    htmlFor="photo-upload"
+                    className="absolute bottom-4 right-0 bg-white p-1.5 rounded-full shadow-md border cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <Camera size={14} className="text-gray-600" />
+                    <input
+                      id="photo-upload"
+                      type="file"
+                      className="hidden"
+                      onChange={handlePhotoUpload}
+                      accept="image/*"
+                      disabled={isLoading}
+                    />
+                  </label>
                 </div>
                 <h3 className="text-xl font-bold">
                   {user?.title} {user?.name}

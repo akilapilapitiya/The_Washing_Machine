@@ -106,6 +106,7 @@ export const AuthProvider = ({ children }) => {
         title: userData.title,
         nic: userData.nic,
         dob: userData.dob,
+        profile_picture_url: userData.profile_picture_url,
       };
     } else if (type === "employee") {
       // Extract emptype from employee data (check fallback names from API)

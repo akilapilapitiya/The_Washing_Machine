@@ -16,6 +16,7 @@ export const getAllCustomersService = async () => {
       c.dob,
       c.latitude,
       c.longitude,
+      c.profile_picture_url,
       c.is_active,
       c.created_at, 
       c.updated_at,

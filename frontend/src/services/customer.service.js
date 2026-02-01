@@ -56,3 +56,29 @@ export const deleteCustomer = async (id) => {
     throw error;
   }
 };
+
+/**
+ * Update profile picture
+ * @param {number|string} id - Customer ID
+ * @param {File} file - Image file
+ */
+export const updateProfilePicture = async (id, file) => {
+  try {
+    const formData = new FormData();
+    formData.append("profile_picture", file);
+
+    const response = await api.patch(
+      `/customer/${id}/profile-picture`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data?.data?.customer;
+  } catch (error) {
+    console.error(`Error uploading profile picture for customer ${id}:`, error);
+    throw error;
+  }
+};
