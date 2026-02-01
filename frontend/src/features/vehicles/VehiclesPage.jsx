@@ -34,6 +34,11 @@ const VehiclesPage = () => {
     vehmodel: "",
     vehmileage: "",
     vehplate: "",
+    fuel_type: "",
+    vehcolor: "",
+    manufacture_year: "",
+    transmission: "",
+    engine_capacity: "",
   });
 
   // Plate State
@@ -176,6 +181,11 @@ const VehiclesPage = () => {
         vehmileage: parseInt(newVehicle.vehmileage) || 0,
         vehbrand: newVehicle.vehbrand,
         vehmodel: newVehicle.vehmodel,
+        fuel_type: newVehicle.fuel_type,
+        vehcolor: newVehicle.vehcolor,
+        manufacture_year: parseInt(newVehicle.manufacture_year) || null,
+        transmission: newVehicle.transmission,
+        engine_capacity: parseInt(newVehicle.engine_capacity) || null,
       };
 
       await vehicleService.createVehicle(vehicleData);
@@ -195,6 +205,11 @@ const VehiclesPage = () => {
         vehmodel: "",
         vehmileage: "",
         vehplate: "",
+        fuel_type: "",
+        vehcolor: "",
+        manufacture_year: "",
+        transmission: "",
+        engine_capacity: "",
       });
       setPlatePart1("");
       setPlatePart2("");
@@ -506,7 +521,7 @@ const VehiclesPage = () => {
                         htmlFor="vehmileage"
                         className="text-sm font-medium text-gray-700"
                       >
-                        Mileage (KM)
+                        Mileage (KM) *
                       </Label>
                       <Input
                         id="vehmileage"
@@ -516,6 +531,112 @@ const VehiclesPage = () => {
                         value={newVehicle.vehmileage}
                         onChange={handleInputChange}
                         placeholder="e.g., 45000"
+                        className="focus:ring-red-500"
+                        disabled={submitting}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="fuel_type"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Fuel Type *
+                      </Label>
+                      <select
+                        id="fuel_type"
+                        name="fuel_type"
+                        className="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                        value={newVehicle.fuel_type}
+                        onChange={handleInputChange}
+                        required
+                        disabled={submitting}
+                      >
+                        <option value="">Select Fuel Type</option>
+                        <option value="Petrol">Petrol</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="Electric">Electric</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="vehcolor"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Color
+                      </Label>
+                      <Input
+                        id="vehcolor"
+                        name="vehcolor"
+                        value={newVehicle.vehcolor}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Silver"
+                        className="focus:ring-red-500"
+                        disabled={submitting}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="manufacture_year"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Year of Manufacture
+                      </Label>
+                      <Input
+                        id="manufacture_year"
+                        name="manufacture_year"
+                        type="number"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        value={newVehicle.manufacture_year}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 2018"
+                        className="focus:ring-red-500"
+                        disabled={submitting}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="transmission"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Transmission
+                      </Label>
+                      <select
+                        id="transmission"
+                        name="transmission"
+                        className="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                        value={newVehicle.transmission}
+                        onChange={handleInputChange}
+                        disabled={submitting}
+                      >
+                        <option value="">Select Transmission</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Automatic">Automatic</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="engine_capacity"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Engine Capacity (CC)
+                      </Label>
+                      <Input
+                        id="engine_capacity"
+                        name="engine_capacity"
+                        type="number"
+                        min="0"
+                        value={newVehicle.engine_capacity}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 1500"
                         className="focus:ring-red-500"
                         disabled={submitting}
                       />
@@ -607,12 +728,71 @@ const VehiclesPage = () => {
                     </div>
                     {vehicle.vehmileage != null && (
                       <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Mileage</p>
+                        <p className="text-xs text-gray-500">Current Mileage</p>
                         <p className="font-semibold text-gray-900">
                           {vehicle.vehmileage.toLocaleString()} KM
                         </p>
                       </div>
                     )}
+                    {vehicle.fuel_type && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Fuel Type</p>
+                        <p className="font-semibold text-gray-900">
+                          {vehicle.fuel_type}
+                        </p>
+                      </div>
+                    )}
+                    {vehicle.vehcolor && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Color</p>
+                        <p className="font-semibold text-gray-900">
+                          {vehicle.vehcolor}
+                        </p>
+                      </div>
+                    )}
+                    {vehicle.manufacture_year && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Year</p>
+                        <p className="font-semibold text-gray-900">
+                          {vehicle.manufacture_year}
+                        </p>
+                      </div>
+                    )}
+                    {vehicle.transmission && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Transmission</p>
+                        <p className="font-semibold text-gray-900">
+                          {vehicle.transmission}
+                        </p>
+                      </div>
+                    )}
+                    {vehicle.engine_capacity && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Engine</p>
+                        <p className="font-semibold text-gray-900">
+                          {vehicle.engine_capacity} CC
+                        </p>
+                      </div>
+                    )}
+                    <div className="col-span-2 mt-2 pt-2 border-t border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-gray-500">
+                          Next Service Due
+                        </p>
+                        <p
+                          className={cn(
+                            "text-xs font-bold px-2 py-0.5 rounded-full",
+                            vehicle.next_service_mileage === 0
+                              ? "bg-blue-50 text-blue-600"
+                              : "bg-red-50 text-red-600",
+                          )}
+                        >
+                          {vehicle.next_service_mileage === 0
+                            ? "Pending Employee Check"
+                            : `${vehicle.next_service_mileage.toLocaleString()} KM`}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

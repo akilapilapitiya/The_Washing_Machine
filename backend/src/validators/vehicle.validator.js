@@ -18,12 +18,33 @@ export const vehicleValidator = {
     vehmileage: Joi.number().integer().min(0).optional().messages({
       "number.min": "Vehicle mileage must be 0 or greater",
     }),
+    fuel_type: Joi.string()
+      .valid("Petrol", "Diesel", "Hybrid", "Electric", "Other")
+      .required(),
+    vehcolor: Joi.string().max(30).trim().optional(),
+    manufacture_year: Joi.number()
+      .integer()
+      .min(1900)
+      .max(new Date().getFullYear())
+      .optional(),
+    transmission: Joi.string().valid("Manual", "Automatic").optional(),
+    engine_capacity: Joi.number().integer().min(0).optional(),
+    next_service_mileage: Joi.number().integer().min(0).optional(),
   }),
 
   updateVehicle: Joi.object({
-    vehmileage: Joi.number().integer().min(0).required().messages({
-      "number.min": "Vehicle mileage must be 0 or greater",
-      "any.required": "Vehicle mileage is required",
-    }),
+    vehmileage: Joi.number().integer().min(0).optional(),
+    fuel_type: Joi.string()
+      .valid("Petrol", "Diesel", "Hybrid", "Electric", "Other")
+      .optional(),
+    vehcolor: Joi.string().max(30).trim().optional(),
+    manufacture_year: Joi.number()
+      .integer()
+      .min(1900)
+      .max(new Date().getFullYear())
+      .optional(),
+    transmission: Joi.string().valid("Manual", "Automatic").optional(),
+    engine_capacity: Joi.number().integer().min(0).optional(),
+    next_service_mileage: Joi.number().integer().min(0).optional(),
   }),
 };
