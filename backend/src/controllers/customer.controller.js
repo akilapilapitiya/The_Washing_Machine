@@ -2,6 +2,7 @@ import {
   getCustomerService,
   getAllCustomersService,
   updateCustomerService,
+  changePasswordService,
   deleteCustomerService,
 } from "../services/customer.service.js";
 import { successResponse } from "../utils/response.util.js";
@@ -88,6 +89,25 @@ export const updateProfilePicture = async (req, res, next) => {
     successResponse(res, 200, "Profile picture updated successfully", {
       customer,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { cusid } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "Old password and new password are required" });
+    }
+
+    await changePasswordService(cusid, oldPassword, newPassword);
+
+    successResponse(res, 200, "Password changed successfully");
   } catch (error) {
     next(error);
   }

@@ -1,6 +1,12 @@
 import pool from "../configs/database.js";
+import bcrypt from "bcryptjs";
 import { assertAtLeastOneField } from "../utils/validation.util.js";
-import { NotFoundError } from "../utils/errors.util.js";
+import {
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "../utils/errors.util.js";
+import { SALT_ROUNDS } from "../configs/env.js";
 
 export const getAllCustomersService = async () => {
   const result = await pool.query(
@@ -107,4 +113,40 @@ export const deleteCustomerService = async (cusid) => {
   if (result.rowCount === 0) {
     throw new NotFoundError("Customer not found");
   }
+};
+
+export const changePasswordService = async (
+  cusid,
+  oldPassword,
+  newPassword,
+) => {
+  // 1. Get current password hash
+  const customerResult = await pool.query(
+    "SELECT password_hash FROM customer WHERE cusid = $1",
+    [cusid],
+  );
+
+  if (customerResult.rowCount === 0) {
+    throw new NotFoundError("Customer not found");
+  }
+
+  const { password_hash } = customerResult.rows[0];
+
+  // 2. Verify old password
+  const isMatch = await bcrypt.compare(oldPassword, password_hash);
+  if (!isMatch) {
+    throw new UnauthorizedError("Incorrect current password");
+  }
+
+  // 3. Hash new password
+  if (newPassword.length < 8) {
+    throw new ValidationError("New password must be at least 8 characters");
+  }
+  const newHash = await bcrypt.hash(newPassword, Number(SALT_ROUNDS));
+
+  // 4. Update password
+  await pool.query(
+    "UPDATE customer SET password_hash = $1, updated_at = NOW() WHERE cusid = $2",
+    [newHash, cusid],
+  );
 };

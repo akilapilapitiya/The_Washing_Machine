@@ -5,6 +5,7 @@ import {
   getCustomer,
   updateCustomer,
   updateProfilePicture,
+  changePassword,
 } from "../controllers/customer.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -28,6 +29,7 @@ customerRouter.patch(
   uploadProfilePicture.single("profile_picture"),
   updateProfilePicture,
 );
+customerRouter.patch("/:cusid/change-password", changePassword);
 customerRouter.delete("/:cusid", deleteCustomer);
 
 export default customerRouter;

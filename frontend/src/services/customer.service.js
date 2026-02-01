@@ -82,3 +82,22 @@ export const updateProfilePicture = async (id, file) => {
     throw error;
   }
 };
+
+/**
+ * Change password
+ * @param {number|string} id - Customer ID
+ * @param {string} oldPassword - Current password
+ * @param {string} newPassword - New password
+ */
+export const changePassword = async (id, oldPassword, newPassword) => {
+  try {
+    const response = await api.patch(`/customer/${id}/change-password`, {
+      oldPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error changing password for customer ${id}:`, error);
+    throw error;
+  }
+};

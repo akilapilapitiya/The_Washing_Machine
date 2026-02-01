@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,13 +18,16 @@ import {
   MapPin,
   ShieldCheck,
   Loader2,
+  Lock,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  getCustomer,
   updateCustomer,
   updateProfilePicture,
   deleteCustomer,
+  changePassword,
 } from "@/services/customer.service";
 import { Camera } from "lucide-react";
 import { IMAGE_BASE_URL } from "@/configs/env";
@@ -41,6 +45,14 @@ const ProfilePage = () => {
     nic: user?.nic || "",
     dob: user?.dob ? user.dob.split("T")[0] : "",
   });
+
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Fetch fresh profile data on mount for customers
   useEffect(() => {
@@ -118,6 +130,43 @@ const ProfilePage = () => {
       toast.error("Failed to upload photo");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await changePassword(
+        user.id,
+        passwordForm.oldPassword,
+        passwordForm.newPassword,
+      );
+      toast.success("Password changed successfully");
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setShowPasswordForm(false);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Failed to change password");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -447,6 +496,133 @@ const ProfilePage = () => {
               <p className="text-xs text-gray-500 italic">
                 This location is used for service pickups and deliveries.
               </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Security Section */}
+        {userType === "customer" && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center justify-between text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-red-600" />
+                  Security
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPasswordForm(!showPasswordForm)}
+                  className="text-gray-500 hover:text-red-600"
+                >
+                  {showPasswordForm ? (
+                    <ChevronUp size={18} />
+                  ) : (
+                    <ChevronDown size={18} />
+                  )}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!showPasswordForm ? (
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
+                      <Lock size={18} className="text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Password
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Change your account password securely.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPasswordForm(true)}
+                  >
+                    Change Password
+                  </Button>
+                </div>
+              ) : (
+                <form
+                  onSubmit={handlePasswordChange}
+                  className="space-y-4 pt-2"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="oldPassword">Current Password</Label>
+                    <Input
+                      id="oldPassword"
+                      name="oldPassword"
+                      type="password"
+                      placeholder="Enter current password"
+                      value={passwordForm.oldPassword}
+                      onChange={handlePasswordInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        name="newPassword"
+                        type="password"
+                        placeholder="Min 8 characters"
+                        value={passwordForm.newPassword}
+                        onChange={handlePasswordInputChange}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="Re-type new password"
+                        value={passwordForm.confirmPassword}
+                        onChange={handlePasswordInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Forgot your password?
+                    </Link>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowPasswordForm(false)}
+                        disabled={isChangingPassword}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700"
+                        disabled={isChangingPassword}
+                      >
+                        {isChangingPassword ? (
+                          <Loader2 className="animate-spin" size={16} />
+                        ) : (
+                          "Update Password"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              )}
             </CardContent>
           </Card>
         )}
