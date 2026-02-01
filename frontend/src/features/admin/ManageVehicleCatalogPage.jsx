@@ -48,7 +48,7 @@ const ManageVehicleCatalogPage = () => {
     try {
       setLoading(true);
       const output = await vehicleCatalogService.getVehicleModels();
-      setModels(output.data || output || []);
+      setModels(Array.isArray(output) ? output : []);
     } catch (err) {
       console.error("Failed to fetch catalog:", err);
       toast.error("Failed to load vehicle catalog", {
