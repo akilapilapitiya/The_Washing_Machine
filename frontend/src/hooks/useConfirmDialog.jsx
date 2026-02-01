@@ -135,10 +135,13 @@ export function useConfirmDialog() {
   const handleCancel = () => {
     setIsOpen(false);
     setIsLoading(false);
-    if (resolver) resolver(false);
+    if (resolver) {
+      resolver(false);
+      setResolver(null); // Clear resolver after use
+    }
   };
 
-  const Dialog = () => {
+  const MemoizedDialog = () => {
     const variantConfig = VARIANTS[config.variant] || VARIANTS.destructive;
     const Icon = variantConfig.icon;
 
@@ -164,11 +167,20 @@ export function useConfirmDialog() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel} disabled={isLoading}>
+            <AlertDialogCancel
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancel();
+              }}
+              disabled={isLoading}
+            >
               {config.cancelText}
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirm}
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirm();
+              }}
               disabled={isLoading}
               className={variantConfig.buttonClass}
             >
@@ -187,5 +199,5 @@ export function useConfirmDialog() {
     );
   };
 
-  return { confirm, Dialog };
+  return { confirm, Dialog: MemoizedDialog };
 }

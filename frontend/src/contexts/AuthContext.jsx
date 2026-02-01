@@ -128,6 +128,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Capture userType BEFORE clearing state for correct redirection
+    const type = userType;
+
     setUser(null);
     setUserType(null);
     setEmptype(null); // Clear emptype on logout
@@ -137,8 +140,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("emptype"); // Remove emptype from localStorage
     localStorage.removeItem("token");
 
-    // Redirect based on user type
-    if (userType === "employee") {
+    // Redirect based on captured user type
+    if (type === "employee") {
       navigate("/employee/login");
     } else {
       navigate("/login");
