@@ -32,14 +32,37 @@ export const getAllCustomers = async (req, res, next) => {
 export const updateCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
-    const { name, email, telephone } = req.body;
+    const {
+      title,
+      firstName,
+      lastName,
+      email,
+      telephone,
+      nic,
+      dob,
+      latitude,
+      longitude,
+      profile_picture_url,
+    } = req.body;
 
     // Map request fields to database field names
     const updates = {
-      cusname: name,
+      title,
+      first_name: firstName,
+      last_name: lastName,
       cusemail: email,
       custel: telephone,
+      nic,
+      dob,
+      latitude,
+      longitude,
+      profile_picture_url,
     };
+
+    // Remove undefined fields to avoid overwriting with null
+    Object.keys(updates).forEach(
+      (key) => updates[key] === undefined && delete updates[key],
+    );
 
     const customer = await updateCustomerService(cusid, updates);
 

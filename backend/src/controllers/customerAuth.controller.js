@@ -61,6 +61,8 @@ export const customerSignIn = async (req, res, next) => {
       last_name: customer.last_name,
       cusemail: customer.cusemail,
       custel: customer.custel,
+      nic: customer.nic,
+      dob: customer.dob,
       latitude: customer.latitude,
       longitude: customer.longitude,
     };

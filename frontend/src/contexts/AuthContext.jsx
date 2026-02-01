@@ -25,7 +25,11 @@ export const AuthProvider = ({ children }) => {
           const raw = JSON.parse(storedUser);
 
           if (storedUserType === "customer") {
-            setUser(raw);
+            const normalized = {
+              ...raw,
+              id: raw.id ?? raw.cusid,
+            };
+            setUser(normalized);
             setUserType("customer");
             setIsAuthenticated(true);
             setLoading(false);
@@ -92,9 +96,16 @@ export const AuthProvider = ({ children }) => {
     if (type === "customer") {
       normalized = {
         id: userData.cusid ?? userData.id,
-        name: userData.cusname ?? userData.name,
+        firstName: userData.first_name ?? userData.firstName,
+        lastName: userData.last_name ?? userData.lastName,
+        name: userData.first_name
+          ? `${userData.first_name} ${userData.last_name}`.trim()
+          : (userData.cusname ?? userData.name),
         email: userData.cusemail ?? userData.email,
         mobile: userData.telephone ?? userData.mobile ?? userData.custel,
+        title: userData.title,
+        nic: userData.nic,
+        dob: userData.dob,
       };
     } else if (type === "employee") {
       // Extract emptype from employee data (check fallback names from API)

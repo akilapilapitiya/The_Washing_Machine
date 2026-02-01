@@ -15,6 +15,21 @@ export const getCustomers = async () => {
 };
 
 /**
+ * Get a single customer by ID
+ * @param {number|string} id - Customer ID
+ * @returns {Promise<Object>} - Customer data
+ */
+export const getCustomer = async (id) => {
+  try {
+    const response = await api.get(`/customer/${id}`);
+    return response.data?.data?.customer;
+  } catch (error) {
+    console.error(`Error fetching customer ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Update a customer
  * @param {number|string} id - Customer ID
  * @param {Object} updates - Updated customer data

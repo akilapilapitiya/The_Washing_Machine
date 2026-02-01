@@ -98,9 +98,10 @@ export const updateCustomerService = async (cusid, updates) => {
 };
 
 export const deleteCustomerService = async (cusid) => {
-  const result = await pool.query(`DELETE FROM customer WHERE cusid = $1`, [
-    cusid,
-  ]);
+  const result = await pool.query(
+    `UPDATE customer SET is_active = false, updated_at = NOW() WHERE cusid = $1`,
+    [cusid],
+  );
 
   if (result.rowCount === 0) {
     throw new NotFoundError("Customer not found");

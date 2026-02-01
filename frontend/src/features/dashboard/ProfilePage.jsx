@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,75 +14,146 @@ import {
   CheckCircle,
   Edit,
   X,
+  MapPin,
+  ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { updateCustomer } from "@/services/customer.service";
+import {
+  getCustomer,
+  updateCustomer,
+  deleteCustomer,
+} from "@/services/customer.service";
 import { updateEmployee } from "@/services/employee.service";
 
 const ProfilePage = () => {
-  const { user, updateUser, userType } = useAuth();
+  const { user, updateUser, userType, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    title: user?.title || "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
     mobile: user?.mobile || "",
+    nic: user?.nic || "",
+    dob: user?.dob ? user.dob.split("T")[0] : "",
   });
-  React.useEffect(() => {
-    setFormData({
-      name: user?.name || "",
-      mobile: user?.mobile || "",
-    });
-  }, [user]);
-  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Fetch fresh profile data on mount for customers
+  useEffect(() => {
+    const fetchFreshData = async () => {
+      if (userType === "customer" && user?.id) {
+        setIsLoading(true);
+        try {
+          console.log("Fetching fresh profile for user ID:", user.id);
+          const profile = await getCustomer(user.id);
+          console.log("Raw profile data from backend:", profile);
+
+          if (!profile) return;
+
+          const normalized = {
+            ...user,
+            id: profile.cusid,
+            title: profile.title,
+            firstName: profile.first_name,
+            lastName: profile.last_name,
+            name: `${profile.first_name || ""} ${profile.last_name || ""}`.trim(),
+            mobile: profile.custel,
+            nic: profile.nic,
+            dob: profile.dob,
+            email: profile.cusemail,
+            latitude: profile.latitude,
+            longitude: profile.longitude,
+          };
+
+          console.log("Normalized user data for state:", normalized);
+          updateUser(normalized);
+
+          setFormData({
+            title: profile.title || "",
+            firstName: profile.first_name || "",
+            lastName: profile.last_name || "",
+            mobile: profile.custel || "",
+            nic: profile.nic || "",
+            dob: profile.dob ? profile.dob.split("T")[0] : "",
+          });
+        } catch (error) {
+          console.error("Failed to refresh profile:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchFreshData();
+  }, [user?.id, userType]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate mobile number format (basic validation)
-    if (formData.mobile && !formData.mobile.match(/^[+]?[\d\s()-]+$/)) {
-      toast.error("Please enter a valid mobile number");
-      return;
-    }
-    // TODO: API call to update profile in backend
-    const updateProfile = async () => {
-      try {
-        if (userType === "customer") {
-          await updateCustomer(user.id, {
-            cusname: formData.name,
-            custel: formData.mobile,
-          });
-        } else if (userType === "employee") {
-          await updateEmployee(user.id, {
-            empname: formData.name,
-            emptel: formData.mobile,
-          });
-        }
-
-        updateUser({ name: formData.name, mobile: formData.mobile });
-        setIsEditing(false);
-        setShowSuccess(true);
-        toast.success("Profile updated successfully");
-        setTimeout(() => setShowSuccess(false), 3000);
-      } catch (error) {
-        console.error("Failed to update profile:", error);
-        toast.error("Failed to update profile. Please try again.");
+    setIsLoading(true);
+    try {
+      if (userType === "customer") {
+        const updatedProfile = await updateCustomer(user.id, {
+          telephone: formData.mobile,
+        });
+        updateUser({
+          ...user,
+          mobile: updatedProfile.custel,
+        });
+      } else {
+        await updateEmployee(user.id, {
+          emptel: formData.mobile,
+        });
+        updateUser({
+          ...user,
+          mobile: formData.mobile,
+        });
       }
-    };
-
-    updateProfile();
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Update failed:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    setFormData({ name: user.name, mobile: user.mobile });
+    setFormData({
+      title: user?.title || "",
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      mobile: user?.mobile || "",
+      nic: user?.nic || "",
+      dob: user?.dob ? user.dob.split("T")[0] : "",
+    });
     setIsEditing(false);
   };
 
+  const handleDeleteAccount = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete your account? This action cannot be undone.",
+      )
+    ) {
+      try {
+        await deleteCustomer(user.id);
+        toast.success("Account deleted successfully");
+        logout();
+      } catch (error) {
+        toast.error("Failed to delete account");
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4 space-y-8">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Account Settings
@@ -92,15 +163,6 @@ const ProfilePage = () => {
             View and manage your account information.
           </p>
         </div>
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">
-              Profile updated successfully!
-            </p>
-          </div>
-        )}
 
         <div className="grid gap-6 md:grid-cols-3">
           {/* Profile Card */}
@@ -116,103 +178,78 @@ const ProfilePage = () => {
                 <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-red-200">
                   <User size={48} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold">{user?.name}</h3>
+                <h3 className="text-xl font-bold">
+                  {user?.title} {user?.name}
+                </h3>
                 <p className="text-sm text-gray-500">{user?.email}</p>
                 <span className="mt-3 px-3 py-1 bg-red-50 text-red-700 text-[10px] font-black uppercase tracking-widest border border-red-100 rounded-full">
                   {userType === "employee" ? "Employee" : "Customer"}
                 </span>
               </div>
-
-              <div className="border-t pt-4 space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar size={16} className="text-gray-400" />
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-gray-400">
-                      Joined
-                    </p>
-                    <p className="font-semibold text-gray-700">
-                      {user.joinDate}
-                    </p>
-                  </div>
-                </div>
-                {user?.accountType && userType === "customer" && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Briefcase size={16} className="text-gray-400" />
-                    <div>
-                      <p className="text-[10px] uppercase font-bold text-gray-400">
-                        Account Type
-                      </p>
-                      <p className="font-semibold text-gray-700">
-                        {user.accountType}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
 
-          {/* Profile Information Card */}
+          {/* Basic Info Card */}
           <Card className="md:col-span-2 shadow-sm">
-            <CardHeader className="border-b bg-gray-50/50">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                  <User size={18} className="text-red-600" />
-                  Basic Information
-                </CardTitle>
-                {!isEditing && (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs font-bold"
-                  >
-                    <Edit size={14} className="mr-1" />
-                    Edit
-                  </Button>
-                )}
-              </div>
+            <CardHeader className="border-b flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <ShieldCheck size={18} className="text-red-600" />
+                Basic Information
+              </CardTitle>
+              {!isEditing && (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                >
+                  <Edit size={14} className="mr-1" /> Edit
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="p-6">
               {!isEditing ? (
-                <div className="space-y-6">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs font-bold uppercase text-gray-400">
-                        Full Name
-                      </Label>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
-                        <User size={16} className="text-gray-400" />
-                        <span className="font-semibold text-gray-700">
-                          {user?.name}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs font-bold uppercase text-gray-400">
-                        Mobile Number
-                      </Label>
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
-                        <Phone size={16} className="text-gray-400" />
-                        <span className="font-semibold text-gray-700">
-                          {user?.mobile}
-                        </span>
-                      </div>
-                    </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold uppercase text-gray-400">
+                      Full Name
+                    </Label>
+                    <p className="font-semibold text-gray-700 p-3 bg-gray-50 rounded-lg border">
+                      {user?.title} {user?.name}
+                    </p>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs font-bold uppercase text-gray-400">
+                      Mobile Number
+                    </Label>
+                    <p className="font-semibold text-gray-700 p-3 bg-gray-50 rounded-lg border">
+                      {user?.mobile}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold uppercase text-gray-400">
+                      NIC
+                    </Label>
+                    <p className="font-semibold text-gray-700 p-3 bg-gray-50 rounded-lg border">
+                      {user?.nic || "Not provided"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold uppercase text-gray-400">
+                      Date of Birth
+                    </Label>
+                    <p className="font-semibold text-gray-700 p-3 bg-gray-50 rounded-lg border">
+                      {user?.dob
+                        ? new Date(user.dob).toLocaleDateString()
+                        : "Not provided"}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <Label className="text-xs font-bold uppercase text-gray-400">
                       Email Address
                     </Label>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
-                      <Mail size={16} className="text-gray-400" />
-                      <span className="font-semibold text-gray-700">
-                        {user?.email}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-gray-400 mt-1 italic font-medium">
-                      Note: Email address is used for authentication and cannot
-                      be modified.
+                    <p className="font-semibold text-gray-700 p-3 bg-gray-50 rounded-lg border">
+                      {user?.email}
                     </p>
                   </div>
                 </div>
@@ -220,48 +257,75 @@ const ProfilePage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium">
-                        Full Name
-                      </Label>
+                      <Label>Title</Label>
                       <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
+                        value={formData.title}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mobile Number</Label>
+                      <Input
+                        name="mobile"
+                        value={formData.mobile}
                         onChange={handleInputChange}
-                        placeholder="Enter your full name"
-                        className="focus:ring-red-500"
+                        placeholder="0771234567"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="mobile" className="text-sm font-medium">
-                        Mobile Number
-                      </Label>
+                      <Label>First Name</Label>
                       <Input
-                        id="mobile"
-                        name="mobile"
-                        value={formData.mobile}
-                        onChange={handleInputChange}
-                        placeholder="+94 77 123 4567"
-                        className="focus:ring-red-500"
-                        required
+                        value={formData.firstName}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name</Label>
+                      <Input
+                        value={formData.lastName}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>NIC</Label>
+                      <Input
+                        value={formData.nic}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Date of Birth</Label>
+                      <Input
+                        type="date"
+                        value={formData.dob}
+                        disabled
+                        className="bg-gray-100"
                       />
                     </div>
                   </div>
-                  <div className="flex gap-3 justify-end pt-6 border-t">
+                  <div className="flex justify-end gap-3">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleCancel}
-                      className="h-10 text-sm"
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
-                      className="h-10 text-sm bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700"
+                      disabled={isLoading}
                     >
-                      Save Changes
+                      {isLoading ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : (
+                        "Save Changes"
+                      )}
                     </Button>
                   </div>
                 </form>
@@ -270,40 +334,59 @@ const ProfilePage = () => {
           </Card>
         </div>
 
-        {/* Account Security */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-              Account Security
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center border text-gray-400">
-                  <CheckCircle size={20} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-700">Login Password</h4>
-                  <p className="text-xs text-gray-500">
-                    Maintain a strong password to secure your mission-critical
-                    data.
-                  </p>
-                </div>
+        {/* Mock Map Section */}
+        {userType === "customer" && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
+                <MapPin size={18} className="text-red-600" />
+                Service Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg overflow-hidden border h-[300px] bg-gray-100">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.58290458633!2d79.786164!3d6.927079!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a70ad%3A0x2db30c0635313b24!2sColombo!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  className="grayscale opacity-70"
+                ></iframe>
+              </div>
+              <p className="text-xs text-gray-500 italic">
+                This location is used for service pickups and deliveries.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Danger Zone */}
+        {userType === "customer" && (
+          <Card className="shadow-sm border-red-100">
+            <CardHeader className="bg-red-50 pb-2">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-red-600">
+                Danger Zone
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-gray-700">Delete Account</p>
+                <p className="text-xs text-gray-500">
+                  Permanently deactivate your laundry project account.
+                </p>
               </div>
               <Button
-                variant="outline"
+                variant="destructive"
                 size="sm"
-                className="font-bold border-gray-300"
-                onClick={() =>
-                  (window.location.href = "/dashboard/change-password")
-                }
+                onClick={handleDeleteAccount}
               >
-                Update
+                Delete Account
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

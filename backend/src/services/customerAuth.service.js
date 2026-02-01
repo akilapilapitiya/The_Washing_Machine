@@ -69,7 +69,7 @@ export const signUp = async ({
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT cusid, title, first_name, last_name, cusemail, custel, latitude, longitude, password_hash FROM customer WHERE cusemail = $1",
+    "SELECT cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, password_hash FROM customer WHERE cusemail = $1",
     [email],
   );
 
@@ -90,6 +90,8 @@ export const signIn = async ({ email, password }) => {
     last_name: row.last_name,
     cusemail: row.cusemail,
     custel: row.custel,
+    nic: row.nic,
+    dob: row.dob,
     latitude: row.latitude,
     longitude: row.longitude,
   };
