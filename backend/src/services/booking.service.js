@@ -30,7 +30,10 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         b.vehid,
         b.totalprice,
         v.cusid,
-        c.cusname,
+        c.title,
+        c.first_name,
+        c.last_name,
+        TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
         c.custel as cusphone,
         c.cusemail,
         v.vehbrand,
@@ -87,7 +90,9 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       b.vehid, 
       b.totalprice,
       v.cusid,
-      c.cusname,
+      c.title,
+      c.first_name,
+      c.last_name,
       c.custel,
       c.cusemail,
       v.vehbrand,
@@ -127,7 +132,10 @@ export const getBookingService = async (
       b.totalprice as bookingtotalprice,
       v.cusid,
       v.vehmileage,
-      c.cusname,
+      c.title,
+      c.first_name,
+      c.last_name,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
       c.custel as cusphone,
       c.cusemail,
       v.vehbrand,
@@ -143,7 +151,7 @@ export const getBookingService = async (
     LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
     LEFT JOIN employee e ON ea.empid = e.empid
     WHERE b.bookingid = $1
-    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.empname
+    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.empname, c.title, c.first_name, c.last_name
     `,
     [bookingId],
   );

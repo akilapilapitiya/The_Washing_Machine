@@ -50,9 +50,19 @@ Customer:
     cusid:
       type: integer
       example: 1
+    title:
+      type: string
+      example: "Mr."
+    first_name:
+      type: string
+      example: "Jane"
+    last_name:
+      type: string
+      example: "Doe"
     cusname:
       type: string
-      example: Jane Doe
+      description: Derived full name
+      example: "Mr. Jane Doe"
     cusemail:
       type: string
       format: email
@@ -60,6 +70,24 @@ Customer:
     custel:
       type: string
       example: "0771234567"
+    nic:
+      type: string
+      example: "199012345678"
+    dob:
+      type: string
+      format: date
+      example: "1990-01-01"
+    latitude:
+      type: number
+      format: float
+      example: 6.9271
+    longitude:
+      type: number
+      format: float
+      example: 79.8612
+    profile_picture_url:
+      type: string
+      example: "https://example.com/profile.jpg"
 
 Employee:
   type: object

@@ -96,7 +96,7 @@ export const getAllFeedbacksService = async () => {
     `
     SELECT 
       f.*,
-      c.cusname,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
       e.empname as assigned_employee,
       b.bookingdate
     FROM feedback f

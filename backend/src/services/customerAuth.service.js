@@ -17,7 +17,16 @@ import {
 import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
-export const signUp = async ({ name, email, password, telephone }) => {
+export const signUp = async ({
+  title,
+  firstName,
+  lastName,
+  email,
+  password,
+  telephone,
+  latitude,
+  longitude,
+}) => {
   const existing = await pool.query(
     "SELECT cusid FROM customer WHERE cusemail = $1",
     [email],
@@ -35,11 +44,20 @@ export const signUp = async ({ name, email, password, telephone }) => {
 
   const result = await pool.query(
     `
-    INSERT INTO customer (cusname, cusemail, custel, password_hash)
-    VALUES ($1, $2, $3, $4)
-    RETURNING cusid, cusname, cusemail, custel
+    INSERT INTO customer (title, first_name, last_name, cusemail, custel, password_hash, latitude, longitude)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING cusid, title, first_name, last_name, cusemail, custel, latitude, longitude
     `,
-    [name, email, telephone, passwordHash],
+    [
+      title,
+      firstName,
+      lastName,
+      email,
+      telephone,
+      passwordHash,
+      latitude,
+      longitude,
+    ],
   );
 
   const customer = result.rows[0];
@@ -51,7 +69,7 @@ export const signUp = async ({ name, email, password, telephone }) => {
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT cusid, cusname, cusemail, custel, password_hash FROM customer WHERE cusemail = $1",
+    "SELECT cusid, title, first_name, last_name, cusemail, custel, latitude, longitude, password_hash FROM customer WHERE cusemail = $1",
     [email],
   );
 
@@ -67,9 +85,13 @@ export const signIn = async ({ email, password }) => {
 
   const customer = {
     cusid: row.cusid,
-    cusname: row.cusname,
+    title: row.title,
+    first_name: row.first_name,
+    last_name: row.last_name,
     cusemail: row.cusemail,
     custel: row.custel,
+    latitude: row.latitude,
+    longitude: row.longitude,
   };
   const token = generateToken(row.cusid, "customer");
   return { customer, token };

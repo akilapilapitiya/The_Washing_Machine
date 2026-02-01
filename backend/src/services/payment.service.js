@@ -18,7 +18,10 @@ export const getAllPaymentsService = async () => {
       p.bookingid, 
       p.created_at, 
       p.updated_at,
-      c.cusname,
+      c.title,
+      c.first_name,
+      c.last_name,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
       c.custel,
       v.vehbrand,
       v.vehmodel,
@@ -30,7 +33,7 @@ export const getAllPaymentsService = async () => {
     JOIN customer c ON v.cusid = c.cusid
     LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
     LEFT JOIN service s ON sb.serviceid = s.serviceid
-    GROUP BY p.paymentid, c.cusname, c.custel, v.vehbrand, v.vehmodel, v.vehplate
+    GROUP BY p.paymentid, c.title, c.first_name, c.last_name, c.custel, v.vehbrand, v.vehmodel, v.vehplate
     ORDER BY p.created_at DESC
     `,
   );
