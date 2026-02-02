@@ -155,6 +155,26 @@ Vehicle:
     vehmileage:
       type: number
       example: 12000
+    fuel_type:
+      type: string
+      enum: [Petrol, Diesel, Hybrid, Electric, Other]
+      example: Hybrid
+    vehcolor:
+      type: string
+      example: "#3b82f6"
+    manufacture_year:
+      type: integer
+      example: 2018
+    transmission:
+      type: string
+      enum: [Manual, Automatic]
+      example: Automatic
+    engine_capacity:
+      type: integer
+      example: 1800
+    next_service_mileage:
+      type: integer
+      example: 15000
 
 Service:
   type: object

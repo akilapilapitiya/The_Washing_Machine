@@ -77,7 +77,17 @@ const BookingCard = ({ booking, onManage }) => {
     totalPrice > 0 ? `Rs. ${Number(totalPrice).toLocaleString()}` : "---";
 
   return (
-    <Card className="hover:shadow-md transition-shadow relative">
+    <Card className="hover:shadow-md transition-shadow relative overflow-hidden">
+      {/* Decorative Color Ribbon */}
+      {booking.vehcolor && (
+        <div
+          className="absolute top-0 right-0 w-10 h-10 pointer-events-none z-10"
+          style={{
+            background: `linear-gradient(225deg, ${booking.vehcolor} 50%, transparent 50%)`,
+            opacity: 0.8,
+          }}
+        />
+      )}
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>

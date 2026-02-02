@@ -97,6 +97,10 @@ const BookingPage = () => {
                     make: vehicle.vehbrand,
                     model: vehicle.vehmodel,
                     plate: vehicle.vehplate,
+                    fuel_type: vehicle.fuel_type,
+                    year: vehicle.manufacture_year,
+                    transmission: vehicle.transmission,
+                    vehcolor: vehicle.vehcolor,
                   }}
                   selected={vehicle.id === selectedVehicleId}
                   onSelect={setSelectedVehicleId}

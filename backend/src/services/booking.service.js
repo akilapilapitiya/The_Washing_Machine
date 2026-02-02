@@ -39,6 +39,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         v.vehbrand,
         v.vehmodel,
         v.vehplate,
+        v.vehcolor,
         COALESCE(
           json_agg(
             json_build_object(
@@ -98,6 +99,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
+      v.vehcolor,
       v.id,
       ea.empid,
       e.empname,
@@ -141,6 +143,7 @@ export const getBookingService = async (
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
+      v.vehcolor,
       e.empname,
       json_agg(json_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
     FROM booking b

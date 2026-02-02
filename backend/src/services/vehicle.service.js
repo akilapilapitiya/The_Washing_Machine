@@ -16,13 +16,17 @@ export const createVehicleService = async ({
   vehmileage,
   vehbrand,
   vehmodel,
+  fuel_type,
+  vehcolor,
+  manufacture_year,
+  transmission,
+  engine_capacity,
+  next_service_mileage,
 }) => {
-  assertRequiredFields({ customerId, vehplate, vehbrand, vehmodel }, [
-    "customerId",
-    "vehplate",
-    "vehbrand",
-    "vehmodel",
-  ]);
+  assertRequiredFields(
+    { customerId, vehplate, vehbrand, vehmodel, fuel_type },
+    ["customerId", "vehplate", "vehbrand", "vehmodel", "fuel_type"],
+  );
   assertNonNegativeNumber(vehmileage, "vehmileage");
 
   // Check if customer already has this plate number
@@ -39,11 +43,28 @@ export const createVehicleService = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO vehicle (vehplate, vehmileage, vehbrand, vehmodel, cusid)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+    INSERT INTO vehicle (
+      vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+      fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+              fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+              created_at, updated_at
     `,
-    [vehplate, vehmileage || 0, vehbrand, vehmodel, customerId],
+    [
+      vehplate,
+      vehmileage || 0,
+      vehbrand,
+      vehmodel,
+      customerId,
+      fuel_type,
+      vehcolor || null,
+      manufacture_year || null,
+      transmission || null,
+      engine_capacity || null,
+      next_service_mileage || 0,
+    ],
   );
 
   return result.rows[0];
@@ -53,7 +74,9 @@ export const createVehicleService = async ({
 export const getCustomerVehiclesService = async (customerId) => {
   const result = await pool.query(
     `
-    SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+    SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+           fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+           created_at, updated_at
     FROM vehicle
     WHERE cusid = $1
     ORDER BY created_at DESC
@@ -77,7 +100,9 @@ export const getAllVehiclesByRoleService = async (
   if (userRole === "customer") {
     const result = await pool.query(
       `
-      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+             fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+             created_at, updated_at
       FROM vehicle
       WHERE cusid = $1
       ORDER BY created_at DESC
@@ -91,7 +116,9 @@ export const getAllVehiclesByRoleService = async (
   if (effectiveRole === "manager" || effectiveRole === "owner") {
     const result = await pool.query(
       `
-      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+             fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+             created_at, updated_at
       FROM vehicle
       ORDER BY created_at DESC
       `,
@@ -107,7 +134,9 @@ export const getAllVehiclesByRoleService = async (
 export const getVehicleService = async (id, userId, userRole, userEmptype) => {
   const result = await pool.query(
     `
-    SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+    SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+           fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+           created_at, updated_at
     FROM vehicle
     WHERE id = $1
     `,
@@ -139,16 +168,8 @@ export const getVehicleService = async (id, userId, userRole, userEmptype) => {
   return vehicle;
 };
 
-// Update a vehicle mileage (employees only)
-export const updateVehicleService = async (id, vehmileage) => {
-  if (vehmileage === undefined || vehmileage === null) {
-    throw new ValidationError("Mileage is required");
-  }
-
-  if (vehmileage < 0) {
-    throw new ValidationError("Mileage cannot be negative");
-  }
-
+// Update a vehicle (employees only or specific updates)
+export const updateVehicleService = async (id, updates) => {
   const vehicleCheck = await pool.query(
     "SELECT id FROM vehicle WHERE id = $1",
     [id],
@@ -158,16 +179,32 @@ export const updateVehicleService = async (id, vehmileage) => {
     throw new NotFoundError("Vehicle not found");
   }
 
-  const result = await pool.query(
-    `
+  // Filter out undefined values
+  const fields = Object.entries(updates)
+    .filter(([_, value]) => value !== undefined)
+    .map(([key, _]) => key);
+
+  if (fields.length === 0) {
+    throw new ValidationError("No fields to update");
+  }
+
+  const setClause = fields
+    .map((field, index) => `${field} = $${index + 1}`)
+    .join(", ");
+  const values = fields.map((field) => updates[field]);
+  values.push(id);
+
+  const query = `
     UPDATE vehicle
-    SET vehmileage = $1,
+    SET ${setClause},
         updated_at = NOW()
-    WHERE id = $2
-    RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
-    `,
-    [vehmileage, id],
-  );
+    WHERE id = $${values.length}
+    RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+              fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+              created_at, updated_at
+  `;
+
+  const result = await pool.query(query, values);
 
   return result.rows[0];
 };
