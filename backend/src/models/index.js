@@ -1,6 +1,7 @@
 import createBookingTable from "./booking.model.js";
 import createCustomerTable from "./customer.model.js";
 import createEmployeeTable from "./employee.model.js";
+import createEmployeeDependentTable from "./employeeDependent.model.js";
 import createEmployeeAssignedTable from "./employeeAssigned.model.js";
 import createEmployeeLeaveTable from "./employeeLeave.model.js";
 import createEmployeePreferenceTable from "./employeePreference.model.js";
@@ -24,6 +25,7 @@ const initModels = async (pool) => {
     await createCustomerTable(pool);
     await createRoleTable(pool);
     await createEmployeeTable(pool);
+    await createEmployeeDependentTable(pool);
     await createVehicleCatalogTable(pool); // Before vehicle table for potential references
     await createVehicleTable(pool);
     await createServiceTable(pool);
