@@ -100,7 +100,9 @@ export const getAllVehiclesByRoleService = async (
   if (userRole === "customer") {
     const result = await pool.query(
       `
-      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+             fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+             created_at, updated_at
       FROM vehicle
       WHERE cusid = $1
       ORDER BY created_at DESC
@@ -114,7 +116,9 @@ export const getAllVehiclesByRoleService = async (
   if (effectiveRole === "manager" || effectiveRole === "owner") {
     const result = await pool.query(
       `
-      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, created_at, updated_at
+      SELECT id, vehplate, vehmileage, vehbrand, vehmodel, cusid, 
+             fuel_type, vehcolor, manufacture_year, transmission, engine_capacity, next_service_mileage,
+             created_at, updated_at
       FROM vehicle
       ORDER BY created_at DESC
       `,
