@@ -34,7 +34,6 @@ const ManageCustomersPage = () => {
       setLoading(true);
       const data = await getCustomers();
       setCustomers(data);
-      toast.error(null);
     } catch (err) {
       console.error("Error fetching customers:", err);
       toast.error("Failed to load customers. Please try again.");

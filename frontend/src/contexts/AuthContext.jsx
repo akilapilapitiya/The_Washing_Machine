@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
                   mobile: emp.emptel,
                   emptype: emp.emptype || emp.rolename || emp.role,
                   isAdmin: !!emp.is_admin || !!emp.isAdmin,
+                  profile_picture_url: emp.profile_picture_url,
                 };
                 setUser(updated);
                 setUserType("employee");
@@ -120,6 +121,7 @@ export const AuthProvider = ({ children }) => {
         emptype: employeeType, // Store emptype in user object
         isAdmin:
           !!userData.is_admin || !!userData.isAdmin || employeeType === "owner",
+        profile_picture_url: userData.profile_picture_url,
       };
     }
 

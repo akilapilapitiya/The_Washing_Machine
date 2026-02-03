@@ -52,6 +52,7 @@ export const employeeSignIn = async (req, res, next) => {
       emptel: employee.emptel,
       role: employee.role,
       emptype: employee.emptype,
+      profile_picture_url: employee.profile_picture_url,
     };
 
     res.cookie("jwt", token, {

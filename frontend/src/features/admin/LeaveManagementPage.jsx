@@ -54,7 +54,6 @@ const LeaveManagementPage = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      toast.error(null);
       await schedulerService.recordLeave(formData);
       toast.success("Leave deployment finalized successfully.");
       setFormData({ empid: "", startDate: "", endDate: "", reason: "" });

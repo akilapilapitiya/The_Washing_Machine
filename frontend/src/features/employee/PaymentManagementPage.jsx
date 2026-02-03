@@ -187,7 +187,6 @@ const PaymentManagementPage = () => {
       );
       setPendingBookings(pending);
       setCompletedPayments(paymentsData);
-      toast.error(null);
     } catch (err) {
       console.error("Error fetching payment data:", err);
       toast.error(

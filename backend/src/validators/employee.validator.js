@@ -2,11 +2,23 @@ import Joi from "joi";
 
 export const employeeValidator = {
   createEmployee: Joi.object({
-    name: Joi.string().min(1).max(100).trim().required().messages({
-      "string.empty": "Employee name cannot be empty",
-      "string.max": "Employee name must not exceed 100 characters",
-      "any.required": "Employee name is required",
+    first_name: Joi.string().min(1).max(100).trim().required().messages({
+      "string.empty": "First name cannot be empty",
+      "any.required": "First name is required",
     }),
+    last_name: Joi.string().min(1).max(100).trim().required().messages({
+      "string.empty": "Last name cannot be empty",
+      "any.required": "Last name is required",
+    }),
+    name_with_initials: Joi.string()
+      .min(1)
+      .max(100)
+      .trim()
+      .required()
+      .messages({
+        "string.empty": "Name with initials cannot be empty",
+        "any.required": "Name with initials is required",
+      }),
     email: Joi.string().email().required().messages({
       "string.email": "Must be a valid email address",
       "any.required": "Email is required",
@@ -18,8 +30,8 @@ export const employeeValidator = {
         "string.pattern.base": "Phone number must be exactly 10 digits",
         "any.required": "Phone number is required",
       }),
-    password: Joi.string().min(6).required().messages({
-      "string.min": "Password must be at least 6 characters",
+    password: Joi.string().min(8).required().messages({
+      "string.min": "Password must be at least 8 characters",
       "any.required": "Password is required",
     }),
     type: Joi.string().max(100).required().messages({
@@ -28,19 +40,26 @@ export const employeeValidator = {
     nic: Joi.string().required().messages({
       "any.required": "NIC is required",
     }),
+    address_number: Joi.string().max(20).trim().optional(),
+    address_line1: Joi.string().max(100).trim().optional(),
+    address_line2: Joi.string().max(100).trim().optional(),
+    dob: Joi.date().iso().optional(),
+    speciality: Joi.string().max(100).trim().optional(),
   }),
 
   updateEmployee: Joi.object({
-    name: Joi.string().min(1).max(100).trim(),
-    email: Joi.string().email().messages({
-      "string.email": "Must be a valid email address",
-    }),
-    telephone: Joi.string()
-      .regex(/^[0-9]{10}$/)
-      .messages({
-        "string.pattern.base": "Phone number must be exactly 10 digits",
-      }),
+    first_name: Joi.string().min(1).max(100).trim(),
+    last_name: Joi.string().min(1).max(100).trim(),
+    name_with_initials: Joi.string().min(1).max(100).trim(),
+    email: Joi.string().email(),
+    telephone: Joi.string().regex(/^[0-9]{10}$/),
     type: Joi.string().max(100),
+    nic: Joi.string(),
+    address_number: Joi.string().max(20).trim(),
+    address_line1: Joi.string().max(100).trim(),
+    address_line2: Joi.string().max(100).trim(),
+    dob: Joi.date().iso(),
+    speciality: Joi.string().max(100).trim(),
   }).min(1),
 
   loginEmployee: Joi.object({

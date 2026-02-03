@@ -21,7 +21,6 @@ const ViewFeedbackPage = () => {
         setLoading(true);
         const data = await getAllFeedbacks();
         setFeedbacks(data);
-        toast.error(null);
       } catch (err) {
         console.error("Error fetching feedbacks:", err);
         toast.error("Failed to load feedback records. Please try again.");

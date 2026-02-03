@@ -150,7 +150,6 @@ const AllBookingsPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      toast.error(null);
       const data = await bookingService.getBookings();
       setServices(data || []);
     } catch (err) {

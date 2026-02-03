@@ -100,7 +100,6 @@ const EmployeeManagementPage = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      toast.error(null);
       const data = await employeeService.getEmployees();
       setEmployees(data);
     } catch (err) {
@@ -123,7 +122,6 @@ const EmployeeManagementPage = () => {
 
     try {
       setSubmitting(true);
-      toast.error(null);
       await employeeService.addEmployee({
         ...newEmployee,
         password: "Employee@123",
@@ -159,7 +157,6 @@ const EmployeeManagementPage = () => {
 
     try {
       setSubmitting(true);
-      toast.error(null);
       await employeeService.updateEmployee(selectedEmployee.empid, {
         type: newRole,
       });

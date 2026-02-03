@@ -12,7 +12,8 @@ const createEmployeeDependentTable = async (pool) => {
       CONSTRAINT fk_dependent_employee
         FOREIGN KEY (empid)
         REFERENCES employee(empid)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+      CONSTRAINT unique_emp_dependent UNIQUE (empid, name)
     );
 
     -- Seed owner dependent if employee exists

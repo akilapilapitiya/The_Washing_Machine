@@ -49,7 +49,6 @@ const ManageServicesPage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      toast.error(null);
       const data = await serviceService.getServices();
       setServices(data);
     } catch (err) {
