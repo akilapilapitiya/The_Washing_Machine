@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ServiceCard from "./ServiceCard";
+import ServiceDetailsModal from "./ServiceDetailsModal";
 import * as serviceService from "@/services/service.service";
 
 import { toast } from "sonner";
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedService, setSelectedService] = useState(null);
 
   useEffect(() => {
     fetchServices();
@@ -59,11 +61,22 @@ const ServicesPage = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
-              <ServiceCard key={service.serviceid} service={service} />
+              <ServiceCard
+                key={service.serviceid}
+                service={service}
+                onReadMore={setSelectedService}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {selectedService && (
+        <ServiceDetailsModal
+          service={selectedService}
+          onClose={() => setSelectedService(null)}
+        />
+      )}
     </div>
   );
 };
