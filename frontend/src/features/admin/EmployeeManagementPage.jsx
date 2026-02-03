@@ -18,10 +18,17 @@ import {
   Briefcase,
   Loader2,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  Award,
+  MapPin,
+  HeartPulse,
 } from "lucide-react";
 import * as employeeService from "@/services/employee.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { IMAGE_BASE_URL } from "@/configs/env";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -36,6 +43,11 @@ const levelColors = {
     bg: "bg-purple-50",
     text: "text-purple-700",
     border: "border-purple-200",
+  },
+  manager: {
+    bg: "bg-orange-50",
+    text: "text-orange-700",
+    border: "border-orange-200",
   },
   employee: {
     bg: "bg-blue-50",
@@ -70,6 +82,7 @@ const EmployeeManagementPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPromoteForm, setShowPromoteForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
   const [newRole, setNewRole] = useState("");
   const [newEmployee, setNewEmployee] = useState({
     first_name: "",
@@ -350,81 +363,354 @@ const EmployeeManagementPage = () => {
               </p>
             </div>
           ) : employees.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {employees.map((employee) => (
-                <Card
-                  key={employee.empid}
-                  className="group hover:shadow-md transition-all border-gray-200 h-full flex flex-col"
-                >
-                  <CardHeader className="pb-3 border-b border-gray-50 bg-white pt-5 px-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-base font-bold text-gray-900">
-                          {employee.empname}
-                        </CardTitle>
-                        <div className="mt-1.5 flex flex-wrap gap-2">
-                          <LevelBadge level={employee.emptype} roles={roles} />
-                          <span className="text-[10px] text-gray-400 font-medium px-2 py-0.5 bg-gray-50 rounded border border-gray-100 flex items-center">
-                            ID: {employee.empid}
-                          </span>
+            <>
+              <Card className="overflow-hidden border-gray-200 shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                          Employee & ID
+                        </th>
+                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                          Contact Details
+                        </th>
+                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                          Rank & Role
+                        </th>
+                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                          Joined Date
+                        </th>
+                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
+                      {employees.map((employee) => (
+                        <tr
+                          key={employee.empid}
+                          className="hover:bg-gray-50/50 transition-colors group"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="relative shrink-0">
+                                {employee.profile_picture_url ? (
+                                  <img
+                                    src={`${IMAGE_BASE_URL}${employee.profile_picture_url}`}
+                                    alt={employee.empname}
+                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold border-2 border-white shadow-sm text-xs">
+                                    {employee.first_name?.[0]}
+                                    {employee.last_name?.[0]}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900">
+                                  {employee.empname}
+                                </p>
+                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+                                  ID: #{employee.empid}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-2 text-xs font-semibold">
+                                <Mail size={12} className="text-gray-400" />
+                                <span>{employee.email}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+                                <Phone size={12} className="text-gray-400" />
+                                <span>{employee.emptel}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <LevelBadge
+                              level={employee.emptype}
+                              roles={roles}
+                            />
+                          </td>
+                          <td className="px-6 py-4 text-xs font-bold text-gray-500">
+                            {new Date(employee.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                onClick={() => {
+                                  setSelectedEmployee(employee);
+                                  setExpandedId(employee.empid);
+                                }}
+                                variant="ghost"
+                                className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
+                              >
+                                More Info
+                              </Button>
+                              <button
+                                onClick={() => openPromoteForm(employee)}
+                                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                                title="Update Role"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteEmployee(employee.empid)
+                                }
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Terminate"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+
+              {/* Employee Detail Modal */}
+              {expandedId && selectedEmployee && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-200 overflow-y-auto">
+                  <Card className="w-full max-w-4xl shadow-2xl border-0 overflow-hidden my-auto">
+                    <div className="bg-red-600 h-1.5" />
+                    <CardHeader className="p-8 pb-4 border-b border-gray-50 flex flex-row items-center justify-between bg-white text-gray-900">
+                      <div className="flex gap-6 items-center">
+                        <div className="relative shrink-0">
+                          {selectedEmployee.profile_picture_url ? (
+                            <img
+                              src={`${IMAGE_BASE_URL}${selectedEmployee.profile_picture_url}`}
+                              alt={selectedEmployee.empname}
+                              className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-3xl font-bold border-4 border-white shadow-md">
+                              {selectedEmployee.first_name?.[0]}
+                              {selectedEmployee.last_name?.[0]}
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-2xl font-bold tracking-tight">
+                              {selectedEmployee.empname}
+                            </h3>
+                            <LevelBadge
+                              level={selectedEmployee.emptype}
+                              roles={roles}
+                            />
+                          </div>
+                          <p className="text-gray-500 font-semibold flex items-center gap-2 text-sm uppercase tracking-wider">
+                            {selectedEmployee.name_with_initials}
+                            <span className="w-1 h-1 rounded-full bg-gray-300" />
+                            ID #{selectedEmployee.empid}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex gap-1 ml-2">
-                        <button
-                          onClick={() => openPromoteForm(employee)}
-                          className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-md transition"
-                          title="Edit Role"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEmployee(employee.empid)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
-                          title="Remove Employee"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-4 px-5 pb-5 space-y-4 flex-1 flex flex-col">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Mail size={14} className="text-gray-400 shrink-0" />
-                        <span className="text-gray-600 truncate font-medium">
-                          {employee.email}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <Phone size={14} className="text-gray-400 shrink-0" />
-                        <span className="text-gray-600 font-medium">
-                          {employee.emptel}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <CreditCard
-                          size={14}
-                          className="text-gray-400 shrink-0"
-                        />
-                        <span className="text-gray-600 font-medium">
-                          {employee.empnic}
-                        </span>
-                      </div>
-                    </div>
+                      <button
+                        onClick={() => {
+                          setExpandedId(null);
+                          setSelectedEmployee(null);
+                        }}
+                        className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all font-bold"
+                      >
+                        <X size={24} />
+                      </button>
+                    </CardHeader>
 
-                    <div className="pt-3 border-t border-dashed border-gray-100 mt-auto">
-                      <span className="text-xs text-gray-400 flex items-center gap-1.5">
-                        <CheckCircle size={12} />
+                    <CardContent className="p-8 bg-white grid md:grid-cols-3 gap-10">
+                      {/* Personal Section */}
+                      <div className="space-y-6 text-gray-600">
+                        <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
+                          Staff Identity
+                        </h5>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shrink-0">
+                              <Shield size={18} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                NIC Number
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {selectedEmployee.empnic}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shrink-0">
+                              <Calendar size={18} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Date of Birth
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {selectedEmployee.dob
+                                  ? new Date(
+                                      selectedEmployee.dob,
+                                    ).toLocaleDateString()
+                                  : "Not Provided"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shrink-0">
+                              <Award size={18} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Speciality
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900 leading-tight">
+                                {selectedEmployee.speciality ||
+                                  "Standard Staff"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contact Section */}
+                      <div className="space-y-6">
+                        <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
+                          Contact & Residence
+                        </h5>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shrink-0">
+                              <Mail size={18} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Email Address
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {selectedEmployee.email}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shrink-0">
+                              <Phone size={18} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Mobile Number
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {selectedEmployee.emptel}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-4 group">
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shrink-0">
+                              <MapPin size={18} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Registered Address
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900 leading-snug">
+                                {selectedEmployee.address_number},{" "}
+                                {selectedEmployee.address_line1}
+                                <br />
+                                {selectedEmployee.address_line2}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dependents Section */}
+                      <div className="space-y-6">
+                        <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
+                          Emergency Contacts
+                        </h5>
+                        <div className="space-y-3">
+                          {selectedEmployee.dependents &&
+                          selectedEmployee.dependents.length > 0 ? (
+                            selectedEmployee.dependents.map((dep, idx) => (
+                              <div
+                                key={idx}
+                                className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 flex flex-col gap-1 border-l-4 border-l-red-100 shadow-sm"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs font-bold text-gray-900 uppercase">
+                                    {dep.name}
+                                  </p>
+                                  {dep.is_emergency_contact && (
+                                    <HeartPulse
+                                      size={14}
+                                      className="text-red-500"
+                                    />
+                                  )}
+                                </div>
+                                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                                  {dep.relationship} • {dep.contact_number}
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-6 rounded-2xl border-2 border-dashed border-gray-100 text-center space-y-2">
+                              <p className="text-xs font-bold text-gray-400 uppercase">
+                                No Emergency Records
+                              </p>
+                              <p className="text-[10px] text-gray-400 font-semibold px-4">
+                                This staff member has not registered any
+                                dependents.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1 bg-white rounded border flex items-center gap-2">
+                        <CheckCircle size={12} className="text-green-500" />{" "}
                         Joined{" "}
-                        {new Date(employee.created_at).toLocaleDateString()}
-                      </span>
+                        {new Date(
+                          selectedEmployee.created_at,
+                        ).toLocaleDateString()}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            setExpandedId(null);
+                            openPromoteForm(selectedEmployee);
+                          }}
+                          variant="outline"
+                          className="h-9 px-4 rounded-lg font-semibold text-xs uppercase tracking-wider text-gray-600 border-gray-200"
+                        >
+                          Manage Role
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setExpandedId(null);
+                            handleDeleteEmployee(selectedEmployee.empid);
+                          }}
+                          variant="ghost"
+                          className="h-9 px-4 rounded-lg font-semibold text-xs uppercase tracking-wider text-red-600 hover:bg-red-50"
+                        >
+                          Terminate
+                        </Button>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
+            <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
               <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
                 <Users size={32} className="text-gray-300" />
               </div>
@@ -436,7 +722,7 @@ const EmployeeManagementPage = () => {
               </p>
               <Button
                 onClick={() => setShowAddForm(true)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 font-bold"
               >
                 <Plus size={16} className="mr-2" />
                 Add Employee
@@ -481,7 +767,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="first_name"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           First Name <span className="text-red-500">*</span>
                         </Label>
@@ -499,7 +785,7 @@ const EmployeeManagementPage = () => {
                           disabled={submitting}
                         />
                         {errors.first_name && (
-                          <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+                          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider">
                             {errors.first_name}
                           </p>
                         )}
@@ -507,7 +793,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="last_name"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           Last Name <span className="text-red-500">*</span>
                         </Label>
@@ -525,7 +811,7 @@ const EmployeeManagementPage = () => {
                           disabled={submitting}
                         />
                         {errors.last_name && (
-                          <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+                          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider">
                             {errors.last_name}
                           </p>
                         )}
@@ -564,7 +850,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="nic"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           NIC Number <span className="text-red-500">*</span>
                         </Label>
@@ -582,7 +868,7 @@ const EmployeeManagementPage = () => {
                           disabled={submitting}
                         />
                         {errors.nic && (
-                          <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+                          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider">
                             {errors.nic}
                           </p>
                         )}
@@ -590,7 +876,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="dob"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           Date of Birth
                         </Label>
@@ -621,7 +907,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="email"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           Email Address <span className="text-red-500">*</span>
                         </Label>
@@ -640,7 +926,7 @@ const EmployeeManagementPage = () => {
                           disabled={submitting}
                         />
                         {errors.email && (
-                          <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+                          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider">
                             {errors.email}
                           </p>
                         )}
@@ -648,7 +934,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5">
                         <Label
                           htmlFor="telephone"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           Phone Number <span className="text-red-500">*</span>
                         </Label>
@@ -666,7 +952,7 @@ const EmployeeManagementPage = () => {
                           disabled={submitting}
                         />
                         {errors.telephone && (
-                          <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+                          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider">
                             {errors.telephone}
                           </p>
                         )}
@@ -683,7 +969,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5 col-span-1">
                         <Label
                           htmlFor="address_number"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           No.
                         </Label>
@@ -704,7 +990,7 @@ const EmployeeManagementPage = () => {
                       <div className="space-y-1.5 col-span-2">
                         <Label
                           htmlFor="address_line1"
-                          className="text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+                          className="text-xs font-semibold uppercase tracking-wider text-gray-400"
                         >
                           Address Line 1
                         </Label>
@@ -827,7 +1113,7 @@ const EmployeeManagementPage = () => {
                           Management will change this upon first login
                         </span>
                       </div>
-                      <code className="bg-white px-3 py-1.5 border rounded-lg text-red-600 font-mono font-black text-sm">
+                      <code className="bg-white px-3 py-1.5 border rounded-lg text-red-600 font-mono font-bold text-sm">
                         Employee@123
                       </code>
                     </div>

@@ -5,12 +5,13 @@ import { NotFoundError } from "../utils/errors.util.js";
 export const getAllEmployeesService = async () => {
   const result = await pool.query(
     `
-		SELECT empid, first_name, last_name, email, emptel, emptype, empnic, 
-           first_name || ' ' || last_name AS empname,
-           name_with_initials, address_number, address_line1, address_line2, 
-           dob, speciality, profile_picture_url, created_at, updated_at
-		FROM employee
-		ORDER BY created_at DESC
+		SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, e.emptype, e.empnic, 
+           e.first_name || ' ' || e.last_name AS empname,
+           e.name_with_initials, e.address_number, e.address_line1, e.address_line2, 
+           e.dob, e.speciality, e.profile_picture_url, e.created_at, e.updated_at,
+           (SELECT json_agg(d.*) FROM employee_dependent d WHERE d.empid = e.empid) as dependents
+		FROM employee e
+		ORDER BY e.created_at DESC
 		`,
   );
   return result.rows;
