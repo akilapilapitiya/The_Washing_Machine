@@ -44,6 +44,7 @@ import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import BannedPage from "./pages/BannedPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import NotificationsPage from "./features/dashboard/NotificationsPage";
 
 const App = () => {
   return (
@@ -134,6 +135,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <Vehicles />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
                 </ProtectedRoute>
               }
             />

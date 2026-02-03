@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/configs/env";
+import api from "@/lib/api";
 
 const NotificationContext = createContext();
 
@@ -11,18 +12,63 @@ export const useNotification = () => useContext(NotificationContext);
 export const NotificationProvider = ({ children }) => {
   const { user, token } = useAuth();
   const [socket, setSocket] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get("/notification");
+      const data = response.data?.data?.notifications || [];
+      setNotifications(data);
+      setUnreadCount(data.filter((n) => !n.is_read).length);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      await api.put(`/notification/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+      toast.error("Failed to update notification");
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await api.put("/notification/read-all");
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+      toast.success("All notifications marked as read");
+    } catch (error) {
+      console.error("Failed to mark all notifications as read", error);
+      toast.error("Failed to update notifications");
+    }
+  };
+
+  useEffect(() => {
+    if (user && token) {
+      fetchNotifications();
+      // Poll every 60s as a fallback
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [user, token]);
 
   useEffect(() => {
     let newSocket;
 
     if (user && token) {
-      // Initialize socket connection
-      // Clean URL to remove /api if present, as socket usually connects to root namespace
       const socketUrl = API_BASE_URL.replace("/api", "");
 
       newSocket = io(socketUrl, {
         auth: { token },
-        query: { token }, // Fallback
+        query: { token },
       });
 
       newSocket.on("connect", () => {
@@ -31,8 +77,11 @@ export const NotificationProvider = ({ children }) => {
 
       newSocket.on("notification", (notification) => {
         console.log("[Socket] Received notification:", notification);
-        // Play sound?
-        // Show toast
+
+        // Add to state immediately
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+
         toast(notification.title, {
           description: notification.message,
           action: {
@@ -54,8 +103,17 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [user, token]);
 
+  const value = {
+    socket,
+    notifications,
+    unreadCount,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+  };
+
   return (
-    <NotificationContext.Provider value={{ socket }}>
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );
