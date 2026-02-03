@@ -26,6 +26,9 @@ const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Get today's date in YYYY-MM-DD format for min date attribute
+  const today = new Date().toISOString().split("T")[0];
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -876,9 +879,15 @@ const ManageServicesPage = () => {
                             id="offer_start_date"
                             name="offer_start_date"
                             type="date"
-                            value={formData.offer_start_date}
+                            min={today}
+                            value={
+                              formData.offer_start_date
+                                ? formData.offer_start_date.split("T")[0]
+                                : ""
+                            }
                             onChange={handleInputChange}
-                            className="h-10 border-red-200 bg-white"
+                            className={`h-10 border-red-200 bg-white focus:ring-red-500 block w-full ${!formData.offer_start_date ? "text-gray-400" : ""}`}
+                            required={formData.has_offer}
                           />
                         </div>
                         <div className="space-y-2">
@@ -892,9 +901,15 @@ const ManageServicesPage = () => {
                             id="offer_end_date"
                             name="offer_end_date"
                             type="date"
-                            value={formData.offer_end_date}
+                            min={today}
+                            value={
+                              formData.offer_end_date
+                                ? formData.offer_end_date.split("T")[0]
+                                : ""
+                            }
                             onChange={handleInputChange}
-                            className="h-10 border-red-200 bg-white"
+                            className={`h-10 border-red-200 bg-white focus:ring-red-500 block w-full ${!formData.offer_end_date ? "text-gray-400" : ""}`}
+                            required={formData.has_offer}
                           />
                         </div>
                       </div>
