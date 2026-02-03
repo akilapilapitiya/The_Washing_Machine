@@ -1,4 +1,5 @@
 import pool from "../configs/database.js";
+import { getIO } from "../socket/index.js";
 
 export const createNotificationService = async ({
   recipientId,
@@ -14,7 +15,18 @@ export const createNotificationService = async ({
      RETURNING *`,
     [recipientId, recipientRole, title, message, type, bookingId],
   );
-  return result.rows[0];
+
+  const notification = result.rows[0];
+
+  // Real-time delivery
+  try {
+    const io = getIO();
+    io.to(`user-${recipientId}`).emit("notification", notification);
+  } catch (err) {
+    console.error("Socket emit failed:", err.message);
+  }
+
+  return notification;
 };
 
 export const getUserNotificationsService = async (userId, userRole) => {

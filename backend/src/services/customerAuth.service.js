@@ -143,11 +143,15 @@ export const requestPasswordReset = async (email) => {
   // Log OTP to console (in production, send via email)
   logOTPToConsole(email, otp);
 
-  // Send OTP via email
+  // Send OTP via email (Background Job)
   try {
-    await sendOtpEmail(email, otp);
+    await addEmailJob({
+      type: "otp",
+      to: email,
+      data: { otp },
+    });
   } catch (error) {
-    console.error("Failed to send OTP email:", error);
+    console.error("Failed to queue OTP email job:", error);
   }
 
   return {

@@ -5,6 +5,7 @@ import { Menu, X, LogOut, User, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { IMAGE_BASE_URL } from "@/configs/env";
 import logo from "../assets/logo.svg";
+import NotificationBell from "./common/NotificationBell";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -86,6 +87,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
+                <NotificationBell />
                 <div className="flex flex-col items-end hidden lg:flex">
                   <span className="text-sm font-bold text-gray-900 leading-none">
                     {user?.name || "User"}

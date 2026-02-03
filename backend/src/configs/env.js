@@ -13,6 +13,9 @@ export const {
   DB_PASSWORD,
   JWT_SECRET,
   JWT_EXPIRES_IN,
+  REDIS_HOST,
+  REDIS_PORT,
+  REDIS_PASSWORD,
 } = process.env;
 
 export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
