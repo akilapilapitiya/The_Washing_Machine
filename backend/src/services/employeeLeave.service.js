@@ -77,7 +77,7 @@ export const createLeave = async ({ empid, startDate, endDate, reason }) => {
  */
 export const getAllLeaves = async () => {
   const result = await pool.query(
-    `SELECT el.*, e.empname 
+    `SELECT el.*, e.first_name || ' ' || e.last_name AS empname 
      FROM employeeleave el
      JOIN employee e ON el.empid = e.empid
      ORDER BY el.leavestartdate DESC`,
@@ -90,7 +90,7 @@ export const getAllLeaves = async () => {
  */
 export const getLeavesByEmployee = async (empid) => {
   const result = await pool.query(
-    `SELECT el.*, e.empname 
+    `SELECT el.*, e.first_name || ' ' || e.last_name AS empname 
      FROM employeeleave el
      JOIN employee e ON el.empid = e.empid
      WHERE el.empid = $1
