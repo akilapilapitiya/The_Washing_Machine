@@ -5,3 +5,4 @@ export { employeeValidator } from "./employee.validator.js";
 export { serviceValidator } from "./service.validator.js";
 export { vehicleValidator } from "./vehicle.validator.js";
 export { paymentValidator } from "./payment.validator.js";
+export { dependentValidator } from "./dependent.validator.js";

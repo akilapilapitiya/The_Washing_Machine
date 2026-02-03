@@ -55,3 +55,52 @@ export const deleteEmployee = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateProfilePicture = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const profile_picture_url = `/uploads/profiles/${req.file.filename}`;
+    const employee = await employeeService.updateEmployeeService(id, {
+      profile_picture_url,
+    });
+
+    successResponse(res, 200, "Profile picture updated successfully", {
+      employee,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "Old password and new password are required" });
+    }
+
+    await employeeService.changePasswordService(id, oldPassword, newPassword);
+
+    successResponse(res, 200, "Password changed successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRoles = async (req, res, next) => {
+  try {
+    const roles = await employeeService.getRolesService();
+    successResponse(res, 200, "Roles retrieved successfully", roles);
+  } catch (error) {
+    next(error);
+  }
+};

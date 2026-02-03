@@ -44,6 +44,7 @@ export const updateCustomer = async (req, res, next) => {
       latitude,
       longitude,
       profile_picture_url,
+      isActive,
     } = req.body;
 
     // Map request fields to database field names
@@ -58,6 +59,7 @@ export const updateCustomer = async (req, res, next) => {
       latitude,
       longitude,
       profile_picture_url,
+      is_active: isActive,
     };
 
     // Remove undefined fields to avoid overwriting with null

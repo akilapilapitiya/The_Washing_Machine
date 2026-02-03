@@ -14,22 +14,46 @@ import { uploadProfilePicture } from "../middleware/upload.middleware.js";
 
 const customerRouter = Router();
 
-// Protect all customer routes; allow employees and customers
-customerRouter.use(authMiddleware, restrictTo("employee", "customer"));
-
-customerRouter.get("/", getAllCustomers);
-customerRouter.get("/:cusid", getCustomer);
+// Public/Shared routes (Own profile access or restricted roles)
+customerRouter.get(
+  "/:cusid",
+  authMiddleware,
+  restrictTo("owner", "cashier", "customer"),
+  getCustomer,
+);
 customerRouter.put(
   "/:cusid",
+  authMiddleware,
+  restrictTo("owner", "customer"),
   validateSchema(customerValidator.updateCustomer),
   updateCustomer,
 );
 customerRouter.patch(
   "/:cusid/profile-picture",
+  authMiddleware,
+  restrictTo("owner", "customer"),
   uploadProfilePicture.single("profile_picture"),
   updateProfilePicture,
 );
-customerRouter.patch("/:cusid/change-password", changePassword);
-customerRouter.delete("/:cusid", deleteCustomer);
+customerRouter.patch(
+  "/:cusid/change-password",
+  authMiddleware,
+  restrictTo("owner", "customer"),
+  changePassword,
+);
+
+// Administrative only
+customerRouter.get(
+  "/",
+  authMiddleware,
+  restrictTo("owner", "cashier"),
+  getAllCustomers,
+);
+customerRouter.delete(
+  "/:cusid",
+  authMiddleware,
+  restrictTo("customer"),
+  deleteCustomer,
+); // Only self-deletion or remove completely if handled by blocking
 
 export default customerRouter;

@@ -50,6 +50,7 @@ export const customerValidator = {
     dob: Joi.date().iso().allow("", null),
     latitude: Joi.number().min(-90).max(90).allow(null),
     longitude: Joi.number().min(-180).max(180).allow(null),
+    isActive: Joi.boolean(),
   }).min(1),
 
   loginCustomer: Joi.object({

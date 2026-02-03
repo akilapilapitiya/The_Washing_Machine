@@ -34,7 +34,6 @@ const DailyIncomeReportPage = () => {
   const fetchReport = async () => {
     try {
       setLoading(true);
-      toast.error(null);
       const data = await reportService.getDailyIncomeReport(startDate, endDate);
       setReport(data || []);
     } catch (err) {

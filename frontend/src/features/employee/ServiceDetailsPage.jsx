@@ -54,7 +54,6 @@ const ServiceDetailsPage = () => {
   const fetchServiceDetails = async () => {
     try {
       setLoading(true);
-      toast.error(null);
       const data = await bookingService.getBookingById(id);
       if (data) {
         setService(data);

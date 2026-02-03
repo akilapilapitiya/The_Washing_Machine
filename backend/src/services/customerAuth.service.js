@@ -69,7 +69,7 @@ export const signUp = async ({
 // Signin function
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
-    "SELECT cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, profile_picture_url, password_hash FROM customer WHERE cusemail = $1",
+    "SELECT cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, profile_picture_url, password_hash, is_active FROM customer WHERE cusemail = $1",
     [email],
   );
 
@@ -78,6 +78,10 @@ export const signIn = async ({ email, password }) => {
   }
 
   const row = result.rows[0];
+  if (!row.is_active) {
+    throw new UnauthorizedError("Account Blocked. Please contact support.");
+  }
+
   const isMatch = await bcrypt.compare(password, row.password_hash);
   if (!isMatch) {
     throw new UnauthorizedError("Invalid email or password");

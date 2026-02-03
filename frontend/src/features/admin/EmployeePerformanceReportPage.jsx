@@ -34,7 +34,6 @@ const EmployeePerformanceReportPage = () => {
   const fetchReport = async () => {
     try {
       setLoading(true);
-      toast.error(null);
       const data = await reportService.getEmployeePerformanceReport(
         startDate,
         endDate,
