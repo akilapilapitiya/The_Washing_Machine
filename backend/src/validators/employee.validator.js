@@ -37,14 +37,19 @@ export const employeeValidator = {
     type: Joi.string().max(100).required().messages({
       "any.required": "Job title/type is required",
     }),
-    nic: Joi.string().required().messages({
-      "any.required": "NIC is required",
-    }),
-    address_number: Joi.string().max(20).trim().optional(),
-    address_line1: Joi.string().max(100).trim().optional(),
-    address_line2: Joi.string().max(100).trim().optional(),
-    dob: Joi.date().iso().optional(),
-    speciality: Joi.string().max(100).trim().optional(),
+    nic: Joi.string()
+      .regex(/^[0-9]{9}[Vv]$|^[0-9]{12}$/)
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Invalid NIC format (9 digits + V/v or 12 digits)",
+        "any.required": "NIC is required",
+      }),
+    address_number: Joi.string().max(20).trim().allow(null, "").optional(),
+    address_line1: Joi.string().max(100).trim().allow(null, "").optional(),
+    address_line2: Joi.string().max(100).trim().allow(null, "").optional(),
+    dob: Joi.date().iso().allow(null, "").optional(),
+    speciality: Joi.string().max(100).trim().allow(null, "").optional(),
   }),
 
   updateEmployee: Joi.object({
