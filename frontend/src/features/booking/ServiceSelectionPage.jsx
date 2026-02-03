@@ -143,7 +143,7 @@ const ServiceSelectionPage = () => {
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-4">
           <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed h-10">
-            {service.servicedetails}
+            {service.short_description || service.servicedetails}
           </p>
 
           <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
@@ -158,9 +158,16 @@ const ServiceSelectionPage = () => {
                   </span>
                 </div>
               ) : (
-                <span className="text-base">
-                  Rs. {parseFloat(service.serviceprice).toLocaleString()}
-                </span>
+                <div className="flex flex-col items-end">
+                  {service.is_variable_price && (
+                    <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-none mb-0.5">
+                      Starts From
+                    </span>
+                  )}
+                  <span className="text-base">
+                    Rs. {parseFloat(service.serviceprice).toLocaleString()}
+                  </span>
+                </div>
               )}
             </div>
             {type === "package" ? (

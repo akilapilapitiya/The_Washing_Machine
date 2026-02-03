@@ -13,6 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import ServiceCard from "@/components/ServiceCard";
+import ServiceDetailsModal from "@/features/services/ServiceDetailsModal";
 import { getServices } from "@/services/service.service";
 import { COLORS } from "@/lib/colors";
 
@@ -25,6 +26,7 @@ const ServicesSection = ({ id }) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
 
   // Icon mapping for services (using red theme)
   const iconMap = {
@@ -169,6 +171,7 @@ const ServicesSection = ({ id }) => {
                         <ServiceCard
                           key={service.serviceid}
                           service={service}
+                          onReadMore={setSelectedService}
                         />
                       ))}
                     </div>
@@ -198,6 +201,14 @@ const ServicesSection = ({ id }) => {
           </div>
         )}
       </div>
+
+      {/* Service Details Modal */}
+      {selectedService && (
+        <ServiceDetailsModal
+          service={selectedService}
+          onClose={() => setSelectedService(null)}
+        />
+      )}
     </section>
   );
 };

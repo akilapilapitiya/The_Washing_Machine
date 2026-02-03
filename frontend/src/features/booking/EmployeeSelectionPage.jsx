@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { IMAGE_BASE_URL } from "@/configs/env";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Users, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
+import * as vehicleService from "@/services/vehicle.service";
 
 import { toast } from "sonner";
 const roleLabels = {
@@ -29,28 +31,36 @@ const EmployeeSelectionPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("any");
 
   const { vehicleId, serviceIds, locationId } = location.state || {};
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchBookingData = async () => {
       try {
         setLoading(true);
-        const data = await employeeService.getEmployees();
+        const [employeesData, vehicleData] = await Promise.all([
+          employeeService.getEmployees(),
+          vehicleId
+            ? vehicleService.getVehicle(vehicleId)
+            : Promise.resolve(null),
+        ]);
+
         // Filter out owners as per user request
-        const filtered = data.filter((emp) => emp.emptype !== "owner");
+        const filtered = employeesData.filter((emp) => emp.emptype !== "owner");
         setEmployees(filtered);
+        setSelectedVehicle(vehicleData);
       } catch (err) {
-        console.error("Failed to fetch employees:", err);
-        toast.error("Failed to load employee list. Please try again.");
+        console.error("Failed to fetch booking data:", err);
+        toast.error("Failed to load booking data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEmployees();
-  }, []);
+    fetchBookingData();
+  }, [vehicleId]);
 
   const handleContinue = () => {
     // Navigate to datetime selection with all booking data
@@ -66,18 +76,43 @@ const EmployeeSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Book Service
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Select preferred employee
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-red-600">Step 3 of 4</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Select Preferred Employee
           </h1>
           <p className="text-gray-600">
             Choose a specific employee or let us assign the best available.
           </p>
         </div>
+
+        {/* Selected Vehicle Summary */}
+        {selectedVehicle && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Vehicle:
+              </span>
+              <div className="flex items-center gap-3">
+                <p className="text-base font-bold text-gray-900">
+                  {selectedVehicle.vehbrand} {selectedVehicle.vehmodel}
+                </p>
+                <span className="text-xs font-mono font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                  {selectedVehicle.vehplate}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 h-8"
+              onClick={() => navigate("/dashboard/book")}
+            >
+              Change
+            </Button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
@@ -176,16 +211,31 @@ const EmployeeSelectionPage = () => {
                 >
                   <CardHeader>
                     <CardTitle className="flex items-start gap-4 text-lg">
-                      <span
-                        className={cn(
-                          "flex-shrink-0 flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors shadow-sm",
-                          selectedEmployeeId === employee.empid
-                            ? "bg-red-600"
-                            : "bg-gray-900 group-hover:bg-red-600",
+                      <div className="relative shrink-0">
+                        {employee.profile_picture_url ? (
+                          <img
+                            src={`${IMAGE_BASE_URL}${employee.profile_picture_url}`}
+                            alt={employee.empname}
+                            className={cn(
+                              "h-14 w-14 rounded-full object-cover border-2 shadow-sm",
+                              selectedEmployeeId === employee.empid
+                                ? "border-red-600"
+                                : "border-gray-200",
+                            )}
+                          />
+                        ) : (
+                          <span
+                            className={cn(
+                              "flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors shadow-sm",
+                              selectedEmployeeId === employee.empid
+                                ? "bg-red-600"
+                                : "bg-gray-900 group-hover:bg-red-600",
+                            )}
+                          >
+                            <User size={24} />
+                          </span>
                         )}
-                      >
-                        <User size={24} />
-                      </span>
+                      </div>
                       <div className="flex-1">
                         <div
                           className={cn(
@@ -198,7 +248,9 @@ const EmployeeSelectionPage = () => {
                           {employee.empname}
                         </div>
                         <div className="text-sm font-medium text-gray-500 mt-1 uppercase tracking-tight">
-                          {roleLabels[employee.emptype] || "Service Operative"}
+                          {employee.speciality ||
+                            roleLabels[employee.emptype] ||
+                            "Service Operative"}
                         </div>
                       </div>
                     </CardTitle>
