@@ -97,7 +97,7 @@ export const getAllFeedbacksService = async () => {
     SELECT 
       f.*,
       TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
-      e.empname as assigned_employee,
+      e.first_name || ' ' || e.last_name as assigned_employee,
       b.bookingdate
     FROM feedback f
     JOIN customer c ON f.cusid = c.cusid
