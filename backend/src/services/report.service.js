@@ -36,7 +36,7 @@ export const getEmployeePerformanceReportService = async (
     `
     SELECT 
       e.empid, 
-      e.empname, 
+      e.first_name || ' ' || e.last_name as empname, 
       e.emptype,
       COUNT(b.bookingid) as completed_jobs,
       COALESCE(SUM(b.totalprice), 0) as total_revenue

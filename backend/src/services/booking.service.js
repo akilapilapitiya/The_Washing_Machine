@@ -51,9 +51,9 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
           '[]'::json
         ) as services,
         ea.empid as assigned_empid,
-        e.empname as assigned_empname,
+        e.first_name || ' ' || e.last_name as assigned_empname,
         ep.empid as preferred_empid,
-        pe.empname as preferred_empname
+        pe.first_name || ' ' || pe.last_name as preferred_empname
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
@@ -102,9 +102,11 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       v.vehcolor,
       v.id,
       ea.empid,
-      e.empname,
+      e.first_name,
+      e.last_name,
       ep.empid,
-      pe.empname
+      pe.first_name,
+      pe.last_name
       ORDER BY b.bookingdate DESC, b.bookingstarttime DESC`;
 
     const result = await client.query(query, queryParams);
@@ -144,7 +146,7 @@ export const getBookingService = async (
       v.vehmodel,
       v.vehplate,
       v.vehcolor,
-      e.empname,
+      e.first_name || ' ' || e.last_name as empname,
       json_agg(json_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
     FROM booking b
     LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
@@ -154,7 +156,7 @@ export const getBookingService = async (
     LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
     LEFT JOIN employee e ON ea.empid = e.empid
     WHERE b.bookingid = $1
-    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.empname, c.title, c.first_name, c.last_name
+    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.first_name, e.last_name, c.title, c.first_name, c.last_name
     `,
     [bookingId],
   );
@@ -448,7 +450,7 @@ export const updateBookingService = async (
     if (employeeId && employeeId !== current.current_empid) {
       // Validate new employee availability (simplified check)
       const check = await client.query(
-        "SELECT empname FROM employee WHERE empid = $1",
+        "SELECT first_name || ' ' || last_name as empname FROM employee WHERE empid = $1",
         [employeeId],
       );
       if (check.rowCount === 0) throw new NotFoundError("Employee not found");
