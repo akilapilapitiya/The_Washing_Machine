@@ -58,7 +58,7 @@ const StatusBadge = ({ status }) => {
 const BookingCard = ({ booking, onManage }) => {
   // Format services list
   const servicesList = booking.services
-    ? booking.services.map((s) => s.serviceName).join(", ")
+    ? booking.services.map((s) => s.servicename).join(", ")
     : "No services selected";
 
   // Data mapping from backend
@@ -68,10 +68,10 @@ const BookingCard = ({ booking, onManage }) => {
 
   const plate = booking.vehplate || "";
   const location = "Main Branch - Pannipitiya";
-  const employee = booking.assigned_employee || "Assigned on arrival";
+  const employee = booking.assigned_empname || "Assigned on arrival";
 
   // Calculate total price
-  const totalPrice = booking.bookingtotalprice || 0; // Use totalprice from DB if available
+  const totalPrice = booking.totalprice || booking.bookingtotalprice || 0;
 
   const formattedTotalPrice =
     totalPrice > 0 ? `Rs. ${Number(totalPrice).toLocaleString()}` : "---";
