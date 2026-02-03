@@ -61,8 +61,9 @@ const ServiceCard = ({ service }) => {
         {service.servicename}
       </h3>
 
-      <p className="text-gray-600 mb-4 leading-relaxed">
-        {service.servicedetails ||
+      <p className="text-gray-600 mb-4 leading-relaxed line-clamp-2 h-12">
+        {service.short_description ||
+          service.servicedetails ||
           "Professional service with attention to detail."}
       </p>
 
@@ -78,9 +79,16 @@ const ServiceCard = ({ service }) => {
               </div>
             </div>
           ) : (
-            <span className="text-lg font-bold text-gray-900">
-              {formattedPrice}
-            </span>
+            <div className="flex flex-col">
+              {service.is_variable_price && (
+                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-none mb-0.5">
+                  Starts From
+                </span>
+              )}
+              <span className="text-lg font-bold text-gray-900">
+                {formattedPrice}
+              </span>
+            </div>
           )}
           <span className="text-xs text-gray-500">
             Duration: {service.servicetime}

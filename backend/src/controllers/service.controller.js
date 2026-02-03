@@ -14,9 +14,20 @@ export const createService = async (req, res, next) => {
       servicetime,
       serviceprice,
       servicedetails,
+      short_description,
+      long_description,
+      image_url,
+      gallery_urls,
+      benefits,
+      category,
+      is_featured,
+      is_variable_price,
       has_offer,
       offer_price,
       offer_description,
+      offer_start_date,
+      offer_end_date,
+      servicetype,
     } = req.body;
 
     const service = await createServiceService({
@@ -24,9 +35,20 @@ export const createService = async (req, res, next) => {
       servicetime,
       serviceprice,
       servicedetails,
+      short_description,
+      long_description,
+      image_url,
+      gallery_urls,
+      benefits,
+      category,
+      is_featured,
+      is_variable_price,
       has_offer,
       offer_price,
       offer_description,
+      offer_start_date,
+      offer_end_date,
+      servicetype,
     });
 
     successResponse(res, 201, "Service created successfully", { service });

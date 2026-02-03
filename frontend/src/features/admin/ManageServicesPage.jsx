@@ -27,6 +27,7 @@ const ManageServicesPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [formData, setFormData] = useState({
     servicename: "",
     servicedetails: "",
@@ -35,7 +36,17 @@ const ManageServicesPage = () => {
     has_offer: false,
     offer_price: "",
     offer_description: "",
+    offer_start_date: "",
+    offer_end_date: "",
     servicetype: "package",
+    short_description: "",
+    long_description: "",
+    image_url: "",
+    gallery_urls: [],
+    benefits: [],
+    category: "",
+    is_featured: false,
+    is_variable_price: false,
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,6 +68,11 @@ const ManageServicesPage = () => {
       setLoading(false);
     }
   };
+
+  const uniqueCategories = [
+    "All",
+    ...new Set(services.map((s) => s.category).filter(Boolean)),
+  ];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -95,7 +111,17 @@ const ManageServicesPage = () => {
       has_offer: false,
       offer_price: "",
       offer_description: "",
+      offer_start_date: "",
+      offer_end_date: "",
       servicetype: "package",
+      short_description: "",
+      long_description: "",
+      image_url: "",
+      gallery_urls: [],
+      benefits: [],
+      category: "",
+      is_featured: false,
+      is_variable_price: false,
     });
   };
 
@@ -115,7 +141,23 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
+        offer_start_date:
+          formData.has_offer && formData.offer_start_date
+            ? formData.offer_start_date
+            : null,
+        offer_end_date:
+          formData.has_offer && formData.offer_end_date
+            ? formData.offer_end_date
+            : null,
         servicetype: formData.servicetype,
+        short_description: formData.short_description,
+        long_description: formData.long_description,
+        image_url: formData.image_url,
+        gallery_urls: formData.gallery_urls,
+        benefits: formData.benefits,
+        category: formData.category,
+        is_featured: formData.is_featured,
+        is_variable_price: formData.is_variable_price,
       };
       await serviceService.createService(payload);
       resetForm();
@@ -145,7 +187,23 @@ const ManageServicesPage = () => {
         offer_description: formData.has_offer
           ? formData.offer_description
           : null,
+        offer_start_date:
+          formData.has_offer && formData.offer_start_date
+            ? formData.offer_start_date
+            : null,
+        offer_end_date:
+          formData.has_offer && formData.offer_end_date
+            ? formData.offer_end_date
+            : null,
         servicetype: formData.servicetype,
+        short_description: formData.short_description,
+        long_description: formData.long_description,
+        image_url: formData.image_url,
+        gallery_urls: formData.gallery_urls,
+        benefits: formData.benefits,
+        category: formData.category,
+        is_featured: formData.is_featured,
+        is_variable_price: formData.is_variable_price,
       };
       // Only include serviceprice if it's a valid number
       const price = parseFloat(formData.serviceprice);
@@ -171,8 +229,8 @@ const ManageServicesPage = () => {
       variant: "destructive",
       title: "Delete Service?",
       description:
-        "Are you sure you want to delete this service? This action cannot be undone.",
-      confirmText: "Delete",
+        "Are you sure you want to delete this service? This action cannot be undone.\n\nWARNING: Any linked images or assets will also be permanently removed.",
+      confirmText: "Delete Service",
       cancelText: "Cancel",
     });
 
@@ -207,7 +265,21 @@ const ManageServicesPage = () => {
       has_offer: service.has_offer || false,
       offer_price: service.offer_price ? service.offer_price.toString() : "",
       offer_description: service.offer_description || "",
+      offer_start_date: service.offer_start_date
+        ? new Date(service.offer_start_date).toISOString().split("T")[0]
+        : "",
+      offer_end_date: service.offer_end_date
+        ? new Date(service.offer_end_date).toISOString().split("T")[0]
+        : "",
       servicetype: service.servicetype || "package",
+      short_description: service.short_description || "",
+      long_description: service.long_description || "",
+      image_url: service.image_url || "",
+      gallery_urls: service.gallery_urls || [],
+      benefits: service.benefits || [],
+      category: service.category || "",
+      is_featured: service.is_featured || false,
+      is_variable_price: service.is_variable_price || false,
     });
     setShowEditForm(true);
   };
@@ -238,6 +310,25 @@ const ManageServicesPage = () => {
           </Button>
         </div>
 
+        {/* Category Filter */}
+        {!loading && services.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            {uniqueCategories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                  selectedCategory === category
+                    ? "bg-red-600 text-white shadow-md shadow-red-100"
+                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 size={32} className="animate-spin text-red-600" />
@@ -246,7 +337,10 @@ const ManageServicesPage = () => {
           <div className="space-y-10">
             {["package", "addon"].map((type) => {
               const typeServices = services.filter(
-                (s) => (s.servicetype || "package") === type,
+                (s) =>
+                  (s.servicetype || "package") === type &&
+                  (selectedCategory === "All" ||
+                    s.category === selectedCategory),
               );
               if (typeServices.length === 0) return null;
 
@@ -307,7 +401,8 @@ const ManageServicesPage = () => {
                         </CardHeader>
                         <CardContent className="space-y-4 px-5 pb-5 flex-1 flex flex-col">
                           <p className="text-sm text-gray-600 line-clamp-2 flex-1">
-                            {service.servicedetails}
+                            {service.short_description ||
+                              service.servicedetails}
                           </p>
 
                           <div className="pt-4 border-t border-gray-100 space-y-3">
@@ -327,8 +422,15 @@ const ManageServicesPage = () => {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="text-lg font-bold text-gray-900">
-                                  Rs. {service.serviceprice}
+                                <div className="text-right">
+                                  {service.is_variable_price && (
+                                    <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
+                                      Starts From
+                                    </div>
+                                  )}
+                                  <div className="text-lg font-bold text-gray-900">
+                                    Rs. {service.serviceprice}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -484,32 +586,84 @@ const ManageServicesPage = () => {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="category"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Category
+                      </Label>
+                      <Input
+                        id="category"
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Exterior, Interior"
+                        className="h-11 border-gray-300"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="image_url"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Primary Image URL
+                      </Label>
+                      <Input
+                        id="image_url"
+                        name="image_url"
+                        value={formData.image_url}
+                        onChange={handleInputChange}
+                        placeholder="https://..."
+                        className="h-11 border-gray-300"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label
-                      htmlFor="servicedetails"
+                      htmlFor="short_description"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Description <span className="text-red-500">*</span>
+                      Short Description <span className="text-red-500">*</span>
                     </Label>
-                    <textarea
-                      id="servicedetails"
-                      name="servicedetails"
-                      value={formData.servicedetails}
+                    <Input
+                      id="short_description"
+                      name="short_description"
+                      value={formData.short_description}
                       onChange={handleInputChange}
-                      placeholder="Detail what is included in this service..."
-                      rows={3}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none text-sm transition-shadow"
+                      placeholder="Brief summary for service cards..."
+                      className="h-11 border-gray-300"
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="long_description"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Educational/Long Description
+                    </Label>
+                    <textarea
+                      id="long_description"
+                      name="long_description"
+                      value={formData.long_description}
+                      onChange={handleInputChange}
+                      placeholder="Detailed breakdown of the service process..."
+                      rows={4}
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none text-sm transition-shadow"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-5 pt-2">
                     <div className="space-y-2">
                       <Label
                         htmlFor="serviceprice"
                         className="text-sm font-medium text-gray-700"
                       >
-                        Price (Rs.) <span className="text-red-500">*</span>
+                        Base Price (Rs.) <span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium sm:text-sm">
@@ -527,6 +681,22 @@ const ManageServicesPage = () => {
                           className="pl-10 h-11 border-gray-300 focus:ring-red-600"
                           required
                         />
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="checkbox"
+                          id="is_variable_price"
+                          name="is_variable_price"
+                          checked={formData.is_variable_price}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 border-gray-300 rounded text-red-600 focus:ring-red-500"
+                        />
+                        <Label
+                          htmlFor="is_variable_price"
+                          className="text-xs text-gray-500 cursor-pointer"
+                        >
+                          Include "Starts From" prefix
+                        </Label>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -607,45 +777,82 @@ const ManageServicesPage = () => {
                   </div>
 
                   {formData.has_offer && (
-                    <div className="grid gap-4 md:grid-cols-2 mt-4 animate-in slide-in-from-top-1">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="offer_price"
-                          className="text-xs font-semibold uppercase tracking-wide text-red-800"
-                        >
-                          Discounted Price
-                        </Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-400 font-medium sm:text-sm">
-                            Rs.
-                          </span>
+                    <div className="space-y-4 mt-4 animate-in slide-in-from-top-1">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="offer_price"
+                            className="text-xs font-semibold uppercase tracking-wide text-red-800"
+                          >
+                            Discounted Price
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-400 font-medium sm:text-sm">
+                              Rs.
+                            </span>
+                            <Input
+                              id="offer_price"
+                              name="offer_price"
+                              type="number"
+                              value={formData.offer_price}
+                              onChange={handleInputChange}
+                              className="pl-10 h-10 border-red-200 bg-white focus:ring-red-500"
+                              placeholder="0.00"
+                              required={formData.has_offer}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="offer_description"
+                            className="text-xs font-semibold uppercase tracking-wide text-red-800"
+                          >
+                            Offer Label
+                          </Label>
                           <Input
-                            id="offer_price"
-                            name="offer_price"
-                            type="number"
-                            value={formData.offer_price}
+                            id="offer_description"
+                            name="offer_description"
+                            value={formData.offer_description}
                             onChange={handleInputChange}
-                            className="pl-10 h-10 border-red-200 bg-white focus:ring-red-500"
-                            placeholder="0.00"
-                            required={formData.has_offer}
+                            className="h-10 border-red-200 bg-white focus:ring-red-500"
+                            placeholder="e.g. Summer Sale"
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="offer_description"
-                          className="text-xs font-semibold uppercase tracking-wide text-red-800"
-                        >
-                          Offer Label
-                        </Label>
-                        <Input
-                          id="offer_description"
-                          name="offer_description"
-                          value={formData.offer_description}
-                          onChange={handleInputChange}
-                          className="h-10 border-red-200 bg-white focus:ring-red-500"
-                          placeholder="e.g. Summer Sale"
-                        />
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="offer_start_date"
+                            className="text-xs font-semibold text-red-800"
+                          >
+                            Start Date
+                          </Label>
+                          <Input
+                            id="offer_start_date"
+                            name="offer_start_date"
+                            type="date"
+                            value={formData.offer_start_date}
+                            onChange={handleInputChange}
+                            className="h-10 border-red-200 bg-white"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="offer_end_date"
+                            className="text-xs font-semibold text-red-800"
+                          >
+                            End Date
+                          </Label>
+                          <Input
+                            id="offer_end_date"
+                            name="offer_end_date"
+                            type="date"
+                            value={formData.offer_end_date}
+                            onChange={handleInputChange}
+                            className="h-10 border-red-200 bg-white"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
