@@ -20,6 +20,7 @@ import * as serviceService from "@/services/service.service";
 
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { IMAGE_BASE_URL } from "@/configs/env";
 
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -319,56 +320,147 @@ const ManageServicesPage = () => {
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
         ) : services.length > 0 ? (
-          <div className="space-y-10">
-            {["package", "addon"].map((type) => {
-              const typeServices = services.filter(
-                (s) =>
-                  (s.servicetype || "package") === type &&
-                  (selectedCategory === "All" ||
-                    s.category === selectedCategory),
-              );
-              if (typeServices.length === 0) return null;
-
-              return (
-                <div key={type} className="space-y-4">
-                  <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-                    {type === "package" ? (
-                      <Box className="text-red-600" size={20} />
-                    ) : (
-                      <Layers className="text-blue-600" size={20} />
-                    )}
-                    <h2 className="text-lg font-bold text-gray-900">
-                      {type === "package"
-                        ? "Service Packages"
-                        : "Optional Add-ons"}
-                    </h2>
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {typeServices.map((service) => (
-                      <Card
-                        key={service.serviceid}
-                        className={`hover:shadow-md transition-all border-gray-200 h-full flex flex-col ${
-                          service.has_offer ? "border-red-200" : ""
-                        }`}
-                      >
-                        <CardHeader className="pb-3 pt-5 px-5">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-base font-bold text-gray-900">
-                                {service.servicename}
-                              </CardTitle>
-                              {service.has_offer && (
-                                <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full mt-2 border border-red-100">
-                                  <Tag size={10} /> SPECIAL OFFER
+          <div className="space-y-6">
+            <Card className="overflow-hidden border-gray-200 shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                        Service Details
+                      </th>
+                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                        Category & Type
+                      </th>
+                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                        Price & Offer
+                      </th>
+                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
+                        Duration
+                      </th>
+                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
+                    {services
+                      .filter(
+                        (s) =>
+                          selectedCategory === "All" ||
+                          s.category === selectedCategory,
+                      )
+                      .map((service) => (
+                        <tr
+                          key={service.serviceid}
+                          className="hover:bg-gray-50/50 transition-colors group"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="relative shrink-0">
+                                {service.image_url ? (
+                                  <img
+                                    src={`${IMAGE_BASE_URL}${service.image_url}`}
+                                    alt={service.servicename}
+                                    className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center border border-gray-100 shadow-sm">
+                                    <Box size={20} />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-bold text-gray-900">
+                                    {service.servicename}
+                                  </p>
+                                  {service.is_featured && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                      FEATURED
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px] mt-0.5">
+                                  {service.short_description ||
+                                    service.servicedetails}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col items-start gap-1.5">
+                              {service.category && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200 uppercase">
+                                  {service.category}
                                 </span>
                               )}
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                                  service.servicetype === "package"
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-blue-50 text-blue-700 border-blue-200"
+                                }`}
+                              >
+                                {service.servicetype === "package" ? (
+                                  <>
+                                    <Box size={10} /> PACKAGE
+                                  </>
+                                ) : (
+                                  <>
+                                    <Layers size={10} /> ADD-ON
+                                  </>
+                                )}
+                              </span>
                             </div>
-                            <div className="flex gap-1 ml-2">
+                          </td>
+                          <td className="px-6 py-4">
+                            {service.has_offer ? (
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold text-red-600">
+                                  Rs.{" "}
+                                  {parseFloat(
+                                    service.offer_price,
+                                  ).toLocaleString()}
+                                </span>
+                                <span className="text-xs text-gray-400 line-through">
+                                  Rs.{" "}
+                                  {parseFloat(
+                                    service.serviceprice,
+                                  ).toLocaleString()}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded mt-1 w-max">
+                                  <Tag size={10} /> OFFER
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col">
+                                {service.is_variable_price && (
+                                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                                    Starts From
+                                  </span>
+                                )}
+                                <span className="text-sm font-bold text-gray-900">
+                                  Rs.{" "}
+                                  {parseFloat(
+                                    service.serviceprice,
+                                  ).toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                              <Clock size={16} className="text-gray-400" />
+                              {service.servicetime} hrs
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => openEditForm(service)}
-                                disabled={isSubmitting}
-                                className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-md transition"
+                                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                                title="Edit Service"
                               >
                                 <Edit size={16} />
                               </button>
@@ -376,57 +468,19 @@ const ManageServicesPage = () => {
                                 onClick={() =>
                                   handleDeleteService(service.serviceid)
                                 }
-                                disabled={isSubmitting}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Delete Service"
                               >
                                 <Trash2 size={16} />
                               </button>
                             </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4 px-5 pb-5 flex-1 flex flex-col">
-                          <p className="text-sm text-gray-600 line-clamp-2 flex-1">
-                            {service.short_description ||
-                              service.servicedetails}
-                          </p>
-
-                          <div className="pt-4 border-t border-gray-100 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <Clock size={16} />
-                                <span>{service.servicetime} hrs</span>
-                              </div>
-
-                              {service.has_offer ? (
-                                <div className="text-right">
-                                  <div className="text-xs text-gray-400 line-through font-medium">
-                                    Rs. {service.serviceprice}
-                                  </div>
-                                  <div className="text-lg font-bold text-red-600">
-                                    Rs. {service.offer_price}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-right">
-                                  {service.is_variable_price && (
-                                    <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
-                                      Starts From
-                                    </div>
-                                  )}
-                                  <div className="text-lg font-bold text-gray-900">
-                                    Rs. {service.serviceprice}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </div>
         ) : (
           <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
