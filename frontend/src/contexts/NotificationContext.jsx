@@ -30,6 +30,7 @@ export const NotificationProvider = ({ children }) => {
       });
 
       newSocket.on("notification", (notification) => {
+        console.log("[Socket] Received notification:", notification);
         // Play sound?
         // Show toast
         toast(notification.title, {

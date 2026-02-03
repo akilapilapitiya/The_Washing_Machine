@@ -467,7 +467,7 @@ export const updateBookingService = async (
       );
 
       // Reassignment Notification
-      await createNotificationService({
+      const notification = await createNotificationService({
         recipientId: current.cusid,
         recipientRole: "customer",
         title: "Employee Reassigned",
