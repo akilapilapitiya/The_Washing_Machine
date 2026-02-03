@@ -28,6 +28,7 @@ const ManageServicesPage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
     servicename: "",
     servicedetails: "",
@@ -102,7 +103,14 @@ const ManageServicesPage = () => {
     return { hours: hours || 0, minutes: minutes || 0 };
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
   const resetForm = () => {
+    setImageFile(null);
     setFormData({
       servicename: "",
       servicedetails: "",
@@ -129,36 +137,27 @@ const ManageServicesPage = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const payload = {
-        servicename: formData.servicename,
-        servicedetails: formData.servicedetails,
-        serviceprice: parseFloat(formData.serviceprice),
-        servicetime: formData.servicetime,
-        has_offer: formData.has_offer,
-        offer_price: formData.has_offer
-          ? parseFloat(formData.offer_price)
-          : null,
-        offer_description: formData.has_offer
-          ? formData.offer_description
-          : null,
-        offer_start_date:
-          formData.has_offer && formData.offer_start_date
-            ? formData.offer_start_date
-            : null,
-        offer_end_date:
-          formData.has_offer && formData.offer_end_date
-            ? formData.offer_end_date
-            : null,
-        servicetype: formData.servicetype,
-        short_description: formData.short_description,
-        long_description: formData.long_description,
-        image_url: formData.image_url,
-        gallery_urls: formData.gallery_urls,
-        benefits: formData.benefits,
-        category: formData.category,
-        is_featured: formData.is_featured,
-        is_variable_price: formData.is_variable_price,
-      };
+
+      const payload = new FormData();
+
+      // Append standard fields
+      Object.keys(formData).forEach((key) => {
+        if (key === "gallery_urls" || key === "benefits") {
+          payload.append(key, JSON.stringify(formData[key]));
+        } else if (key === "image_url") {
+          // Skip image_url string if we have a file, or send it if we don't
+          if (!imageFile && formData[key]) {
+            payload.append(key, formData[key]);
+          }
+        } else {
+          payload.append(key, formData[key] === null ? "" : formData[key]);
+        }
+      });
+
+      if (imageFile) {
+        payload.append("image", imageFile);
+      }
+
       await serviceService.createService(payload);
       resetForm();
       setShowAddForm(false);
@@ -176,40 +175,24 @@ const ManageServicesPage = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const payload = {
-        servicename: formData.servicename,
-        servicedetails: formData.servicedetails,
-        servicetime: formData.servicetime,
-        has_offer: formData.has_offer,
-        offer_price: formData.has_offer
-          ? parseFloat(formData.offer_price)
-          : null,
-        offer_description: formData.has_offer
-          ? formData.offer_description
-          : null,
-        offer_start_date:
-          formData.has_offer && formData.offer_start_date
-            ? formData.offer_start_date
-            : null,
-        offer_end_date:
-          formData.has_offer && formData.offer_end_date
-            ? formData.offer_end_date
-            : null,
-        servicetype: formData.servicetype,
-        short_description: formData.short_description,
-        long_description: formData.long_description,
-        image_url: formData.image_url,
-        gallery_urls: formData.gallery_urls,
-        benefits: formData.benefits,
-        category: formData.category,
-        is_featured: formData.is_featured,
-        is_variable_price: formData.is_variable_price,
-      };
-      // Only include serviceprice if it's a valid number
-      const price = parseFloat(formData.serviceprice);
-      if (!isNaN(price) && formData.serviceprice !== "") {
-        payload.serviceprice = price;
+
+      const payload = new FormData();
+      Object.keys(formData).forEach((key) => {
+        if (key === "gallery_urls" || key === "benefits") {
+          payload.append(key, JSON.stringify(formData[key]));
+        } else if (key === "image_url") {
+          if (!imageFile && formData[key]) {
+            payload.append(key, formData[key]);
+          }
+        } else {
+          payload.append(key, formData[key] === null ? "" : formData[key]);
+        }
+      });
+
+      if (imageFile) {
+        payload.append("image", imageFile);
       }
+
       await serviceService.updateService(selectedService.serviceid, payload);
       resetForm();
       setShowEditForm(false);
@@ -281,11 +264,13 @@ const ManageServicesPage = () => {
       is_featured: service.is_featured || false,
       is_variable_price: service.is_variable_price || false,
     });
+    setImageFile(null);
     setShowEditForm(true);
   };
 
   const openAddForm = () => {
     resetForm();
+    setImageFile(null);
     setShowAddForm(true);
   };
 
@@ -608,16 +593,21 @@ const ManageServicesPage = () => {
                         htmlFor="image_url"
                         className="text-sm font-medium text-gray-700"
                       >
-                        Primary Image URL
+                        Primary Image
                       </Label>
                       <Input
                         id="image_url"
                         name="image_url"
-                        value={formData.image_url}
-                        onChange={handleInputChange}
-                        placeholder="https://..."
-                        className="h-11 border-gray-300"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="h-11 border-gray-300 pt-1.5"
                       />
+                      {formData.image_url && !imageFile && (
+                        <p className="text-xs text-green-600 truncate">
+                          Current: {formData.image_url.split("/").pop()}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -644,7 +634,7 @@ const ManageServicesPage = () => {
                       htmlFor="long_description"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Educational/Long Description
+                      Long Description
                     </Label>
                     <textarea
                       id="long_description"

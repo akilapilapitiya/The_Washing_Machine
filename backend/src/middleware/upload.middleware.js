@@ -4,9 +4,13 @@ import fs from "fs";
 
 // Ensure upload directory exists
 const uploadDir = "uploads/profiles";
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const serviceUploadDir = "uploads/services";
+
+[uploadDir, serviceUploadDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -38,6 +42,23 @@ const fileFilter = (req, file, cb) => {
 
 export const uploadProfilePicture = multer({
   storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: fileFilter,
+});
+
+const serviceStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, serviceUploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Save as service-timestamp-random.ext
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, `service-${uniqueSuffix}${path.extname(file.originalname)}`);
+  },
+});
+
+export const uploadServiceImage = multer({
+  storage: serviceStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: fileFilter,
 });

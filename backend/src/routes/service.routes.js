@@ -9,6 +9,8 @@ import {
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
 import { serviceValidator } from "../validators/index.js";
+import { uploadServiceImage } from "../middleware/upload.middleware.js";
+import { parseServiceFormData } from "../middleware/transform.middleware.js";
 
 const serviceRouter = Router();
 
@@ -22,13 +24,17 @@ serviceRouter.use(authMiddleware, restrictTo("manager", "owner"));
 // PROTECTED ROUTE - Manager/Owner only
 serviceRouter.post(
   "/",
+  uploadServiceImage.single("image"),
+  parseServiceFormData,
   validateSchema(serviceValidator.createService),
-  createService
+  createService,
 );
 serviceRouter.put(
   "/:serviceid",
+  uploadServiceImage.single("image"),
+  parseServiceFormData,
   validateSchema(serviceValidator.updateService),
-  updateService
+  updateService,
 );
 serviceRouter.delete("/:serviceid", deleteService);
 
