@@ -57,7 +57,12 @@ const CustomerLoginPage = () => {
         // Redirect to dashboard
         navigate("/dashboard");
       } else {
-        setError(response.message || "Login failed. Please try again.");
+        const msg = response.message || "Login failed. Please try again.";
+        if (msg.toLowerCase().includes("blocked")) {
+          navigate("/banned");
+          return;
+        }
+        setError(msg);
       }
     } catch (err) {
       console.error("Login error:", err);

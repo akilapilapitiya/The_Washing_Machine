@@ -41,6 +41,7 @@ import EmployeePerformanceReportPage from "./features/admin/EmployeePerformanceR
 import BookingReviewPage from "./features/admin/BookingReviewPage";
 import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
+import BannedPage from "./pages/BannedPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 const App = () => {
@@ -56,6 +57,7 @@ const App = () => {
           <Route path="login" element={<CustomerLogin />} />
           <Route path="employee/login" element={<EmployeeLogin />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="banned" element={<BannedPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 
