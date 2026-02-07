@@ -31,14 +31,17 @@ export const removeExtraItemService = async (extraId) => {
   return result.rows[0];
 };
 
-export const updateExtraItemPriceService = async (extraId, price) => {
+export const updateExtraItemPriceService = async (extraId, price, userId) => {
   if (price === undefined || price < 0) {
     throw new Error("Valid price is required");
   }
 
   const result = await pool.query(
-    "UPDATE booking_extras SET price = $1, updated_at = NOW() WHERE id = $2 RETURNING *",
-    [price, extraId],
+    `UPDATE booking_extras 
+     SET price = $1, priced_by = $2, priced_at = NOW(), updated_at = NOW() 
+     WHERE id = $3 
+     RETURNING *`,
+    [price, userId, extraId],
   );
 
   if (result.rowCount === 0) {

@@ -38,9 +38,12 @@ export const updateItemPrice = async (req, res, next) => {
     const extraId = req.params.id;
     const { price } = req.body;
 
+    const userId = req.user.id;
+
     const updatedItem = await chargesService.updateExtraItemPriceService(
       extraId,
       price,
+      userId,
     );
 
     res.json(updatedItem);
