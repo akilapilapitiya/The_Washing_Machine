@@ -134,6 +134,9 @@ export const getBookingService = async (
       b.bookinglocationlongitude,
       b.vehid,
       b.totalprice as bookingtotalprice,
+      b.travel_distance,
+      b.travel_duration,
+      b.travel_cost,
       v.cusid,
       v.vehmileage,
       c.title,
@@ -208,12 +211,6 @@ export const createBookingService = async ({
   travelDistance,
   travelDuration,
 }) => {
-  console.log("createBookingService received:", {
-    travelDistance,
-    travelDuration,
-    locationType,
-  });
-
   assertRequiredFields(
     {
       customerId,

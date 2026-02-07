@@ -69,7 +69,6 @@ export const createBooking = async (req, res, next) => {
       travelDistance,
       travelDuration,
     });
-    console.log("Creating booking with:", req.body);
 
     successResponse(res, 201, "Booking created successfully", { booking });
   } catch (error) {

@@ -27,6 +27,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
 import { toast } from "sonner";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  Pin,
+} from "@vis.gl/react-google-maps";
+import { Navigation, Share2 } from "lucide-react";
 
 const ServiceDetailsPage = () => {
   const { id } = useParams();
@@ -324,33 +331,132 @@ const ServiceDetailsPage = () => {
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <Phone size={16} className="text-gray-400" />
-                    <span className="font-medium">{service.custel}</span>
+                    <span className="font-medium">{service.cusphone}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm border-gray-200">
+            <Card className="shadow-sm border-gray-200 overflow-hidden">
               <CardHeader className="pb-3 border-b border-gray-50">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <div className="p-2 bg-gray-100 rounded-lg text-gray-600">
                     <MapPin size={18} />
                   </div>
-                  Location
+                  Location Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
-                <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600 leading-relaxed border border-gray-100">
-                  {/* Assuming location is latent or stored differently, using placeholder/fields if available */}
-                  <p className="flex items-start gap-2">
-                    <MapPin
-                      size={16}
-                      className="text-gray-400 shrink-0 mt-0.5"
-                    />
-                    Location coordinates provided in job manifest. Check mobile
-                    unit GPS.
-                  </p>
-                </div>
+              <CardContent className="pt-0 p-0">
+                {service.travel_distance > 0 ? (
+                  <div className="flex flex-col">
+                    {/* Map View */}
+                    <div className="h-[250px] w-full relative">
+                      <APIProvider
+                        apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                      >
+                        <Map
+                          defaultCenter={{
+                            lat: parseFloat(service.bookinglocationlatitude),
+                            lng: parseFloat(service.bookinglocationlongitude),
+                          }}
+                          defaultZoom={15}
+                          mapId="SERVICE_DETAIL_MAP"
+                          disableDefaultUI={false}
+                          clickableIcons={false}
+                        >
+                          <AdvancedMarker
+                            position={{
+                              lat: parseFloat(service.bookinglocationlatitude),
+                              lng: parseFloat(service.bookinglocationlongitude),
+                            }}
+                          >
+                            <Pin
+                              background={"#DC2626"}
+                              glyphColor={"#fff"}
+                              borderColor={"#991B1B"}
+                            />
+                          </AdvancedMarker>
+                        </Map>
+                      </APIProvider>
+                      {/* Overlay Gradient */}
+                      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Location Info & Actions */}
+                    <div className="p-4 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            Home Visit
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Distance:{" "}
+                            {parseFloat(service.travel_distance).toFixed(1)}km •
+                            Est.{" "}
+                            {parseFloat(service.travel_duration).toFixed(0)}{" "}
+                            mins
+                          </p>
+                          {/* Assuming address might be stored or reverse geocoded? For now just coords or generic */}
+                          <p className="text-xs text-gray-400 font-mono mt-1">
+                            {service.bookinglocationlatitude},{" "}
+                            {service.bookinglocationlongitude}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="secondary"
+                          className="w-full text-xs h-9 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                          onClick={() =>
+                            window.open(
+                              `https://www.google.com/maps/dir/?api=1&destination=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`,
+                              "_blank",
+                            )
+                          }
+                        >
+                          <Navigation size={14} className="mr-2" />
+                          Open Maps
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full text-xs h-9"
+                          onClick={() => {
+                            const text = `Service Location for #${service.bookingid}: https://www.google.com/maps/search/?api=1&query=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`;
+                            if (navigator.share) {
+                              navigator
+                                .share({
+                                  title: `Service #${service.bookingid} Location`,
+                                  text: text,
+                                  url: `https://www.google.com/maps/search/?api=1&query=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`,
+                                })
+                                .catch(console.error);
+                            } else {
+                              navigator.clipboard.writeText(text);
+                              toast.success("Location link copied!");
+                            }
+                          }}
+                        >
+                          <Share2 size={14} className="mr-2" />
+                          Share
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 text-center">
+                    <div className="bg-gray-50 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
+                      <MapPin className="text-gray-400" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">Main Branch</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      488, High level Road, Pannipitiya
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Customer will bring the vehicle to the service center.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

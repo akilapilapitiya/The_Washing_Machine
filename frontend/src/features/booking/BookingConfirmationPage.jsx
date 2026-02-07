@@ -34,8 +34,6 @@ const BookingConfirmationPage = () => {
   const { vehicleId, serviceIds, locationData, employeeId, date, time } =
     location.state || {}; // locationData now holds { id, type, lat, lng, distance }
 
-  console.log("Confirmation Data:", location.state);
-
   useEffect(() => {
     if (!vehicleId || !serviceIds) {
       navigate("/dashboard/book");
@@ -100,9 +98,6 @@ const BookingConfirmationPage = () => {
         employeeId: employeeId === "any" ? null : employeeId,
         status: "pending",
       };
-
-      console.log("DEBUG: locationData is:", locationData);
-      console.log("Sending booking payload:", bookingData);
 
       await bookingService.createBooking(bookingData);
       toast.success("Booking confirmed successfully!");
