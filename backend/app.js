@@ -29,6 +29,7 @@ import incidentRouter from "./src/routes/incident.route.js";
 import reportRouter from "./src/routes/report.route.js";
 import notificationRouter from "./src/routes/notification.route.js";
 import dependentRouter from "./src/routes/dependent.route.js";
+import settingsRouter from "./src/routes/settings.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -76,6 +77,7 @@ const createApp = () => {
   app.use("/api/report", reportRouter);
   app.use("/api/notification", notificationRouter);
   app.use("/api/dependent", dependentRouter);
+  app.use("/api/settings", settingsRouter);
 
   // Error handling Middleware
   app.use(errorHandling);

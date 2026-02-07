@@ -28,19 +28,34 @@ const getSetting = async (key, defaultValue) => {
 export const calculateTravelCost = async (distanceKm) => {
   if (distanceKm <= 0) return 0;
 
-  const fuelPrice = await getSetting("fuel_price_per_km", 100); // Default 100 LKR
-  const baseFee = await getSetting("base_travel_fee", 0); // Default 0 LKR
+  // Default rules if DB fetch fails or is empty
+  const defaultRules = {
+    base_km: 5,
+    base_fee: 500,
+    additional_rate: 100,
+  };
 
-  if (!fuelPrice) return 0;
+  let rules = defaultRules;
+  try {
+    const rulesJson = await getSetting("travel_pricing_rules", null);
+    if (rulesJson) {
+      rules = JSON.parse(rulesJson);
+    }
+  } catch (error) {
+    console.warn("Failed to parse pricing rules, using defaults", error);
+  }
 
-  // Formula: Base Fee + (Distance * Fuel Price)
-  // Logic updated: The user said "add only fuel later I will expand".
-  // Let's assume the user purely wants Distance * Cost for now, plus maybe a base fee if defined.
-  // We'll stick to a simple linear model: Travel Cost = Distance * FuelPrice
+  const { base_km, base_fee, additional_rate } = rules;
 
-  const cost = distanceKm * parseFloat(fuelPrice);
-  // Add base fee if configured (optional, but good for business)
-  // const total = cost + parseFloat(baseFee);
+  let cost = 0;
+
+  if (distanceKm <= base_km) {
+    cost = parseFloat(base_fee);
+  } else {
+    // Base cost + (extra distance * rate)
+    const extraKm = distanceKm - base_km;
+    cost = parseFloat(base_fee) + extraKm * parseFloat(additional_rate);
+  }
 
   return parseFloat(cost.toFixed(2));
 };
