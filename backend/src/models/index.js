@@ -16,6 +16,8 @@ import createNotificationTable from "./notification.model.js";
 import createIncidentTable from "./incident.model.js";
 import createVehicleCatalogTable from "./vehicleCatalog.model.js";
 import createPasswordResetTokenTable from "./passwordResetToken.model.js";
+import createSysSettingsTable from "./sysSettings.model.js";
+import createBookingExtrasTable from "./bookingExtras.model.js";
 
 const initModels = async (pool) => {
   try {
@@ -40,6 +42,8 @@ const initModels = async (pool) => {
     await createNotificationTable(pool);
     await createIncidentTable(pool); // After all referenced tables
     await createPasswordResetTokenTable(pool);
+    await createSysSettingsTable(pool);
+    await createBookingExtrasTable(pool);
 
     console.log("✓ All database tables created successfully");
   } catch (error) {

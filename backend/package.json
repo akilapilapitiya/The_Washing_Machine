@@ -10,10 +10,12 @@
     "db:reset": "node src/scripts/runReset.js",
     "db:reset:seed": "node src/scripts/runReset.js --seed-owner",
     "db:seed-owner": "node src/scripts/addOwner.js",
+    "db:seed": "node scripts/seed/index.js",
     "test": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:watch": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch"
   },
   "dependencies": {
+    "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.67.2",
     "compression": "^1.8.1",

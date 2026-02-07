@@ -34,7 +34,8 @@ const EmployeeSelectionPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("any");
 
-  const { vehicleId, serviceIds, locationId } = location.state || {};
+  const { vehicleId, serviceIds, locationId, locationData } =
+    location.state || {};
 
   useEffect(() => {
     const fetchBookingData = async () => {
@@ -69,6 +70,7 @@ const EmployeeSelectionPage = () => {
         vehicleId,
         serviceIds,
         locationId,
+        locationData,
         employeeId: selectedEmployeeId,
       },
     });

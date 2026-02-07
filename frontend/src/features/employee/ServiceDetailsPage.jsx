@@ -26,7 +26,15 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
+import * as chargesService from "@/services/charges.service"; // Import charges service
 import { toast } from "sonner";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  Pin,
+} from "@vis.gl/react-google-maps";
+import { Navigation, Share2, Plus, Trash2 } from "lucide-react"; // Add Plus, Trash2
 
 const ServiceDetailsPage = () => {
   const { id } = useParams();
@@ -40,6 +48,12 @@ const ServiceDetailsPage = () => {
   const [nextServiceMileage, setNextServiceMileage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState(null);
+
+  // Extras State
+  const [showExtraModal, setShowExtraModal] = useState(false);
+  const [extraName, setExtraName] = useState("");
+  const [extraDesc, setExtraDesc] = useState("");
+  const [addingExtra, setAddingExtra] = useState(false);
 
   // Incident Reporting State
   const [showReportModal, setShowReportModal] = useState(false);
@@ -106,6 +120,49 @@ const ServiceDetailsPage = () => {
       });
     } finally {
       setReporting(false);
+    }
+  };
+
+  const handleAddExtra = async (e) => {
+    e.preventDefault();
+    if (!extraName.trim()) return;
+
+    try {
+      setAddingExtra(true);
+      const newExtra = await chargesService.addExtraItem(id, {
+        item_name: extraName,
+        description: extraDesc,
+      });
+
+      setService((prev) => ({
+        ...prev,
+        extras: [...(prev.extras || []), newExtra],
+      }));
+
+      setShowExtraModal(false);
+      setExtraName("");
+      setExtraDesc("");
+      toast.success("Item added successfully");
+    } catch (err) {
+      console.error("Failed to add extra item:", err);
+      toast.error("Failed to add item");
+    } finally {
+      setAddingExtra(false);
+    }
+  };
+
+  const handleRemoveExtra = async (extraId) => {
+    if (!confirm("Are you sure you want to remove this item?")) return;
+    try {
+      await chargesService.removeExtraItem(extraId);
+      setService((prev) => ({
+        ...prev,
+        extras: prev.extras.filter((item) => item.id !== extraId),
+      }));
+      toast.success("Item removed");
+    } catch (err) {
+      console.error("Failed to remove item:", err);
+      toast.error("Failed to remove item");
     }
   };
 
@@ -284,6 +341,68 @@ const ServiceDetailsPage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Extra Items Card */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-3 border-b border-gray-50 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <Plus size={18} />
+                  </div>
+                  Extra Items Used
+                </CardTitle>
+                <Button
+                  onClick={() => setShowExtraModal(true)}
+                  size="sm"
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  disabled={
+                    service.bookingstatus === "completed" ||
+                    service.bookingstatus === "cancelled"
+                  }
+                >
+                  <Plus size={16} className="mr-1" /> Add Item
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {service.extras && service.extras.length > 0 ? (
+                  <div className="space-y-3">
+                    {service.extras.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                      >
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {item.item_name}
+                          </p>
+                          {item.description && (
+                            <p className="text-xs text-gray-500">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-red-600 h-8 w-8"
+                          onClick={() => handleRemoveExtra(item.id)}
+                          disabled={service.bookingstatus === "completed"}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500 border-2 border-dashed border-gray-100 rounded-lg">
+                    <p className="text-sm">No extra items recorded.</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Use this to track parts or fluids used.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar Info */}
@@ -324,33 +443,132 @@ const ServiceDetailsPage = () => {
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <Phone size={16} className="text-gray-400" />
-                    <span className="font-medium">{service.custel}</span>
+                    <span className="font-medium">{service.cusphone}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm border-gray-200">
+            <Card className="shadow-sm border-gray-200 overflow-hidden">
               <CardHeader className="pb-3 border-b border-gray-50">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <div className="p-2 bg-gray-100 rounded-lg text-gray-600">
                     <MapPin size={18} />
                   </div>
-                  Location
+                  Location Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
-                <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600 leading-relaxed border border-gray-100">
-                  {/* Assuming location is latent or stored differently, using placeholder/fields if available */}
-                  <p className="flex items-start gap-2">
-                    <MapPin
-                      size={16}
-                      className="text-gray-400 shrink-0 mt-0.5"
-                    />
-                    Location coordinates provided in job manifest. Check mobile
-                    unit GPS.
-                  </p>
-                </div>
+              <CardContent className="pt-0 p-0">
+                {service.travel_distance > 0 ? (
+                  <div className="flex flex-col">
+                    {/* Map View */}
+                    <div className="h-[250px] w-full relative">
+                      <APIProvider
+                        apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                      >
+                        <Map
+                          defaultCenter={{
+                            lat: parseFloat(service.bookinglocationlatitude),
+                            lng: parseFloat(service.bookinglocationlongitude),
+                          }}
+                          defaultZoom={15}
+                          mapId="SERVICE_DETAIL_MAP"
+                          disableDefaultUI={false}
+                          clickableIcons={false}
+                        >
+                          <AdvancedMarker
+                            position={{
+                              lat: parseFloat(service.bookinglocationlatitude),
+                              lng: parseFloat(service.bookinglocationlongitude),
+                            }}
+                          >
+                            <Pin
+                              background={"#DC2626"}
+                              glyphColor={"#fff"}
+                              borderColor={"#991B1B"}
+                            />
+                          </AdvancedMarker>
+                        </Map>
+                      </APIProvider>
+                      {/* Overlay Gradient */}
+                      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Location Info & Actions */}
+                    <div className="p-4 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            Home Visit
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Distance:{" "}
+                            {parseFloat(service.travel_distance).toFixed(1)}km •
+                            Est.{" "}
+                            {parseFloat(service.travel_duration).toFixed(0)}{" "}
+                            mins
+                          </p>
+                          {/* Assuming address might be stored or reverse geocoded? For now just coords or generic */}
+                          <p className="text-xs text-gray-400 font-mono mt-1">
+                            {service.bookinglocationlatitude},{" "}
+                            {service.bookinglocationlongitude}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="secondary"
+                          className="w-full text-xs h-9 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                          onClick={() =>
+                            window.open(
+                              `https://www.google.com/maps/dir/?api=1&destination=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`,
+                              "_blank",
+                            )
+                          }
+                        >
+                          <Navigation size={14} className="mr-2" />
+                          Open Maps
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full text-xs h-9"
+                          onClick={() => {
+                            const text = `Service Location for #${service.bookingid}: https://www.google.com/maps/search/?api=1&query=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`;
+                            if (navigator.share) {
+                              navigator
+                                .share({
+                                  title: `Service #${service.bookingid} Location`,
+                                  text: text,
+                                  url: `https://www.google.com/maps/search/?api=1&query=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`,
+                                })
+                                .catch(console.error);
+                            } else {
+                              navigator.clipboard.writeText(text);
+                              toast.success("Location link copied!");
+                            }
+                          }}
+                        >
+                          <Share2 size={14} className="mr-2" />
+                          Share
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 text-center">
+                    <div className="bg-gray-50 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
+                      <MapPin className="text-gray-400" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">Main Branch</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      488, High level Road, Pannipitiya
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Customer will bring the vehicle to the service center.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -358,6 +576,69 @@ const ServiceDetailsPage = () => {
       </div>
 
       {/* Incident Report Modal */}
+      {/* Add Extra Item Modal */}
+      {showExtraModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md shadow-2xl border-0">
+            <CardHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-bold text-gray-900">
+                  Add Extra Item
+                </CardTitle>
+                <button
+                  onClick={() => setShowExtraModal(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleAddExtra} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="extraName">Item Name</Label>
+                  <Input
+                    id="extraName"
+                    value={extraName}
+                    onChange={(e) => setExtraName(e.target.value)}
+                    placeholder="e.g. Air Filter"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="extraDesc">Description / Model</Label>
+                  <Input
+                    id="extraDesc"
+                    value={extraDesc}
+                    onChange={(e) => setExtraDesc(e.target.value)}
+                    placeholder="e.g. Toyota Genuine Part #123"
+                  />
+                </div>
+                <div className="flex justify-end pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowExtraModal(false)}
+                    className="mr-2"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={addingExtra}>
+                    {addingExtra ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Item"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       {showReportModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-md shadow-2xl border-0">

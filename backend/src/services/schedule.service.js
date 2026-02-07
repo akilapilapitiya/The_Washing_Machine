@@ -48,6 +48,7 @@ export const checkAvailability = async (
   startTime,
   endTime,
   excludeBookingId = null,
+  bufferMinutes = 0,
 ) => {
   const query = `
     SELECT 1 FROM schedule s
@@ -56,7 +57,11 @@ export const checkAvailability = async (
     WHERE (ea.empid = $1::int OR el.empid = $1::int)
     AND s.schedulestartdate = $2::date
     AND (s.bookingid IS NULL OR s.bookingid != $5::int)
-    AND NOT (s.scheduleendtime <= $3::time OR s.schedulestarttime >= $4::time)
+    AND NOT (
+      s.scheduleendtime <= ($3::time - ($6 * interval '1 minute')) 
+      OR 
+      s.schedulestarttime >= $4::time
+    )
     LIMIT 1
   `;
 
@@ -66,6 +71,7 @@ export const checkAvailability = async (
     startTime,
     endTime,
     excludeBookingId || -1,
+    bufferMinutes,
   ]);
   return result.rowCount === 0;
 };

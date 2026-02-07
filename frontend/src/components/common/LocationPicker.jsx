@@ -1,0 +1,226 @@
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  Pin,
+  useMap,
+} from "@vis.gl/react-google-maps";
+import { Loader2, MapPin } from "lucide-react";
+import { toast } from "sonner";
+
+// Default to Pannipitiya (HQ)
+const DEFAULT_CENTER = { lat: 6.8485, lng: 79.9525 };
+const DEFAULT_ZOOM = 13;
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+// Radius in KM
+const MAX_RADIUS_KM = Number(import.meta.env.VITE_MAX_BOOKING_RADIUS_KM) || 30;
+
+// Helper to calculate distance between two coords using Haversine formula
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+};
+
+const deg2rad = (deg) => {
+  return deg * (Math.PI / 180);
+};
+
+// Component to handle map clicks
+const MapEvents = ({ onMapClick }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+    const listener = map.addListener("click", (e) => {
+      onMapClick({
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+      });
+    });
+    return () => google.maps.event.removeListener(listener);
+  }, [map, onMapClick]);
+
+  return null;
+};
+
+const LocationPicker = ({ onLocationSelect, initialLocation }) => {
+  const [selectedLocation, setSelectedLocation] = useState(
+    initialLocation || DEFAULT_CENTER,
+  );
+  const [error, setError] = useState(null);
+  const [calculating, setCalculating] = useState(false);
+
+  // HQ Coordinates
+  const hqCoords = useMemo(() => DEFAULT_CENTER, []);
+
+  // Initialize Map hooks
+  const map = useMap();
+
+  const calculateDrivingDistance = async (destination) => {
+    if (!window.google || !window.google.maps) return;
+
+    setCalculating(true);
+    setError(null);
+
+    const service = new google.maps.DistanceMatrixService();
+
+    try {
+      const response = await service.getDistanceMatrix({
+        origins: [hqCoords],
+        destinations: [destination],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+      });
+
+      const element = response.rows[0].elements[0];
+
+      if (element.status === "OK") {
+        const distanceKm = element.distance.value / 1000;
+        const durationMins = Math.ceil(element.duration.value / 60);
+
+        if (distanceKm > MAX_RADIUS_KM) {
+          const msg = `Location is ${distanceKm.toFixed(1)}km away (Driving). We only service within ${MAX_RADIUS_KM}km of our HQ.`;
+          setError(msg);
+          toast.error(msg);
+          // Still pass data but maybe with error flag? Or just don't pass?
+          // For now, allow selection but show error (blocking next step optionally)
+          onLocationSelect(null);
+        } else {
+          onLocationSelect({
+            lat: destination.lat,
+            lng: destination.lng,
+            distance: distanceKm,
+            duration: durationMins,
+            address: response.destinationAddresses[0],
+          });
+        }
+      } else {
+        // Fallback or error
+        console.error("Distance Matrix failed:", element.status);
+        setError("Could not calculate driving distance.");
+        // Fallback to haversine or allow simplistic selection?
+        // Let's rely on backend validation if frontend fails
+        // But for "radius check", we might need to block.
+        // Fallback to Haversine
+        const haversineDist = calculateDistance(
+          hqCoords.lat,
+          hqCoords.lng,
+          destination.lat,
+          destination.lng,
+        );
+        if (haversineDist > MAX_RADIUS_KM) {
+          setError(
+            `Location is too far (~${haversineDist.toFixed(1)}km). Limit is ${MAX_RADIUS_KM}km.`,
+          );
+          onLocationSelect(null);
+        } else {
+          onLocationSelect({
+            lat: destination.lat,
+            lng: destination.lng,
+            distance: haversineDist,
+            duration: Math.ceil(haversineDist * 2), // Rough estimate
+            isEstimate: true,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Distance calculation error:", err);
+      setError("Failed to calculate distance.");
+    } finally {
+      setCalculating(false);
+    }
+  };
+
+  const handleMapClick = (location) => {
+    setSelectedLocation(location);
+    // Trigger calculation
+    calculateDrivingDistance(location);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="h-[400px] w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative">
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+          <Map
+            defaultCenter={selectedLocation}
+            defaultZoom={DEFAULT_ZOOM}
+            mapId="DEMO_MAP_ID"
+            disableDefaultUI={false}
+            clickableIcons={false}
+          >
+            <MapEvents onMapClick={handleMapClick} />
+
+            {/* HQ Marker */}
+            <AdvancedMarker position={hqCoords} title="Our HQ">
+              <div className="bg-blue-600 text-white p-2 rounded-full shadow-lg border-2 border-white">
+                <MapPin size={20} fill="currentColor" />
+              </div>
+            </AdvancedMarker>
+
+            {/* Selected Location Marker */}
+            <AdvancedMarker position={selectedLocation}>
+              <Pin
+                background={"#DC2626"}
+                glyphColor={"#fff"}
+                borderColor={"#991B1B"}
+              />
+            </AdvancedMarker>
+          </Map>
+        </APIProvider>
+
+        {/* Overlay instructions */}
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-md max-w-xs text-sm text-gray-700 z-10">
+          <p className="font-semibold flex items-center gap-2">
+            <MapPin size={16} className="text-red-600" />
+            Tap map to select location
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Max Radius: {MAX_RADIUS_KM}km (Driving)
+          </p>
+        </div>
+
+        {calculating && (
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-20">
+            <div className="bg-white p-3 rounded-lg shadow-lg flex items-center gap-2">
+              <Loader2 className="animate-spin text-red-600" size={20} />
+              <span className="text-sm font-medium">Calculating route...</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg flex items-center gap-2 animate-in fade-in">
+          <MapPin size={16} /> {error}
+        </div>
+      )}
+
+      {!error && selectedLocation && !calculating && (
+        <div className="p-3 bg-green-50 text-green-700 text-sm rounded-lg flex items-center gap-2 animate-in fade-in">
+          <MapPin size={16} />
+          <div>
+            <p className="font-medium">Selected Location Confirmed</p>
+            <p className="text-xs opacity-90">
+              Coordinates: {selectedLocation.lat.toFixed(4)},{" "}
+              {selectedLocation.lng.toFixed(4)}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default LocationPicker;

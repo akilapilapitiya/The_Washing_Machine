@@ -37,7 +37,7 @@ const DateTimeSelectionPage = () => {
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [error, setError] = useState(null);
 
-  const { vehicleId, serviceIds, locationId, coords, employeeId } =
+  const { vehicleId, serviceIds, locationId, locationData, employeeId } =
     location.state || {};
 
   // Get today's date in YYYY-MM-DD format for min date
@@ -139,7 +139,7 @@ const DateTimeSelectionPage = () => {
         vehicleId,
         serviceIds,
         locationId,
-        coords,
+        locationData,
         employeeId,
         date: selectedDate,
         time: selectedTime,

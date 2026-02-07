@@ -152,10 +152,10 @@ const Sidebar = () => {
       roles: ["owner"],
     },
     {
-      to: "/dashboard/notifications",
-      icon: Bell,
-      label: "Notifications",
-      roles: ["owner", "cashier", "employee"],
+      to: "/dashboard/admin/settings/pricing",
+      icon: CreditCard,
+      label: "Travel Pricing",
+      roles: ["owner"],
     },
   ];
 
