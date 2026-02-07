@@ -26,6 +26,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
+import * as chargesService from "@/services/charges.service"; // Import charges service
 import { toast } from "sonner";
 import {
   APIProvider,
@@ -33,7 +34,7 @@ import {
   AdvancedMarker,
   Pin,
 } from "@vis.gl/react-google-maps";
-import { Navigation, Share2 } from "lucide-react";
+import { Navigation, Share2, Plus, Trash2 } from "lucide-react"; // Add Plus, Trash2
 
 const ServiceDetailsPage = () => {
   const { id } = useParams();
@@ -47,6 +48,12 @@ const ServiceDetailsPage = () => {
   const [nextServiceMileage, setNextServiceMileage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState(null);
+
+  // Extras State
+  const [showExtraModal, setShowExtraModal] = useState(false);
+  const [extraName, setExtraName] = useState("");
+  const [extraDesc, setExtraDesc] = useState("");
+  const [addingExtra, setAddingExtra] = useState(false);
 
   // Incident Reporting State
   const [showReportModal, setShowReportModal] = useState(false);
@@ -113,6 +120,49 @@ const ServiceDetailsPage = () => {
       });
     } finally {
       setReporting(false);
+    }
+  };
+
+  const handleAddExtra = async (e) => {
+    e.preventDefault();
+    if (!extraName.trim()) return;
+
+    try {
+      setAddingExtra(true);
+      const newExtra = await chargesService.addExtraItem(id, {
+        item_name: extraName,
+        description: extraDesc,
+      });
+
+      setService((prev) => ({
+        ...prev,
+        extras: [...(prev.extras || []), newExtra],
+      }));
+
+      setShowExtraModal(false);
+      setExtraName("");
+      setExtraDesc("");
+      toast.success("Item added successfully");
+    } catch (err) {
+      console.error("Failed to add extra item:", err);
+      toast.error("Failed to add item");
+    } finally {
+      setAddingExtra(false);
+    }
+  };
+
+  const handleRemoveExtra = async (extraId) => {
+    if (!confirm("Are you sure you want to remove this item?")) return;
+    try {
+      await chargesService.removeExtraItem(extraId);
+      setService((prev) => ({
+        ...prev,
+        extras: prev.extras.filter((item) => item.id !== extraId),
+      }));
+      toast.success("Item removed");
+    } catch (err) {
+      console.error("Failed to remove item:", err);
+      toast.error("Failed to remove item");
     }
   };
 
@@ -291,6 +341,68 @@ const ServiceDetailsPage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Extra Items Card */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="pb-3 border-b border-gray-50 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <Plus size={18} />
+                  </div>
+                  Extra Items Used
+                </CardTitle>
+                <Button
+                  onClick={() => setShowExtraModal(true)}
+                  size="sm"
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  disabled={
+                    service.bookingstatus === "completed" ||
+                    service.bookingstatus === "cancelled"
+                  }
+                >
+                  <Plus size={16} className="mr-1" /> Add Item
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {service.extras && service.extras.length > 0 ? (
+                  <div className="space-y-3">
+                    {service.extras.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                      >
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {item.item_name}
+                          </p>
+                          {item.description && (
+                            <p className="text-xs text-gray-500">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-red-600 h-8 w-8"
+                          onClick={() => handleRemoveExtra(item.id)}
+                          disabled={service.bookingstatus === "completed"}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500 border-2 border-dashed border-gray-100 rounded-lg">
+                    <p className="text-sm">No extra items recorded.</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Use this to track parts or fluids used.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar Info */}
@@ -464,6 +576,69 @@ const ServiceDetailsPage = () => {
       </div>
 
       {/* Incident Report Modal */}
+      {/* Add Extra Item Modal */}
+      {showExtraModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md shadow-2xl border-0">
+            <CardHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-bold text-gray-900">
+                  Add Extra Item
+                </CardTitle>
+                <button
+                  onClick={() => setShowExtraModal(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleAddExtra} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="extraName">Item Name</Label>
+                  <Input
+                    id="extraName"
+                    value={extraName}
+                    onChange={(e) => setExtraName(e.target.value)}
+                    placeholder="e.g. Air Filter"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="extraDesc">Description / Model</Label>
+                  <Input
+                    id="extraDesc"
+                    value={extraDesc}
+                    onChange={(e) => setExtraDesc(e.target.value)}
+                    placeholder="e.g. Toyota Genuine Part #123"
+                  />
+                </div>
+                <div className="flex justify-end pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowExtraModal(false)}
+                    className="mr-2"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={addingExtra}>
+                    {addingExtra ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Item"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       {showReportModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-md shadow-2xl border-0">

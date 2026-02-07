@@ -42,7 +42,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         v.vehcolor,
         COALESCE(
           json_agg(
-            json_build_object(
+            DISTINCT jsonb_build_object(
               'serviceId', sb.serviceid, 
               'servicename', s.servicename, 
               'serviceprice', s.serviceprice
@@ -50,6 +50,17 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
           ) FILTER (WHERE sb.serviceid IS NOT NULL),
           '[]'::json
         ) as services,
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', be.id,
+              'item_name', be.item_name,
+              'description', be.description,
+              'price', be.price
+            )
+          ) FILTER (WHERE be.id IS NOT NULL),
+          '[]'::json
+        ) as extras,
         ea.empid as assigned_empid,
         e.first_name || ' ' || e.last_name as assigned_empname,
         ep.empid as preferred_empid,
@@ -63,6 +74,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       LEFT JOIN employee e ON ea.empid = e.empid
       LEFT JOIN employeepreference ep ON b.bookingid = ep.bookingid
       LEFT JOIN employee pe ON ep.empid = pe.empid
+      LEFT JOIN booking_extras be ON b.bookingid = be.booking_id
     `;
 
     let queryParams = [];
@@ -150,7 +162,8 @@ export const getBookingService = async (
       v.vehplate,
       v.vehcolor,
       e.first_name || ' ' || e.last_name as empname,
-      json_agg(json_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
+      json_agg(DISTINCT jsonb_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
+      json_agg(DISTINCT jsonb_build_object('id', be.id, 'item_name', be.item_name, 'description', be.description, 'price', be.price)) FILTER (WHERE be.id IS NOT NULL) as extras
     FROM booking b
     LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
     LEFT JOIN service s ON sb.serviceid = s.serviceid
@@ -158,6 +171,7 @@ export const getBookingService = async (
     LEFT JOIN customer c ON v.cusid = c.cusid
     LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
     LEFT JOIN employee e ON ea.empid = e.empid
+    LEFT JOIN booking_extras be ON b.bookingid = be.booking_id
     WHERE b.bookingid = $1
     GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.first_name, e.last_name, c.title, c.first_name, c.last_name
     `,
