@@ -264,7 +264,7 @@ export const createBookingService = async ({
 
     // 1. Calculate Service Duration and Base Price
     const servicesCheck = await client.query(
-      "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+      "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
       [services],
     );
 
@@ -414,11 +414,17 @@ export const createBookingService = async ({
     );
     const bookingId = bookingResult.rows[0].bookingid;
 
-    // 6. Link Services
+    // 6. Link Services with Snapshot
     for (const sId of services) {
+      const serviceData = servicesCheck.rows.find((s) => s.serviceid === sId);
+      const snapshotPrice = serviceData.has_offer
+        ? parseFloat(serviceData.offer_price)
+        : parseFloat(serviceData.serviceprice);
+
       await client.query(
-        "INSERT INTO servicesbooked (bookingid, serviceid) VALUES ($1, $2)",
-        [bookingId, sId],
+        `INSERT INTO servicesbooked (bookingid, serviceid, service_name, service_price_at_booking) 
+         VALUES ($1, $2, $3, $4)`,
+        [bookingId, sId, serviceData.servicename, snapshotPrice],
       );
     }
 
@@ -616,7 +622,7 @@ export const updateBookingService = async (
 
     if (services || startTime) {
       const srvCheck = await client.query(
-        "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+        "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
 
@@ -674,10 +680,17 @@ export const updateBookingService = async (
       await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
         bookingId,
       ]);
+
       for (const sId of services) {
+        const serviceData = srvCheck.rows.find((s) => s.serviceid === sId);
+        const snapshotPrice = serviceData.has_offer
+          ? parseFloat(serviceData.offer_price)
+          : parseFloat(serviceData.serviceprice);
+
         await client.query(
-          "INSERT INTO servicesbooked (bookingid, serviceid) VALUES ($1, $2)",
-          [bookingId, sId],
+          `INSERT INTO servicesbooked (bookingid, serviceid, service_name, service_price_at_booking) 
+           VALUES ($1, $2, $3, $4)`,
+          [bookingId, sId, serviceData.servicename, snapshotPrice],
         );
       }
     }

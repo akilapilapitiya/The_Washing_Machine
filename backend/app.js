@@ -109,5 +109,5 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export { createApp, server };
-// Trigger Model Update
+// Apply Service Snapshot Schema
 export default app;
