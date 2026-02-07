@@ -77,7 +77,7 @@ const BookingConfirmationPage = () => {
   // OR, we can implement a quick fetch?
   // Let's stick to the plan: Backend does the heavy lifting. Frontend checks are for radius.
   // We can show "Base Price" and "Travel Fee" separately later.
-  const totalPrice = serviceTotal;
+  const totalPrice = serviceTotal + (locationData?.travelCost || 0);
 
   const handleConfirm = async () => {
     try {
@@ -291,9 +291,19 @@ const BookingConfirmationPage = () => {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Subtotal</span>
                     <span className="font-medium text-gray-900">
-                      Rs. {totalPrice.toLocaleString()}
+                      Rs. {serviceTotal.toLocaleString()}
                     </span>
                   </div>
+
+                  {locationData?.travelCost > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Travel Fee</span>
+                      <span className="font-medium text-gray-900">
+                        Rs. {locationData.travelCost.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Service Fee</span>
                     <span className="font-medium text-green-600">Included</span>

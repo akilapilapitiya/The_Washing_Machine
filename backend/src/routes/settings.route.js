@@ -11,7 +11,7 @@ const settingsRouter = Router();
 settingsRouter.get(
   "/pricing",
   authMiddleware,
-  restrictTo("employee", "manager", "owner"),
+  restrictTo("employee", "manager", "owner", "customer"),
   getPricingRules,
 );
 

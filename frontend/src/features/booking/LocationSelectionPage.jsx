@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Home } from "lucide-react";
+import { MapPin, Home, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import LocationPicker from "@/components/common/LocationPicker";
+import { getPricingRules } from "@/services/settings.service";
+import { toast } from "sonner";
 
 const locations = [
   {
@@ -34,18 +36,49 @@ const LocationSelectionPage = () => {
   const navigate = useNavigate();
   const [selectedLocationId, setSelectedLocationId] = useState(null);
   const [mapLocation, setMapLocation] = useState(null);
+  const [pricingRules, setPricingRules] = useState(null);
+  const [loadingRules, setLoadingRules] = useState(true);
 
   const { vehicleId, serviceIds } = location.state || {};
 
+  useEffect(() => {
+    fetchPricing();
+  }, []);
+
+  const fetchPricing = async () => {
+    try {
+      const rules = await getPricingRules();
+      setPricingRules(rules);
+    } catch (error) {
+      console.error("Failed to fetch pricing rules:", error);
+      // Fallback or just don't show estimated cost
+    } finally {
+      setLoadingRules(false);
+    }
+  };
+
+  const calculateCost = (distance) => {
+    if (!pricingRules || !distance) return 0;
+    const { base_km, base_fee, additional_rate } = pricingRules;
+
+    if (distance <= base_km) return base_fee;
+    return base_fee + (distance - base_km) * additional_rate;
+  };
+
+  const travelCost = mapLocation?.distance
+    ? calculateCost(mapLocation.distance)
+    : 0;
+
   const handleContinue = () => {
     // Navigate to employee selection with all booking data
-    // If home-visit, pass the mapLocation (lat, lng, distance)
+    // If home-visit, pass the mapLocation (lat, lng, distance) AND travelCost
     const locationData =
       selectedLocationId === "home-visit"
         ? {
             id: "home-visit",
             type: "home",
             ...mapLocation, // { lat, lng, distance }
+            travelCost, // Pass calculated cost
           }
         : {
             id: "main-branch",
@@ -53,6 +86,7 @@ const LocationSelectionPage = () => {
             lat: null,
             lng: null,
             distance: 0,
+            travelCost: 0,
           };
 
     navigate("/dashboard/booking/employee", {
@@ -148,34 +182,52 @@ const LocationSelectionPage = () => {
                             service team.
                           </p>
                         </div>
-                        <LocationPicker
-                          onLocationSelect={handleLocationSelect}
-                        />
+                        {loadingRules ? (
+                          <div className="flex justify-center p-4">
+                            <Loader2 className="animate-spin h-6 w-6 text-red-600" />
+                          </div>
+                        ) : (
+                          <>
+                            <LocationPicker
+                              onLocationSelect={handleLocationSelect}
+                            />
 
-                        {mapLocation && mapLocation.distance && (
-                          <div className="mt-4 p-3 bg-white rounded-lg border border-red-100 shadow-sm">
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600 font-medium">
-                                Travel Distance:
-                              </span>
-                              <span className="font-bold text-gray-900">
-                                {mapLocation.distance.toFixed(1)} km
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm mt-1">
-                              <span className="text-gray-600 font-medium">
-                                Est. Travel Time:
-                              </span>
-                              <span className="font-bold text-gray-900">
-                                {mapLocation.duration} mins
-                              </span>
-                            </div>
-                            {mapLocation.address && (
-                              <div className="mt-2 text-xs text-gray-500 border-t pt-2 border-gray-100">
-                                {mapLocation.address}
+                            {mapLocation && mapLocation.distance && (
+                              <div className="mt-4 p-3 bg-white rounded-lg border border-red-100 shadow-sm space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-gray-600 font-medium">
+                                    Travel Distance:
+                                  </span>
+                                  <span className="font-bold text-gray-900">
+                                    {mapLocation.distance.toFixed(1)} km
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-gray-600 font-medium">
+                                    Est. Travel Time:
+                                  </span>
+                                  <span className="font-bold text-gray-900">
+                                    {mapLocation.duration} mins
+                                  </span>
+                                </div>
+
+                                <div className="border-t border-gray-100 pt-2 flex justify-between items-center">
+                                  <span className="text-gray-700 font-semibold">
+                                    Est. Travel Fee:
+                                  </span>
+                                  <span className="font-bold text-red-600 text-base">
+                                    Rs. {travelCost.toFixed(2)}
+                                  </span>
+                                </div>
+
+                                {mapLocation.address && (
+                                  <div className="mt-2 text-xs text-gray-500 border-t pt-2 border-gray-100">
+                                    {mapLocation.address}
+                                  </div>
+                                )}
                               </div>
                             )}
-                          </div>
+                          </>
                         )}
                       </CardContent>
                     </Card>
