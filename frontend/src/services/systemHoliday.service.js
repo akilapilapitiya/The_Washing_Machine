@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "@/lib/api";
 
 // Get all holidays
 export const getHolidays = async () => {

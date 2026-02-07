@@ -306,6 +306,13 @@ const DashboardPage = () => {
                 icon: Umbrella,
                 primary: false,
               },
+              {
+                title: "System Holidays",
+                description: "Manage company-wide holidays and closures.",
+                to: "/dashboard/admin/holidays",
+                icon: Calendar,
+                primary: false,
+              },
             ]
           : []),
         // === CONFIGURATION ===

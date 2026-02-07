@@ -219,6 +219,13 @@ const Sidebar = () => {
           nested
         />
         <SidebarItem
+          to="/dashboard/admin/holidays"
+          icon={Calendar}
+          label="System Holidays"
+          active={location.pathname === "/dashboard/admin/holidays"}
+          nested
+        />
+        <SidebarItem
           to="/dashboard/admin/attendance"
           icon={Calendar}
           label="Attendance"

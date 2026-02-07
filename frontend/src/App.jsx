@@ -46,6 +46,7 @@ import BannedPage from "./pages/BannedPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import NotificationsPage from "./features/dashboard/NotificationsPage";
 import OwnerPricingPage from "./features/dashboard/OwnerPricingPage";
+import SystemHolidaysPage from "./features/admin/SystemHolidaysPage";
 
 const App = () => {
   return (
@@ -260,6 +261,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ManageServicesPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/holidays"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <SystemHolidaysPage />
                 </EmployeeProtectedRoute>
               }
             />
