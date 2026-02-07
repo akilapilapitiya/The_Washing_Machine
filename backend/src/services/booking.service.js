@@ -365,6 +365,41 @@ export const createBookingService = async ({
       [scheduleId, date, startTime, endTime, bookingId],
     );
 
+    // Customer Notification
+    await createNotificationService({
+      recipientId: customerId,
+      recipientRole: "customer",
+      title: "Booking Confirmed",
+      message: `Your booking (ID: ${bookingId}) has been successfully created related to ${vehicleId} on ${date} at ${startTime}.`,
+      type: "success",
+      bookingId: bookingId,
+    });
+
+    // Employee Notification (if assigned and not 'any')
+    // We used assignedEmpId which was resolved in step 3
+    if (assignedEmpId) {
+      // Need to fetch employee details? No, just sending notification is enough.
+      // Assuming we want to notify them.
+      // Wait, assignedEmpId could be '1' (sys account) if none found/fallback?
+      // Logic says: assignedEmpId = availResult.rows[0]?.empid || 1;
+      // Maybe don't notify ID 1 if it's a system account? Assuming 1 is system/admin.
+      // Let's safe guard.
+      if (assignedEmpId !== 1) {
+        await createNotificationService({
+          recipientId: assignedEmpId,
+          recipientRole: "employee", // or 'employee' check role?
+          // The notification table has recipient_role. Employees are 'employee' usually.
+          // But wait, the role column constraint might be loose or we need to be careful.
+          // Looking at notification.model.js: recipient_role VARCHAR(20) NOT NULL.
+          // 'employee' is safe.
+          title: "New Job Assigned",
+          message: `You have been assigned a new booking (ID: ${bookingId}) on ${date} at ${startTime}.`,
+          type: "info",
+          bookingId: bookingId,
+        });
+      }
+    }
+
     await client.query("COMMIT");
     return {
       bookingId,
@@ -442,6 +477,18 @@ export const updateBookingService = async (
       });
     }
 
+    // Status Change: In Progress
+    if (status === "inProgress" && current.bookingstatus !== "inProgress") {
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Service Started",
+        message: `Your vehicle service (ID: ${bookingId}) has started.`,
+        type: "info",
+        bookingId: bookingId,
+      });
+    }
+
     const newDate = date || current.bookingdate;
     const newStartTime = startTime || current.bookingstarttime;
 
@@ -467,7 +514,7 @@ export const updateBookingService = async (
       );
 
       // Reassignment Notification
-      await createNotificationService({
+      const notification = await createNotificationService({
         recipientId: current.cusid,
         recipientRole: "customer",
         title: "Employee Reassigned",

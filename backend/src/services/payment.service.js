@@ -6,6 +6,7 @@ import {
   assertRequiredFields,
 } from "../utils/validation.util.js";
 import { NotFoundError, ForbiddenError } from "../utils/errors.util.js";
+import { createNotificationService } from "./notification.service.js";
 
 export const getAllPaymentsService = async () => {
   const result = await pool.query(
@@ -168,6 +169,28 @@ export const createPaymentService = async ({
       `UPDATE booking SET bookingstatus = 'paid', updated_at = NOW() WHERE bookingid = $1`,
       [parseInt(bookingid)],
     );
+
+    // Customer Notification
+    // We need customer ID.
+    // Query joined with vehicle/customer to get customer ID from booking ID?
+    // We already checked booking existence: `SELECT bookingid FROM booking WHERE bookingid = $1`
+    // We need to fetch customer info.
+    const bookingInfo = await client.query(
+      `SELECT v.cusid FROM booking b JOIN vehicle v ON b.vehid = v.id WHERE b.bookingid = $1`,
+      [parseInt(bookingid)],
+    );
+
+    if (bookingInfo.rowCount > 0) {
+      const cusId = bookingInfo.rows[0].cusid;
+      await createNotificationService({
+        recipientId: cusId,
+        recipientRole: "customer",
+        title: "Payment Received",
+        message: `Payment of ${paymentamount} received for Booking #${bookingid}. Thank you!`,
+        type: "success",
+        bookingId: parseInt(bookingid),
+      });
+    }
 
     await client.query("COMMIT");
     return result.rows[0];

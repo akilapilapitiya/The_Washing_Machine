@@ -86,15 +86,22 @@ const createApp = () => {
   return app;
 };
 
+import { createServer } from "http";
+import { initSocket } from "./src/socket/index.js";
+
 const app = createApp();
+const server = createServer(app);
+
+// Initialize Socket.io
+initSocket(server);
 
 if (process.env.NODE_ENV !== "test") {
   await initModels(pool);
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
 }
 
-export { createApp };
+export { createApp, server };
 export default app;

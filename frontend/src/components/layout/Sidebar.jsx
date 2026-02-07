@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   BarChart3,
   ListChecks,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
@@ -66,6 +67,7 @@ const Sidebar = () => {
     { to: "/dashboard/vehicles", icon: Car, label: "Manage Vehicles" },
     { to: "/dashboard/history", icon: History, label: "Service History" },
     { to: "/dashboard/payments", icon: CreditCard, label: "Payments" },
+    { to: "/dashboard/notifications", icon: Bell, label: "Notifications" },
     { to: "/dashboard/feedback", icon: MessageSquare, label: "Feedback" },
   ];
 
@@ -148,6 +150,12 @@ const Sidebar = () => {
       icon: Calendar,
       label: "Attendance",
       roles: ["owner"],
+    },
+    {
+      to: "/dashboard/notifications",
+      icon: Bell,
+      label: "Notifications",
+      roles: ["owner", "cashier", "employee"],
     },
   ];
 
