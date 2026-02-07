@@ -5,7 +5,7 @@ export const getAllHolidays = async () => {
   const query = `
     SELECT 
       h.*,
-      e.empname as creator_name
+      e.first_name || ' ' || e.last_name as creator_name
     FROM system_holidays h
     LEFT JOIN employee e ON h.created_by = e.empid
     ORDER BY h.holidaydate ASC
@@ -19,7 +19,7 @@ export const getHolidaysByDateRange = async (startDate, endDate) => {
   const query = `
     SELECT 
       h.*,
-      e.empname as creator_name
+      e.first_name || ' ' || e.last_name as creator_name
     FROM system_holidays h
     LEFT JOIN employee e ON h.created_by = e.empid
     WHERE h.holidaydate BETWEEN $1 AND $2
@@ -45,7 +45,7 @@ export const getHolidayById = async (holidayId) => {
   const query = `
     SELECT 
       h.*,
-      e.empname as creator_name
+      e.first_name || ' ' || e.last_name as creator_name
     FROM system_holidays h
     LEFT JOIN employee e ON h.created_by = e.empid
     WHERE h.holidayid = $1
