@@ -305,15 +305,27 @@ export const createBookingService = async ({
     // Total Price = Service Price + Travel Cost
     const totalPrice = servicePrice + Number(travelCost);
 
-    // Total Duration = Service Duration + Travel Duration (buffer)
-    // Travel duration is one-way? Usually we account for round trip or at least arrival time.
-    // For scheduling: "Travel Time" usually means time to get there.
-    // But the booking *slot* should ideally include time to get there + service + return?
-    // Let's assume the duration blocks the employee for: Travel (to) + Service.
-    // Return travel is their own time or next booking's problem?
-    // Simply adding one-way duration to start time buffer.
+    // 3. Calculate Total Duration with Round Trip & Buffer
+    // Fetch buffer settings
+    const settingsRes = await client.query(
+      "SELECT value FROM sys_settings WHERE key = 'travel_pricing_rules'",
+    );
+    let bufferMinutes = 30; // Default
+    if (settingsRes.rowCount > 0) {
+      const rules = JSON.parse(settingsRes.rows[0].value);
+      if (rules.buffer_minutes !== undefined)
+        bufferMinutes = Number(rules.buffer_minutes);
+    }
+
+    // Total Duration = Service Duration + (Travel Duration * 2) + Buffer
+    // Travel duration is one-way, so we double it for round trip (go + come back)
     const travelSeconds = travelDetails.duration * 60;
-    const totalDurationSeconds = serviceDurationSeconds + travelSeconds;
+    const roundTripSeconds = travelSeconds * 2;
+    const bufferSeconds = bufferMinutes * 60;
+
+    // If not home visit, travel & buffer might be 0 or small, but logic holds if distance is 0.
+    const totalDurationSeconds =
+      serviceDurationSeconds + roundTripSeconds + bufferSeconds;
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
@@ -600,8 +612,26 @@ export const updateBookingService = async (
         totalPrice += price;
       });
 
+      const settingsRes = await client.query(
+        "SELECT value FROM sys_settings WHERE key = 'travel_pricing_rules'",
+      );
+      let bufferMinutes = 30;
+      if (settingsRes.rowCount > 0) {
+        const rules = JSON.parse(settingsRes.rows[0].value);
+        if (rules.buffer_minutes !== undefined)
+          bufferMinutes = Number(rules.buffer_minutes);
+      }
+
+      // Use existing travel duration from booking (or 0 if not set)
+      const travelDuration = current.travel_duration || 0;
+      const roundTripSeconds = travelDuration * 60 * 2;
+      const bufferSeconds = bufferMinutes * 60;
+
       const [sh, sm, ss] = newStartTime.split(":").map(Number);
-      const endSec = sh * 3600 + sm * 60 + (ss || 0) + duration;
+      const startSec = sh * 3600 + sm * 60 + (ss || 0);
+      const totalDurationSec = duration + roundTripSeconds + bufferSeconds;
+
+      const endSec = startSec + totalDurationSec;
       endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;
     }
 

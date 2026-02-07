@@ -12,10 +12,12 @@ export const getPricingRules = async (req, res, next) => {
       base_km: 5,
       base_fee: 500,
       additional_rate: 100,
+      buffer_minutes: 30, // Default buffer
     };
 
     if (result.rowCount > 0) {
-      rules = JSON.parse(result.rows[0].value);
+      const dbRules = JSON.parse(result.rows[0].value);
+      rules = { ...rules, ...dbRules };
     }
 
     res.json(rules);
@@ -28,7 +30,7 @@ export const getPricingRules = async (req, res, next) => {
 export const updatePricingRules = async (req, res, next) => {
   try {
     console.log("Update Pricing Body:", req.body);
-    const { base_km, base_fee, additional_rate } = req.body;
+    const { base_km, base_fee, additional_rate, buffer_minutes } = req.body;
 
     // Basic Validation
     if (
@@ -45,6 +47,8 @@ export const updatePricingRules = async (req, res, next) => {
       base_km: Number(base_km),
       base_fee: Number(base_fee),
       additional_rate: Number(additional_rate),
+      buffer_minutes:
+        buffer_minutes !== undefined ? Number(buffer_minutes) : 30,
     };
 
     await pool.query(

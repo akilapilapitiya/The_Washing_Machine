@@ -32,6 +32,7 @@ const OwnerPricingPage = () => {
       base_km: 5,
       base_fee: 500,
       additional_rate: 100,
+      buffer_minutes: 30,
     },
   });
 
@@ -53,6 +54,7 @@ const OwnerPricingPage = () => {
       setValue("base_km", rules.base_km);
       setValue("base_fee", rules.base_fee);
       setValue("additional_rate", rules.additional_rate);
+      setValue("buffer_minutes", rules.buffer_minutes || 30);
     } catch (error) {
       console.error("Failed to fetch settings:", error);
       toast.error("Could not load pricing rules.");
@@ -174,6 +176,23 @@ const OwnerPricingPage = () => {
                     type="number"
                     min="0"
                     {...register("additional_rate", {
+                      required: "Required",
+                      min: 0,
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="buffer_minutes">Buffer Time (minutes)</Label>
+                  <p className="text-xs text-gray-500">
+                    Extra time added to booking duration for traffic/rest.
+                  </p>
+                  <Input
+                    id="buffer_minutes"
+                    type="number"
+                    min="0"
+                    {...register("buffer_minutes", {
                       required: "Required",
                       min: 0,
                       valueAsNumber: true,
