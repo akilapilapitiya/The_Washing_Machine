@@ -2,9 +2,9 @@ import axios from "axios";
 import { ValidationError } from "../utils/errors.util.js";
 
 import { GOOGLE_MAPS_API_KEY } from "../configs/env.js";
-// HQ Coordinates (Pannipitiya)
-const HQ_LAT = 6.9271;
-const HQ_LNG = 79.8612;
+// HQ Coordinates (Pannipitiya - 488 High Level Road)
+const HQ_LAT = 6.8485;
+const HQ_LNG = 79.9525;
 
 // Haversine formula for fallback/validation
 const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
