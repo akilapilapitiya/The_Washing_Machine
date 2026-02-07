@@ -31,6 +31,7 @@ import notificationRouter from "./src/routes/notification.route.js";
 import dependentRouter from "./src/routes/dependent.route.js";
 import settingsRouter from "./src/routes/settings.route.js";
 import chargesRouter from "./src/routes/charges.route.js";
+import holidayRouter from "./src/routes/systemHoliday.routes.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -81,6 +82,7 @@ const createApp = () => {
   app.use("/api/dependent", dependentRouter);
   app.use("/api/settings", settingsRouter);
   app.use("/api", chargesRouter);
+  app.use("/api", holidayRouter);
 
   // Error handling Middleware
   app.use(errorHandling);

@@ -11,6 +11,7 @@ import {
 } from "../utils/errors.util.js";
 import * as scheduleService from "./schedule.service.js";
 import { createNotificationService } from "./notification.service.js";
+import { checkDateIsHoliday } from "./systemHoliday.service.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -255,6 +256,14 @@ export const createBookingService = async ({
   today.setHours(0, 0, 0, 0);
   if (bookingDateObj < today) {
     throw new ValidationError("Booking date cannot be in the past");
+  }
+
+  // Check if the booking date is a system holiday
+  const holiday = await checkDateIsHoliday(date);
+  if (holiday) {
+    throw new ValidationError(
+      `Bookings are not available on ${holiday.holidayname} (System Holiday)`,
+    );
   }
 
   const client = await pool.connect();
