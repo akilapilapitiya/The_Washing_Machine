@@ -4,7 +4,15 @@ import pool from "../configs/database.js";
 export const getAllHolidays = async () => {
   const query = `
     SELECT 
-      h.*,
+      h.holidayid,
+      h.holidayname,
+      h.holidaydate::text as holidaydate,
+      h.holidaytype,
+      h.description,
+      h.is_recurring,
+      h.created_by,
+      h.created_at,
+      h.updated_at,
       e.first_name || ' ' || e.last_name as creator_name
     FROM system_holidays h
     LEFT JOIN employee e ON h.created_by = e.empid
@@ -18,7 +26,15 @@ export const getAllHolidays = async () => {
 export const getHolidaysByDateRange = async (startDate, endDate) => {
   const query = `
     SELECT 
-      h.*,
+      h.holidayid,
+      h.holidayname,
+      h.holidaydate::text as holidaydate,
+      h.holidaytype,
+      h.description,
+      h.is_recurring,
+      h.created_by,
+      h.created_at,
+      h.updated_at,
       e.first_name || ' ' || e.last_name as creator_name
     FROM system_holidays h
     LEFT JOIN employee e ON h.created_by = e.empid
@@ -44,7 +60,15 @@ export const checkDateIsHoliday = async (date) => {
 export const getHolidayById = async (holidayId) => {
   const query = `
     SELECT 
-      h.*,
+      h.holidayid,
+      h.holidayname,
+      h.holidaydate::text as holidaydate,
+      h.holidaytype,
+      h.description,
+      h.is_recurring,
+      h.created_by,
+      h.created_at,
+      h.updated_at,
       e.first_name || ' ' || e.last_name as creator_name
     FROM system_holidays h
     LEFT JOIN employee e ON h.created_by = e.empid
@@ -130,7 +154,12 @@ export const deleteHoliday = async (holidayId) => {
 // Get upcoming holidays (next 90 days)
 export const getUpcomingHolidays = async () => {
   const query = `
-    SELECT *
+    SELECT 
+      holidayid,
+      holidayname,
+      holidaydate::text as holidaydate,
+      holidaytype,
+      description
     FROM system_holidays
     WHERE holidaydate >= CURRENT_DATE
     AND holidaydate <= CURRENT_DATE + INTERVAL '90 days'

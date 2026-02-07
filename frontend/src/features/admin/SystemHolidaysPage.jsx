@@ -131,7 +131,7 @@ const SystemHolidaysPage = () => {
     setSelectedHoliday(holiday);
     setFormData({
       holidayname: holiday.holidayname,
-      holidaydate: new Date(holiday.holidaydate).toISOString().split("T")[0],
+      holidaydate: holiday.holidaydate.split("T")[0], // Use date string directly
       holidaytype: holiday.holidaytype,
       description: holiday.description || "",
       is_recurring: holiday.is_recurring || false,
@@ -158,7 +158,10 @@ const SystemHolidaysPage = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    // Parse date string as local date to avoid timezone issues
+    const [year, month, day] = dateString.split("T")[0].split("-");
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    return date.toLocaleDateString("en-US", {
       weekday: "short",
       year: "numeric",
       month: "short",

@@ -42,8 +42,10 @@ const DateTimeSelectionPage = () => {
   const { vehicleId, serviceIds, locationId, locationData, employeeId } =
     location.state || {};
 
-  // Get today's date in YYYY-MM-DD format for min date
-  const today = new Date().toISOString().split("T")[0];
+  // Get tomorrow's date in YYYY-MM-DD format for min date (no same-day bookings)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   useEffect(() => {
     fetchHolidays();
@@ -58,7 +60,7 @@ const DateTimeSelectionPage = () => {
       if (Array.isArray(holidayData) && holidayData.length > 0) {
         setHolidays(
           holidayData.map((h) => ({
-            date: new Date(h.holidaydate).toISOString().split("T")[0],
+            date: h.holidaydate.split("T")[0], // Use date string directly, avoid timezone conversion
             name: h.holidayname,
           })),
         );
@@ -96,6 +98,7 @@ const DateTimeSelectionPage = () => {
           `Bookings are not available on ${holiday.name} (System Holiday).`,
         );
         setAvailableSlots([]);
+        setSelectedTime(null); // Clear selected time
         return;
       }
       // Check if operative is offline
@@ -104,6 +107,7 @@ const DateTimeSelectionPage = () => {
           "This operative is offline on the selected date. Please choose another date.",
         );
         setAvailableSlots([]);
+        setSelectedTime(null); // Clear selected time
         return;
       }
       setError(null);
@@ -215,7 +219,7 @@ const DateTimeSelectionPage = () => {
                   <Input
                     id="date"
                     type="date"
-                    min={today}
+                    min={minDate}
                     value={selectedDate}
                     onChange={handleDateChange}
                     className={cn(
@@ -241,13 +245,15 @@ const DateTimeSelectionPage = () => {
                           <span className="font-medium">{holiday.name}</span>
                           <span className="text-blue-600">
                             (
-                            {new Date(holiday.date).toLocaleDateString(
-                              "en-US",
-                              {
+                            {(() => {
+                              const [year, month, day] =
+                                holiday.date.split("-");
+                              const date = new Date(year, month - 1, day);
+                              return date.toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
-                              },
-                            )}
+                              });
+                            })()}
                             )
                           </span>
                         </div>
