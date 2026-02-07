@@ -377,7 +377,8 @@ export const createBookingService = async ({
           SELECT el.empid FROM employeeleave el 
           WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
         )
-        LIMIT 1;
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
       `;
       const availResult = await client.query(availabilityQuery, [
         date,
