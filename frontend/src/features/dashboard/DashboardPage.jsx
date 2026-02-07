@@ -18,6 +18,7 @@ import {
   MessageSquare,
   ShieldCheck,
   BarChart3,
+  Umbrella,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -231,9 +232,9 @@ const DashboardPage = () => {
         },
       ]
     : [
-        // Generic employees only see active services
+        // === OPERATIONS ===
         {
-          title: "Active Services",
+          title: "Service Queue",
           description: "Manage jobs currently in progress.",
           to: "/dashboard/employee/assigned",
           icon: Wrench,
@@ -246,7 +247,7 @@ const DashboardPage = () => {
                 title: "Record Payment",
                 description: "Log a completed transaction for a customer.",
                 to: "/dashboard/employee/payments",
-                icon: Plus,
+                icon: CreditCard,
                 primary: false,
               },
             ]
@@ -263,11 +264,56 @@ const DashboardPage = () => {
               },
             ]
           : []),
+        // === MANAGEMENT ===
+        // Only owner can manage employees
+        ...(isOwner
+          ? [
+              {
+                title: "Employees",
+                description: "Manage staff, roles and permissions.",
+                to: "/dashboard/admin/employees",
+                icon: ShieldCheck,
+                primary: false,
+              },
+            ]
+          : []),
+        // Owner and cashier can access customer database
+        ...(isOwner || isCashier
+          ? [
+              {
+                title: "Customers",
+                description: "View and manage customer information.",
+                to: "/dashboard/admin/customers",
+                icon: Users,
+                primary: false,
+              },
+            ]
+          : []),
+        // Attendance - Owner
+        ...(isOwner
+          ? [
+              {
+                title: "Attendance",
+                description: "Track employee attendance records.",
+                to: "/dashboard/admin/attendance",
+                icon: Calendar,
+                primary: false,
+              },
+              {
+                title: "Leave Management",
+                description: "Review and approve employee leave requests.",
+                to: "/dashboard/employee/leaves",
+                icon: Umbrella,
+                primary: false,
+              },
+            ]
+          : []),
+        // === CONFIGURATION ===
         // Only owner can manage services
         ...(isOwner
           ? [
               {
-                title: "Manage Services",
+                title: "Services",
                 description: "Update pricing and service availability.",
                 to: "/dashboard/admin/services",
                 icon: Settings,
@@ -280,16 +326,11 @@ const DashboardPage = () => {
                 icon: Database,
                 primary: false,
               },
-            ]
-          : []),
-        // Owner and cashier can access customer database
-        ...(isOwner || isCashier
-          ? [
               {
-                title: "Customer Database",
-                description: "View and manage customer information.",
-                to: "/dashboard/admin/customers",
-                icon: Users,
+                title: "Travel Pricing",
+                description: "Configure distance-based pricing rules.",
+                to: "/dashboard/admin/settings/pricing",
+                icon: CreditCard,
                 primary: false,
               },
             ]
@@ -318,18 +359,7 @@ const DashboardPage = () => {
               },
             ]
           : []),
-        // Employees - Owner
-        ...(isOwner
-          ? [
-              {
-                title: "Employees",
-                description: "Manage staff, roles and permissions.",
-                to: "/dashboard/admin/employees",
-                icon: ShieldCheck,
-                primary: false,
-              },
-            ]
-          : []),
+        // === REPORTS ===
         // Daily Income - Owner
         ...(isOwner
           ? [
@@ -341,22 +371,10 @@ const DashboardPage = () => {
                 primary: false,
               },
               {
-                title: "Employee Report",
+                title: "Employee Performance",
                 description: "View staff performance and revenue.",
                 to: "/dashboard/admin/reports/employee-performance",
                 icon: BarChart3,
-                primary: false,
-              },
-            ]
-          : []),
-        // Attendance - Owner
-        ...(isOwner
-          ? [
-              {
-                title: "Attendance",
-                description: "Track employee attendance records.",
-                to: "/dashboard/admin/attendance",
-                icon: Calendar,
                 primary: false,
               },
             ]
