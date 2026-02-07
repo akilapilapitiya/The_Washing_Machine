@@ -45,6 +45,7 @@ import ProfilePage from "./features/dashboard/ProfilePage";
 import BannedPage from "./pages/BannedPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import NotificationsPage from "./features/dashboard/NotificationsPage";
+import OwnerPricingPage from "./features/dashboard/OwnerPricingPage";
 
 const App = () => {
   return (
@@ -315,6 +316,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <BookingReviewPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/settings/pricing"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <OwnerPricingPage />
                 </EmployeeProtectedRoute>
               }
             />

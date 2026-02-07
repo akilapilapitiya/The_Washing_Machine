@@ -27,6 +27,7 @@ export const getPricingRules = async (req, res, next) => {
 // PUT /api/settings/pricing
 export const updatePricingRules = async (req, res, next) => {
   try {
+    console.log("Update Pricing Body:", req.body);
     const { base_km, base_fee, additional_rate } = req.body;
 
     // Basic Validation
