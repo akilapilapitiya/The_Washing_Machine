@@ -31,8 +31,8 @@ const BookingConfirmationPage = () => {
     services: [],
   });
 
-  const { vehicleId, serviceIds, locationId, employeeId, date, time } =
-    location.state || {};
+  const { vehicleId, serviceIds, locationData, employeeId, date, time } =
+    location.state || {}; // locationData now holds { id, type, lat, lng, distance }
 
   useEffect(() => {
     if (!vehicleId || !serviceIds) {
@@ -67,10 +67,17 @@ const BookingConfirmationPage = () => {
     fetchData();
   }, [vehicleId, serviceIds, navigate]);
 
-  const totalPrice = data.services.reduce(
+  const serviceTotal = data.services.reduce(
     (sum, s) => sum + parseFloat(s.serviceprice),
     0,
   );
+
+  // We will assume backend calculates travel cost, but for frontend display we might need it.
+  // For now, let's keep it simple and just show "Calculated at checkout" or similar if we haven't fetched it.
+  // OR, we can implement a quick fetch?
+  // Let's stick to the plan: Backend does the heavy lifting. Frontend checks are for radius.
+  // We can show "Base Price" and "Travel Fee" separately later.
+  const totalPrice = serviceTotal;
 
   const handleConfirm = async () => {
     try {
@@ -81,8 +88,12 @@ const BookingConfirmationPage = () => {
         services: serviceIds,
         date,
         startTime: time,
-        locationLatitude: 6.9271, // Default to Colombo for now
-        locationLongitude: 79.8612,
+        // Pass location data
+        locationLatitude: locationData?.lat || 6.9271,
+        locationLongitude: locationData?.lng || 79.8612,
+        locationType: locationData?.type || "branch",
+        travelDistance: locationData?.distance || 0,
+
         employeeId: employeeId === "any" ? null : employeeId,
         status: "pending",
       };
@@ -217,15 +228,25 @@ const BookingConfirmationPage = () => {
               </CardHeader>
               <CardContent className="px-5 pb-5 pt-0">
                 <p className="font-bold text-gray-900 text-sm mb-0.5">
-                  {locationId === "home-visit"
+                  {locationData?.type === "home"
                     ? "Home/On-Site Visit"
                     : "Main Branch Service Center"}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  {locationId === "home-visit"
-                    ? "Colombo & Suburbs Area"
-                    : "488, High level Road, Pannipitiya, Colombo, Sri Lanka"}
-                </p>
+                <div className="text-gray-500 text-sm">
+                  {locationData?.type === "home" ? (
+                    <div className="flex flex-col gap-1">
+                      <span>
+                        Coordinates: {locationData.lat?.toFixed(4)},{" "}
+                        {locationData.lng?.toFixed(4)}
+                      </span>
+                      <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full w-fit">
+                        ~{locationData.distance?.toFixed(1)} km from HQ
+                      </span>
+                    </div>
+                  ) : (
+                    "488, High level Road, Pannipitiya, Colombo, Sri Lanka"
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

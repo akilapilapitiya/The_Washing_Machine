@@ -16,6 +16,7 @@ export const {
   REDIS_HOST,
   REDIS_PORT,
   REDIS_PASSWORD,
+  GOOGLE_MAPS_API_KEY,
 } = process.env;
 
 export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);

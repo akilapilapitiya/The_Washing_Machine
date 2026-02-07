@@ -49,6 +49,7 @@ export const createBooking = async (req, res, next) => {
       vehicleId,
       services, // array of service IDs
       employeeId,
+      locationType,
     } = req.body;
 
     const booking = await createBookingService({
@@ -58,6 +59,7 @@ export const createBooking = async (req, res, next) => {
       startTime,
       locationLatitude,
       locationLongitude,
+      locationType,
       vehicleId,
       services,
       userRole,

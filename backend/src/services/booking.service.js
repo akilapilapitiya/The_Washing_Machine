@@ -190,6 +190,9 @@ export const getBookingService = async (
   return booking;
 };
 
+import { getTravelDetails } from "../logics/geo.logic.js";
+import { calculateTravelCost } from "../logics/pricing.logic.js";
+
 export const createBookingService = async ({
   customerId,
   status,
@@ -197,6 +200,7 @@ export const createBookingService = async ({
   startTime,
   locationLatitude,
   locationLongitude,
+  locationType = "branch",
   vehicleId,
   services,
   userRole,
@@ -239,7 +243,7 @@ export const createBookingService = async ({
   try {
     await client.query("BEGIN");
 
-    // 1. Calculate duration and price
+    // 1. Calculate Service Duration and Base Price
     const servicesCheck = await client.query(
       "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
       [services],
@@ -256,22 +260,41 @@ export const createBookingService = async ({
       throw new ValidationError("You can only select one Service Package.");
     }
 
-    if (servicesCheck.rowCount !== services.length) {
-      throw new NotFoundError("One or more service IDs do not exist");
-    }
-
-    let totalDurationSeconds = 0;
-    let totalPrice = 0;
+    let serviceDurationSeconds = 0;
+    let servicePrice = 0;
 
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
-      totalDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
+      serviceDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
 
       const price = s.has_offer
         ? parseFloat(s.offer_price)
         : parseFloat(s.serviceprice);
-      totalPrice += price;
+      servicePrice += price;
     });
+
+    // 2. Calculate Travel Details & Cost
+    // We trust the backend calculation over frontend input for security/consistency
+    const travelDetails = await getTravelDetails(
+      locationLatitude,
+      locationLongitude,
+      locationType,
+    );
+
+    const travelCost = await calculateTravelCost(travelDetails.distance);
+
+    // Total Price = Service Price + Travel Cost
+    const totalPrice = servicePrice + travelCost;
+
+    // Total Duration = Service Duration + Travel Duration (buffer)
+    // Travel duration is one-way? Usually we account for round trip or at least arrival time.
+    // For scheduling: "Travel Time" usually means time to get there.
+    // But the booking *slot* should ideally include time to get there + service + return?
+    // Let's assume the duration blocks the employee for: Travel (to) + Service.
+    // Return travel is their own time or next booking's problem?
+    // Simply adding one-way duration to start time buffer.
+    const travelSeconds = travelDetails.duration * 60;
+    const totalDurationSeconds = serviceDurationSeconds + travelSeconds;
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
@@ -282,7 +305,7 @@ export const createBookingService = async ({
     const endS = endSeconds % 60;
     const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:${String(endS).padStart(2, "0")}`;
 
-    // 2. Validate vehicle
+    // 3. Validate vehicle
     const vehicleCheck = await client.query(
       "SELECT id, cusid FROM vehicle WHERE id = $1",
       [vehicleId],
@@ -293,7 +316,7 @@ export const createBookingService = async ({
       throw new ForbiddenError("You can only book with your own vehicles");
     }
 
-    // 3. Assign Employee
+    // 4. Assign Employee
     let assignedEmpId = employeeId;
     if (!employeeId || employeeId === "any") {
       const availabilityQuery = `
@@ -319,10 +342,15 @@ export const createBookingService = async ({
       assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to sys account
     }
 
-    // 4. Insert booking
+    // 5. Insert booking
     const bookingResult = await client.query(
-      `INSERT INTO booking (bookingstatus, bookingdate, bookingstarttime, bookingendtime, bookinglocationlatitude, bookinglocationlongitude, vehid, totalprice)
-       VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8) RETURNING bookingid`,
+      `INSERT INTO booking (
+         bookingstatus, bookingdate, bookingstarttime, bookingendtime, 
+         bookinglocationlatitude, bookinglocationlongitude, vehid, totalprice,
+         travel_distance, travel_duration, travel_cost
+       )
+       VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       RETURNING bookingid`,
       [
         status,
         date,
@@ -332,11 +360,14 @@ export const createBookingService = async ({
         locationLongitude,
         vehicleId,
         totalPrice,
+        travelDetails.distance,
+        travelDetails.duration,
+        travelCost,
       ],
     );
     const bookingId = bookingResult.rows[0].bookingid;
 
-    // 5. Link Services
+    // 6. Link Services
     for (const sId of services) {
       await client.query(
         "INSERT INTO servicesbooked (bookingid, serviceid) VALUES ($1, $2)",
@@ -344,7 +375,7 @@ export const createBookingService = async ({
       );
     }
 
-    // 6. Assign Staff and Record Preference
+    // 7. Assign Staff and Record Preference
     if (employeeId && employeeId !== "any") {
       await client.query(
         "INSERT INTO employeepreference (bookingid, empid) VALUES ($1, $2)",
@@ -357,7 +388,7 @@ export const createBookingService = async ({
       [bookingId, assignedEmpId],
     );
 
-    // 7. Schedule
+    // 8. Schedule
     const scheduleId = scheduleService.generateScheduleId("B");
     await client.query(
       `INSERT INTO schedule (scheduleid, schedulestartdate, scheduleenddate, schedulestarttime, scheduleendtime, bookingid)
@@ -376,28 +407,15 @@ export const createBookingService = async ({
     });
 
     // Employee Notification (if assigned and not 'any')
-    // We used assignedEmpId which was resolved in step 3
-    if (assignedEmpId) {
-      // Need to fetch employee details? No, just sending notification is enough.
-      // Assuming we want to notify them.
-      // Wait, assignedEmpId could be '1' (sys account) if none found/fallback?
-      // Logic says: assignedEmpId = availResult.rows[0]?.empid || 1;
-      // Maybe don't notify ID 1 if it's a system account? Assuming 1 is system/admin.
-      // Let's safe guard.
-      if (assignedEmpId !== 1) {
-        await createNotificationService({
-          recipientId: assignedEmpId,
-          recipientRole: "employee", // or 'employee' check role?
-          // The notification table has recipient_role. Employees are 'employee' usually.
-          // But wait, the role column constraint might be loose or we need to be careful.
-          // Looking at notification.model.js: recipient_role VARCHAR(20) NOT NULL.
-          // 'employee' is safe.
-          title: "New Job Assigned",
-          message: `You have been assigned a new booking (ID: ${bookingId}) on ${date} at ${startTime}.`,
-          type: "info",
-          bookingId: bookingId,
-        });
-      }
+    if (assignedEmpId && assignedEmpId !== 1) {
+      await createNotificationService({
+        recipientId: assignedEmpId,
+        recipientRole: "employee",
+        title: "New Job Assigned",
+        message: `You have been assigned a new booking (ID: ${bookingId}) on ${date} at ${startTime}.`,
+        type: "info",
+        bookingId: bookingId,
+      });
     }
 
     await client.query("COMMIT");
@@ -405,6 +423,8 @@ export const createBookingService = async ({
       bookingId,
       endTime,
       totalPrice,
+      travelCost,
+      travelDistance: travelDetails.distance,
       assignedEmployeeId: assignedEmpId,
     };
   } catch (error) {
