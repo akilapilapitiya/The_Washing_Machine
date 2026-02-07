@@ -151,6 +151,32 @@ const LocationSelectionPage = () => {
                         <LocationPicker
                           onLocationSelect={handleLocationSelect}
                         />
+
+                        {mapLocation && mapLocation.distance && (
+                          <div className="mt-4 p-3 bg-white rounded-lg border border-red-100 shadow-sm">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600 font-medium">
+                                Travel Distance:
+                              </span>
+                              <span className="font-bold text-gray-900">
+                                {mapLocation.distance.toFixed(1)} km
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm mt-1">
+                              <span className="text-gray-600 font-medium">
+                                Est. Travel Time:
+                              </span>
+                              <span className="font-bold text-gray-900">
+                                {mapLocation.duration} mins
+                              </span>
+                            </div>
+                            {mapLocation.address && (
+                              <div className="mt-2 text-xs text-gray-500 border-t pt-2 border-gray-100">
+                                {mapLocation.address}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>

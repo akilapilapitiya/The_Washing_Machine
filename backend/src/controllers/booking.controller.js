@@ -50,6 +50,8 @@ export const createBooking = async (req, res, next) => {
       services, // array of service IDs
       employeeId,
       locationType,
+      travelDistance,
+      travelDuration,
     } = req.body;
 
     const booking = await createBookingService({
@@ -64,7 +66,10 @@ export const createBooking = async (req, res, next) => {
       services,
       userRole,
       employeeId,
+      travelDistance,
+      travelDuration,
     });
+    console.log("Creating booking with:", req.body);
 
     successResponse(res, 201, "Booking created successfully", { booking });
   } catch (error) {

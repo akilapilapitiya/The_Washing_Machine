@@ -41,6 +41,9 @@ export const bookingValidator = {
     employeeId: Joi.alternatives()
       .try(Joi.number().integer(), Joi.string().allow("any", ""))
       .allow(null),
+    locationType: Joi.string().valid("branch", "home").default("branch"),
+    travelDistance: Joi.number().min(0).allow(null),
+    travelDuration: Joi.number().min(0).allow(null),
   }),
 
   updateBooking: Joi.object({

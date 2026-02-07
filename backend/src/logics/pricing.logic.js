@@ -29,7 +29,9 @@ export const calculateTravelCost = async (distanceKm) => {
   if (distanceKm <= 0) return 0;
 
   const fuelPrice = await getSetting("fuel_price_per_km", 100); // Default 100 LKR
-  const baseFee = await getSetting("base_travel_fee", 500); // Default 500 LKR
+  const baseFee = await getSetting("base_travel_fee", 0); // Default 0 LKR
+
+  if (!fuelPrice) return 0;
 
   // Formula: Base Fee + (Distance * Fuel Price)
   // Logic updated: The user said "add only fuel later I will expand".

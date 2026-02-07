@@ -205,7 +205,15 @@ export const createBookingService = async ({
   services,
   userRole,
   employeeId,
+  travelDistance,
+  travelDuration,
 }) => {
+  console.log("createBookingService received:", {
+    travelDistance,
+    travelDuration,
+    locationType,
+  });
+
   assertRequiredFields(
     {
       customerId,
@@ -274,17 +282,31 @@ export const createBookingService = async ({
     });
 
     // 2. Calculate Travel Details & Cost
-    // We trust the backend calculation over frontend input for security/consistency
-    const travelDetails = await getTravelDetails(
-      locationLatitude,
-      locationLongitude,
-      locationType,
-    );
+    let travelDetails = { distance: 0, duration: 0 };
+
+    // Use frontend values if available (and valid type)
+    if (
+      (travelDistance !== undefined || travelDistance !== null) &&
+      (travelDuration !== undefined || travelDuration !== null) &&
+      locationType === "home"
+    ) {
+      travelDetails = {
+        distance: Number(travelDistance) || 0,
+        duration: Number(travelDuration) || 0,
+      };
+    } else {
+      // Fallback to backend calculation
+      travelDetails = await getTravelDetails(
+        locationLatitude,
+        locationLongitude,
+        locationType,
+      );
+    }
 
     const travelCost = await calculateTravelCost(travelDetails.distance);
 
     // Total Price = Service Price + Travel Cost
-    const totalPrice = servicePrice + travelCost;
+    const totalPrice = servicePrice + Number(travelCost);
 
     // Total Duration = Service Duration + Travel Duration (buffer)
     // Travel duration is one-way? Usually we account for round trip or at least arrival time.
