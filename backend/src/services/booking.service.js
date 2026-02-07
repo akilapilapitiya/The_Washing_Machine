@@ -371,7 +371,7 @@ export const createBookingService = async ({
           SELECT ea.empid FROM employeeassigned ea
           JOIN schedule s ON ea.bookingid = s.bookingid
           WHERE s.schedulestartdate = $1::date
-          AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
+          AND NOT (s.scheduleendtime <= ($2::time - ($4 * interval '1 minute')) OR s.schedulestarttime >= $3::time)
         )
         AND e.empid NOT IN (
           SELECT el.empid FROM employeeleave el 
@@ -384,6 +384,7 @@ export const createBookingService = async ({
         date,
         startTime,
         endTime,
+        bufferMinutes,
       ]);
       assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to sys account
     }
@@ -603,6 +604,16 @@ export const updateBookingService = async (
     let endTime = current.bookingendtime;
     let totalPrice = current.totalprice;
 
+    const settingsRes = await client.query(
+      "SELECT value FROM sys_settings WHERE key = 'travel_pricing_rules'",
+    );
+    let bufferMinutes = 30;
+    if (settingsRes.rowCount > 0) {
+      const rules = JSON.parse(settingsRes.rows[0].value);
+      if (rules.buffer_minutes !== undefined)
+        bufferMinutes = Number(rules.buffer_minutes);
+    }
+
     if (services || startTime) {
       const srvCheck = await client.query(
         "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
@@ -627,17 +638,7 @@ export const updateBookingService = async (
         totalPrice += price;
       });
 
-      const settingsRes = await client.query(
-        "SELECT value FROM sys_settings WHERE key = 'travel_pricing_rules'",
-      );
-      let bufferMinutes = 30;
-      if (settingsRes.rowCount > 0) {
-        const rules = JSON.parse(settingsRes.rows[0].value);
-        if (rules.buffer_minutes !== undefined)
-          bufferMinutes = Number(rules.buffer_minutes);
-      }
-
-      // Use existing travel duration from booking (or 0 if not set)
+      // Calculate Duration
       const travelDuration = current.travel_duration || 0;
       const roundTripSeconds = travelDuration * 60 * 2;
       const bufferSeconds = bufferMinutes * 60;
@@ -657,6 +658,7 @@ export const updateBookingService = async (
       newStartTime,
       endTime,
       bookingId,
+      bufferMinutes,
     );
     if (!isAvail) {
       // throw new ValidationError("Conflict detected");

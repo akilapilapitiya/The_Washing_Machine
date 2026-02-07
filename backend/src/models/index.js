@@ -42,7 +42,6 @@ const initModels = async (pool) => {
     await createNotificationTable(pool);
     await createIncidentTable(pool); // After all referenced tables
     await createPasswordResetTokenTable(pool);
-    await createPasswordResetTokenTable(pool);
     await createSysSettingsTable(pool);
     await createBookingExtrasTable(pool);
 
