@@ -4,16 +4,17 @@ import redis from "../../configs/redis.js";
 import pool from "../../configs/database.js";
 import crypto from "crypto";
 
+import {
+  getAllBookingsService,
+  getBookingService,
+  updateBookingService,
+} from "../../services/booking.service.js";
+
 dotenv.config();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
 let bot = null;
-
-import {
-  getAllBookingsService,
-  getBookingService,
-} from "../../services/booking.service.js";
 
 export const initTelegramBot = () => {
   if (!token) {
@@ -123,11 +124,21 @@ export const initTelegramBot = () => {
       } else if (data.startsWith("job:")) {
         const bookingId = data.split(":")[1];
         await handleJobDetails(chatId, messageId, bookingId);
+      } else if (data.startsWith("start:")) {
+        const bookingId = data.split(":")[1];
+        await handleStartJob(chatId, messageId, bookingId);
+      } else if (data.startsWith("complete:")) {
+        const bookingId = data.split(":")[1];
+        await handleCompleteJob(chatId, messageId, bookingId);
       }
       // Always answer callback to stop loading animation
       bot.answerCallbackQuery(query.id);
     } catch (error) {
       console.error("Callback Error:", error);
+      bot.answerCallbackQuery(query.id, {
+        text: "❌ Error processing request",
+        show_alert: true,
+      });
     }
   });
 
@@ -176,7 +187,7 @@ const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
       ];
     });
 
-    const text = "📋 *Your Upcoming Jobs*\nSelect a job to view details:";
+    const text = "📋 *Your Assigned Jobs*\nSelect a job to view details:";
     const options = {
       parse_mode: "Markdown",
       reply_markup: { inline_keyboard },
@@ -213,14 +224,12 @@ const handleJobDetails = async (chatId, messageId, bookingId) => {
     );
 
     // Format Details
-    const date = new Date(booking.bookingdate).toISOString().split("T")[0];
+    const dateStr = new Date(booking.bookingdate).toISOString().split("T")[0];
     const time = booking.bookingstarttime;
     const location = booking.bookinglocationlatitude
       ? `[Google Maps](https://www.google.com/maps?q=${booking.bookinglocationlatitude},${booking.bookinglocationlongitude})`
       : "Branch";
 
-    // Fetch Services if not in booking object (getAll returns generic services array but getBooking might be different structure?
-    // Checking getBookingService in booking.service.js: currently it returns `services` as json_agg.
     const services = booking.services
       ? booking.services.map((s) => s.serviceName).join(", ")
       : "N/A";
@@ -231,7 +240,7 @@ const handleJobDetails = async (chatId, messageId, bookingId) => {
       `*Customer:* ${booking.cusname}`,
       `*Vehicle:* ${booking.vehbrand} ${booking.vehmodel} (${booking.vehplate})`,
       `*Service:* ${services}`,
-      `*Date:* ${date}`,
+      `*Date:* ${dateStr}`,
       `*Time:* ${time}`,
       `*Location:* ${location}`,
       `*Contact:* ${booking.cusphone}`,
@@ -239,9 +248,30 @@ const handleJobDetails = async (chatId, messageId, bookingId) => {
       `*Status:* ${booking.bookingstatus.toUpperCase()}`,
     ].join("\n");
 
-    const inline_keyboard = [
-      [{ text: "🔙 Back to Jobs", callback_data: "job_list" }],
-    ];
+    const inline_keyboard = [];
+
+    // Check if job is TODAY
+    const today = new Date().toISOString().split("T")[0];
+    const isToday = dateStr === today;
+
+    if (isToday) {
+      if (booking.bookingstatus === "pending") {
+        inline_keyboard.push([
+          { text: "▶️ Start Service", callback_data: `start:${bookingId}` },
+        ]);
+      } else if (booking.bookingstatus === "inProgress") {
+        inline_keyboard.push([
+          {
+            text: "✅ Complete Service",
+            callback_data: `complete:${bookingId}`,
+          },
+        ]);
+      }
+    }
+
+    inline_keyboard.push([
+      { text: "🔙 Back to Jobs", callback_data: "job_list" },
+    ]);
 
     bot.editMessageText(msg, {
       chat_id: chatId,
@@ -251,6 +281,56 @@ const handleJobDetails = async (chatId, messageId, bookingId) => {
     });
   } catch (error) {
     console.error("Job Details Error:", error);
+  }
+};
+
+const handleStartJob = async (chatId, messageId, bookingId) => {
+  try {
+    const empRes = await pool.query(
+      "SELECT empid FROM employee WHERE telegram_chat_id = $1",
+      [chatId],
+    );
+    const empId = empRes.rows[0].empid;
+
+    await updateBookingService(
+      bookingId,
+      { status: "inProgress" },
+      empId,
+      "employee",
+      "employee",
+    );
+
+    // Refresh Details View
+    await handleJobDetails(chatId, messageId, bookingId);
+    sendMessage(chatId, "✅ Service Started!");
+  } catch (error) {
+    console.error("Start Job Error:", error);
+    sendMessage(chatId, "❌ Failed to start service: " + error.message);
+  }
+};
+
+const handleCompleteJob = async (chatId, messageId, bookingId) => {
+  try {
+    const empRes = await pool.query(
+      "SELECT empid FROM employee WHERE telegram_chat_id = $1",
+      [chatId],
+    );
+    const empId = empRes.rows[0].empid;
+
+    await updateBookingService(
+      bookingId,
+      { status: "completed" },
+      empId,
+      "employee",
+      "employee",
+    );
+
+    // Refresh Details View (it might disappear from list if filter logic excludes completed, but details view handles generic GET)
+    await handleJobDetails(chatId, messageId, bookingId);
+    sendMessage(chatId, "🎉 Service Completed!");
+  } catch (error) {
+    console.error("Complete Job Error:", error);
+    sendMessage(chatId, "❌ Failed to complete service: " + error.message);
   }
 };
 
