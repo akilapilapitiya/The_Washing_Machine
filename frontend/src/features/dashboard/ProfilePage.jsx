@@ -47,6 +47,17 @@ import {
   changePassword as employeeChangePassword,
 } from "@/services/employee.service";
 import * as dependentService from "@/services/dependent.service";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ProfilePage = () => {
   const { user, updateUser, userType, logout } = useAuth();
@@ -85,6 +96,11 @@ const ProfilePage = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [telegramModal, setTelegramModal] = useState({
+    open: false,
+    code: "",
+    botName: "",
+  });
 
   // Fetch fresh profile data on mount
   useEffect(() => {
@@ -320,6 +336,18 @@ const ProfilePage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleConnectTelegram = async () => {
+    try {
+      const api = (await import("@/lib/api")).default;
+      const res = await api.post("/employee/telegram-link-code");
+      const { code, botName } = res.data.data;
+      setTelegramModal({ open: true, code, botName });
+    } catch (err) {
+      toast.error("Failed to generate linking code");
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -603,25 +631,7 @@ const ProfilePage = () => {
                 !isEditing && (
                   <Button
                     variant="outline"
-                    onClick={async () => {
-                      try {
-                        const axios = (await import("@/configs/axios")).default;
-                        const res = await axios.post(
-                          "/employee/telegram-link-code",
-                        );
-                        const { code, botName } = res.data.data;
-                        const link = `https://t.me/${botName}?start=${code}`;
-
-                        // Show modal or toast with link
-                        window.open(link, "_blank");
-                        toast.success(
-                          "Telegram link opened! Click 'Start' in the app.",
-                        );
-                      } catch (err) {
-                        toast.error("Failed to generate Telegram link");
-                        console.error(err);
-                      }
-                    }}
+                    onClick={handleConnectTelegram}
                     className="gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
                   >
                     <svg
@@ -1223,6 +1233,67 @@ const ProfilePage = () => {
           )}
         </div>
       </div>
+
+      <AlertDialog
+        open={telegramModal.open}
+        onOpenChange={(open) => setTelegramModal((prev) => ({ ...prev, open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Connect Telegram</AlertDialogTitle>
+            <AlertDialogDescription>
+              To receive notifications, please link your Telegram account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-gray-500">Your Linking Code:</p>
+              <div
+                className="text-3xl font-mono font-bold tracking-wider text-gray-900 bg-gray-100 p-4 rounded-lg select-all cursor-pointer hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  navigator.clipboard.writeText(telegramModal.code);
+                  toast.success("Code copied!");
+                }}
+              >
+                {telegramModal.code}
+              </div>
+              <p className="text-xs text-gray-400">Click code to copy</p>
+            </div>
+
+            <div className="w-full border-t border-gray-100 my-2"></div>
+
+            <div className="flex flex-col w-full gap-2">
+              <Button
+                variant="outline"
+                className="w-full gap-2 h-auto py-3"
+                onClick={() =>
+                  window.open(
+                    `https://t.me/${telegramModal.botName}?start=${telegramModal.code}`,
+                    "_blank",
+                  )
+                }
+              >
+                <div className="flex flex-col items-center">
+                  <span className="font-semibold text-sm">
+                    Open Telegram App
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-normal">
+                    (Auto-link)
+                  </span>
+                </div>
+              </Button>
+              <p className="text-[10px] text-center text-gray-400 mt-1">
+                OR send the code manually to the bot
+              </p>
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

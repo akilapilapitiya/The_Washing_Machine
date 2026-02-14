@@ -39,10 +39,7 @@ const createEmployeeTable = async (pool) => {
         ALTER TABLE employee ADD COLUMN address_line2 VARCHAR(100);
         ALTER TABLE employee ADD COLUMN dob DATE;
         ALTER TABLE employee ADD COLUMN speciality VARCHAR(100);
-        ALTER TABLE employee ADD COLUMN speciality VARCHAR(100);
         ALTER TABLE employee ADD COLUMN profile_picture_url TEXT;
-        ALTER TABLE employee ADD COLUMN telegram_chat_id VARCHAR(50) UNIQUE;
-        ALTER TABLE employee ADD COLUMN telegram_connected_at TIMESTAMP;
 
         -- Attempt to split legacy empname into first/last if possible
         UPDATE employee SET 
@@ -53,6 +50,10 @@ const createEmployeeTable = async (pool) => {
           END,
           name_with_initials = empname;
       END IF;
+
+      -- Add Telegram columns independently
+      ALTER TABLE employee ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(50) UNIQUE;
+      ALTER TABLE employee ADD COLUMN IF NOT EXISTS telegram_connected_at TIMESTAMP;
 
       -- Remove NOT NULL constraints after split if needed (already set in table creation but added for migration)
       ALTER TABLE employee ALTER COLUMN first_name SET NOT NULL;

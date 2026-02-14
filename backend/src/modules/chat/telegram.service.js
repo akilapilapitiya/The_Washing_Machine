@@ -19,18 +19,30 @@ export const initTelegramBot = () => {
   bot = new TelegramBot(token, { polling: true });
   console.log("Telegram Bot started successfully.");
 
-  // Handle /start (with or without code)
-  bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
+  // Handle linking (both /start <CODE> and just <CODE>)
+  bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
-    const code = match[1];
+    const text = msg.text?.trim();
 
-    if (!code) {
+    if (!text) return;
+
+    // Check if it's a simple start command
+    if (text === "/start") {
       bot.sendMessage(
         chatId,
-        "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Follow the link provided.",
+        "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Send the code provided there.",
       );
       return;
     }
+
+    // Check for code pattern (8 hex chars) or /start <code_pattern>
+    const codeMatch = text.match(/^(?:\/start\s+)?([a-fA-F0-9]{8})$/);
+
+    if (!codeMatch) {
+      return;
+    }
+
+    const code = codeMatch[1];
 
     try {
       // Verify Code
@@ -39,7 +51,7 @@ export const initTelegramBot = () => {
       if (!employeeId) {
         bot.sendMessage(
           chatId,
-          "Invalid or expired linking code. Please generate a new one from your portal.",
+          "❌ Invalid or expired linking code. Please generate a new one from your portal.",
         );
         return;
       }
