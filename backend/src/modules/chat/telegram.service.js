@@ -19,15 +19,15 @@ export const initTelegramBot = () => {
   bot = new TelegramBot(token, { polling: true });
   console.log("Telegram Bot started successfully.");
 
-  // Handle /start <CODE> for linking
-  bot.onText(/\/start (.+)/, async (msg, match) => {
+  // Handle /start (with or without code)
+  bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
     const code = match[1];
 
     if (!code) {
       bot.sendMessage(
         chatId,
-        "Welcome! Please use the link provided in your Employee Portal to connect.",
+        "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Follow the link provided.",
       );
       return;
     }

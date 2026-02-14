@@ -7,7 +7,6 @@ import {
   getAvailableEmployees,
   updateProfilePicture,
   changePassword,
-  changePassword,
   getRoles,
   generateTelegramLink,
 } from "../controllers/employee.controller.js";
