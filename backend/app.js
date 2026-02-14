@@ -102,6 +102,12 @@ const server = createServer(app);
 // Initialize Socket.io
 initSocket(server);
 
+// Initialize Telegram Bot
+import { initTelegramBot } from "./src/modules/chat/telegram.service.js";
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  initTelegramBot();
+}
+
 if (process.env.NODE_ENV !== "test") {
   await initModels(pool);
 

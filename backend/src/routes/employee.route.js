@@ -7,7 +7,9 @@ import {
   getAvailableEmployees,
   updateProfilePicture,
   changePassword,
+  changePassword,
   getRoles,
+  generateTelegramLink,
 } from "../controllers/employee.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { uploadProfilePicture } from "../middleware/upload.middleware.js";
@@ -49,5 +51,11 @@ router.put(
   updateEmployee,
 );
 router.delete("/:id", restrictTo("manager", "owner"), deleteEmployee);
+
+router.post(
+  "/telegram-link-code",
+  restrictTo("manager", "owner", "employee", "cashier"),
+  generateTelegramLink,
+);
 
 export default router;

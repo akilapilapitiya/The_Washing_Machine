@@ -20,6 +20,8 @@ const createEmployeeTable = async (pool) => {
       speciality VARCHAR(100),
       profile_picture_url TEXT,
       password_hash VARCHAR(255) NOT NULL,
+      telegram_chat_id VARCHAR(50) UNIQUE,
+      telegram_connected_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -37,7 +39,10 @@ const createEmployeeTable = async (pool) => {
         ALTER TABLE employee ADD COLUMN address_line2 VARCHAR(100);
         ALTER TABLE employee ADD COLUMN dob DATE;
         ALTER TABLE employee ADD COLUMN speciality VARCHAR(100);
+        ALTER TABLE employee ADD COLUMN speciality VARCHAR(100);
         ALTER TABLE employee ADD COLUMN profile_picture_url TEXT;
+        ALTER TABLE employee ADD COLUMN telegram_chat_id VARCHAR(50) UNIQUE;
+        ALTER TABLE employee ADD COLUMN telegram_connected_at TIMESTAMP;
 
         -- Attempt to split legacy empname into first/last if possible
         UPDATE employee SET 

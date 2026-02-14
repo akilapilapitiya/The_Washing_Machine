@@ -18,12 +18,39 @@ export const createNotificationService = async ({
 
   const notification = result.rows[0];
 
-  // Real-time delivery
+  // Real-time delivery (Socket.io)
   try {
     const io = getIO();
     io.to(`user-${recipientId}`).emit("notification", notification);
   } catch (err) {
     console.error("Socket emit failed:", err.message);
+  }
+
+  // Real-time delivery (Telegram)
+  if (
+    recipientRole === "employee" ||
+    recipientRole === "manager" ||
+    recipientRole === "owner" ||
+    recipientRole === "cashier"
+  ) {
+    try {
+      const empResult = await pool.query(
+        `SELECT telegram_chat_id FROM employee WHERE empid = $1`,
+        [recipientId],
+      );
+
+      const chatId = empResult.rows[0]?.telegram_chat_id;
+
+      if (chatId) {
+        import("../modules/chat/telegram.service.js").then(
+          ({ sendMessage }) => {
+            sendMessage(chatId, `🔔 *${title}*\n${message}`);
+          },
+        );
+      }
+    } catch (err) {
+      console.error("Telegram notification failed:", err.message);
+    }
   }
 
   return notification;
