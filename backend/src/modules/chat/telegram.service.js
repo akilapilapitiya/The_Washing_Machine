@@ -93,10 +93,10 @@ export const generateLinkingCode = async (employeeId) => {
 
 export const getBot = () => bot;
 
-export const sendMessage = async (chatId, text) => {
+export const sendMessage = async (chatId, text, options = {}) => {
   if (!bot) return;
   try {
-    await bot.sendMessage(chatId, text);
+    await bot.sendMessage(chatId, text, { parse_mode: "Markdown", ...options });
   } catch (error) {
     console.error("Error sending Telegram message:", error.message);
   }

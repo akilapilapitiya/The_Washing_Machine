@@ -361,7 +361,7 @@ export const createBookingService = async ({
 
     // 3. Validate vehicle
     const vehicleCheck = await client.query(
-      "SELECT id, cusid FROM vehicle WHERE id = $1",
+      "SELECT id, cusid, vehbrand, vehmodel, vehplate FROM vehicle WHERE id = $1",
       [vehicleId],
     );
     if (vehicleCheck.rowCount === 0)
@@ -369,6 +369,14 @@ export const createBookingService = async ({
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
       throw new ForbiddenError("You can only book with your own vehicles");
     }
+    const vehicleDetails = vehicleCheck.rows[0];
+
+    // Fetch Customer Details for Notification
+    const customerRes = await client.query(
+      "SELECT first_name, last_name, custel FROM customer WHERE cusid = $1",
+      [customerId],
+    );
+    const customerDetails = customerRes.rows[0];
 
     // 4. Assign Employee
     let assignedEmpId = employeeId;
@@ -395,7 +403,7 @@ export const createBookingService = async ({
         endTime,
         bufferMinutes,
       ]);
-      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to sys account
+      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to system account
     }
 
     // 5. Insert booking
@@ -470,11 +478,33 @@ export const createBookingService = async ({
 
     // Employee Notification (if assigned and not 'any')
     if (assignedEmpId && assignedEmpId !== 1) {
+      const serviceNames = servicesCheck.rows
+        .map((s) => s.servicename)
+        .join(", ");
+      const vehInfo = `${vehicleDetails.vehbrand} ${vehicleDetails.vehmodel} (${vehicleDetails.vehplate})`;
+      const locationInfo =
+        locationType === "home"
+          ? `[Google Maps](https://www.google.com/maps?q=${locationLatitude},${locationLongitude})`
+          : "Branch Visit";
+      const customerName = `${customerDetails.first_name} ${customerDetails.last_name}`;
+
+      const msg = [
+        `*NEW JOB ASSIGNED*`,
+        ``,
+        `*Customer:* ${customerName}`,
+        `*Vehicle:* ${vehInfo}`,
+        `*Service:* ${serviceNames}`,
+        `*Date:* ${date}`,
+        `*Time:* ${startTime}`,
+        `*Location:* ${locationInfo}`,
+        `*Contact:* ${customerDetails.custel}`,
+      ].join("\n");
+
       await createNotificationService({
         recipientId: assignedEmpId,
         recipientRole: "employee",
         title: "New Job Assigned",
-        message: `You have been assigned a new booking (ID: ${bookingId}) on ${date} at ${startTime}.`,
+        message: msg,
         type: "info",
         bookingId: bookingId,
       });
