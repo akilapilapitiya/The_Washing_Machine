@@ -7,6 +7,7 @@ import { Calendar, Clock, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as schedulerService from "@/services/scheduler.service";
+import * as holidayService from "@/services/systemHoliday.service";
 
 import { toast } from "sonner";
 // Generate time slots between 9 AM and 4 PM
@@ -34,20 +35,41 @@ const DateTimeSelectionPage = () => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [blockedDates, setBlockedDates] = useState([]);
+  const [holidays, setHolidays] = useState([]);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [error, setError] = useState(null);
 
   const { vehicleId, serviceIds, locationId, locationData, employeeId } =
     location.state || {};
 
-  // Get today's date in YYYY-MM-DD format for min date
-  const today = new Date().toISOString().split("T")[0];
+  // Get tomorrow's date in YYYY-MM-DD format for min date (no same-day bookings)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   useEffect(() => {
+    fetchHolidays();
     if (employeeId && employeeId !== "any") {
       fetchBlockedDates();
     }
   }, [employeeId]);
+
+  const fetchHolidays = async () => {
+    try {
+      const holidayData = await holidayService.getUpcomingHolidays();
+      if (Array.isArray(holidayData) && holidayData.length > 0) {
+        setHolidays(
+          holidayData.map((h) => ({
+            date: h.holidaydate.split("T")[0], // Use date string directly, avoid timezone conversion
+            name: h.holidayname,
+          })),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to fetch holidays:", err.message);
+      setHolidays([]);
+    }
+  };
 
   const fetchBlockedDates = async () => {
     try {
@@ -69,17 +91,29 @@ const DateTimeSelectionPage = () => {
 
   useEffect(() => {
     if (selectedDate) {
+      // Check if date is a holiday
+      const holiday = holidays.find((h) => h.date === selectedDate);
+      if (holiday) {
+        setError(
+          `Bookings are not available on ${holiday.name} (System Holiday).`,
+        );
+        setAvailableSlots([]);
+        setSelectedTime(null); // Clear selected time
+        return;
+      }
+      // Check if operative is offline
       if (blockedDates.includes(selectedDate)) {
         setError(
           "This operative is offline on the selected date. Please choose another date.",
         );
         setAvailableSlots([]);
+        setSelectedTime(null); // Clear selected time
         return;
       }
       setError(null);
       fetchDaySchedule();
     }
-  }, [selectedDate, blockedDates]);
+  }, [selectedDate, blockedDates, holidays]);
 
   const fetchDaySchedule = async () => {
     if (!employeeId || employeeId === "any") {
@@ -185,7 +219,7 @@ const DateTimeSelectionPage = () => {
                   <Input
                     id="date"
                     type="date"
-                    min={today}
+                    min={minDate}
                     value={selectedDate}
                     onChange={handleDateChange}
                     className={cn(
@@ -196,6 +230,37 @@ const DateTimeSelectionPage = () => {
                     )}
                   />
                 </div>
+                {holidays.length > 0 && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs font-semibold text-blue-900 mb-1.5">
+                      Upcoming Holidays
+                    </p>
+                    <div className="space-y-1">
+                      {holidays.slice(0, 3).map((holiday) => (
+                        <div
+                          key={holiday.date}
+                          className="text-xs text-blue-700 flex items-center gap-2"
+                        >
+                          <Calendar size={12} className="text-blue-500" />
+                          <span className="font-medium">{holiday.name}</span>
+                          <span className="text-blue-600">
+                            (
+                            {(() => {
+                              const [year, month, day] =
+                                holiday.date.split("-");
+                              const date = new Date(year, month - 1, day);
+                              return date.toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                              });
+                            })()}
+                            )
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
