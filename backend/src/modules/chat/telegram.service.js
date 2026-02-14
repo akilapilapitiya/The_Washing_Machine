@@ -10,6 +10,11 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 
 let bot = null;
 
+import {
+  getAllBookingsService,
+  getBookingService,
+} from "../../services/booking.service.js";
+
 export const initTelegramBot = () => {
   if (!token) {
     console.warn("TELEGRAM_BOT_TOKEN not found. Chat features disabled.");
@@ -19,6 +24,12 @@ export const initTelegramBot = () => {
   bot = new TelegramBot(token, { polling: true });
   console.log("Telegram Bot started successfully.");
 
+  // Set Persistent Menu
+  bot.setMyCommands([
+    { command: "/start", description: "Link Account" },
+    { command: "/jobs", description: "View Assigned Jobs" },
+  ]);
+
   // Handle linking (both /start <CODE> and just <CODE>)
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
@@ -26,11 +37,24 @@ export const initTelegramBot = () => {
 
     if (!text) return;
 
+    // Persistent Menu Button Handler
+    if (text === "📅 My Jobs" || text === "/jobs") {
+      await handleJobsCommand(chatId);
+      return;
+    }
+
     // Check if it's a simple start command
     if (text === "/start") {
       bot.sendMessage(
         chatId,
         "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Send the code provided there.",
+        {
+          reply_markup: {
+            keyboard: [[{ text: "📅 My Jobs" }]],
+            resize_keyboard: true,
+            persistent: true,
+          },
+        },
       );
       return;
     }
@@ -70,6 +94,12 @@ export const initTelegramBot = () => {
       bot.sendMessage(
         chatId,
         "✅ Account successfully linked! You will now receive notifications here.",
+        {
+          reply_markup: {
+            keyboard: [[{ text: "📅 My Jobs" }]],
+            resize_keyboard: true,
+          },
+        },
       );
       console.log(`Linked Telegram chat ${chatId} to Employee ${employeeId}`);
     } catch (error) {
@@ -81,7 +111,147 @@ export const initTelegramBot = () => {
     }
   });
 
+  // Handle Callback Queries (Inline Buttons)
+  bot.on("callback_query", async (query) => {
+    const chatId = query.message.chat.id;
+    const messageId = query.message.message_id;
+    const data = query.data;
+
+    try {
+      if (data === "job_list") {
+        await handleJobsCommand(chatId, messageId);
+      } else if (data.startsWith("job:")) {
+        const bookingId = data.split(":")[1];
+        await handleJobDetails(chatId, messageId, bookingId);
+      }
+      // Always answer callback to stop loading animation
+      bot.answerCallbackQuery(query.id);
+    } catch (error) {
+      console.error("Callback Error:", error);
+    }
+  });
+
   bot.on("polling_error", (err) => console.log(err));
+};
+
+const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
+  try {
+    const empRes = await pool.query(
+      "SELECT empid FROM employee WHERE telegram_chat_id = $1",
+      [chatId],
+    );
+    if (empRes.rowCount === 0) {
+      sendMessage(chatId, "❌ You are not linked to an employee account.");
+      return;
+    }
+    const empId = empRes.rows[0].empid;
+
+    const bookings = await getAllBookingsService(empId, "employee", "employee");
+    // Filter for active/upcoming
+    const activeJobs = bookings.filter((b) =>
+      ["pending", "inProgress"].includes(b.bookingstatus),
+    );
+
+    if (activeJobs.length === 0) {
+      const txt = "🎉 You have no pending jobs assigned.";
+      if (messageIdToEdit) {
+        bot.editMessageText(txt, {
+          chat_id: chatId,
+          message_id: messageIdToEdit,
+        });
+      } else {
+        sendMessage(chatId, txt);
+      }
+      return;
+    }
+
+    const inline_keyboard = activeJobs.map((b) => {
+      const date = new Date(b.bookingdate).toISOString().split("T")[0];
+      const time = b.bookingstarttime.slice(0, 5);
+      return [
+        {
+          text: `📅 ${date} ${time} - ${b.vehbrand} ${b.vehmodel}`,
+          callback_data: `job:${b.bookingid}`,
+        },
+      ];
+    });
+
+    const text = "📋 *Your Upcoming Jobs*\nSelect a job to view details:";
+    const options = {
+      parse_mode: "Markdown",
+      reply_markup: { inline_keyboard },
+    };
+
+    if (messageIdToEdit) {
+      bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageIdToEdit,
+        ...options,
+      });
+    } else {
+      bot.sendMessage(chatId, text, options);
+    }
+  } catch (error) {
+    console.error("Jobs Command Error:", error);
+    sendMessage(chatId, "❌ failed to fetch jobs.");
+  }
+};
+
+const handleJobDetails = async (chatId, messageId, bookingId) => {
+  try {
+    const empRes = await pool.query(
+      "SELECT empid FROM employee WHERE telegram_chat_id = $1",
+      [chatId],
+    );
+    const empId = empRes.rows[0].empid;
+
+    const booking = await getBookingService(
+      bookingId,
+      empId,
+      "employee",
+      "employee",
+    );
+
+    // Format Details
+    const date = new Date(booking.bookingdate).toISOString().split("T")[0];
+    const time = booking.bookingstarttime;
+    const location = booking.bookinglocationlatitude
+      ? `[Google Maps](https://www.google.com/maps?q=${booking.bookinglocationlatitude},${booking.bookinglocationlongitude})`
+      : "Branch";
+
+    // Fetch Services if not in booking object (getAll returns generic services array but getBooking might be different structure?
+    // Checking getBookingService in booking.service.js: currently it returns `services` as json_agg.
+    const services = booking.services
+      ? booking.services.map((s) => s.serviceName).join(", ")
+      : "N/A";
+
+    const msg = [
+      `*JOB DETAILS*`,
+      ``,
+      `*Customer:* ${booking.cusname}`,
+      `*Vehicle:* ${booking.vehbrand} ${booking.vehmodel} (${booking.vehplate})`,
+      `*Service:* ${services}`,
+      `*Date:* ${date}`,
+      `*Time:* ${time}`,
+      `*Location:* ${location}`,
+      `*Contact:* ${booking.cusphone}`,
+      ``,
+      `*Status:* ${booking.bookingstatus.toUpperCase()}`,
+    ].join("\n");
+
+    const inline_keyboard = [
+      [{ text: "🔙 Back to Jobs", callback_data: "job_list" }],
+    ];
+
+    bot.editMessageText(msg, {
+      chat_id: chatId,
+      message_id: messageId,
+      parse_mode: "Markdown",
+      reply_markup: { inline_keyboard },
+    });
+  } catch (error) {
+    console.error("Job Details Error:", error);
+  }
 };
 
 export const generateLinkingCode = async (employeeId) => {
