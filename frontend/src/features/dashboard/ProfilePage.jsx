@@ -596,6 +596,52 @@ const ProfilePage = () => {
                 </div>
                 Personal Details
               </CardTitle>
+              {(userType === "employee" ||
+                userType === "manager" ||
+                userType === "owner" ||
+                userType === "cashier") &&
+                !isEditing && (
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const axios = (await import("@/configs/axios")).default;
+                        const res = await axios.post(
+                          "/employee/telegram-link-code",
+                        );
+                        const { code, botName } = res.data.data;
+                        const link = `https://t.me/${botName}?start=${code}`;
+
+                        // Show modal or toast with link
+                        window.open(link, "_blank");
+                        toast.success(
+                          "Telegram link opened! Click 'Start' in the app.",
+                        );
+                      } catch (err) {
+                        toast.error("Failed to generate Telegram link");
+                        console.error(err);
+                      }
+                    }}
+                    className="gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-send"
+                    >
+                      <path d="m22 2-7 20-4-9-9-4Z" />
+                      <path d="M22 2 11 13" />
+                    </svg>
+                    Connect Telegram
+                  </Button>
+                )}
             </CardHeader>
             <CardContent className="p-8">
               {!isEditing ? (
