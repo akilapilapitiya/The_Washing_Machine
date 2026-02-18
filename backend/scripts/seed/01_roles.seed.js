@@ -3,32 +3,42 @@ import pool from "../../src/configs/database.js";
 const seedRoles = async (pool) => {
   const roles = [
     {
-      roleid: 1,
       rolename: "owner",
-      description: "System owner with full access",
+      role_description: "System owner with full access",
+      is_admin: true,
     },
     {
-      roleid: 2,
       rolename: "manager",
-      description: "Manager with administrative privileges",
+      role_description: "Manager with administrative privileges",
+      is_admin: false,
     },
     {
-      roleid: 3,
       rolename: "cashier",
-      description: "Cashier for payment processing",
+      role_description: "Cashier for payment processing",
+      is_admin: false,
     },
-    { roleid: 4, rolename: "employee", description: "Service employee" },
-    { roleid: 5, rolename: "customer", description: "Customer account" },
+    {
+      rolename: "employee",
+      role_description: "Service employee",
+      is_admin: false,
+    },
+    {
+      rolename: "customer",
+      role_description: "Customer account",
+      is_admin: false,
+    },
   ];
 
   console.log("📋 Seeding roles...");
 
   for (const role of roles) {
     await pool.query(
-      `INSERT INTO role (roleid, rolename, description) 
+      `INSERT INTO role (rolename, role_description, is_admin) 
        VALUES ($1, $2, $3) 
-       ON CONFLICT (roleid) DO NOTHING`,
-      [role.roleid, role.rolename, role.description],
+       ON CONFLICT (rolename) DO UPDATE SET
+         role_description = EXCLUDED.role_description,
+         is_admin = EXCLUDED.is_admin`,
+      [role.rolename, role.role_description, role.is_admin], // Use default false for is_admin if not specified, but here we specify it.
     );
   }
 

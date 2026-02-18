@@ -104,7 +104,7 @@ initSocket(server);
 
 // Initialize Telegram Bot
 import { initTelegramBot } from "./src/modules/chat/telegram.service.js";
-if (process.env.TELEGRAM_BOT_TOKEN) {
+if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_TELEGRAM_BOT === "true") {
   initTelegramBot();
 }
 
