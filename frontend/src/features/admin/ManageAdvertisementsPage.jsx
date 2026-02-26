@@ -161,6 +161,15 @@ const ManageAdvertisementsPage = () => {
   const activeAds = ads.filter(ad => !ad.expiry_date || new Date(ad.expiry_date) >= new Date());
   const expiredAds = ads.filter(ad => ad.expiry_date && new Date(ad.expiry_date) < new Date());
 
+  // Ads expiring within the next 3 days
+  const expiringSoonAds = ads.filter(ad => {
+    if (!ad.expiry_date) return false;
+    const expiryDate = new Date(ad.expiry_date);
+    const now = new Date();
+    const diffInDays = (expiryDate - now) / (1000 * 60 * 60 * 24);
+    return diffInDays >= 0 && diffInDays <= 3;
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
@@ -173,6 +182,49 @@ const ManageAdvertisementsPage = () => {
             <Plus className="w-4 h-4 mr-2" /> Add New Ad
           </Button>
         </div>
+
+        {/* Expiring Soon Alert */}
+        {expiringSoonAds.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                <Clock size={20} className="animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-amber-900">Expiring Soon</h3>
+                <p className="text-sm text-amber-700 font-medium">The following advertisements will disappear from the front page within 3 days.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {expiringSoonAds.map(ad => (
+                <div key={ad.id} className="bg-white border border-amber-100 p-3 rounded-lg flex items-center justify-between shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-gray-50 overflow-hidden border border-gray-100">
+                      {ad.image_url && (
+                        <img 
+                          src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`} 
+                          alt={ad.title} 
+                          className="w-full h-full object-cover" 
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 line-clamp-1">{ad.title}</p>
+                      <p className="text-[10px] font-bold text-amber-600 uppercase">Expires: {new Date(ad.expiry_date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => openEditModal(ad)}
+                    className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                    title="Renew/Edit"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-3">
