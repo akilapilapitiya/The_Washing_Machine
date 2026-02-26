@@ -65,6 +65,7 @@ const createApp = () => {
   app.use("/api", testRouter);
   app.use("/api/authemployee", authLimiter, employeeAuthRouter);
   app.use("/api/authcustomer", authLimiter, customerAuthRouter);
+  app.use("/api/advertisement", advertisementRouter);
   app.use("/api/booking", bookingRouter);
   app.use("/api/vehicle", vehicleRouter);
   app.use("/api/service", serviceRouter);
