@@ -10,6 +10,8 @@ This is a modern, responsive React-based frontend for a comprehensive vehicle se
 - ✅ Fully responsive design (mobile-first approach)
 - ✅ Secure JWT authentication with role-based access control
 - ✅ Streamlined 6-step booking flow with real-time availability
+- ✅ **Dynamic Travel Logistics** calculation in booking flow
+- ✅ **Promotional Service Offers** with pricing snapshots
 - ✅ Comprehensive vehicle management system
 - ✅ Integrated payment tracking and recording
 - ✅ Customer feedback system
@@ -631,6 +633,6 @@ For issues or questions, contact the development team.
 
 ---
 
-**Last Updated:** January 28, 2026  
-**Version:** 1.2.0  
+**Last Updated:** February 26, 2026  
+**Version:** 1.4.0  
 **Status:** Production Ready with Comprehensive Testing

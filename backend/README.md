@@ -7,8 +7,11 @@ This is a robust, production-ready RESTful API built with Node.js and Express. I
 **Key Features:**
 
 - ✅ Secure JWT authentication with role-based access control (4 roles)
-- ✅ 40+ RESTful API endpoints across 16 modules
+- ✅ 45+ RESTful API endpoints across 17 modules
+- ✅ **Telegram Bot Integration** for real-time employee notifications
 - ✅ Complex booking management with service-employee assignment
+- ✅ **Dynamic Travel Logistics** (distance, duration, cost) in booking flow
+- ✅ **Promotional Service Offers** with pricing snapshots
 - ✅ Integrated payment processing and tracking
 - ✅ Customer feedback and service rating system
 - ✅ Employee leave management with approval workflow
@@ -16,9 +19,10 @@ This is a robust, production-ready RESTful API built with Node.js and Express. I
 - ✅ Email service for password reset and notifications
 - ✅ Advanced analytics (Daily Income, Employee Performance)
 - ✅ Vehicle catalog standardization
-- ✅ Comprehensive test suite (9 test suites with Jest + Supertest)
+- ✅ Comprehensive test suite (11 test suites with Jest + Supertest)
 - ✅ Interactive Swagger/OpenAPI documentation
 - ✅ Centralized validation with Joi
+- ✅ **Redis Integration** for stateful job linking and caching
 - ✅ Typed error handling with custom error classes
 - ✅ Rate limiting and security hardening
 
@@ -27,11 +31,13 @@ This is a robust, production-ready RESTful API built with Node.js and Express. I
 - **Runtime:** Node.js (v18+)
 - **Framework:** Express.js ~4.16.1
 - **Database:** PostgreSQL ^8.16.3
+- **Cache & Messaging:** **Redis** ^4.7.0
 - **Authentication:** JWT (jsonwebtoken ^9.0.3)
 - **Validation:** Joi ^18.0.2
 - **Testing:** Jest ^29.7.0, Supertest ^7.0.0
 - **Security:** Helmet ^8.1.0, CORS ^2.8.5, bcryptjs ^3.0.3
 - **Email:** Nodemailer ^7.0.12
+- **Bot Integration:** **Node Telegram Bot API** ^0.66.0
 - **Rate Limiting:** express-rate-limit ^8.2.1
 - **Optimizations:** Compression (gzip) ^1.8.1
 - **Documentation:** Swagger UI Express ^5.0.1, YAMLJS ^0.3.0
@@ -56,103 +62,24 @@ The backend follows a strictly layered architecture for maximum maintainability 
 backend/
 ├── app.js                      # Express application entry
 ├── src/
-│   ├── configs/                # Configuration files (3)
+│   ├── configs/                # Configuration files (4)
 │   │   ├── database.js         # PostgreSQL connection pool
+│   │   ├── redis.js            # Redis client configuration
 │   │   ├── env.js              # Environment variables
 │   │   └── swagger.js          # Swagger setup
-│   ├── routes/                 # API route definitions (16 modules)
-│   │   ├── customerAuth.route.js
-│   │   ├── employeeAuth.route.js
-│   │   ├── booking.route.js
-│   │   ├── vehicle.route.js
-│   │   ├── service.routes.js
-│   │   ├── payment.route.js
-│   │   ├── feedback.route.js
-│   │   ├── customer.route.js
-│   │   ├── employee.route.js
-│   │   ├── employeeLeave.route.js
-│   │   ├── incident.route.js
-│   │   ├── report.route.js
-│   │   ├── schedule.route.js
-│   │   ├── vehicleCatalog.route.js
-│   │   ├── notification.route.js
-│   │   └── test.route.js
-│   ├── controllers/            # Route handlers (16 controllers)
-│   ├── services/               # Business logic layer (14 services)
-│   │   ├── customerAuth.service.js
-│   │   ├── employeeAuth.service.js
-│   │   ├── booking.service.js
-│   │   ├── vehicle.service.js
-│   │   ├── service.service.js
-│   │   ├── payment.service.js
-│   │   ├── feedback.service.js
-│   │   ├── customer.service.js
-│   │   ├── employee.service.js
-│   │   ├── employeeLeave.service.js
-│   │   ├── email.service.js
-│   │   ├── notification.service.js
-│   │   ├── report.service.js
-│   │   └── schedule.service.js
-│   ├── models/                 # Database models (18 models)
-│   │   ├── customer.model.js
-│   │   ├── employee.model.js
-│   │   ├── role.model.js
-│   │   ├── booking.model.js
-│   │   ├── vehicle.model.js
-│   │   ├── service.model.js
-│   │   ├── payment.model.js
-│   │   ├── feedback.model.js
-│   │   ├── employeeLeave.model.js
-│   │   ├── incident.model.js
-│   │   ├── schedule.model.js
-│   │   ├── servicesBooked.model.js
-│   │   ├── employeeAssigned.model.js
-│   │   ├── employeePreference.model.js
-│   │   ├── vehicleCatalog.model.js
-│   │   ├── notification.model.js
-│   │   ├── passwordResetToken.model.js
-│   │   └── index.js
+│   ├── modules/                # Specialized domain modules
+│   │   └── chat/               # Telegram bot implementation
+│   ├── routes/                 # API route definitions (17 modules)
+│   ├── controllers/            # Route handlers (17 controllers)
+│   ├── services/               # Business logic layer (15 services)
+│   ├── models/                 # Database models (22 models)
 │   ├── middleware/             # Express middleware (8 modules)
-│   │   ├── auth.middleware.js
-│   │   ├── bodyParser.middleware.js
-│   │   ├── compression.middleware.js
-│   │   ├── cors.middleware.js
-│   │   ├── error.middleware.js
-│   │   ├── helmet.middleware.js
-│   │   ├── rateLimit.middleware.js
-│   │   └── validation.middleware.js
 │   ├── validators/             # Joi validation schemas (7 validators)
-│   │   ├── booking.validator.js
-│   │   ├── customer.validator.js
-│   │   ├── employee.validator.js
-│   │   ├── payment.validator.js
-│   │   ├── service.validator.js
-│   │   ├── vehicle.validator.js
-│   │   └── index.js
 │   ├── docs/                   # Swagger/OpenAPI documentation
-│   │   ├── openapi.yaml        # Main specification
-│   │   ├── components/         # Reusable schemas (3)
-│   │   └── paths/              # API path definitions (16)
-│   ├── scripts/                # Database utilities (11 scripts)
-│   │   ├── dbReset.script.js
-│   │   ├── dataClean.script.js
-│   │   ├── addOwner.js
-│   │   ├── runReset.js
-│   │   ├── runClean.js
-│   │   └── ...
+│   ├── scripts/                # Database utilities (7 scripts)
 │   ├── templates/              # Email templates (2)
 │   ├── utils/                  # Utility functions (5)
-│   └── __tests__/              # Test suites (9 test files)
-│       ├── auth/
-│       ├── booking/
-│       ├── feedback/
-│       ├── payment/
-│       ├── people/
-│       ├── service/
-│       └── vehicle/
-├── coverage/                   # Test coverage reports
-├── jest.config.js              # Jest configuration
-└── package.json                # Dependencies and scripts
+│   └── __tests__/              # Test suites (11 test files)
 ```
 
 ## Installation & Setup
@@ -199,17 +126,17 @@ FRONTEND_URL=http://localhost:5173
 
 ### Database Setup
 
-Initialize the database schema and seed default owner:
+Initialize the database schema and seed default owner using Docker infrastructure:
 
 ```bash
-# Option 1: Reset DB and create owner
+# 1. Start containers (from root)
+docker-compose up -d
+
+# 2. Reset DB and create owner
 npm run db:reset:seed
 
-# Option 2: Reset DB only
+# Optional: Reset DB only
 npm run db:reset
-
-# Option 3: Add owner to existing DB
-npm run db:seed-owner
 ```
 
 **Default Owner Credentials:**
@@ -731,52 +658,26 @@ Located in `src/utils/`:
 - `NotFoundError`
 - `DatabaseError`
 
-## Recent Additions (Since v1.2.1)
+## Recent Additions (v1.4.0)
 
-### ✅ Employee Leave Management System
+### ✅ Telegram Bot Integration
+- Real-time job notifications for employees via `sendMessage`.
+- Secure account linking via Redis-stored session codes.
+- Inline keyboard interactions for viewing job details and status updates (Start/Complete).
+- Integrated into `notification.service.js` for automatic dispatch.
 
-- Complete leave request workflow
-- Admin approval/rejection interface
-- Leave balance tracking
-- History and reporting
+### ✅ Infrastructure & Architecture
+- **Docker Compose** support for containerized PostgreSQL and Redis.
+- **Model-Driven Synchronization**: Automated schema generation directly from model definitions.
+- **Redis Cache**: Used for bot state management and linking codes.
 
-### ✅ Incident Reporting & Tracking
+### ✅ Advanced Booking Logic
+- **Travel Pricing Rules**: Support for distance-based pricing and travel cost estimation.
+- **Service Snapshots**: Support for promotional pricing (`has_offer`, `offer_price`) with snapshots taken at booking time to preserve historical pricing.
 
-- Employee incident reporting during service
-- Photo upload capability
-- Resolution workflow
-- Incident history
-
-### ✅ Email Service Integration
-
-- Nodemailer configuration
-- Password reset emails with OTP
-- Email templates in `src/templates/`
-- SMTP configuration
-
-### ✅ Advanced Analytics & Reports
-
-- **Daily Income Report:** Revenue analysis with date filtering
-- **Employee Performance:** Service completion and ratings
-- Stats aggregation and data visualization ready
-
-### ✅ Vehicle Catalog Management
-
-- Standardized vehicle type classification
-- Admin CRUD interface
-- Integration with booking flow
-
-### ✅ Notification System
-
-- User notification creation
-- Read/unread status tracking
-- Notification history
-
-### ✅ Comprehensive Test Coverage
-
-- 9 test suites with Jest + Supertest
-- Integration testing across all major flows
-- CI/CD pipeline integration
+### ✅ Enhanced Test Coverage
+- **11 Test Suites** covering all major flows.
+- Added comprehensive notification testing.
 
 ## Role-Based Access Control
 
@@ -945,6 +846,6 @@ For issues or questions, contact the development team.
 
 ---
 
-**Last Updated:** January 28, 2026  
-**Version:** 1.3.0  
-**Status:** Production Ready with Comprehensive Testing
+**Last Updated:** February 26, 2026  
+**Version:** 1.4.0  
+**Status:** Production Ready with Containerized Utilities
