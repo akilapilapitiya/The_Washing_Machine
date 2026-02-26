@@ -34,22 +34,27 @@ export const createNotificationService = async ({
     recipientRole === "cashier"
   ) {
     try {
+      console.log(`[DEBUG] Attempting Telegram delivery for ${recipientRole} (ID: ${recipientId})`);
       const empResult = await pool.query(
-        `SELECT telegram_chat_id FROM employee WHERE empid = $1`,
+        `SELECT telegram_chat_id, first_name FROM employee WHERE empid = $1`,
         [recipientId],
       );
 
-      const chatId = empResult.rows[0]?.telegram_chat_id;
+      const employee = empResult.rows[0];
+      const chatId = employee?.telegram_chat_id;
 
       if (chatId) {
+        console.log(`[DEBUG] Found ChatID: ${chatId} for ${employee.first_name}. Sending message...`);
         import("../modules/chat/telegram.service.js").then(
           ({ sendMessage }) => {
             sendMessage(chatId, `🔔 *${title}*\n${message}`);
           },
         );
+      } else {
+        console.log(`[DEBUG] No Telegram ChatID found for employee ID: ${recipientId}`);
       }
     } catch (err) {
-      console.error("Telegram notification failed:", err.message);
+      console.error("[DEBUG] Telegram notification failed:", err.message);
     }
   }
 

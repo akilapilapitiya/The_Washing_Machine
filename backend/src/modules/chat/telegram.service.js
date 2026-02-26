@@ -22,127 +22,142 @@ export const initTelegramBot = () => {
     return;
   }
 
-  bot = new TelegramBot(token, { polling: true });
-  console.log("Telegram Bot started successfully.");
+  try {
+    bot = new TelegramBot(token, { polling: true });
+    console.log("Telegram Bot started successfully.");
 
-  // Set Persistent Menu
-  bot.setMyCommands([
-    { command: "/start", description: "Link Account" },
-    { command: "/jobs", description: "View Assigned Jobs" },
-  ]);
+    // Set Persistent Menu
+    bot.setMyCommands([
+      { command: "/start", description: "Link Account" },
+      { command: "/jobs", description: "View Assigned Jobs" },
+    ]).catch(err => console.warn("[TELEGRAM] Failed to set menu commands (Network issue)"));
 
-  // Handle linking (both /start <CODE> and just <CODE>)
-  bot.on("message", async (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text?.trim();
+    // Handle linking (both /start <CODE> and just <CODE>)
+    bot.on("message", async (msg) => {
+      const chatId = msg.chat.id;
+      const text = msg.text?.trim();
 
-    if (!text) return;
+      if (!text) return;
 
-    // Persistent Menu Button Handler
-    if (text === "📅 My Jobs" || text === "/jobs") {
-      await handleJobsCommand(chatId);
-      return;
-    }
+      // Persistent Menu Button Handler
+      if (text === "📅 My Jobs" || text === "/jobs") {
+        await handleJobsCommand(chatId);
+        return;
+      }
 
-    // Check if it's a simple start command
-    if (text === "/start") {
-      bot.sendMessage(
-        chatId,
-        "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Send the code provided there.",
-        {
-          reply_markup: {
-            keyboard: [[{ text: "📅 My Jobs" }]],
-            resize_keyboard: true,
-            persistent: true,
-          },
-        },
-      );
-      return;
-    }
-
-    // Check for code pattern (8 hex chars) or /start <code_pattern>
-    const codeMatch = text.match(/^(?:\/start\s+)?([a-fA-F0-9]{8})$/);
-
-    if (!codeMatch) {
-      return;
-    }
-
-    const code = codeMatch[1];
-
-    try {
-      // Verify Code
-      const employeeId = await redis.get(`telegram_link:${code}`);
-
-      if (!employeeId) {
+      // Check if it's a simple start command
+      if (text === "/start") {
         bot.sendMessage(
           chatId,
-          "❌ Invalid or expired linking code. Please generate a new one from your portal.",
+          "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Send the code provided there.",
+          {
+            reply_markup: {
+              keyboard: [[{ text: "📅 My Jobs" }]],
+              resize_keyboard: true,
+              persistent: true,
+            },
+          },
         );
         return;
       }
 
-      // Link Account
-      await pool.query(
-        `UPDATE employee 
-             SET telegram_chat_id = $1, telegram_connected_at = NOW() 
-             WHERE empid = $2`,
-        [chatId, employeeId],
-      );
+      // Check for code pattern (8 hex chars) or /start <code_pattern>
+      const codeMatch = text.match(/^(?:\/start\s+)?([a-fA-F0-9]{8})$/);
 
-      // Cleanup
-      await redis.del(`telegram_link:${code}`);
-
-      bot.sendMessage(
-        chatId,
-        "✅ Account successfully linked! You will now receive notifications here.",
-        {
-          reply_markup: {
-            keyboard: [[{ text: "📅 My Jobs" }]],
-            resize_keyboard: true,
-          },
-        },
-      );
-      console.log(`Linked Telegram chat ${chatId} to Employee ${employeeId}`);
-    } catch (error) {
-      console.error("Telegram Linking Error:", error);
-      bot.sendMessage(
-        chatId,
-        "❌ An error occurred while linking your account.",
-      );
-    }
-  });
-
-  // Handle Callback Queries (Inline Buttons)
-  bot.on("callback_query", async (query) => {
-    const chatId = query.message.chat.id;
-    const messageId = query.message.message_id;
-    const data = query.data;
-
-    try {
-      if (data === "job_list") {
-        await handleJobsCommand(chatId, messageId);
-      } else if (data.startsWith("job:")) {
-        const bookingId = data.split(":")[1];
-        await handleJobDetails(chatId, messageId, bookingId);
-      } else if (data.startsWith("start:")) {
-        const bookingId = data.split(":")[1];
-        await handleStartJob(chatId, messageId, bookingId);
-      } else if (data.startsWith("complete:")) {
-        const bookingId = data.split(":")[1];
-        await handleCompleteJob(chatId, messageId, bookingId);
+      if (!codeMatch) {
+        return;
       }
-      // Always answer callback to stop loading animation
-      bot.answerCallbackQuery(query.id);
-    } catch (error) {
-      console.error("Callback Error:", error);
-      bot.answerCallbackQuery(query.id, {
-        text: "❌ Error processing request",
-        show_alert: true,
-      });
-    }
-  });
 
-  bot.on("polling_error", (err) => console.log(err));
+      const code = codeMatch[1];
+
+      try {
+        // Verify Code
+        const employeeId = await redis.get(`telegram_link:${code}`);
+
+        if (!employeeId) {
+          bot.sendMessage(
+            chatId,
+            "❌ Invalid or expired linking code. Please generate a new one from your portal.",
+          );
+          return;
+        }
+
+        // Link Account
+        await pool.query(
+          `UPDATE employee 
+               SET telegram_chat_id = $1, telegram_connected_at = NOW() 
+               WHERE empid = $2`,
+          [chatId, employeeId],
+        );
+
+        // Cleanup
+        await redis.del(`telegram_link:${code}`);
+
+        bot.sendMessage(
+          chatId,
+          "✅ Account successfully linked! You will now receive notifications here.",
+          {
+            reply_markup: {
+              keyboard: [[{ text: "📅 My Jobs" }]],
+              resize_keyboard: true,
+            },
+          },
+        );
+        console.log(`Linked Telegram chat ${chatId} to Employee ${employeeId}`);
+      } catch (error) {
+        console.error("Telegram Linking Error:", error);
+        bot.sendMessage(
+          chatId,
+          "❌ An error occurred while linking your account.",
+        );
+      }
+    });
+
+    // Handle Callback Queries (Inline Buttons)
+    bot.on("callback_query", async (query) => {
+      const chatId = query.message.chat.id;
+      const messageId = query.message.message_id;
+      const data = query.data;
+
+      try {
+        if (data === "job_list") {
+          await handleJobsCommand(chatId, messageId);
+        } else if (data.startsWith("job:")) {
+          const bookingId = data.split(":")[1];
+          await handleJobDetails(chatId, messageId, bookingId);
+        } else if (data.startsWith("start:")) {
+          const bookingId = data.split(":")[1];
+          await handleStartJob(chatId, messageId, bookingId);
+        } else if (data.startsWith("complete:")) {
+          const bookingId = data.split(":")[1];
+          await handleCompleteJob(chatId, messageId, bookingId);
+        }
+        // Always answer callback to stop loading animation
+        bot.answerCallbackQuery(query.id);
+      } catch (error) {
+        console.error("Callback Error:", error);
+        bot.answerCallbackQuery(query.id, {
+          text: "❌ Error processing request",
+          show_alert: true,
+        });
+      }
+    });
+
+    bot.on("polling_error", (err) => {
+      if (err.code === 'ECONNRESET' || err.code === 'EFATAL') {
+        // console.warn("[TELEGRAM] Network failure (ECONNRESET/EFATAL). Bot will retry automatically.");
+      } else {
+        console.error("[TELEGRAM] Polling error:", err.message);
+      }
+    });
+
+    bot.on("error", (err) => {
+      console.error("[TELEGRAM] Fatal bot error:", err.message);
+    });
+
+  } catch (err) {
+    console.error("[TELEGRAM] Failed to initialize bot:", err.message);
+  }
 };
 
 const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
