@@ -5,8 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Edit2, X, Calendar, User, Phone } from "lucide-react";
+import { 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  X, 
+  Calendar, 
+  User, 
+  Phone, 
+  Loader2, 
+  BarChart3, 
+  Image as ImageIcon,
+  CheckCircle,
+  Clock
+} from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 const ManageAdvertisementsPage = () => {
   const { user } = useAuth();
@@ -14,7 +28,9 @@ const ManageAdvertisementsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
+
   const [formData, setFormData] = useState({
     title: "",
     client_name: "",
@@ -23,8 +39,13 @@ const ManageAdvertisementsPage = () => {
     image: null,
   });
 
+  const [errors, setErrors] = useState({});
+
+  const today = new Date().toISOString().split("T")[0];
+
   const fetchAds = async () => {
     try {
+      setLoading(true);
       const response = await advertisementService.getAdminAds();
       setAds(response.data);
     } catch (error) {
@@ -41,14 +62,43 @@ const ManageAdvertisementsPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
   };
 
   const handleFileChange = (e) => {
     setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
+    if (errors.image) {
+      setErrors((prev) => ({ ...prev, image: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title.trim()) newErrors.title = "Title is required";
+    if (!formData.client_name.trim()) newErrors.client_name = "Client name is required";
+    
+    if (formData.client_contact) {
+      if (!/^[0-9]{10}$/.test(formData.client_contact)) {
+        newErrors.client_contact = "Contact number must be 10 digits";
+      }
+    }
+
+    if (!editingAd && !formData.image) {
+      newErrors.image = "Image file is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
     const data = new FormData();
     data.append("title", formData.title);
     data.append("client_name", formData.client_name);
@@ -70,11 +120,21 @@ const ManageAdvertisementsPage = () => {
       fetchAds();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save advertisement");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this advertisement?")) {
+    const confirmed = await confirm({
+      variant: "destructive",
+      title: "Delete Advertisement?",
+      description: "Are you sure you want to delete this advertisement? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (confirmed) {
       try {
         await advertisementService.deleteAd(id);
         toast.success("Advertisement deleted");
@@ -94,85 +154,249 @@ const ManageAdvertisementsPage = () => {
       expiry_date: ad.expiry_date ? ad.expiry_date.split("T")[0] : "",
       image: null,
     });
+    setErrors({});
     setIsModalOpen(true);
   };
 
+  const activeAds = ads.filter(ad => !ad.expiry_date || new Date(ad.expiry_date) >= new Date());
+  const expiredAds = ads.filter(ad => ad.expiry_date && new Date(ad.expiry_date) < new Date());
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Manage Advertisements</h1>
-        <Button onClick={() => { setEditingAd(null); setIsModalOpen(true); }} className="bg-red-600 hover:bg-red-700">
-          <Plus className="w-4 h-4 mr-2" /> Add New Ad
-        </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Advertisement Manager</h1>
+            <p className="text-gray-500">Manage promotional banners and client advertisements.</p>
+          </div>
+          <Button onClick={() => { setEditingAd(null); setFormData({ title: "", client_name: "", client_contact: "", expiry_date: "", image: null }); setErrors({}); setIsModalOpen(true); }} className="bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm">
+            <Plus className="w-4 h-4 mr-2" /> Add New Ad
+          </Button>
+        </div>
+
+        {/* Statistics */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gray-100 rounded-lg text-gray-600">
+                  <BarChart3 size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total Ads</p>
+                  <p className="text-2xl font-bold text-gray-900">{ads.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-50 rounded-lg text-green-600">
+                  <CheckCircle size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Active</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeAds.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-gray-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-50 rounded-lg text-red-600">
+                  <Clock size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Expired</p>
+                  <p className="text-2xl font-bold text-gray-900">{expiredAds.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 size={32} className="animate-spin text-red-600" />
+          </div>
+        ) : ads.length > 0 ? (
+          <Card className="overflow-hidden border-gray-200 shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Preview</th>
+                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Ad Details</th>
+                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Client Info</th>
+                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Status & Expiry</th>
+                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
+                  {ads.map((ad) => {
+                    const isExpired = ad.expiry_date && new Date(ad.expiry_date) < new Date();
+                    return (
+                      <tr key={ad.id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="w-20 h-12 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50 flex items-center justify-center">
+                            {ad.image_url ? (
+                              <img 
+                                src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`} 
+                                alt={ad.title} 
+                                className="w-full h-full object-cover" 
+                              />
+                            ) : (
+                              <ImageIcon size={16} className="text-gray-400" />
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-gray-900">{ad.title}</td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-0.5">
+                            <p className="font-semibold text-gray-700">{ad.client_name || "N/A"}</p>
+                            <p className="text-xs text-gray-500">{ad.client_contact || "N/A"}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border w-max ${isExpired ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200"}`}>
+                              {isExpired ? "Expired" : "Active"}
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              {ad.expiry_date ? new Date(ad.expiry_date).toLocaleDateString() : "No Expiry"}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => openEditModal(ad)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all" title="Edit Ad">
+                              <Edit2 size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(ad.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete Ad">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        ) : (
+          <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
+            <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
+              <ImageIcon size={32} className="text-gray-300" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">No advertisements yet</h3>
+            <p className="text-gray-500 mb-6 text-sm">Upload your first ad to show on the public home page.</p>
+            <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold">
+              <Plus size={16} className="mr-2" />
+              Create Advertisement
+            </Button>
+          </div>
+        )}
       </div>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {ads.map((ad) => (
-            <Card key={ad.id} className="overflow-hidden border-zinc-800 bg-zinc-900 text-white">
-              <div className="h-48 overflow-hidden bg-zinc-800">
-                <img 
-                  src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`} 
-                  alt={ad.title} 
-                  className="w-full h-full object-cover" 
-                />
-              </div>
-              <CardContent className="p-4">
-                <h3 className="text-lg font-bold mb-2">{ad.title}</h3>
-                <div className="space-y-1 text-sm text-zinc-400">
-                  <p className="flex items-center"><User className="w-3 h-3 mr-2" /> {ad.client_name || "N/A"}</p>
-                  <p className="flex items-center"><Phone className="w-3 h-3 mr-2" /> {ad.client_contact || "N/A"}</p>
-                  <p className="flex items-center"><Calendar className="w-3 h-3 mr-2" /> Expires: {ad.expiry_date ? new Date(ad.expiry_date).toLocaleDateString() : "Never"}</p>
-                </div>
-                <div className="flex justify-end mt-4 space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => openEditModal(ad)} className="border-zinc-700 hover:bg-zinc-800">
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(ad.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <ConfirmDialog />
 
+      {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-lg bg-zinc-900 text-white border-zinc-800">
-            <CardHeader className="flex flex-row justify-between items-center">
-              <CardTitle>{editingAd ? "Edit Advertisement" : "Add New Advertisement"}</CardTitle>
-              <button onClick={() => setIsModalOpen(false)}><X className="w-5 h-5" /></button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg shadow-2xl border-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 pb-4 bg-white/50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${editingAd ? "bg-gray-50 text-gray-700" : "bg-red-50 text-red-600"}`}>
+                    {editingAd ? <Edit2 size={20} /> : <Plus size={20} />}
+                  </div>
+                  {editingAd ? "Edit Advertisement" : "Create Advertisement"}
+                </CardTitle>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
+                  <X size={20} />
+                </button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input id="title" name="title" value={formData.title} onChange={handleInputChange} required className="bg-zinc-800 border-zinc-700" />
+                  <Label htmlFor="title" className="text-sm font-medium text-gray-700">Display Title <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="title" 
+                    name="title" 
+                    value={formData.title} 
+                    onChange={handleInputChange} 
+                    placeholder="e.g., Summer Special Wash Offer" 
+                    className={`h-11 border-gray-300 focus:ring-red-600 ${errors.title ? "border-red-500" : ""}`} 
+                  />
+                  {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="client_name">Client Name</Label>
-                    <Input id="client_name" name="client_name" value={formData.client_name} onChange={handleInputChange} className="bg-zinc-800 border-zinc-700" />
+                    <Label htmlFor="client_name" className="text-sm font-medium text-gray-700">Client Name <span className="text-red-500">*</span></Label>
+                    <Input 
+                      id="client_name" 
+                      name="client_name" 
+                      value={formData.client_name} 
+                      onChange={handleInputChange} 
+                      placeholder="Agency or Person" 
+                      className={`h-11 border-gray-300 ${errors.client_name ? "border-red-500" : ""}`} 
+                    />
+                    {errors.client_name && <p className="text-xs text-red-500 mt-1">{errors.client_name}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="client_contact">Contact Number</Label>
-                    <Input id="client_contact" name="client_contact" value={formData.client_contact} onChange={handleInputChange} className="bg-zinc-800 border-zinc-700" />
+                    <Label htmlFor="client_contact" className="text-sm font-medium text-gray-700">Contact Number</Label>
+                    <Input 
+                      id="client_contact" 
+                      name="client_contact" 
+                      value={formData.client_contact} 
+                      onChange={handleInputChange} 
+                      placeholder="10 Digits" 
+                      className={`h-11 border-gray-300 ${errors.client_contact ? "border-red-500" : ""}`} 
+                    />
+                    {errors.client_contact && <p className="text-xs text-red-500 mt-1">{errors.client_contact}</p>}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expiry_date">Expiry Date</Label>
-                  <Input id="expiry_date" name="expiry_date" type="date" value={formData.expiry_date} onChange={handleInputChange} className="bg-zinc-800 border-zinc-700" />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expiry_date" className="text-sm font-medium text-gray-700">Expiry Date</Label>
+                    <div className="relative">
+                      <Input 
+                        id="expiry_date" 
+                        name="expiry_date" 
+                        type="date" 
+                        min={today}
+                        value={formData.expiry_date} 
+                        onChange={handleInputChange} 
+                        className="h-11 border-gray-300 focus:ring-red-600 pl-10" 
+                      />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="image" className="text-sm font-medium text-gray-700">Ad Banner <span className="text-red-500">{!editingAd && "*"}</span></Label>
+                    <Input 
+                      id="image" 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleFileChange} 
+                      className={`h-11 border-gray-300 pt-1.5 ${errors.image ? "border-red-500" : ""}`} 
+                    />
+                    {errors.image && <p className="text-xs text-red-500 mt-1">{errors.image}</p>}
+                    {editingAd && !formData.image && <p className="text-[10px] text-gray-500">Leave blank to keep current image</p>}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image">Image File</Label>
-                  <Input id="image" type="file" onChange={handleFileChange} required={!editingAd} className="bg-zinc-800 border-zinc-700" />
-                </div>
-                <div className="pt-4">
-                  <Button type="submit" className="w-full bg-red-600 hover:bg-red-700"> {editingAd ? "Update Ad" : "Save Ad"} </Button>
+
+                <div className="pt-4 flex gap-3">
+                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1 h-11">Cancel</Button>
+                  <Button type="submit" disabled={isSubmitting} className="flex-[2] h-11 bg-red-600 hover:bg-red-700 font-bold">
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingAd ? "Update Advertisement" : "Create Advertisement")}
+                  </Button>
                 </div>
               </form>
             </CardContent>
