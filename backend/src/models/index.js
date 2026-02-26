@@ -19,6 +19,7 @@ import createPasswordResetTokenTable from "./passwordResetToken.model.js";
 import createSysSettingsTable from "./sysSettings.model.js";
 import createBookingExtrasTable from "./bookingExtras.model.js";
 import createSystemHolidayTable from "./systemHoliday.model.js";
+import createAdvertisementTable from "./advertisement.model.js";
 
 const initModels = async (pool) => {
   try {
@@ -46,6 +47,7 @@ const initModels = async (pool) => {
     await createSysSettingsTable(pool);
     await createBookingExtrasTable(pool);
     await createSystemHolidayTable(pool);
+    await createAdvertisementTable(pool);
 
     console.log("✓ All database tables created successfully");
   } catch (error) {

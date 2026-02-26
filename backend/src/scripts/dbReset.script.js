@@ -35,6 +35,7 @@ export async function resetDatabase(client = pool) {
       DROP TABLE IF EXISTS sys_settings CASCADE;
       DROP TABLE IF EXISTS employee CASCADE;
       DROP TABLE IF EXISTS role CASCADE;
+      DROP TABLE IF EXISTS advertisement CASCADE;
       DROP TABLE IF EXISTS customer CASCADE;
     `);
 
