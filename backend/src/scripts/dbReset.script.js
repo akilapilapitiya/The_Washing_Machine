@@ -19,12 +19,16 @@ export async function resetDatabase(client = pool) {
       DROP TABLE IF EXISTS payment CASCADE;
       DROP TABLE IF EXISTS schedule CASCADE;
       DROP TABLE IF EXISTS feedback CASCADE;
+      DROP TABLE IF EXISTS incident CASCADE;
+      DROP TABLE IF EXISTS notification CASCADE;
       DROP TABLE IF EXISTS employeeassigned CASCADE;
       DROP TABLE IF EXISTS employeeleave CASCADE;
       DROP TABLE IF EXISTS employeepreference CASCADE;
       DROP TABLE IF EXISTS booking CASCADE;
       DROP TABLE IF EXISTS vehicle CASCADE;
+      DROP TABLE IF EXISTS vehicle_catalog CASCADE;
       DROP TABLE IF EXISTS service CASCADE;
+      DROP TABLE IF EXISTS passwordresettoken CASCADE;
       DROP TABLE IF EXISTS employee CASCADE;
       DROP TABLE IF EXISTS role CASCADE;
       DROP TABLE IF EXISTS customer CASCADE;

@@ -12,6 +12,8 @@ const createEmployeeTable = async (pool) => {
   empnic VARCHAR(12) UNIQUE NOT NULL
     CHECK (empnic ~ '^[0-9]{9}[Vv]$|^[0-9]{12}$'),
   password_hash VARCHAR(255) NOT NULL,
+  telegram_chat_id VARCHAR(100),
+  telegram_connected_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
