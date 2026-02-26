@@ -361,7 +361,7 @@ export const createBookingService = async ({
 
     // 3. Validate vehicle
     const vehicleCheck = await client.query(
-      "SELECT id, cusid FROM vehicle WHERE id = $1",
+      "SELECT id, cusid, vehbrand, vehmodel, vehplate FROM vehicle WHERE id = $1",
       [vehicleId],
     );
     if (vehicleCheck.rowCount === 0)
@@ -369,6 +369,14 @@ export const createBookingService = async ({
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
       throw new ForbiddenError("You can only book with your own vehicles");
     }
+    const vehicleDetails = vehicleCheck.rows[0];
+
+    // Fetch Customer Details for Notification
+    const customerRes = await client.query(
+      "SELECT first_name, last_name, custel FROM customer WHERE cusid = $1",
+      [customerId],
+    );
+    const customerDetails = customerRes.rows[0];
 
     // 4. Assign Employee
     let assignedEmpId = employeeId;
@@ -395,7 +403,7 @@ export const createBookingService = async ({
         endTime,
         bufferMinutes,
       ]);
-      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to sys account
+      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to system account
     }
 
     // 5. Insert booking
@@ -470,11 +478,31 @@ export const createBookingService = async ({
 
     // Employee Notification (if assigned and not 'any')
     if (assignedEmpId && assignedEmpId !== 1) {
+      const serviceNames = servicesCheck.rows
+        .map((s) => s.servicename)
+        .join(", ");
+      const vehInfo = `${vehicleDetails.vehbrand} ${vehicleDetails.vehmodel} (${vehicleDetails.vehplate})`;
+      const locationInfo =
+        locationType === "home"
+          ? `[Google Maps](https://www.google.com/maps?q=${locationLatitude},${locationLongitude})`
+          : "Branch Visit";
+      const customerName = `${customerDetails.first_name} ${customerDetails.last_name}`;
+
+      const msg = [
+        `*Customer:* ${customerName}`,
+        `*Vehicle:* ${vehInfo}`,
+        `*Service:* ${serviceNames}`,
+        `*Date:* ${date}`,
+        `*Time:* ${startTime}`,
+        `*Location:* ${locationInfo}`,
+        `*Contact:* ${customerDetails.custel}`,
+      ].join("\n");
+
       await createNotificationService({
         recipientId: assignedEmpId,
         recipientRole: "employee",
         title: "New Job Assigned",
-        message: `You have been assigned a new booking (ID: ${bookingId}) on ${date} at ${startTime}.`,
+        message: msg,
         type: "info",
         bookingId: bookingId,
       });
@@ -519,7 +547,8 @@ export const updateBookingService = async (
     await client.query("BEGIN");
 
     const currentRes = await client.query(
-      `SELECT b.*, v.cusid, ea.empid as current_empid FROM booking b
+      `SELECT b.*, v.cusid, v.vehbrand, v.vehmodel, v.vehplate, ea.empid as current_empid 
+       FROM booking b
        JOIN vehicle v ON b.vehid = v.id
        LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
        WHERE b.bookingid = $1`,
@@ -532,6 +561,13 @@ export const updateBookingService = async (
     if (userRole === "customer" && current.cusid !== userId) {
       throw new ForbiddenError("Unauthorized update");
     }
+
+    // Fetch Customer Details
+    const customerRes = await client.query(
+      "SELECT first_name, last_name, custel FROM customer WHERE cusid = $1",
+      [current.cusid],
+    );
+    const customerDetails = customerRes.rows[0];
 
     const { status = null, date, startTime, services, employeeId } = updates;
 
@@ -585,6 +621,9 @@ export const updateBookingService = async (
       if (check.rowCount === 0) throw new NotFoundError("Employee not found");
 
       const empName = check.rows[0].empname;
+      console.log(
+        `[DEBUG] Reassigning Booking ${bookingId} from ${current.current_empid} to ${employeeId}`,
+      );
       finalEmpId = employeeId;
 
       await client.query("DELETE FROM employeeassigned WHERE bookingid = $1", [
@@ -595,12 +634,79 @@ export const updateBookingService = async (
         [bookingId, employeeId],
       );
 
-      // Reassignment Notification
-      const notification = await createNotificationService({
+      // Reassignment Notification to Customer
+      await createNotificationService({
         recipientId: current.cusid,
         recipientRole: "customer",
         title: "Employee Reassigned",
         message: `Your booking (ID: ${bookingId}) has been reassigned to ${empName}.`,
+        type: "info",
+        bookingId: bookingId,
+      });
+
+      // Notification to Previous Employee (if exists and not system account)
+      if (current.current_empid && current.current_empid !== 1) {
+        console.log(
+          `[DEBUG] Sending Job Removed Notification to Previous EmpID: ${current.current_empid}`,
+        );
+        const prevMsg = [
+          `*Customer:* ${customerDetails.first_name} ${customerDetails.last_name}`,
+          `*Vehicle:* ${current.vehbrand} ${current.vehmodel} (${current.vehplate})`,
+          `*Date:* ${current.bookingdate}`,
+          `*Time:* ${current.bookingstarttime}`,
+        ].join("\n");
+
+        await createNotificationService({
+          recipientId: current.current_empid,
+          recipientRole: "employee",
+          title: "Job Reassigned (Removed)",
+          message: prevMsg,
+          type: "warning",
+          bookingId: bookingId,
+        });
+      }
+
+      // Reassignment Notification to New Employee
+      // Resolve services to get names
+      let currentServices = services;
+      if (!currentServices) {
+        const srvRes = await client.query(
+          "SELECT serviceid FROM servicesbooked WHERE bookingid = $1",
+          [bookingId],
+        );
+        currentServices = srvRes.rows.map((s) => s.serviceid);
+      }
+
+      const srvCheck = await client.query(
+        "SELECT servicename FROM service WHERE serviceid = ANY($1)",
+        [currentServices],
+      );
+      const serviceNames = srvCheck.rows.map((s) => s.servicename).join(", ");
+
+      const locationInfo =
+        current.bookinglocationlatitude && current.bookinglocationlongitude
+          ? `[Google Maps](https://www.google.com/maps?q=${current.bookinglocationlatitude},${current.bookinglocationlongitude})`
+          : "Branch Visit";
+
+      const vehInfo = `${current.vehbrand} ${current.vehmodel} (${current.vehplate})`;
+      const customerName = `${customerDetails.first_name} ${customerDetails.last_name}`;
+
+      const msg = [
+        `*Customer:* ${customerName}`,
+        `*Vehicle:* ${vehInfo}`,
+        `*Date:* ${newDate}`,
+        `*Time:* ${newStartTime}`,
+      ].join("\n");
+
+      console.log(
+        `[DEBUG] Sending Reassignment Notification to EmpID: ${finalEmpId}`,
+      );
+
+      await createNotificationService({
+        recipientId: finalEmpId,
+        recipientRole: "employee",
+        title: "New Job Assigned",
+        message: msg,
         type: "info",
         bookingId: bookingId,
       });

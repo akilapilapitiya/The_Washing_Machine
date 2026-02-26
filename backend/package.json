@@ -12,7 +12,9 @@
     "db:seed-owner": "node src/scripts/addOwner.js",
     "db:seed": "node scripts/seed/index.js",
     "test": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
-    "test:watch": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch"
+    "test:watch": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "axios": "^1.13.4",
@@ -31,6 +33,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "~1.9.1",
     "multer": "^2.0.2",
+    "node-telegram-bot-api": "^0.67.0",
     "nodemailer": "^7.0.12",
     "pg": "^8.16.3",
     "socket.io": "^4.8.3",

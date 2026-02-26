@@ -15,21 +15,24 @@ export async function resetDatabase(client = pool) {
     // Drop all tables in reverse order of dependencies
     console.log("[RESET] Dropping existing tables...");
     await conn.query(`
-      DROP TABLE IF EXISTS passwordresettoken CASCADE;
-      DROP TABLE IF EXISTS notification CASCADE;
-      DROP TABLE IF EXISTS incident CASCADE;
-      DROP TABLE IF EXISTS employee_dependent CASCADE;
       DROP TABLE IF EXISTS servicesbooked CASCADE;
       DROP TABLE IF EXISTS payment CASCADE;
       DROP TABLE IF EXISTS schedule CASCADE;
       DROP TABLE IF EXISTS feedback CASCADE;
+      DROP TABLE IF EXISTS incident CASCADE;
+      DROP TABLE IF EXISTS notification CASCADE;
+      DROP TABLE IF EXISTS booking_extras CASCADE;
+      DROP TABLE IF EXISTS system_holidays CASCADE;
       DROP TABLE IF EXISTS employeeassigned CASCADE;
       DROP TABLE IF EXISTS employeeleave CASCADE;
       DROP TABLE IF EXISTS employeepreference CASCADE;
+      DROP TABLE IF EXISTS employee_dependent CASCADE;
       DROP TABLE IF EXISTS booking CASCADE;
       DROP TABLE IF EXISTS vehicle CASCADE;
-      DROP TABLE IF EXISTS vehiclecatalog CASCADE;
+      DROP TABLE IF EXISTS vehicle_catalog CASCADE;
       DROP TABLE IF EXISTS service CASCADE;
+      DROP TABLE IF EXISTS passwordresettoken CASCADE;
+      DROP TABLE IF EXISTS sys_settings CASCADE;
       DROP TABLE IF EXISTS employee CASCADE;
       DROP TABLE IF EXISTS role CASCADE;
       DROP TABLE IF EXISTS customer CASCADE;

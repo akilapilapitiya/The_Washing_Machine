@@ -20,6 +20,8 @@ const createEmployeeTable = async (pool) => {
       speciality VARCHAR(100),
       profile_picture_url TEXT,
       password_hash VARCHAR(255) NOT NULL,
+      telegram_chat_id VARCHAR(50) UNIQUE,
+      telegram_connected_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -48,6 +50,10 @@ const createEmployeeTable = async (pool) => {
           END,
           name_with_initials = empname;
       END IF;
+
+      -- Add Telegram columns independently
+      ALTER TABLE employee ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(50) UNIQUE;
+      ALTER TABLE employee ADD COLUMN IF NOT EXISTS telegram_connected_at TIMESTAMP;
 
       -- Remove NOT NULL constraints after split if needed (already set in table creation but added for migration)
       ALTER TABLE employee ALTER COLUMN first_name SET NOT NULL;

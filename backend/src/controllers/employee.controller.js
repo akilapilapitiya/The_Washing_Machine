@@ -104,3 +104,29 @@ export const getRoles = async (req, res, next) => {
     next(error);
   }
 };
+
+import { generateLinkingCode } from "../modules/chat/telegram.service.js";
+
+export const generateTelegramLink = async (req, res, next) => {
+  try {
+    // confirm user is employee
+    if (
+      req.user.role !== "employee" &&
+      req.user.role !== "manager" &&
+      req.user.role !== "owner" &&
+      req.user.role !== "cashier"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Only employees can link Telegram." });
+    }
+
+    const code = await generateLinkingCode(req.user.id);
+    successResponse(res, 200, "Linking code generated", {
+      code,
+      botName: process.env.TELEGRAM_BOT_NAME || "TheWashingMachineBot",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

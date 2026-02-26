@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  # Database Service (Matches your local config)
+  db:
+    image: postgres:15-alpine
+    container_name: washing_machine_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      POSTGRES_DB: ${DB_NAME:-the-washing-machine}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wm-network
+    restart: unless-stopped
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: washing_machine_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - wm-network
+    restart: unless-stopped
+
+networks:
+  wm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
