@@ -1,6 +1,6 @@
 import express from "express";
 import * as adController from "../controllers/advertisement.controller.js";
-import { authenticate, authorize } from "../middleware/auth.middleware.js";
+import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { uploadAdvertisementImage } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
@@ -9,8 +9,8 @@ const router = express.Router();
 router.get("/", adController.getAdvertisements);
 
 // Admin routes
-router.use(authenticate);
-router.use(authorize("owner"));
+router.use(authMiddleware);
+router.use(restrictTo("owner"));
 
 router.get("/admin", adController.getAdminAdvertisements);
 router.post("/", uploadAdvertisementImage.single("image"), adController.createAdvertisement);
