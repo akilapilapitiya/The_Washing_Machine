@@ -41,6 +41,7 @@ import DailyIncomeReportPage from "./features/admin/DailyIncomeReportPage";
 import EmployeePerformanceReportPage from "./features/admin/EmployeePerformanceReportPage";
 import BookingReviewPage from "./features/admin/BookingReviewPage";
 import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
+import ManageAdvertisementsPage from "./features/admin/ManageAdvertisementsPage";
 import ProfilePage from "./features/dashboard/ProfilePage";
 import BannedPage from "./pages/BannedPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -301,6 +302,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ManageIncidentsPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/advertisements"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <ManageAdvertisementsPage />
                 </EmployeeProtectedRoute>
               }
             />

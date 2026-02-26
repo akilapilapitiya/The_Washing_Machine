@@ -13,6 +13,7 @@ import {
   Wrench,
   Settings,
   Database,
+  Image,
   LogOut,
   Umbrella,
   ShieldAlert,
@@ -209,6 +210,13 @@ const Sidebar = () => {
           icon={ShieldAlert}
           label="Incidents"
           active={location.pathname === "/dashboard/admin/incidents"}
+          nested
+        />
+        <SidebarItem
+          to="/dashboard/admin/advertisements"
+          icon={Image}
+          label="Advertisements"
+          active={location.pathname === "/dashboard/admin/advertisements"}
           nested
         />
         <SidebarItem
