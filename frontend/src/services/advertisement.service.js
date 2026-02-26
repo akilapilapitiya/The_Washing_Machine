@@ -1,43 +1,35 @@
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_BASE_URL + "/advertisement";
+import api from "@/lib/api";
 
 const getAds = async () => {
-    const response = await axios.get(API_URL);
+    const response = await api.get("/advertisement");
     return response.data;
 };
 
-const getAdminAds = async (token) => {
-    const response = await axios.get(`${API_URL}/admin`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+const getAdminAds = async () => {
+    const response = await api.get("/advertisement/admin");
     return response.data;
 };
 
-const createAd = async (adData, token) => {
-    const response = await axios.post(API_URL, adData, {
+const createAd = async (adData) => {
+    const response = await api.post("/advertisement", adData, {
         headers: { 
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data"
         }
     });
     return response.data;
 };
 
-const updateAd = async (id, adData, token) => {
-    const response = await axios.put(`${API_URL}/${id}`, adData, {
+const updateAd = async (id, adData) => {
+    const response = await api.put(`/advertisement/${id}`, adData, {
         headers: { 
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data"
         }
     });
     return response.data;
 };
 
-const deleteAd = async (id, token) => {
-    const response = await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+const deleteAd = async (id) => {
+    const response = await api.delete(`/advertisement/${id}`);
     return response.data;
 };
 

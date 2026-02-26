@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import advertisementService from "../../services/advertisement.service";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ const ManageAdvertisementsPage = () => {
 
   const fetchAds = async () => {
     try {
-      const response = await advertisementService.getAdminAds(user.token);
+      const response = await advertisementService.getAdminAds();
       setAds(response.data);
     } catch (error) {
       toast.error("Failed to fetch advertisements");
@@ -58,10 +58,10 @@ const ManageAdvertisementsPage = () => {
 
     try {
       if (editingAd) {
-        await advertisementService.updateAd(editingAd.id, data, user.token);
+        await advertisementService.updateAd(editingAd.id, data);
         toast.success("Advertisement updated successfully");
       } else {
-        await advertisementService.createAd(data, user.token);
+        await advertisementService.createAd(data);
         toast.success("Advertisement created successfully");
       }
       setIsModalOpen(false);
@@ -76,7 +76,7 @@ const ManageAdvertisementsPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this advertisement?")) {
       try {
-        await advertisementService.deleteAd(id, user.token);
+        await advertisementService.deleteAd(id);
         toast.success("Advertisement deleted");
         fetchAds();
       } catch (error) {
