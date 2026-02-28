@@ -32,6 +32,7 @@ import dependentRouter from "./src/routes/dependent.route.js";
 import settingsRouter from "./src/routes/settings.route.js";
 import chargesRouter from "./src/routes/charges.route.js";
 import holidayRouter from "./src/routes/systemHoliday.routes.js";
+import advertisementRouter from "./src/routes/advertisement.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -65,6 +66,7 @@ const createApp = () => {
   app.use("/api", testRouter);
   app.use("/api/authemployee", authLimiter, employeeAuthRouter);
   app.use("/api/authcustomer", authLimiter, customerAuthRouter);
+  app.use("/api/advertisement", advertisementRouter);
   app.use("/api/booking", bookingRouter);
   app.use("/api/vehicle", vehicleRouter);
   app.use("/api/service", serviceRouter);

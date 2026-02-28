@@ -24,3 +24,10 @@ debug.log
 migrate_*.py
 migrate_*.sh
 fix_*.sh
+
+# Environment variables
+.env
+.env.development
+.env.production
+.env.local
+.env.test

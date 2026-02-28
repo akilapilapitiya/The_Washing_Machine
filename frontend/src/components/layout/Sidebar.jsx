@@ -13,6 +13,7 @@ import {
   Wrench,
   Settings,
   Database,
+  Image,
   LogOut,
   Umbrella,
   ShieldAlert,
@@ -71,7 +72,7 @@ const SidebarGroup = ({ title, icon: Icon, children, defaultOpen = false }) => {
 
 const Sidebar = () => {
   const location = useLocation();
-  const { user, isCustomer, isEmployee, emptype, logout } = useAuth();
+  const { user, isCustomer, isEmployee, emptype, isOwner, logout } = useAuth();
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const handleLogout = async () => {
@@ -99,8 +100,6 @@ const Sidebar = () => {
     { to: "/dashboard/feedback", icon: MessageSquare, label: "Feedback" },
   ];
 
-  // Owner gets grouped navigation
-  const isOwner = emptype === "owner";
 
   // Non-owner employee links (cashier, employee)
   const employeeLinks = [
@@ -209,6 +208,13 @@ const Sidebar = () => {
           icon={ShieldAlert}
           label="Incidents"
           active={location.pathname === "/dashboard/admin/incidents"}
+          nested
+        />
+        <SidebarItem
+          to="/dashboard/admin/advertisements"
+          icon={Image}
+          label="Advertisements"
+          active={location.pathname === "/dashboard/admin/advertisements"}
           nested
         />
         <SidebarItem
