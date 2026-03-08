@@ -9,6 +9,8 @@ import {
   Briefcase,
 } from "lucide-react";
 import { getAllFeedbacks } from "@/services/feedback.service";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 import { toast } from "sonner";
 const ViewFeedbackPage = () => {
@@ -50,29 +52,17 @@ const ViewFeedbackPage = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Quality Assurance",
+    "Customer Feedback",
+    "Monitor customer satisfaction and review employee performance.",
+  );
+
+  if (loading) return <PageLoader message="Loading feedback..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Quality Assurance
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Customer Feedback
-          </h1>
-          <p className="text-gray-500">
-            Monitor customer satisfaction and review employee performance.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
         {feedbacks.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {feedbacks.map((item) => (

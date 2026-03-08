@@ -15,6 +15,8 @@ import {
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { useAuth } from "@/contexts/AuthContext";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 import { toast } from "sonner";
 const StatusBadge = ({ status }) => {
@@ -170,117 +172,107 @@ const AllBookingsPage = () => {
     (s) => s.bookingstatus === "completed" || s.bookingstatus === "paid",
   );
 
+  useSetPageHeader(
+    isOwner || isCashier ? "Service Operations" : "Employee Portal",
+    isOwner || isCashier ? "Service Queue" : "My Assignments",
+    isOwner || isCashier
+      ? "Manage all bookings, view status, and assign tasks."
+      : "View your upcoming and active service tasks."
+  );
+
+  if (loading) return <PageLoader message="Loading bookings..." />;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            {isOwner || isCashier ? "Service Bookings" : "My Assignments"}
-          </h1>
-          <p className="text-gray-500">
-            {isOwner || isCashier
-              ? "Manage all bookings, view status, and assign tasks."
-              : "View your upcoming and active service tasks."}
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Loader2 size={32} className="animate-spin text-red-600" />
-            <p className="text-sm font-medium text-gray-500">
-              Loading bookings...
-            </p>
-          </div>
-        ) : (
-          <Tabs defaultValue="upcoming" className="space-y-8">
-            <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
-              <TabsTrigger
-                value="upcoming"
-                className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-              >
-                Upcoming ({pendingServices.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="in-progress"
-                className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-              >
-                Active ({inProgressServices.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="completed"
-                className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-              >
-                Completed ({completedServices.length})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+        <Tabs defaultValue="upcoming" className="space-y-8">
+          <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
+            <TabsTrigger
               value="upcoming"
-              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
             >
-              {pendingServices.length > 0 ? (
-                pendingServices.map((service) => (
-                  <ServiceCard key={service.bookingid} service={service} />
-                ))
-              ) : (
-                <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                  <Calendar size={32} className="mx-auto text-gray-300 mb-2" />
-                  <h3 className="font-semibold text-gray-900">
-                    No upcoming bookings
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    Checks back later for new assignments.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent
+              Upcoming ({pendingServices.length})
+            </TabsTrigger>
+            <TabsTrigger
               value="in-progress"
-              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
             >
-              {inProgressServices.length > 0 ? (
-                inProgressServices.map((service) => (
-                  <ServiceCard key={service.bookingid} service={service} />
-                ))
-              ) : (
-                <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                  <Wrench size={32} className="mx-auto text-gray-300 mb-2" />
-                  <h3 className="font-semibold text-gray-900">
-                    No active jobs
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    There are no services currently in progress.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent
+              Active ({inProgressServices.length})
+            </TabsTrigger>
+            <TabsTrigger
               value="completed"
-              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
             >
-              {completedServices.length > 0 ? (
-                completedServices.map((service) => (
-                  <ServiceCard key={service.bookingid} service={service} />
-                ))
-              ) : (
-                <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                  <CheckCircle
-                    size={32}
-                    className="mx-auto text-gray-300 mb-2"
-                  />
-                  <h3 className="font-semibold text-gray-900">
-                    No completed services
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    Completed service records will appear here.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        )}
+              Completed ({completedServices.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent
+            value="upcoming"
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {pendingServices.length > 0 ? (
+              pendingServices.map((service) => (
+                <ServiceCard key={service.bookingid} service={service} />
+              ))
+            ) : (
+              <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
+                <Calendar size={32} className="mx-auto text-gray-300 mb-2" />
+                <h3 className="font-semibold text-gray-900">
+                  No upcoming bookings
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  Checks back later for new assignments.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent
+            value="in-progress"
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {inProgressServices.length > 0 ? (
+              inProgressServices.map((service) => (
+                <ServiceCard key={service.bookingid} service={service} />
+              ))
+            ) : (
+              <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
+                <Wrench size={32} className="mx-auto text-gray-300 mb-2" />
+                <h3 className="font-semibold text-gray-900">
+                  No active jobs
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  There are no services currently in progress.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent
+            value="completed"
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {completedServices.length > 0 ? (
+              completedServices.map((service) => (
+                <ServiceCard key={service.bookingid} service={service} />
+              ))
+            ) : (
+              <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
+                <CheckCircle
+                  size={32}
+                  className="mx-auto text-gray-300 mb-2"
+                />
+                <h3 className="font-semibold text-gray-900">
+                  No completed services
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  Completed service records will appear here.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

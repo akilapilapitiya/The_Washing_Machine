@@ -15,6 +15,8 @@ import { getBookings, updateBooking } from "@/services/booking.service";
 import { getAvailableEmployees } from "@/services/employee.service";
 import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const ReassignModal = ({ booking, onClose, onConfirm }) => {
   const [availableEmployees, setAvailableEmployees] = useState([]);
@@ -172,105 +174,98 @@ const BookingReviewPage = () => {
     }
   };
 
+  useSetPageHeader(
+    "Booking Administration",
+    "Booking Review",
+    "Manage assignments and review customer preferences.",
+    <Button
+      onClick={fetchBookings}
+      variant="outline"
+      size="sm"
+      className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm"
+    >
+      <RefreshCw size={16} /> Refresh
+    </Button>
+  );
+
+  if (loading) return <PageLoader message="Loading bookings..." />;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Booking Review</h1>
-            <p className="text-gray-500">
-              Manage assignments and review customer preferences.
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+        <div className="grid gap-4">
+          {bookings.map((booking) => (
+            <Card
+              key={booking.bookingid}
+              className="hover:shadow-md transition-shadow"
+            >
+              <CardContent className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-lg">
+                      BK-{String(booking.bookingid).padStart(4, "0")}
+                    </span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border ${booking.bookingstatus === "pending"
+                        ? "bg-amber-50 text-amber-700 border-amber-100"
+                        : "bg-blue-50 text-blue-700 border-blue-100"
+                        }`}
+                    >
+                      {booking.bookingstatus}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                    <Calendar size={14} />
+                    {new Date(
+                      booking.bookingdate,
+                    ).toLocaleDateString()} • {booking.bookingstarttime} -{" "}
+                    {booking.bookingendtime}
+                  </p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {booking.vehbrand} {booking.vehmodel}{" "}
+                    <span className="text-gray-400">|</span> {booking.cusname}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-6 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
+                  <div className="text-center">
+                    <p className="text-[10px] text-gray-400 uppercase font-bold">
+                      Preference
+                    </p>
+                    <p
+                      className={`text-sm font-semibold ${booking.preferred_empname ? "text-gray-900" : "text-gray-400 italic"}`}
+                    >
+                      {booking.preferred_empname || "Any"}
+                    </p>
+                  </div>
+                  <div className="w-px h-8 bg-gray-200"></div>
+                  <div className="text-center">
+                    <p className="text-[10px] text-gray-400 uppercase font-bold">
+                      Assigned
+                    </p>
+                    <p className="text-sm font-semibold text-blue-700">
+                      {booking.assigned_empname || "Unassigned"}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => openReassign(booking)}
+                  variant="outline"
+                  className="border-gray-300 hover:border-gray-400"
+                >
+                  <Briefcase size={16} className="mr-2" />
+                  Reassign
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+          {bookings.length === 0 && (
+            <p className="text-center text-gray-500 py-10">
+              No active bookings to review.
             </p>
-          </div>
-          <Button
-            onClick={fetchBookings}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <RefreshCw size={14} /> Refresh
-          </Button>
+          )}
         </div>
-
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-gray-400" />
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {bookings.map((booking) => (
-              <Card
-                key={booking.bookingid}
-                className="hover:shadow-md transition-shadow"
-              >
-                <CardContent className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-lg">
-                        BK-{String(booking.bookingid).padStart(4, "0")}
-                      </span>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border ${booking.bookingstatus === "pending"
-                            ? "bg-amber-50 text-amber-700 border-amber-100"
-                            : "bg-blue-50 text-blue-700 border-blue-100"
-                          }`}
-                      >
-                        {booking.bookingstatus}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 flex items-center gap-2">
-                      <Calendar size={14} />
-                      {new Date(
-                        booking.bookingdate,
-                      ).toLocaleDateString()} • {booking.bookingstarttime} -{" "}
-                      {booking.bookingendtime}
-                    </p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {booking.vehbrand} {booking.vehmodel}{" "}
-                      <span className="text-gray-400">|</span> {booking.cusname}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-6 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
-                    <div className="text-center">
-                      <p className="text-[10px] text-gray-400 uppercase font-bold">
-                        Preference
-                      </p>
-                      <p
-                        className={`text-sm font-semibold ${booking.preferred_empname ? "text-gray-900" : "text-gray-400 italic"}`}
-                      >
-                        {booking.preferred_empname || "Any"}
-                      </p>
-                    </div>
-                    <div className="w-px h-8 bg-gray-200"></div>
-                    <div className="text-center">
-                      <p className="text-[10px] text-gray-400 uppercase font-bold">
-                        Assigned
-                      </p>
-                      <p className="text-sm font-semibold text-blue-700">
-                        {booking.assigned_empname || "Unassigned"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={() => openReassign(booking)}
-                    variant="outline"
-                    className="border-gray-300 hover:border-gray-400"
-                  >
-                    <Briefcase size={16} className="mr-2" />
-                    Reassign
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-            {bookings.length === 0 && (
-              <p className="text-center text-gray-500 py-10">
-                No active bookings to review.
-              </p>
-            )}
-          </div>
-        )}
 
         {showReassignModal && selectedBooking && (
           <ReassignModal

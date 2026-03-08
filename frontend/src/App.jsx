@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { Toaster } from "sonner";
+import ScrollToTop from "@/components/common/ScrollToTop";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
@@ -54,6 +55,7 @@ const App = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
+        <ScrollToTop />
         <Toaster position="top-right" richColors expand={true} />
         <Routes>
           {/* Public Routes with Navbar - MainLayout */}

@@ -5,22 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  X, 
-  Calendar, 
-  User, 
-  Phone, 
-  Loader2, 
-  BarChart3, 
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  X,
+  Calendar,
+  User,
+  Phone,
+  Loader2,
+  BarChart3,
   Image as ImageIcon,
   CheckCircle,
   Clock
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const ManageAdvertisementsPage = () => {
   const { user } = useAuth();
@@ -79,7 +81,7 @@ const ManageAdvertisementsPage = () => {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.client_name.trim()) newErrors.client_name = "Client name is required";
-    
+
     if (formData.client_contact) {
       if (!/^[0-9]{10}$/.test(formData.client_contact)) {
         newErrors.client_contact = "Contact number must be 10 digits";
@@ -170,19 +172,28 @@ const ManageAdvertisementsPage = () => {
     return diffInDays >= 0 && diffInDays <= 3;
   });
 
+  useSetPageHeader(
+    "Content Management",
+    "Advertisement Manager",
+    "Manage promotional banners and client advertisements.",
+    <Button
+      onClick={() => {
+        setEditingAd(null);
+        setFormData({ title: "", client_name: "", client_contact: "", expiry_date: "", image: null });
+        setErrors({});
+        setIsModalOpen(true);
+      }}
+      className="bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
+    >
+      <Plus className="w-4 h-4 mr-2" /> Add New Ad
+    </Button>
+  );
+
+  if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Advertisement Manager</h1>
-            <p className="text-gray-500">Manage promotional banners and client advertisements.</p>
-          </div>
-          <Button onClick={() => { setEditingAd(null); setFormData({ title: "", client_name: "", client_contact: "", expiry_date: "", image: null }); setErrors({}); setIsModalOpen(true); }} className="bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm">
-            <Plus className="w-4 h-4 mr-2" /> Add New Ad
-          </Button>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
         {/* Expiring Soon Alert */}
         {expiringSoonAds.length > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
@@ -201,10 +212,10 @@ const ManageAdvertisementsPage = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded bg-gray-50 overflow-hidden border border-gray-100">
                       {ad.image_url && (
-                        <img 
-                          src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`} 
-                          alt={ad.title} 
-                          className="w-full h-full object-cover" 
+                        <img
+                          src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`}
+                          alt={ad.title}
+                          className="w-full h-full object-cover"
                         />
                       )}
                     </div>
@@ -213,7 +224,7 @@ const ManageAdvertisementsPage = () => {
                       <p className="text-[10px] font-bold text-amber-600 uppercase">Expires: {new Date(ad.expiry_date).toLocaleDateString()}</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => openEditModal(ad)}
                     className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                     title="Renew/Edit"
@@ -269,8 +280,8 @@ const ManageAdvertisementsPage = () => {
           </Card>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
+        {loading && ads.length > 0 ? (
+          <div className="flex items-center justify-center py-12">
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
         ) : ads.length > 0 ? (
@@ -294,10 +305,10 @@ const ManageAdvertisementsPage = () => {
                         <td className="px-6 py-4">
                           <div className="w-20 h-12 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50 flex items-center justify-center">
                             {ad.image_url ? (
-                              <img 
-                                src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`} 
-                                alt={ad.title} 
-                                className="w-full h-full object-cover" 
+                              <img
+                                src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`}
+                                alt={ad.title}
+                                className="w-full h-full object-cover"
                               />
                             ) : (
                               <ImageIcon size={16} className="text-gray-400" />
@@ -376,13 +387,13 @@ const ManageAdvertisementsPage = () => {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="title" className="text-sm font-medium text-gray-700">Display Title <span className="text-red-500">*</span></Label>
-                  <Input 
-                    id="title" 
-                    name="title" 
-                    value={formData.title} 
-                    onChange={handleInputChange} 
-                    placeholder="e.g., Summer Special Wash Offer" 
-                    className={`h-11 border-gray-300 focus:ring-red-600 ${errors.title ? "border-red-500" : ""}`} 
+                  <Input
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Summer Special Wash Offer"
+                    className={`h-11 border-gray-300 focus:ring-red-600 ${errors.title ? "border-red-500" : ""}`}
                   />
                   {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
                 </div>
@@ -390,25 +401,25 @@ const ManageAdvertisementsPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="client_name" className="text-sm font-medium text-gray-700">Client Name <span className="text-red-500">*</span></Label>
-                    <Input 
-                      id="client_name" 
-                      name="client_name" 
-                      value={formData.client_name} 
-                      onChange={handleInputChange} 
-                      placeholder="Agency or Person" 
-                      className={`h-11 border-gray-300 ${errors.client_name ? "border-red-500" : ""}`} 
+                    <Input
+                      id="client_name"
+                      name="client_name"
+                      value={formData.client_name}
+                      onChange={handleInputChange}
+                      placeholder="Agency or Person"
+                      className={`h-11 border-gray-300 ${errors.client_name ? "border-red-500" : ""}`}
                     />
                     {errors.client_name && <p className="text-xs text-red-500 mt-1">{errors.client_name}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="client_contact" className="text-sm font-medium text-gray-700">Contact Number</Label>
-                    <Input 
-                      id="client_contact" 
-                      name="client_contact" 
-                      value={formData.client_contact} 
-                      onChange={handleInputChange} 
-                      placeholder="10 Digits" 
-                      className={`h-11 border-gray-300 ${errors.client_contact ? "border-red-500" : ""}`} 
+                    <Input
+                      id="client_contact"
+                      name="client_contact"
+                      value={formData.client_contact}
+                      onChange={handleInputChange}
+                      placeholder="10 Digits"
+                      className={`h-11 border-gray-300 ${errors.client_contact ? "border-red-500" : ""}`}
                     />
                     {errors.client_contact && <p className="text-xs text-red-500 mt-1">{errors.client_contact}</p>}
                   </div>
@@ -418,26 +429,26 @@ const ManageAdvertisementsPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="expiry_date" className="text-sm font-medium text-gray-700">Expiry Date</Label>
                     <div className="relative">
-                      <Input 
-                        id="expiry_date" 
-                        name="expiry_date" 
-                        type="date" 
+                      <Input
+                        id="expiry_date"
+                        name="expiry_date"
+                        type="date"
                         min={today}
-                        value={formData.expiry_date} 
-                        onChange={handleInputChange} 
-                        className="h-11 border-gray-300 focus:ring-red-600 pl-10" 
+                        value={formData.expiry_date}
+                        onChange={handleInputChange}
+                        className="h-11 border-gray-300 focus:ring-red-600 pl-10"
                       />
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="image" className="text-sm font-medium text-gray-700">Ad Banner <span className="text-red-500">{!editingAd && "*"}</span></Label>
-                    <Input 
-                      id="image" 
-                      type="file" 
+                    <Input
+                      id="image"
+                      type="file"
                       accept="image/*"
-                      onChange={handleFileChange} 
-                      className={`h-11 border-gray-300 pt-1.5 ${errors.image ? "border-red-500" : ""}`} 
+                      onChange={handleFileChange}
+                      className={`h-11 border-gray-300 pt-1.5 ${errors.image ? "border-red-500" : ""}`}
                     />
                     {errors.image && <p className="text-xs text-red-500 mt-1">{errors.image}</p>}
                     {editingAd && !formData.image && <p className="text-[10px] text-gray-500">Leave blank to keep current image</p>}

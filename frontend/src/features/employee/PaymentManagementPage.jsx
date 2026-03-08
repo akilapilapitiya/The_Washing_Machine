@@ -19,6 +19,8 @@ import {
   Edit2,
   ShieldAlert,
 } from "lucide-react";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -402,27 +404,17 @@ const PaymentManagementPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Payment Management",
+    "Review Payments",
+    "Manage and record customer payments for completed services.",
+  );
+
+  if (loading) return <PageLoader message="Loading payment information..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Payment Management
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Record Payments</h1>
-          <p className="text-gray-500">
-            Manage and record customer payments for completed services.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
             <TabsTrigger value="pending" className="font-bold">

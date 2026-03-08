@@ -16,6 +16,8 @@ import {
 import * as holidayService from "@/services/systemHoliday.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const SystemHolidaysPage = () => {
   const [holidays, setHolidays] = useState([]);
@@ -169,34 +171,26 @@ const SystemHolidaysPage = () => {
     });
   };
 
+  useSetPageHeader(
+    "System Settings",
+    "System Holidays",
+    "Manage company-wide holidays and closures. Bookings are automatically blocked on these dates.",
+    <Button
+      onClick={openAddForm}
+      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
+    >
+      <Plus size={18} />
+      Add Holiday
+    </Button>
+  );
+
+  if (loading) return <PageLoader message="Loading holidays..." />;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <ConfirmDialog />
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              System Holidays
-            </h1>
-            <p className="text-gray-500">
-              Manage company-wide holidays and closures. Bookings are
-              automatically blocked on these dates.
-            </p>
-          </div>
-          <Button
-            onClick={openAddForm}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
-          >
-            <Plus size={18} />
-            Add Holiday
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 size={32} className="animate-spin text-red-600" />
-          </div>
-        ) : holidays.length > 0 ? (
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+        {holidays.length > 0 ? (
           <Card className="overflow-hidden border-gray-200 shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -386,11 +380,10 @@ const SystemHolidaysPage = () => {
                     {["public", "company", "custom"].map((type) => (
                       <label
                         key={type}
-                        className={`flex items-center justify-center gap-2 border p-3 rounded-lg cursor-pointer transition-all ${
-                          formData.holidaytype === type
+                        className={`flex items-center justify-center gap-2 border p-3 rounded-lg cursor-pointer transition-all ${formData.holidaytype === type
                             ? "border-red-600 bg-red-50/50 ring-1 ring-red-600"
                             : "border-gray-200 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <input
                           type="radio"
@@ -401,11 +394,10 @@ const SystemHolidaysPage = () => {
                           className="sr-only"
                         />
                         <span
-                          className={`text-xs font-semibold uppercase ${
-                            formData.holidaytype === type
+                          className={`text-xs font-semibold uppercase ${formData.holidaytype === type
                               ? "text-red-900"
                               : "text-gray-600"
-                          }`}
+                            }`}
                         >
                           {type}
                         </span>
