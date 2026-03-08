@@ -145,8 +145,7 @@ const AssignedServicesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+          <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Employee Portal
@@ -255,7 +254,7 @@ const AssignedServicesPage = () => {
           </Tabs>
         )}
       </div>
-    </div>
+    
   );
 };
 

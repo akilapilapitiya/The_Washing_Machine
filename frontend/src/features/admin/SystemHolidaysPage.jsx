@@ -187,9 +187,9 @@ const SystemHolidaysPage = () => {
   if (loading) return <PageLoader message="Loading holidays..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <ConfirmDialog />
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl space-y-8">
         {holidays.length > 0 ? (
           <Card className="overflow-hidden border-gray-200 shadow-sm">
             <div className="overflow-x-auto">
@@ -381,8 +381,8 @@ const SystemHolidaysPage = () => {
                       <label
                         key={type}
                         className={`flex items-center justify-center gap-2 border p-3 rounded-lg cursor-pointer transition-all ${formData.holidaytype === type
-                            ? "border-red-600 bg-red-50/50 ring-1 ring-red-600"
-                            : "border-gray-200 hover:bg-gray-50"
+                          ? "border-red-600 bg-red-50/50 ring-1 ring-red-600"
+                          : "border-gray-200 hover:bg-gray-50"
                           }`}
                       >
                         <input
@@ -395,8 +395,8 @@ const SystemHolidaysPage = () => {
                         />
                         <span
                           className={`text-xs font-semibold uppercase ${formData.holidaytype === type
-                              ? "text-red-900"
-                              : "text-gray-600"
+                            ? "text-red-900"
+                            : "text-gray-600"
                             }`}
                         >
                           {type}

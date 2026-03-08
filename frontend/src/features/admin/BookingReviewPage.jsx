@@ -191,8 +191,7 @@ const BookingReviewPage = () => {
   if (loading) return <PageLoader message="Loading bookings..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl space-y-8">
         <div className="grid gap-4">
           {bookings.map((booking) => (
             <Card
@@ -275,7 +274,7 @@ const BookingReviewPage = () => {
           />
         )}
       </div>
-    </div>
+    
   );
 };
 

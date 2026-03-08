@@ -192,8 +192,8 @@ const ManageAdvertisementsPage = () => {
   if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+    <div>
+      <div className="mx-auto w-full max-w-7xl space-y-8">
         {/* Expiring Soon Alert */}
         {expiringSoonAds.length > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">

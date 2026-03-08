@@ -125,8 +125,7 @@ const EmployeePerformanceReportPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-4 max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl space-y-4">
         <div className="flex justify-end mb-4">
           {/* Mobile view calendar button */}
           <Button
@@ -295,7 +294,7 @@ const EmployeePerformanceReportPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    
   );
 };
 

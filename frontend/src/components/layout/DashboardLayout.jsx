@@ -147,10 +147,8 @@ const DashboardLayout = () => {
           {/* Main Content Area */}
           <main className="flex-1 lg:ml-64 w-full bg-gray-50 flex flex-col">
             <PageSubHeader />
-            <div className="p-4 lg:p-8 flex-1">
-              <div className="max-w-7xl mx-auto h-full">
-                <Outlet />
-              </div>
+            <div className="flex-1 p-4 lg:p-8 w-full">
+              <Outlet />
             </div>
           </main>
         </div>

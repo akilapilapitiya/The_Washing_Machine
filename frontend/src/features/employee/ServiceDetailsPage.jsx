@@ -204,7 +204,7 @@ const ServiceDetailsPage = () => {
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4 max-w-7xl">
+        <div className="mx-auto w-full max-w-7xl">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"

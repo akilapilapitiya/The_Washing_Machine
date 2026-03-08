@@ -385,8 +385,8 @@ const ScheduledBookingsPage = () => {
   if (loading) return <PageLoader message="Loading bookings..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
+    <>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">
             <h2 className="text-xl font-semibold">
@@ -430,7 +430,7 @@ const ScheduledBookingsPage = () => {
         onUpdate={handleUpdate}
         onCancel={handleCancel}
       />
-    </div>
+    </>
   );
 };
 

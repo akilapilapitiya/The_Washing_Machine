@@ -413,8 +413,7 @@ const PaymentManagementPage = () => {
   if (loading) return <PageLoader message="Loading payment information..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl space-y-8">
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
             <TabsTrigger value="pending" className="font-bold">
@@ -714,7 +713,7 @@ const PaymentManagementPage = () => {
           </div>
         )}
       </div>
-    </div>
+    
   );
 };
 

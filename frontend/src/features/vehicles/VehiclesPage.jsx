@@ -292,8 +292,7 @@ const VehiclesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         {/* Add Vehicle Form Modal */}
         {showAddForm && (
@@ -903,7 +902,7 @@ const VehiclesPage = () => {
           </Card>
         )}
       </div>
-    </div>
+    
   );
 };
 

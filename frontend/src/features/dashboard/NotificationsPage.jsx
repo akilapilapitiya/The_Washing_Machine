@@ -91,8 +91,7 @@ const NotificationsPage = () => {
   if (loading) return <PageLoader message="Loading notifications..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+          <div className="mx-auto w-full max-w-5xl space-y-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {notifications.length === 0 ? (
             <div className="p-12 text-center flex flex-col items-center justify-center">
@@ -163,7 +162,7 @@ const NotificationsPage = () => {
           )}
         </div>
       </div>
-    </div>
+    
   );
 };
 

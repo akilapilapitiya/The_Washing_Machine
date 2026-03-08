@@ -100,8 +100,8 @@ const ManageCustomersPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
+    <>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <div className="flex justify-end mb-2">
           <div className="relative w-full sm:w-80">
             <Search
@@ -527,7 +527,7 @@ const ManageCustomersPage = () => {
         )
       }
       <Dialog />
-    </div >
+    </>
   );
 };
 

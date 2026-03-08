@@ -122,8 +122,7 @@ const FeedbackPage = () => {
   if (loading) return <PageLoader message="Loading feedback records..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto px-4 py-8 space-y-8 max-w-5xl">
+          <div className="mx-auto w-full max-w-5xl space-y-8">
 
         <Tabs defaultValue="submit" className="space-y-8">
           <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
@@ -304,7 +303,7 @@ const FeedbackPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    
   );
 };
 

@@ -79,8 +79,7 @@ const LeaveManagementPage = () => {
   if (loading) return <PageLoader message="Loading attendance records..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Create Leave Form */}
@@ -247,7 +246,7 @@ const LeaveManagementPage = () => {
           </Card>
         </div>
       </div>
-    </div>
+    
   );
 };
 
