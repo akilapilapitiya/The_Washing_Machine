@@ -86,10 +86,23 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
+              # Setup Swap (Critical for t3.micro to avoid OOM)
+              fallocate -l 2G /swapfile
+              chmod 600 /swapfile
+              mkswap /swapfile
+              swapon /swapfile
+              echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+
+              # Install Docker
               apt update
               apt install -y docker.io docker-compose-v2
               usermod -aG docker ubuntu
               EOF
+
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp3"
+  }
 
   tags = {
     Name = "${var.project_name}-server"
