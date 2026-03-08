@@ -25,6 +25,7 @@ import { getCustomers, updateCustomer } from "@/services/customer.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
+import { TableLoader } from "@/components/common/LoadingStates";
 
 const ManageCustomersPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -221,14 +222,7 @@ const ManageCustomersPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-24 text-center">
-                      <Loader2 className="w-8 h-8 text-red-600 animate-spin mx-auto mb-4" />
-                      <p className="text-sm font-semibold text-gray-400">
-                        Loading customer base...
-                      </p>
-                    </td>
-                  </tr>
+                  <TableLoader colSpan={5} message="Loading customer base..." />
                 ) : filteredCustomers.length > 0 ? (
                   filteredCustomers.map((customer) => (
                     <tr
@@ -273,11 +267,10 @@ const ManageCustomersPage = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            customer.is_active
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${customer.is_active
                               ? "bg-green-50 text-green-700 border border-green-100"
                               : "bg-red-50 text-red-700 border border-red-100"
-                          }`}
+                            }`}
                         >
                           <div
                             className={`w-1.5 h-1.5 rounded-full ${customer.is_active ? "bg-green-600" : "bg-red-600"}`}
@@ -302,11 +295,10 @@ const ManageCustomersPage = () => {
                           </Button>
                           <button
                             onClick={() => handleToggleStatus(customer)}
-                            className={`p-2 rounded-lg transition-all ${
-                              customer.is_active
+                            className={`p-2 rounded-lg transition-all ${customer.is_active
                                 ? "text-gray-400 hover:text-red-600 hover:bg-red-50"
                                 : "text-green-600 hover:bg-green-50"
-                            }`}
+                              }`}
                             title={
                               customer.is_active
                                 ? "Restrict Account"
@@ -368,11 +360,10 @@ const ManageCustomersPage = () => {
                       {selectedCustomer.first_name} {selectedCustomer.last_name}
                     </h3>
                     <div
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        selectedCustomer.is_active
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${selectedCustomer.is_active
                           ? "bg-green-50 text-green-700"
                           : "bg-red-50 text-red-700"
-                      }`}
+                        }`}
                     >
                       {selectedCustomer.is_active
                         ? "Account Active"
@@ -520,11 +511,10 @@ const ManageCustomersPage = () => {
                 <Button
                   onClick={() => handleToggleStatus(selectedCustomer)}
                   variant={selectedCustomer.is_active ? "outline" : "default"}
-                  className={`h-9 px-6 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${
-                    selectedCustomer.is_active
+                  className={`h-9 px-6 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${selectedCustomer.is_active
                       ? "text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700"
                       : "bg-green-600 hover:bg-green-700 text-white"
-                  }`}
+                    }`}
                 >
                   {selectedCustomer.is_active
                     ? "Block Account"

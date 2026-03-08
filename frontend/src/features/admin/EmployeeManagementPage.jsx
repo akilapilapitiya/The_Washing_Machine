@@ -29,6 +29,7 @@ import * as employeeService from "@/services/employee.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
+import { PageLoader } from "@/components/common/LoadingStates";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -356,12 +357,7 @@ const EmployeeManagementPage = () => {
         {/* Employees Table/Cards */}
         <div className="space-y-4">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4">
-              <Loader2 size={32} className="animate-spin text-red-600" />
-              <p className="text-sm font-medium text-gray-500">
-                Loading directory...
-              </p>
-            </div>
+            <PageLoader message="Loading directory..." />
           ) : employees.length > 0 ? (
             <>
               <Card className="overflow-hidden border-gray-200 shadow-sm">

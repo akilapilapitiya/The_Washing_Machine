@@ -16,6 +16,7 @@ import { printReceipt } from "@/utils/receipt";
 import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
 
 const PaymentHistoryCard = ({ payment }) => {
   const formatDate = (dateString) => {
@@ -123,13 +124,7 @@ const PaymentHistoryPage = () => {
     fetchPayments();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  if (loading) return <PageLoader message="Loading payments..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">

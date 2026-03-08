@@ -24,6 +24,7 @@ import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { PageLoader } from "@/components/common/LoadingStates";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -369,13 +370,7 @@ const ScheduledBookingsPage = () => {
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  if (loading) return <PageLoader message="Loading bookings..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
