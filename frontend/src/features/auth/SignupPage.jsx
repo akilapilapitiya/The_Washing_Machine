@@ -12,7 +12,8 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUp } from "@/services/auth.service";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
+import LocationPicker from "@/components/common/LocationPicker";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -30,9 +31,28 @@ const SignupPage = () => {
     longitude: "79.8612",
     password: "",
     confirmPassword: "",
+    distance: null, // to track if within delivery radius
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleLocationSelect = (locObj) => {
+    if (!locObj) {
+      setFormData((prev) => ({
+        ...prev,
+        latitude: null,
+        longitude: null,
+        distance: null,
+      }));
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      latitude: locObj.lat.toString(),
+      longitude: locObj.lng.toString(),
+      distance: locObj.distance,
+    }));
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -67,6 +87,11 @@ const SignupPage = () => {
         setLoading(false);
         return;
       }
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      setError("Please select a valid home location from the map within our service area.");
+      return;
     }
 
     setLoading(true);
@@ -263,29 +288,24 @@ const SignupPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Home Location (Colombo)</Label>
-                    <div className="relative rounded-md overflow-hidden border border-input h-[220px] bg-slate-50">
-                      <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.58290458633!2d79.786164!3d6.927079!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a70ad%3A0x2db30c0635313b24!2sColombo!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk"
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        allowFullScreen=""
-                        loading="lazy"
-                        title="Mock Map Location"
-                      ></iframe>
-                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider">
-                            Service Area: Colombo
-                          </span>
-                        </div>
-                      </div>
+                    <Label className="flex items-center gap-2">
+                      <MapPin size={16} className="text-red-500" />
+                      Home Location (Required)
+                    </Label>
+                    <div className="rounded-xl overflow-hidden shadow-inner border border-slate-200">
+                      <LocationPicker
+                        onLocationSelect={handleLocationSelect}
+                        initialLocation={{
+                          lat: parseFloat(formData.latitude),
+                          lng: parseFloat(formData.longitude),
+                        }}
+                      />
                     </div>
-                    <p className="text-[11px] text-slate-500 italic mt-1">
-                      Coordinates pinned to Colombo Central Service Station
-                      (6.9271, 79.8612).
-                    </p>
+                    {formData.latitude && formData.distance && (
+                      <p className="text-xs text-green-600 font-medium mt-2">
+                        Location selected ({formData.distance.toFixed(1)} km from HQ).
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
