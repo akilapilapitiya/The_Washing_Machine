@@ -11,13 +11,15 @@ import {
 } from "lucide-react";
 
 // Import hero section images
-import image1 from "@/assets/heroSection/image1.svg";
-import image2 from "@/assets/heroSection/image2.svg";
-import image3 from "@/assets/heroSection/image3.svg";
-import image4 from "@/assets/heroSection/image4.svg";
+import image1 from "@/assets/heroSection/image1.jpg";
+import image2 from "@/assets/heroSection/image2.jpg";
+import image3 from "@/assets/heroSection/image3.jpg";
+import image4 from "@/assets/heroSection/image4.jpg";
+import image5 from "@/assets/heroSection/image5.jpg";
+import image6 from "@/assets/heroSection/image6.jpg";
 
 const HeroSection = ({ id }) => {
-  const images = [image1, image2, image3, image4];
+  const images = [image1, image2, image3, image4, image5, image6];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Auto-advance slideshow every 5 seconds
@@ -49,9 +51,8 @@ const HeroSection = ({ id }) => {
           {images.map((image, index) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentImageIndex ? "opacity-100" : "opacity-0"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"
+                }`}
             >
               <img
                 src={image}
@@ -87,11 +88,10 @@ const HeroSection = ({ id }) => {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`h-2.5 rounded-full transition-all duration-500 shadow-sm ${
-                    index === currentImageIndex
-                      ? "bg-white w-8 scale-110"
-                      : "bg-white/60 w-2.5 hover:bg-white/80"
-                  }`}
+                  className={`h-2.5 rounded-full transition-all duration-500 shadow-sm ${index === currentImageIndex
+                    ? "bg-white w-8 scale-110"
+                    : "bg-white/60 w-2.5 hover:bg-white/80"
+                    }`}
                   aria-label={`Go to image ${index + 1}`}
                 />
               ))}
