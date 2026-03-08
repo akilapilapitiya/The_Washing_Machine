@@ -18,6 +18,7 @@ import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -151,22 +152,17 @@ const ServiceHistoryPage = () => {
     (b) => b.bookingstatus === "completed" || b.bookingstatus === "paid",
   );
 
+  useSetPageHeader(
+    "Activity Logs",
+    "Service History",
+    "A record of all your past vehicle maintenance and detailing.",
+  );
+
   if (loading) return <PageLoader message="Loading history..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="space-y-2">
-          <p
-            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
-          >
-            Activity Logs
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Service History</h1>
-          <p className="text-gray-500">
-            A record of all your past vehicle maintenance and detailing.
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
 
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">

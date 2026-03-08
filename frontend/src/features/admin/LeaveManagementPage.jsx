@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 import * as employeeService from "@/services/employee.service";
-
 import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 const LeaveManagementPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -69,28 +70,17 @@ const LeaveManagementPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-10 w-10 animate-spin text-red-600" />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Human Resources",
+    "Staff Attendance",
+    "Manage operative availability and leave records.",
+  );
+
+  if (loading) return <PageLoader message="Loading attendance records..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.2em] text-red-600 font-bold">
-            Human Resources
-          </p>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-            Staff Attendance
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Manage operative availability and mission deployments.
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Create Leave Form */}

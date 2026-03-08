@@ -17,6 +17,7 @@ import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const PaymentHistoryCard = ({ payment }) => {
   const formatDate = (dateString) => {
@@ -124,19 +125,17 @@ const PaymentHistoryPage = () => {
     fetchPayments();
   }, []);
 
+  useSetPageHeader(
+    "Billing",
+    "Payment History",
+    "Access your complete transaction history and receipts.",
+  );
+
   if (loading) return <PageLoader message="Loading payments..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto px-4 py-12 space-y-10 max-w-7xl">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Payment History
-          </h1>
-          <p className="text-gray-500">
-            Access your complete transaction history and receipts.
-          </p>
-        </div>
+      <div className="mx-auto px-4 py-8 space-y-6 max-w-7xl">
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {payments.length > 0 ? (

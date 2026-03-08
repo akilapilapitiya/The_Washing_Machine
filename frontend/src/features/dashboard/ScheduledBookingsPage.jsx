@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -370,25 +371,22 @@ const ScheduledBookingsPage = () => {
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
 
+  useSetPageHeader(
+    "Bookings",
+    "My Bookings",
+    "Manage your upcoming service appointments.",
+    <Link to="/dashboard/book">
+      <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold">
+        Book New Service
+      </Button>
+    </Link>,
+  );
+
   if (loading) return <PageLoader message="Loading bookings..." />;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">My Bookings</h1>
-            <p className="text-gray-500">
-              Manage your upcoming service appointments.
-            </p>
-          </div>
-          <Link to="/dashboard/book">
-            <Button className="bg-red-600 hover:bg-red-700 text-white w-full md:w-auto font-semibold">
-              Book New Service
-            </Button>
-          </Link>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">
             <h2 className="text-xl font-semibold">
