@@ -60,13 +60,13 @@ const HeroSection = ({ id }) => {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Button asChild size="lg" className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl text-lg font-bold shadow-xl hover:shadow-red-600/30 transition-all group border border-red-500">
+              <Button asChild size="lg" className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white text-lg font-bold shadow-xl hover:shadow-red-600/30 transition-all group border border-red-500">
                 <Link to="/dashboard/book">
                   Book Service Now
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="h-14 px-8 rounded-xl text-lg font-bold border-2 border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all bg-white/50 backdrop-blur-sm shadow-sm">
+              <Button asChild variant="outline" size="lg" className="h-14 px-8 text-lg font-bold border-2 border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all bg-white/50 backdrop-blur-sm shadow-sm">
                 <a href="#services">Explore Services</a>
               </Button>
             </div>
