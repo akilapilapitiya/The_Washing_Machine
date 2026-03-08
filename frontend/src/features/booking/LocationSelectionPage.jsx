@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import LocationPicker from "@/components/common/LocationPicker";
 import { getPricingRules } from "@/services/settings.service";
 import { toast } from "sonner";
+import BookingStepBar from "@/components/common/BookingStepBar";
 
 const locations = [
   {
@@ -75,19 +76,19 @@ const LocationSelectionPage = () => {
     const locationData =
       selectedLocationId === "home-visit"
         ? {
-            id: "home-visit",
-            type: "home",
-            ...mapLocation, // { lat, lng, distance }
-            travelCost, // Pass calculated cost
-          }
+          id: "home-visit",
+          type: "home",
+          ...mapLocation, // { lat, lng, distance }
+          travelCost, // Pass calculated cost
+        }
         : {
-            id: "main-branch",
-            type: "branch",
-            lat: null,
-            lng: null,
-            distance: 0,
-            travelCost: 0,
-          };
+          id: "main-branch",
+          type: "branch",
+          lat: null,
+          lng: null,
+          distance: 0,
+          travelCost: 0,
+        };
 
     navigate("/dashboard/booking/employee", {
       state: { vehicleId, serviceIds, locationData },
@@ -100,9 +101,9 @@ const LocationSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={2} />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-red-600">Step 3 of 4</p>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Select Location
           </h1>

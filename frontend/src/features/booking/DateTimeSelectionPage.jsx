@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as schedulerService from "@/services/scheduler.service";
 import * as holidayService from "@/services/systemHoliday.service";
-
 import { toast } from "sonner";
+import BookingStepBar from "@/components/common/BookingStepBar";
 // Generate time slots between 9 AM and 4 PM
 const generateTimeSlots = () => {
   const slots = [];
@@ -187,11 +187,11 @@ const DateTimeSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={4} />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-red-600">Step 4 of 4</p>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Date & Time
+            Select Date &amp; Time
           </h1>
           <p className="text-gray-600">
             Choose your preferred appointment date and time.

@@ -25,6 +25,8 @@ import { submitFeedback, getMyFeedbacks } from "@/services/feedback.service";
 import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
@@ -111,25 +113,16 @@ const FeedbackPage = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "",
+    "Your Feedback",
+    "Tell us about your service experience.",
+  );
+
+  if (loading) return <PageLoader message="Loading feedback records..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto px-4 py-12 space-y-10 max-w-5xl">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Your Feedback
-          </h1>
-          <p className="text-gray-500">
-            Tell us about your service experience.
-          </p>
-        </div>
+          <div className="mx-auto w-full max-w-5xl space-y-8">
 
         <Tabs defaultValue="submit" className="space-y-8">
           <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
@@ -310,7 +303,7 @@ const FeedbackPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    
   );
 };
 

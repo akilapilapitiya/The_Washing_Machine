@@ -92,12 +92,12 @@ const ChangePasswordPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-5xl">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">
+          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Security
           </p>
-          <h1 className="text-3xl font-bold">Change Password</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Change Password</h1>
           <p className="text-gray-600">
             Update your password to keep your account secure.
           </p>
@@ -120,7 +120,7 @@ const ChangePasswordPage = () => {
         <Card className="max-w-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Lock size={20} className="text-blue-600" />
+              <Lock size={20} className="text-red-600" />
               Update Your Password
             </CardTitle>
           </CardHeader>
@@ -231,7 +231,10 @@ const ChangePasswordPage = () => {
               </div>
 
               <div className="pt-4">
-                <Button type="submit" className="w-full sm:w-auto">
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
+                >
                   Change Password
                 </Button>
               </div>
@@ -239,12 +242,12 @@ const ChangePasswordPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="max-w-2xl bg-blue-50 border-blue-200">
+        <Card className="max-w-2xl bg-gray-50 border-gray-200">
           <CardContent className="pt-6">
-            <h3 className="font-semibold text-blue-900 mb-2">
+            <h3 className="font-semibold text-gray-900 mb-2">
               Password Requirements
             </h3>
-            <ul className="space-y-1 text-sm text-blue-800">
+            <ul className="space-y-1 text-sm text-gray-600">
               <li>• At least 8 characters long</li>
               <li>• Different from your current password</li>
               <li>

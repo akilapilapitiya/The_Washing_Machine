@@ -25,6 +25,8 @@ import * as vehicleCatalogService from "@/services/vehicleCatalog.service";
 import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const ManageVehicleCatalogPage = () => {
   const [models, setModels] = useState([]);
@@ -143,40 +145,32 @@ const ManageVehicleCatalogPage = () => {
 
   const sortedBrands = Object.keys(groupedCatalog).sort();
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-              System Administration
-            </p>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Database className="text-gray-900" />
-              Vehicle Catalog
-            </h1>
-            <p className="text-gray-600">Manage standardized vehicle data.</p>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border shadow-sm">
-            <div className="flex items-center gap-2">
-              <Layers size={16} />
-              <span className="font-bold text-gray-900">
-                {sortedBrands.length}
-              </span>{" "}
-              Brands
-            </div>
-            <div className="h-4 w-px bg-gray-200"></div>
-            <div className="flex items-center gap-2">
-              <Car size={16} />
-              <span className="font-bold text-gray-900">
-                {models.filter((i) => i.model).length}
-              </span>{" "}
-              Models
-            </div>
-          </div>
-        </div>
+  useSetPageHeader(
+    "System Administration",
+    "Vehicle Catalog",
+    "Manage standardized vehicle data for customers to select from.",
+    <div className="flex items-center gap-4 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border shadow-sm">
+      <div className="flex items-center gap-2">
+        <Layers size={16} />
+        <span className="font-bold text-gray-900">
+          {sortedBrands.length}
+        </span>{" "}
+        Brands
+      </div>
+      <div className="h-4 w-px bg-gray-200"></div>
+      <div className="flex items-center gap-2">
+        <Car size={16} />
+        <span className="font-bold text-gray-900">
+          {models.filter((i) => i.model).length}
+        </span>{" "}
+        Models
+      </div>
+    </div>
+  );
 
+  return (
+    <div>
+      <div className="mx-auto w-full max-w-7xl space-y-8">
         {/* Action Blocks (The 2 Blocks) */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Step 1: Add Brand */}

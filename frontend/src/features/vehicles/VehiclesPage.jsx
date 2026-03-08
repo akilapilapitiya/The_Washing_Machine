@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import * as vehicleService from "@/services/vehicle.service";
 import * as catalogService from "@/services/vehicleCatalog.service";
 import { toast } from "sonner";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -75,6 +76,20 @@ const VehiclesPage = () => {
     };
     initData();
   }, []);
+
+  useSetPageHeader(
+    "Garage",
+    "Manage your vehicles",
+    "Add, view, and manage all your vehicles in one place.",
+    <Button
+      onClick={() => setShowAddForm(true)}
+      className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+      disabled={loading}
+    >
+      <Plus size={16} className="mr-2" />
+      Add Vehicle
+    </Button>,
+  );
 
   // Derived state for dropdowns
   const availableBrands = [
@@ -277,29 +292,7 @@ const VehiclesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-              Garage
-            </p>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Manage your vehicles
-            </h1>
-            <p className="text-gray-600">
-              Add, view, and manage all your vehicles in one place.
-            </p>
-          </div>
-          <Button
-            onClick={() => setShowAddForm(true)}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-200"
-            disabled={loading}
-          >
-            <Plus size={18} className="mr-2" />
-            Add Vehicle
-          </Button>
-        </div>
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         {/* Add Vehicle Form Modal */}
         {showAddForm && (
@@ -828,7 +821,7 @@ const VehiclesPage = () => {
                           )}
                         >
                           {vehicle.next_service_mileage === 0 ||
-                          !vehicle.next_service_mileage
+                            !vehicle.next_service_mileage
                             ? "Pending Employee Check"
                             : `${vehicle.next_service_mileage.toLocaleString()} KM`}
                         </p>
@@ -909,7 +902,7 @@ const VehiclesPage = () => {
           </Card>
         )}
       </div>
-    </div>
+    
   );
 };
 

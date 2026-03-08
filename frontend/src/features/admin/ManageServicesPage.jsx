@@ -21,6 +21,7 @@ import * as serviceService from "@/services/service.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -278,26 +279,22 @@ const ManageServicesPage = () => {
     setShowAddForm(true);
   };
 
+  useSetPageHeader(
+    "Services",
+    "Service Registry",
+    "Add, edit, and manage all available services.",
+    <Button
+      onClick={openAddForm}
+      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
+    >
+      <Plus size={18} />
+      Add Service
+    </Button>,
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Service Registry
-            </h1>
-            <p className="text-gray-500">
-              Add, edit, and manage all available services.
-            </p>
-          </div>
-          <Button
-            onClick={openAddForm}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
-          >
-            <Plus size={18} />
-            Add Service
-          </Button>
-        </div>
+    <div>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
 
         {/* Category Filter */}
         {!loading && services.length > 0 && (
@@ -307,8 +304,8 @@ const ManageServicesPage = () => {
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === category
-                    ? "bg-red-600 text-white shadow-md shadow-red-100"
-                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-red-600 text-white shadow-md shadow-red-100"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                   }`}
               >
                 {category}
@@ -399,8 +396,8 @@ const ManageServicesPage = () => {
                               )}
                               <span
                                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${service.servicetype === "package"
-                                    ? "bg-red-50 text-red-700 border-red-200"
-                                    : "bg-blue-50 text-blue-700 border-blue-200"
+                                  ? "bg-red-50 text-red-700 border-red-200"
+                                  : "bg-blue-50 text-blue-700 border-blue-200"
                                   }`}
                               >
                                 {service.servicetype === "package" ? (
@@ -935,7 +932,7 @@ const ManageServicesPage = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="h-11 px-8 bg-red-600 hover:bg-red-700 font-bold shadow-md shadow-red-100"
+                    className="h-11 px-8 bg-red-600 hover:bg-red-700 font-bold"
                   >
                     {isSubmitting ? (
                       <>

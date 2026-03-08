@@ -17,6 +17,8 @@ import { getBookings } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -48,11 +50,11 @@ const HistoryCard = ({ booking }) => {
   // Improved null checking for services with property name fallbacks
   const servicesList =
     booking.services &&
-    Array.isArray(booking.services) &&
-    booking.services.length > 0
+      Array.isArray(booking.services) &&
+      booking.services.length > 0
       ? booking.services
-          .map((s) => s.servicename || s.serviceName || "Unknown Service")
-          .join(", ")
+        .map((s) => s.servicename || s.serviceName || "Unknown Service")
+        .join(", ")
       : "Services not available";
 
   const vehicleName = booking.vehbrand
@@ -150,28 +152,16 @@ const ServiceHistoryPage = () => {
     (b) => b.bookingstatus === "completed" || b.bookingstatus === "paid",
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Activity Logs",
+    "Service History",
+    "A record of all your past vehicle maintenance and detailing.",
+  );
+
+  if (loading) return <PageLoader message="Loading history..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p
-            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
-          >
-            Activity Logs
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Service History</h1>
-          <p className="text-gray-500">
-            A record of all your past vehicle maintenance and detailing.
-          </p>
-        </div>
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">
@@ -206,7 +196,7 @@ const ServiceHistoryPage = () => {
           )}
         </div>
       </div>
-    </div>
+    
   );
 };
 

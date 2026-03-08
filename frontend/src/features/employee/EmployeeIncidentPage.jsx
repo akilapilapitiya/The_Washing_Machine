@@ -89,8 +89,7 @@ const EmployeeIncidentPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+          <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold flex items-center gap-2 text-red-700">
             <ShieldAlert /> Report Incident
@@ -229,7 +228,7 @@ const EmployeeIncidentPage = () => {
           </Card>
         </div>
       </div>
-    </div>
+    
   );
 };
 

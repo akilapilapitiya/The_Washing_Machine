@@ -14,10 +14,7 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("Navbar: User object for profile picture check:", user);
-      console.log("Navbar: Profile picture URL:", user?.profile_picture_url);
-    }
+    // Profile picture loaded from auth context
   }, [isAuthenticated, user]);
 
   useEffect(() => {
@@ -109,7 +106,7 @@ const Navbar = () => {
                       user?.name?.charAt(0) || "U"
                     )}
                   </div>
-                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-lg shadow-red-100 transition-all transform hover:-translate-y-0.5">
+                  <Button className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-6 shadow-md transition-all">
                     Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -126,7 +123,7 @@ const Navbar = () => {
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-md shadow-red-500/20 transition-all transform hover:-translate-y-0.5">
+                  <Button className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-6 shadow-md transition-all">
                     Sign Up
                   </Button>
                 </Link>
@@ -187,13 +184,13 @@ const Navbar = () => {
                     </div>
                   </div>
                   <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg">
                       Go to Dashboard
                     </Button>
                   </Link>
                   <Button
                     variant="outline"
-                    className="w-full rounded-full border-gray-200"
+                    className="w-full rounded-lg border-gray-200"
                     onClick={() => {
                       handleLogout();
                     }}
@@ -206,13 +203,13 @@ const Navbar = () => {
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                     <Button
                       variant="outline"
-                      className="w-full rounded-full border-gray-200 text-gray-700"
+                      className="w-full rounded-lg border-gray-200 text-gray-700"
                     >
                       Log In
                     </Button>
                   </Link>
                   <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg shadow-red-100">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg">
                       Sign Up Now
                     </Button>
                   </Link>

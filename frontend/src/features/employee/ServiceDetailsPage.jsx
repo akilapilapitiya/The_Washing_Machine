@@ -204,7 +204,7 @@ const ServiceDetailsPage = () => {
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4 max-w-6xl">
+        <div className="mx-auto w-full max-w-7xl">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -220,15 +220,14 @@ const ServiceDetailsPage = () => {
                   Service #{id}
                 </h1>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                    service.bookingstatus === "completed"
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : service.bookingstatus === "confirmed"
-                        ? "bg-blue-50 text-blue-700 border-blue-200"
-                        : service.bookingstatus === "inProgress"
-                          ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                          : "bg-gray-100 text-gray-700 border-gray-200"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${service.bookingstatus === "completed"
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : service.bookingstatus === "confirmed"
+                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                      : service.bookingstatus === "inProgress"
+                        ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                        : "bg-gray-100 text-gray-700 border-gray-200"
+                    }`}
                 >
                   {service.bookingstatus}
                 </span>
@@ -245,7 +244,7 @@ const ServiceDetailsPage = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
         {successMessage && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-in slide-in-from-top-2 shadow-sm">
             <CheckCircle size={18} />
@@ -731,7 +730,7 @@ const ServiceDetailsPage = () => {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-100"
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold"
                     disabled={reporting}
                   >
                     {reporting ? (

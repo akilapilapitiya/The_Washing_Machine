@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Save, Calculator, Route } from "lucide-react";
 import * as settingsService from "@/services/settings.service";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const OwnerPricingPage = () => {
   const [loading, setLoading] = useState(true);
@@ -92,24 +94,16 @@ const OwnerPricingPage = () => {
     setCalculatedCost(cost.toFixed(2));
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Settings",
+    "Travel Pricing Configuration",
+    "Manage how travel costs are calculated for Home Visits.",
+  );
+
+  if (loading) return <PageLoader message="Loading pricing rules..." />;
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Travel Pricing Configuration
-        </h1>
-        <p className="text-gray-500 mt-2">
-          Manage how travel costs are calculated for Home Visits.
-        </p>
-      </div>
+    <div className="container mx-auto p-6 max-w-5xl space-y-6">
 
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">
@@ -202,7 +196,11 @@ const OwnerPricingPage = () => {
 
                 <Separator className="my-4" />
 
-                <Button type="submit" className="w-full" disabled={saving}>
+                <Button
+                  type="submit"
+                  className="w-full h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
+                  disabled={saving}
+                >
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {saving ? "Saving..." : "Save Configuration"}
                 </Button>
@@ -279,10 +277,10 @@ const OwnerPricingPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-blue-50 border-blue-100">
-            <CardContent className="p-4 text-sm text-blue-800">
-              <p className="font-semibold mb-1">How it works:</p>
-              <ul className="list-disc list-inside space-y-1 text-blue-700">
+          <Card className="bg-gray-50 border-gray-200">
+            <CardContent className="p-4 text-sm text-gray-700">
+              <p className="font-semibold mb-1 text-gray-900">How it works:</p>
+              <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li>
                   Cost is fixed at the Base Fee for any distance up to the Base
                   Distance.

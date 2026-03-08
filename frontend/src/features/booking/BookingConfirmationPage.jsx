@@ -20,6 +20,7 @@ import * as bookingService from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import BookingStepBar from "@/components/common/BookingStepBar";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
@@ -144,7 +145,8 @@ const BookingConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={5} />
         <div className="space-y-4 text-center max-w-2xl mx-auto">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">

@@ -7,7 +7,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import * as vehicleService from "@/services/vehicle.service";
 import { toast } from "sonner";
-import { COLORS } from "@/lib/colors"; // Keep for consistency if used elsewhere
+import { COLORS } from "@/lib/colors";
+import BookingStepBar from "@/components/common/BookingStepBar";
 
 const ServiceSelectionPage = () => {
   const location = useLocation();
@@ -183,9 +184,9 @@ const ServiceSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={1} />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-red-600">Step 2 of 4</p>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Select Services
           </h1>
@@ -251,7 +252,7 @@ const ServiceSelectionPage = () => {
         {/* Add-ons Section */}
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-            <Layers size={20} className="text-blue-600" />
+            <Layers size={20} className="text-gray-500" />
             <h2 className="text-lg font-bold text-gray-900">
               Optional Add-ons
             </h2>

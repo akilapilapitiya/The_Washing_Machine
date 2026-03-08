@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { signUp } from "@/services/auth.service";
 import { Loader2, MapPin } from "lucide-react";
 import LocationPicker from "@/components/common/LocationPicker";
+import logo from "@/assets/logo.svg";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -144,8 +145,11 @@ const SignupPage = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create an Account</h1>
-          <p className="text-gray-600">Join The Washing Machine today</p>
+          <Link to="/" className="inline-block mb-6">
+            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Create an Account</h1>
+          <p className="text-gray-500 text-sm">Join The Washing Machine today</p>
         </div>
 
         <Card className="shadow-sm border border-slate-200">
@@ -174,7 +178,8 @@ const SignupPage = () => {
                       onChange={handleChange}
                       disabled={loading}
                       required
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 0.75rem center", backgroundSize: "1rem", paddingRight: "2.5rem" }}
                     >
                       <option value="">Select Title</option>
                       <option value="Mr.">Mr.</option>
@@ -295,10 +300,14 @@ const SignupPage = () => {
                     <div className="rounded-xl overflow-hidden shadow-inner border border-slate-200">
                       <LocationPicker
                         onLocationSelect={handleLocationSelect}
-                        initialLocation={{
-                          lat: parseFloat(formData.latitude),
-                          lng: parseFloat(formData.longitude),
-                        }}
+                        initialLocation={
+                          formData.latitude && formData.longitude
+                            ? {
+                              lat: parseFloat(formData.latitude),
+                              lng: parseFloat(formData.longitude),
+                            }
+                            : undefined
+                        }
                       />
                     </div>
                     {formData.latitude && formData.distance && (
@@ -311,12 +320,20 @@ const SignupPage = () => {
               </div>
 
               <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-sm text-gray-600 order-2 sm:order-1">
-                  Already have an account?{" "}
-                  <Link to="/login" className="text-blue-600 hover:underline">
-                    Log in
-                  </Link>
-                </p>
+                <div className="flex flex-col gap-1 order-2 sm:order-1">
+                  <p className="text-sm text-gray-600">
+                    Already have an account?{" "}
+                    <Link to="/login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                      Log in
+                    </Link>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Employee?{" "}
+                    <Link to="/employee-login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                      Employee portal →
+                    </Link>
+                  </p>
+                </div>
                 <Button
                   type="submit"
                   className="w-full sm:w-auto px-10 h-10 bg-primary hover:bg-red-700 text-white font-semibold transition-colors order-1 sm:order-2"

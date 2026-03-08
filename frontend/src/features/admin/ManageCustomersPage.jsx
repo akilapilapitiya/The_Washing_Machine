@@ -25,6 +25,8 @@ import { getCustomers, updateCustomer } from "@/services/customer.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
+import { TableLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const ManageCustomersPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -91,18 +93,16 @@ const ManageCustomersPage = () => {
       customer.custel.includes(searchQuery),
   );
 
+  useSetPageHeader(
+    "Admin",
+    "Customer Directory",
+    "Manage accounts and platform access for your registered members.",
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Customer Directory
-            </h1>
-            <p className="text-gray-500 font-medium">
-              Manage accounts and platform access for your registered members.
-            </p>
-          </div>
+    <>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        <div className="flex justify-end mb-2">
           <div className="relative w-full sm:w-80">
             <Search
               size={18}
@@ -221,14 +221,7 @@ const ManageCustomersPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-24 text-center">
-                      <Loader2 className="w-8 h-8 text-red-600 animate-spin mx-auto mb-4" />
-                      <p className="text-sm font-semibold text-gray-400">
-                        Loading customer base...
-                      </p>
-                    </td>
-                  </tr>
+                  <TableLoader colSpan={5} message="Loading customer base..." />
                 ) : filteredCustomers.length > 0 ? (
                   filteredCustomers.map((customer) => (
                     <tr
@@ -273,11 +266,10 @@ const ManageCustomersPage = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            customer.is_active
-                              ? "bg-green-50 text-green-700 border border-green-100"
-                              : "bg-red-50 text-red-700 border border-red-100"
-                          }`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${customer.is_active
+                            ? "bg-green-50 text-green-700 border border-green-100"
+                            : "bg-red-50 text-red-700 border border-red-100"
+                            }`}
                         >
                           <div
                             className={`w-1.5 h-1.5 rounded-full ${customer.is_active ? "bg-green-600" : "bg-red-600"}`}
@@ -302,11 +294,10 @@ const ManageCustomersPage = () => {
                           </Button>
                           <button
                             onClick={() => handleToggleStatus(customer)}
-                            className={`p-2 rounded-lg transition-all ${
-                              customer.is_active
-                                ? "text-gray-400 hover:text-red-600 hover:bg-red-50"
-                                : "text-green-600 hover:bg-green-50"
-                            }`}
+                            className={`p-2 rounded-lg transition-all ${customer.is_active
+                              ? "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                              : "text-green-600 hover:bg-green-50"
+                              }`}
                             title={
                               customer.is_active
                                 ? "Restrict Account"
@@ -337,206 +328,206 @@ const ManageCustomersPage = () => {
             </table>
           </div>
         </Card>
-      </div>
+      </div >
 
       {/* Customer Detail Modal */}
-      {expandedId && selectedCustomer && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4 animate-in fade-in duration-200 overflow-y-auto">
-          <Card className="w-full max-w-4xl shadow-2xl border-0 overflow-hidden my-auto">
-            <div
-              className={`h-1.5 ${selectedCustomer.is_active ? "bg-red-600" : "bg-gray-400"}`}
-            />
-            <CardHeader className="p-8 pb-4 border-b border-gray-50 flex flex-row items-center justify-between bg-white text-gray-900">
-              <div className="flex gap-6 items-center">
-                <div className="relative shrink-0">
-                  {selectedCustomer.profile_picture_url ? (
-                    <img
-                      src={`${IMAGE_BASE_URL}${selectedCustomer.profile_picture_url}`}
-                      alt={selectedCustomer.first_name}
-                      className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-3xl font-bold border-4 border-white shadow-md">
-                      {selectedCustomer.first_name?.[0]}
-                      {selectedCustomer.last_name?.[0]}
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl font-bold tracking-tight">
-                      {selectedCustomer.first_name} {selectedCustomer.last_name}
-                    </h3>
-                    <div
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        selectedCustomer.is_active
+      {
+        expandedId && selectedCustomer && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4 animate-in fade-in duration-200 overflow-y-auto">
+            <Card className="w-full max-w-4xl shadow-2xl border-0 overflow-hidden my-auto">
+              <div
+                className={`h-1.5 ${selectedCustomer.is_active ? "bg-red-600" : "bg-gray-400"}`}
+              />
+              <CardHeader className="p-8 pb-4 border-b border-gray-50 flex flex-row items-center justify-between bg-white text-gray-900">
+                <div className="flex gap-6 items-center">
+                  <div className="relative shrink-0">
+                    {selectedCustomer.profile_picture_url ? (
+                      <img
+                        src={`${IMAGE_BASE_URL}${selectedCustomer.profile_picture_url}`}
+                        alt={selectedCustomer.first_name}
+                        className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-3xl font-bold border-4 border-white shadow-md">
+                        {selectedCustomer.first_name?.[0]}
+                        {selectedCustomer.last_name?.[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-2xl font-bold tracking-tight">
+                        {selectedCustomer.first_name} {selectedCustomer.last_name}
+                      </h3>
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${selectedCustomer.is_active
                           ? "bg-green-50 text-green-700"
                           : "bg-red-50 text-red-700"
-                      }`}
-                    >
-                      {selectedCustomer.is_active
-                        ? "Account Active"
-                        : "Blocked"}
+                          }`}
+                      >
+                        {selectedCustomer.is_active
+                          ? "Account Active"
+                          : "Blocked"}
+                      </div>
+                    </div>
+                    <p className="text-gray-500 font-semibold flex items-center gap-2 text-sm uppercase tracking-wider">
+                      {selectedCustomer.title}
+                      <span className="w-1 h-1 rounded-full bg-gray-300" />
+                      ID #{selectedCustomer.cusid}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setExpandedId(null);
+                    setSelectedCustomer(null);
+                  }}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <X size={24} />
+                </button>
+              </CardHeader>
+
+              <CardContent className="p-8 bg-white grid md:grid-cols-2 gap-10">
+                {/* Profile Info */}
+                <div className="space-y-6">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
+                    Member Details
+                  </h5>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        <Mail size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Email Address
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {selectedCustomer.cusemail}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        <Phone size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Mobile Phone
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {selectedCustomer.custel}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        <ShieldCheck size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          NIC / Identity
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {selectedCustomer.nic || "Not Linked"}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-gray-500 font-semibold flex items-center gap-2 text-sm uppercase tracking-wider">
-                    {selectedCustomer.title}
-                    <span className="w-1 h-1 rounded-full bg-gray-300" />
-                    ID #{selectedCustomer.cusid}
+                </div>
+
+                {/* Stats & Insights */}
+                <div className="space-y-6 text-gray-600">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
+                    Platform Interaction
+                  </h5>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        <Calendar size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Membership Since
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {new Date(
+                            selectedCustomer.created_at,
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        <Car size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Total Bookings
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {selectedCustomer.totalbookings || 0} Professional
+                          Washes
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        <MapPin size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Primary Location
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {selectedCustomer.latitude && selectedCustomer.longitude
+                            ? "Geo-coordinates Linked"
+                            : "No Location Saved"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+
+              <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${selectedCustomer.is_active ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+                  />
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 py-1 bg-white rounded border">
+                    System Status:{" "}
+                    {selectedCustomer.is_active
+                      ? "Online & Authorized"
+                      : "Offline & Restricted"}
                   </p>
                 </div>
-              </div>
-              <button
-                onClick={() => {
-                  setExpandedId(null);
-                  setSelectedCustomer(null);
-                }}
-                className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
-              >
-                <X size={24} />
-              </button>
-            </CardHeader>
-
-            <CardContent className="p-8 bg-white grid md:grid-cols-2 gap-10">
-              {/* Profile Info */}
-              <div className="space-y-6">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
-                  Member Details
-                </h5>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                      <Mail size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Email Address
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {selectedCustomer.cusemail}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                      <Phone size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Mobile Phone
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {selectedCustomer.custel}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                      <ShieldCheck size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        NIC / Identity
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {selectedCustomer.nic || "Not Linked"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats & Insights */}
-              <div className="space-y-6 text-gray-600">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-red-600 mb-4">
-                  Platform Interaction
-                </h5>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                      <Calendar size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Membership Since
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {new Date(
-                          selectedCustomer.created_at,
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                      <Car size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Total Bookings
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {selectedCustomer.totalbookings || 0} Professional
-                        Washes
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                      <MapPin size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Primary Location
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {selectedCustomer.latitude && selectedCustomer.longitude
-                          ? "Geo-coordinates Linked"
-                          : "No Location Saved"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-
-            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${selectedCustomer.is_active ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
-                />
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 py-1 bg-white rounded border">
-                  System Status:{" "}
-                  {selectedCustomer.is_active
-                    ? "Online & Authorized"
-                    : "Offline & Restricted"}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleToggleStatus(selectedCustomer)}
-                  variant={selectedCustomer.is_active ? "outline" : "default"}
-                  className={`h-9 px-6 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${
-                    selectedCustomer.is_active
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleToggleStatus(selectedCustomer)}
+                    variant={selectedCustomer.is_active ? "outline" : "default"}
+                    className={`h-9 px-6 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${selectedCustomer.is_active
                       ? "text-red-600 border-red-100 hover:bg-red-50 hover:text-red-700"
                       : "bg-green-600 hover:bg-green-700 text-white"
-                  }`}
-                >
-                  {selectedCustomer.is_active
-                    ? "Block Account"
-                    : "Unblock Account"}
-                </Button>
+                      }`}
+                  >
+                    {selectedCustomer.is_active
+                      ? "Block Account"
+                      : "Unblock Account"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Card>
-        </div>
-      )}
+            </Card>
+          </div>
+        )
+      }
       <Dialog />
-    </div>
+    </>
   );
 };
 

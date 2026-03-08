@@ -12,8 +12,9 @@ import {
   Briefcase,
 } from "lucide-react";
 import * as reportService from "@/services/report.service";
-
 import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 const EmployeePerformanceReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,51 +97,44 @@ const EmployeePerformanceReportPage = () => {
 
   const formatCurrency = (val) => `Rs. ${parseFloat(val).toLocaleString()}`;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-              Financial Reports
-            </p>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Users className="text-gray-900" />
-              Employee Performance
-            </h1>
-            <p className="text-gray-600">
-              Track staff productivity and revenue generation.
-            </p>
-          </div>
+  useSetPageHeader(
+    "Financial Reports",
+    "Employee Performance",
+    "Track staff productivity and revenue generation.",
+    <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10">
+      <div className="flex flex-col">
+        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>From</label>
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
+        />
+      </div>
+      <div className="h-6 w-px bg-gray-200"></div>
+      <div className="flex flex-col">
+        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>To</label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
+        />
+      </div>
+    </div>
+  );
 
-          <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm">
-            <div className="flex flex-col">
-              <label className="text-xs text-gray-500 px-2">From</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="text-sm font-medium bg-transparent px-2 focus:outline-none"
-              />
-            </div>
-            <div className="h-8 w-px bg-gray-200"></div>
-            <div className="flex flex-col">
-              <label className="text-xs text-gray-500 px-2">To</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="text-sm font-medium bg-transparent px-2 focus:outline-none"
-              />
-            </div>
-            <Button
-              onClick={fetchReport}
-              size="sm"
-              className="ml-2 bg-gray-900 hover:bg-gray-800"
-            >
-              <Calendar size={14} />
-            </Button>
-          </div>
+  return (
+          <div className="mx-auto w-full max-w-7xl space-y-4">
+        <div className="flex justify-end mb-4">
+          {/* Mobile view calendar button */}
+          <Button
+            onClick={fetchReport}
+            size="sm"
+            className="md:hidden bg-gray-900 hover:bg-gray-800"
+          >
+            <Calendar size={14} className="mr-2" /> View Date Range
+          </Button>
         </div>
 
         {/* Summary Cards */}
@@ -300,7 +294,7 @@ const EmployeePerformanceReportPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    
   );
 };
 
