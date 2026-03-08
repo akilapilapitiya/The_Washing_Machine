@@ -379,7 +379,7 @@ const ScheduledBookingsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">My Bookings</h1>

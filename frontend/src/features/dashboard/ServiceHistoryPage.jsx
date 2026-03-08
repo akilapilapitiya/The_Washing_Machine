@@ -48,11 +48,11 @@ const HistoryCard = ({ booking }) => {
   // Improved null checking for services with property name fallbacks
   const servicesList =
     booking.services &&
-    Array.isArray(booking.services) &&
-    booking.services.length > 0
+      Array.isArray(booking.services) &&
+      booking.services.length > 0
       ? booking.services
-          .map((s) => s.servicename || s.serviceName || "Unknown Service")
-          .join(", ")
+        .map((s) => s.servicename || s.serviceName || "Unknown Service")
+        .join(", ")
       : "Services not available";
 
   const vehicleName = booking.vehbrand
@@ -160,7 +160,7 @@ const ServiceHistoryPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         <div className="space-y-2">
           <p
             className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}

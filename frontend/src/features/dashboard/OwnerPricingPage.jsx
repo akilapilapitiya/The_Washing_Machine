@@ -101,7 +101,7 @@ const OwnerPricingPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-8">
+    <div className="container mx-auto p-6 max-w-5xl space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
           Travel Pricing Configuration

@@ -62,7 +62,7 @@ const LeaveManagementPage = () => {
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
-          "Conflict detected in schedule deployment.",
+        "Conflict detected in schedule deployment.",
       );
     } finally {
       setSubmitting(false);
@@ -79,7 +79,7 @@ const LeaveManagementPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         <div className="space-y-1">
           <p className="text-xs uppercase tracking-[0.2em] text-red-600 font-bold">
             Human Resources
