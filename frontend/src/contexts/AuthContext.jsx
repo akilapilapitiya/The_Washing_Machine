@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
 
     // Redirect based on captured user type
     if (type === "employee") {
-      navigate("/employee/login");
+      navigate("/employee-login");
     } else {
       navigate("/login");
     }

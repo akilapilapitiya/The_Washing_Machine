@@ -251,7 +251,7 @@ const ServiceSelectionPage = () => {
         {/* Add-ons Section */}
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-            <Layers size={20} className="text-blue-600" />
+            <Layers size={20} className="text-gray-500" />
             <h2 className="text-lg font-bold text-gray-900">
               Optional Add-ons
             </h2>

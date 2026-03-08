@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
+import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Booking from "./pages/Booking";
@@ -55,16 +56,20 @@ const App = () => {
       <NotificationProvider>
         <Toaster position="top-right" richColors expand={true} />
         <Routes>
-          {/* Public Routes - Wrapped in MainLayout */}
+          {/* Public Routes with Navbar - MainLayout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="services" element={<Services />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+
+          {/* Auth Routes — No Navbar, clean layout */}
+          <Route element={<AuthLayout />}>
             <Route path="signup" element={<Signup />} />
             <Route path="login" element={<CustomerLogin />} />
-            <Route path="employee/login" element={<EmployeeLogin />} />
+            <Route path="employee-login" element={<EmployeeLogin />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="banned" element={<BannedPage />} />
-            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* Dashboard Routes - Independent Layout */}

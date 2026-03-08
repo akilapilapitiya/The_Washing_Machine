@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { signUp } from "@/services/auth.service";
 import { Loader2, MapPin } from "lucide-react";
 import LocationPicker from "@/components/common/LocationPicker";
+import logo from "@/assets/logo.svg";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -144,8 +145,11 @@ const SignupPage = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create an Account</h1>
-          <p className="text-gray-600">Join The Washing Machine today</p>
+          <Link to="/" className="inline-block mb-6">
+            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Create an Account</h1>
+          <p className="text-gray-500 text-sm">Join The Washing Machine today</p>
         </div>
 
         <Card className="shadow-sm border border-slate-200">
@@ -295,10 +299,14 @@ const SignupPage = () => {
                     <div className="rounded-xl overflow-hidden shadow-inner border border-slate-200">
                       <LocationPicker
                         onLocationSelect={handleLocationSelect}
-                        initialLocation={{
-                          lat: parseFloat(formData.latitude),
-                          lng: parseFloat(formData.longitude),
-                        }}
+                        initialLocation={
+                          formData.latitude && formData.longitude
+                            ? {
+                              lat: parseFloat(formData.latitude),
+                              lng: parseFloat(formData.longitude),
+                            }
+                            : undefined
+                        }
                       />
                     </div>
                     {formData.latitude && formData.distance && (
@@ -311,12 +319,20 @@ const SignupPage = () => {
               </div>
 
               <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-sm text-gray-600 order-2 sm:order-1">
-                  Already have an account?{" "}
-                  <Link to="/login" className="text-blue-600 hover:underline">
-                    Log in
-                  </Link>
-                </p>
+                <div className="flex flex-col gap-1 order-2 sm:order-1">
+                  <p className="text-sm text-gray-600">
+                    Already have an account?{" "}
+                    <Link to="/login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                      Log in
+                    </Link>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Employee?{" "}
+                    <Link to="/employee-login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                      Employee portal →
+                    </Link>
+                  </p>
+                </div>
                 <Button
                   type="submit"
                   className="w-full sm:w-auto px-10 h-10 bg-primary hover:bg-red-700 text-white font-semibold transition-colors order-1 sm:order-2"

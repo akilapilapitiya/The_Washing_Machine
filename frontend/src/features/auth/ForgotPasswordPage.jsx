@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import {
   requestEmployeePasswordReset,
   resetEmployeePassword,
 } from "@/services/auth.service";
+import logo from "@/assets/logo.svg";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -108,7 +109,7 @@ const ForgotPasswordPage = () => {
       if (response.success) {
         // Navigate to appropriate login page
         const loginPath =
-          userType === "customer" ? "/login" : "/employee/login";
+          userType === "customer" ? "/login" : "/employee-login";
         navigate(loginPath, {
           state: {
             message:
@@ -140,7 +141,7 @@ const ForgotPasswordPage = () => {
       setStep(0);
       setUserType(null);
     } else {
-      const loginPath = userType === "customer" ? "/login" : "/employee/login";
+      const loginPath = userType === "customer" ? "/login" : "/employee-login";
       navigate(loginPath);
     }
   };
@@ -148,9 +149,17 @@ const ForgotPasswordPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-block mb-6">
+            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Reset Password</h1>
+          <p className="text-gray-500 text-sm">We'll send a verification code to your email</p>
+        </div>
+
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6 font-medium"
+          className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 font-medium text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -209,13 +218,13 @@ const ForgotPasswordPage = () => {
                     required
                   />
                 </div>
-                <div className="p-3 rounded-md bg-blue-50 border border-blue-200">
-                  <p className="text-sm text-blue-800">
+                <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <p className="text-sm text-gray-600">
                     A 6-digit verification code will be sent to your email
                     address.
                   </p>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg" disabled={loading}>
                   {loading ? "Sending..." : "Send OTP"}
                 </Button>
               </form>
@@ -237,8 +246,8 @@ const ForgotPasswordPage = () => {
                     required
                   />
                 </div>
-                <div className="p-3 rounded-md bg-blue-50 border border-blue-200">
-                  <p className="text-sm text-blue-800">
+                <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <p className="text-sm text-gray-600">
                     Please check your email for the 6-digit verification code.
                     The code expires in 10 minutes and can be used up to 3
                     times.
@@ -317,9 +326,8 @@ const ForgotPasswordPage = () => {
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
-                className={`h-2 w-2 rounded-full transition-colors ${
-                  s <= step ? "bg-blue-600" : "bg-gray-300"
-                }`}
+                className={`h-2 w-2 rounded-full transition-colors ${s <= step ? "bg-red-600" : "bg-gray-200"
+                  }`}
               />
             ))}
           </div>

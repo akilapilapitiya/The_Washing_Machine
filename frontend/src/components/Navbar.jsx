@@ -14,10 +14,7 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("Navbar: User object for profile picture check:", user);
-      console.log("Navbar: Profile picture URL:", user?.profile_picture_url);
-    }
+    // Profile picture loaded from auth context
   }, [isAuthenticated, user]);
 
   useEffect(() => {
