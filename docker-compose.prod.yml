@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: washing_machine_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wm-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: washing_machine_redis
+    networks:
+      - wm-network
+    restart: unless-stopped
+
+  backend:
+    image: ${CI_REGISTRY_IMAGE}/backend:latest
+    container_name: washing_machine_backend
+    ports:
+      - "5500:5500"
+    environment:
+      NODE_ENV: production
+      PORT: 5500
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      # Other variables will be picked up from .env.prod if present
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+      - redis
+    networks:
+      - wm-network
+    restart: unless-stopped
+
+  frontend:
+    image: ${CI_REGISTRY_IMAGE}/frontend:latest
+    container_name: washing_machine_frontend
+    ports:
+      - "80:80"
+    networks:
+      - wm-network
+    restart: unless-stopped
+
+networks:
+  wm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
