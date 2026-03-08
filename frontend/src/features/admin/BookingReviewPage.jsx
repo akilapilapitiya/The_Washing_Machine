@@ -31,7 +31,11 @@ const ReassignModal = ({ booking, onClose, onConfirm }) => {
           booking.bookingstarttime,
           booking.bookingendtime,
         );
-        setAvailableEmployees(employees);
+        // Filter out the currently assigned employee by name
+        const filteredEmployees = employees.filter(
+          (emp) => emp.empname !== booking.assigned_empname
+        );
+        setAvailableEmployees(filteredEmployees);
       } catch (err) {
         console.error("Availability check failed", err);
       } finally {
@@ -206,11 +210,10 @@ const BookingReviewPage = () => {
                         BK-{String(booking.bookingid).padStart(4, "0")}
                       </span>
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border ${
-                          booking.bookingstatus === "pending"
+                        className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border ${booking.bookingstatus === "pending"
                             ? "bg-amber-50 text-amber-700 border-amber-100"
                             : "bg-blue-50 text-blue-700 border-blue-100"
-                        }`}
+                          }`}
                       >
                         {booking.bookingstatus}
                       </span>
