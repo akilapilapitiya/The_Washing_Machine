@@ -306,11 +306,10 @@ const ManageServicesPage = () => {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                  selectedCategory === category
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === category
                     ? "bg-red-600 text-white shadow-md shadow-red-100"
                     : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {category}
               </button>
@@ -399,11 +398,10 @@ const ManageServicesPage = () => {
                                 </span>
                               )}
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
-                                  service.servicetype === "package"
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${service.servicetype === "package"
                                     ? "bg-red-50 text-red-700 border-red-200"
                                     : "bg-blue-50 text-blue-700 border-blue-200"
-                                }`}
+                                  }`}
                               >
                                 {service.servicetype === "package" ? (
                                   <>
@@ -636,14 +634,18 @@ const ManageServicesPage = () => {
                       >
                         Category
                       </Label>
-                      <Input
+                      <select
                         id="category"
                         name="category"
                         value={formData.category}
                         onChange={handleInputChange}
-                        placeholder="e.g., Exterior, Interior"
-                        className="h-11 border-gray-300"
-                      />
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-gray-300"
+                      >
+                        <option value="" disabled>Select a category</option>
+                        <option value="Exterior">Exterior</option>
+                        <option value="Interior">Interior</option>
+                        <option value="Exterior and Interior">Exterior and Interior</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label

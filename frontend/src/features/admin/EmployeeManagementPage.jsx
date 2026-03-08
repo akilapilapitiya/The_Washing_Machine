@@ -217,7 +217,7 @@ const EmployeeManagementPage = () => {
     try {
       setSubmitting(true);
       await employeeService.updateEmployee(selectedEmployee.empid, {
-        type: newRole,
+        emptype: newRole,
       });
 
       await fetchEmployees();
@@ -556,8 +556,8 @@ const EmployeeManagementPage = () => {
                               <p className="text-sm font-semibold text-gray-900">
                                 {selectedEmployee.dob
                                   ? new Date(
-                                      selectedEmployee.dob,
-                                    ).toLocaleDateString()
+                                    selectedEmployee.dob,
+                                  ).toLocaleDateString()
                                   : "Not Provided"}
                               </p>
                             </div>
@@ -637,7 +637,7 @@ const EmployeeManagementPage = () => {
                         </h5>
                         <div className="space-y-3">
                           {selectedEmployee.dependents &&
-                          selectedEmployee.dependents.length > 0 ? (
+                            selectedEmployee.dependents.length > 0 ? (
                             selectedEmployee.dependents.map((dep, idx) => (
                               <div
                                 key={idx}
@@ -1060,21 +1060,21 @@ const EmployeeManagementPage = () => {
                           >
                             {roles.length > 0
                               ? roles.map((role) => (
-                                  <option
-                                    key={role.roleid}
-                                    value={role.rolename}
-                                  >
-                                    {role.rolename}
-                                  </option>
-                                ))
+                                <option
+                                  key={role.roleid}
+                                  value={role.rolename}
+                                >
+                                  {role.rolename}
+                                </option>
+                              ))
                               : initialRoleOptions.map((option) => (
-                                  <option
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </option>
-                                ))}
+                                <option
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </option>
+                              ))}
                           </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-gray-400">
                             <ChevronRight size={14} className="rotate-90" />
@@ -1208,15 +1208,15 @@ const EmployeeManagementPage = () => {
                       <option value="">-- Select Role --</option>
                       {roles.length > 0
                         ? roles.map((role) => (
-                            <option key={role.roleid} value={role.rolename}>
-                              {role.rolename}
-                            </option>
-                          ))
+                          <option key={role.roleid} value={role.rolename}>
+                            {role.rolename}
+                          </option>
+                        ))
                         : initialRoleOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                       <svg

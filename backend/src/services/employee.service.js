@@ -46,7 +46,7 @@ export const getAvailableEmployeesService = async (
   const query = `
     SELECT e.empid, e.first_name || ' ' || e.last_name AS empname, e.emptype 
     FROM employee e
-    WHERE e.emptype NOT IN ('owner', 'cashier')
+    WHERE e.emptype NOT IN ('owner', 'cashier', 'manager')
     AND e.empid NOT IN (
       SELECT ea.empid FROM employeeassigned ea
       JOIN schedule s ON ea.bookingid = s.bookingid

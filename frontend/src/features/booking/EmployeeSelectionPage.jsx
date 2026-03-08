@@ -48,8 +48,13 @@ const EmployeeSelectionPage = () => {
             : Promise.resolve(null),
         ]);
 
-        // Filter out owners as per user request
-        const filtered = employeesData.filter((emp) => emp.emptype !== "owner");
+        // Filter out non-service staff as per user request
+        const filtered = employeesData.filter(
+          (emp) =>
+            emp.emptype !== "owner" &&
+            emp.emptype !== "cashier" &&
+            emp.emptype !== "manager",
+        );
         setEmployees(filtered);
         setSelectedVehicle(vehicleData);
       } catch (err) {
