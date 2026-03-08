@@ -684,10 +684,10 @@ const ProfilePage = () => {
                       <p className="font-semibold text-gray-800">
                         {user?.dob
                           ? new Date(user.dob).toLocaleDateString("en-US", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
                           : "Not provided"}
                       </p>
                     </div>
@@ -746,10 +746,10 @@ const ProfilePage = () => {
                             {s.trim()}
                           </span>
                         )) || (
-                          <span className="px-4 py-2 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase rounded-lg">
-                            General Services
-                          </span>
-                        )}
+                            <span className="px-4 py-2 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase rounded-lg">
+                              General Services
+                            </span>
+                          )}
                       </div>
                     </div>
                   )}
@@ -843,7 +843,7 @@ const ProfilePage = () => {
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold h-11 px-10 shadow-md shadow-red-100 transition-all"
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold h-11 px-10 transition-all"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -863,186 +863,186 @@ const ProfilePage = () => {
             userType === "cashier" ||
             userType === "owner" ||
             userType === "manager") && (
-            <Card className="shadow-lg border border-gray-100 rounded-xl overflow-hidden bg-white mb-8">
-              <CardHeader className="p-6 border-b border-gray-100 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-3">
-                  <div className="p-2 bg-red-50 rounded-lg text-red-600">
-                    <HeartPulse size={20} />
-                  </div>
-                  Dependents & Emergency Contacts
-                </CardTitle>
-                <Button
-                  onClick={() => setShowAddDependent(!showAddDependent)}
-                  variant="ghost"
-                  className="rounded-lg hover:bg-gray-50 text-red-600 font-bold flex items-center gap-2"
-                >
-                  {showAddDependent ? (
-                    <X size={18} />
-                  ) : (
-                    <>
-                      <Plus size={18} /> Add New
-                    </>
-                  )}
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                {showAddDependent && (
-                  <div className="p-8 border-b border-gray-100 bg-gray-50/50">
-                    <form
-                      onSubmit={handleAddDependent}
-                      className="grid md:grid-cols-4 gap-4 items-end"
-                    >
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                          Full Name
-                        </Label>
-                        <Input
-                          placeholder="Name"
-                          value={newDependent.name}
-                          onChange={(e) =>
-                            setNewDependent({
-                              ...newDependent,
-                              name: e.target.value,
-                            })
-                          }
-                          className="h-10 rounded-lg border-gray-200"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                          Relationship
-                        </Label>
-                        <Input
-                          placeholder="Relationship (e.g. Spouse)"
-                          value={newDependent.relationship}
-                          onChange={(e) =>
-                            setNewDependent({
-                              ...newDependent,
-                              relationship: e.target.value,
-                            })
-                          }
-                          className="h-10 rounded-lg border-gray-200"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                          Contact Number
-                        </Label>
-                        <Input
-                          placeholder="0771234567"
-                          value={newDependent.contact_number}
-                          onChange={(e) =>
-                            setNewDependent({
-                              ...newDependent,
-                              contact_number: e.target.value,
-                            })
-                          }
-                          className="h-10 rounded-lg border-gray-200"
-                        />
-                      </div>
-                      <div className="flex items-center gap-3 h-10 pb-2">
-                        <input
-                          type="checkbox"
-                          id="is_emergency_contact"
-                          checked={newDependent.is_emergency_contact}
-                          onChange={(e) =>
-                            setNewDependent({
-                              ...newDependent,
-                              is_emergency_contact: e.target.checked,
-                            })
-                          }
-                          className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
-                        />
-                        <Label
-                          htmlFor="is_emergency_contact"
-                          className="text-xs font-bold text-gray-700 cursor-pointer"
-                        >
-                          Emergency Contact
-                        </Label>
-                      </div>
-                      <Button
-                        type="submit"
-                        disabled={isAddingDependent}
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold h-10 transition-all shadow-md shadow-red-100 md:col-span-4"
-                      >
-                        {isAddingDependent ? (
-                          <Loader2 className="animate-spin" size={16} />
-                        ) : (
-                          "Add Record"
-                        )}
-                      </Button>
-                    </form>
-                  </div>
-                )}
-
-                <div className="p-6">
-                  {dependents.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-red-50/20 rounded-2xl border-2 border-dashed border-red-100">
-                      <div className="p-4 bg-white rounded-full shadow-sm mb-4">
-                        <ShieldAlert size={32} className="text-red-500" />
-                      </div>
-                      <h4 className="font-bold text-gray-900 mb-1">
-                        No Dependents Registered
-                      </h4>
-                      <p className="text-sm text-gray-500 font-medium max-w-sm">
-                        It is critical to have at least one emergency contact on
-                        file for your safety and medical coverage.
-                      </p>
-                      <Button
-                        variant="link"
-                        onClick={() => setShowAddDependent(true)}
-                        className="text-red-600 font-bold mt-4"
-                      >
-                        Add your first contact now
-                      </Button>
+              <Card className="shadow-lg border border-gray-100 rounded-xl overflow-hidden bg-white mb-8">
+                <CardHeader className="p-6 border-b border-gray-100 flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <div className="p-2 bg-red-50 rounded-lg text-red-600">
+                      <HeartPulse size={20} />
                     </div>
-                  ) : (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {dependents.map((dep) => (
-                        <div
-                          key={dep.depid}
-                          className="p-4 rounded-xl border border-gray-100 bg-white hover:border-red-100 hover:shadow-sm transition-all flex items-center justify-between group"
+                    Dependents & Emergency Contacts
+                  </CardTitle>
+                  <Button
+                    onClick={() => setShowAddDependent(!showAddDependent)}
+                    variant="ghost"
+                    className="rounded-lg hover:bg-gray-50 text-red-600 font-bold flex items-center gap-2"
+                  >
+                    {showAddDependent ? (
+                      <X size={18} />
+                    ) : (
+                      <>
+                        <Plus size={18} /> Add New
+                      </>
+                    )}
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {showAddDependent && (
+                    <div className="p-8 border-b border-gray-100 bg-gray-50/50">
+                      <form
+                        onSubmit={handleAddDependent}
+                        className="grid md:grid-cols-4 gap-4 items-end"
+                      >
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                            Full Name
+                          </Label>
+                          <Input
+                            placeholder="Name"
+                            value={newDependent.name}
+                            onChange={(e) =>
+                              setNewDependent({
+                                ...newDependent,
+                                name: e.target.value,
+                              })
+                            }
+                            className="h-10 rounded-lg border-gray-200"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                            Relationship
+                          </Label>
+                          <Input
+                            placeholder="Relationship (e.g. Spouse)"
+                            value={newDependent.relationship}
+                            onChange={(e) =>
+                              setNewDependent({
+                                ...newDependent,
+                                relationship: e.target.value,
+                              })
+                            }
+                            className="h-10 rounded-lg border-gray-200"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                            Contact Number
+                          </Label>
+                          <Input
+                            placeholder="0771234567"
+                            value={newDependent.contact_number}
+                            onChange={(e) =>
+                              setNewDependent({
+                                ...newDependent,
+                                contact_number: e.target.value,
+                              })
+                            }
+                            className="h-10 rounded-lg border-gray-200"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3 h-10 pb-2">
+                          <input
+                            type="checkbox"
+                            id="is_emergency_contact"
+                            checked={newDependent.is_emergency_contact}
+                            onChange={(e) =>
+                              setNewDependent({
+                                ...newDependent,
+                                is_emergency_contact: e.target.checked,
+                              })
+                            }
+                            className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                          />
+                          <Label
+                            htmlFor="is_emergency_contact"
+                            className="text-xs font-bold text-gray-700 cursor-pointer"
+                          >
+                            Emergency Contact
+                          </Label>
+                        </div>
+                        <Button
+                          type="submit"
+                          disabled={isAddingDependent}
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold h-10 transition-all md:col-span-4"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                              <User size={18} />
-                            </div>
-                            <div>
-                              <p className="font-bold text-gray-900 flex items-center gap-2">
-                                {dep.name}
-                                {dep.is_emergency_contact && (
-                                  <span className="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter">
-                                    Primary
+                          {isAddingDependent ? (
+                            <Loader2 className="animate-spin" size={16} />
+                          ) : (
+                            "Add Record"
+                          )}
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+
+                  <div className="p-6">
+                    {dependents.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-red-50/20 rounded-2xl border-2 border-dashed border-red-100">
+                        <div className="p-4 bg-white rounded-full shadow-sm mb-4">
+                          <ShieldAlert size={32} className="text-red-500" />
+                        </div>
+                        <h4 className="font-bold text-gray-900 mb-1">
+                          No Dependents Registered
+                        </h4>
+                        <p className="text-sm text-gray-500 font-medium max-w-sm">
+                          It is critical to have at least one emergency contact on
+                          file for your safety and medical coverage.
+                        </p>
+                        <Button
+                          variant="link"
+                          onClick={() => setShowAddDependent(true)}
+                          className="text-red-600 font-bold mt-4"
+                        >
+                          Add your first contact now
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {dependents.map((dep) => (
+                          <div
+                            key={dep.depid}
+                            className="p-4 rounded-xl border border-gray-100 bg-white hover:border-red-100 hover:shadow-sm transition-all flex items-center justify-between group"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="p-2.5 bg-gray-50 rounded-lg text-gray-600 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                                <User size={18} />
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900 flex items-center gap-2">
+                                  {dep.name}
+                                  {dep.is_emergency_contact && (
+                                    <span className="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                      Primary
+                                    </span>
+                                  )}
+                                </p>
+                                <div className="flex items-center gap-3 mt-0.5">
+                                  <span className="text-xs font-semibold text-gray-400">
+                                    {dep.relationship}
                                   </span>
-                                )}
-                              </p>
-                              <div className="flex items-center gap-3 mt-0.5">
-                                <span className="text-xs font-semibold text-gray-400">
-                                  {dep.relationship}
-                                </span>
-                                <span className="w-1 h-1 rounded-full bg-gray-200"></span>
-                                <span className="text-xs font-bold text-gray-600">
-                                  {dep.contact_number}
-                                </span>
+                                  <span className="w-1 h-1 rounded-full bg-gray-200"></span>
+                                  <span className="text-xs font-bold text-gray-600">
+                                    {dep.contact_number}
+                                  </span>
+                                </div>
                               </div>
                             </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteDependent(dep.depid)}
+                              className="text-gray-300 hover:text-red-600 rounded-lg h-9 w-9 p-0"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDependent(dep.depid)}
-                            className="text-gray-300 hover:text-red-600 rounded-lg h-9 w-9 p-0"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           {/* Password Management */}
           <Card className="shadow-lg border border-gray-100 rounded-xl overflow-hidden bg-white">
@@ -1185,7 +1185,7 @@ const ProfilePage = () => {
                       </button>
                       <Button
                         type="submit"
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold px-8 h-11 shadow-md shadow-red-100 transition-all flex items-center gap-2 group"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold px-8 h-11 transition-all flex items-center gap-2 group"
                         disabled={isChangingPassword}
                       >
                         {isChangingPassword ? (

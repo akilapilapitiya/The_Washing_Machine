@@ -174,7 +174,7 @@ const LeaveManagementPage = () => {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-red-600 hover:bg-black text-white font-black uppercase tracking-widest h-12 shadow-lg shadow-red-100"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest h-12"
                 >
                   {submitting ? (
                     <Loader2 className="animate-spin" />

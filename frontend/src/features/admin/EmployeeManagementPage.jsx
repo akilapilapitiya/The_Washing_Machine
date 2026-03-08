@@ -1128,7 +1128,7 @@ const EmployeeManagementPage = () => {
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-red-600 hover:bg-red-700 text-white h-11 px-10 rounded-lg font-bold shadow-lg shadow-red-200 transition-all active:scale-95"
+                    className="bg-red-600 hover:bg-red-700 text-white h-11 px-10 rounded-lg font-bold transition-all active:scale-95"
                   >
                     {submitting ? (
                       <>
@@ -1241,7 +1241,7 @@ const EmployeeManagementPage = () => {
                     disabled={
                       newRole === selectedEmployee.emptype || submitting
                     }
-                    className="bg-red-600 hover:bg-red-700 text-white h-10 px-6 font-bold shadow-md shadow-red-100"
+                    className="bg-red-600 hover:bg-red-700 text-white h-10 px-6 font-bold"
                   >
                     {submitting ? (
                       <>

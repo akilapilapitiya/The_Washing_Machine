@@ -307,8 +307,8 @@ const ManageServicesPage = () => {
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === category
-                    ? "bg-red-600 text-white shadow-md shadow-red-100"
-                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-red-600 text-white shadow-md shadow-red-100"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                   }`}
               >
                 {category}
@@ -399,8 +399,8 @@ const ManageServicesPage = () => {
                               )}
                               <span
                                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${service.servicetype === "package"
-                                    ? "bg-red-50 text-red-700 border-red-200"
-                                    : "bg-blue-50 text-blue-700 border-blue-200"
+                                  ? "bg-red-50 text-red-700 border-red-200"
+                                  : "bg-blue-50 text-blue-700 border-blue-200"
                                   }`}
                               >
                                 {service.servicetype === "package" ? (
@@ -935,7 +935,7 @@ const ManageServicesPage = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="h-11 px-8 bg-red-600 hover:bg-red-700 font-bold shadow-md shadow-red-100"
+                    className="h-11 px-8 bg-red-600 hover:bg-red-700 font-bold"
                   >
                     {isSubmitting ? (
                       <>

@@ -220,15 +220,14 @@ const ServiceDetailsPage = () => {
                   Service #{id}
                 </h1>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                    service.bookingstatus === "completed"
+                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${service.bookingstatus === "completed"
                       ? "bg-green-50 text-green-700 border-green-200"
                       : service.bookingstatus === "confirmed"
                         ? "bg-blue-50 text-blue-700 border-blue-200"
                         : service.bookingstatus === "inProgress"
                           ? "bg-yellow-50 text-yellow-700 border-yellow-200"
                           : "bg-gray-100 text-gray-700 border-gray-200"
-                  }`}
+                    }`}
                 >
                   {service.bookingstatus}
                 </span>
@@ -731,7 +730,7 @@ const ServiceDetailsPage = () => {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-100"
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold"
                     disabled={reporting}
                   >
                     {reporting ? (

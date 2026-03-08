@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
 import * as vehicleService from "@/services/vehicle.service";
-
 import { toast } from "sonner";
+import BookingStepBar from "@/components/common/BookingStepBar";
 const roleLabels = {
   junior: "Frontline Detailer",
   mid: "Service Specialist",
@@ -83,9 +83,9 @@ const EmployeeSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={3} />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-red-600">Step 3 of 4</p>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Select Preferred Employee
           </h1>
@@ -284,7 +284,7 @@ const EmployeeSelectionPage = () => {
           </Button>
           <Button
             onClick={handleContinue}
-            className="px-10 h-14 bg-red-600 hover:bg-black text-white font-bold tracking-widest shadow-xl shadow-red-200 transition-all duration-300"
+            className="px-10 h-11 bg-red-600 hover:bg-red-700 text-white font-bold tracking-wide transition-all duration-200"
           >
             Continue
           </Button>

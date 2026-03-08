@@ -299,7 +299,7 @@ const PaymentCard = ({ item, onRecordPayment, isPayment, onRefresh }) => {
         {!isPayment && (
           <Button
             onClick={() => onRecordPayment(item)}
-            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold h-10 shadow-sm shadow-red-100 transition-all"
+            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold h-10 transition-all"
           >
             <Plus size={16} />
             Record Payment
@@ -511,101 +511,101 @@ const PaymentManagementPage = () => {
                   {(selectedBooking.extras || []).some(
                     (e) => !e.price || Number(e.price) === 0,
                   ) && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
-                        <ShieldAlert size={16} />
-                        <span>Pending Extra Charges</span>
-                      </div>
-                      <p className="text-xs text-orange-600">
-                        The following items must be priced before recording
-                        payment.
-                      </p>
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
+                          <ShieldAlert size={16} />
+                          <span>Pending Extra Charges</span>
+                        </div>
+                        <p className="text-xs text-orange-600">
+                          The following items must be priced before recording
+                          payment.
+                        </p>
 
-                      <div className="space-y-2">
-                        {selectedBooking.extras
-                          .filter((e) => !e.price || Number(e.price) === 0)
-                          .map((extra) => (
-                            <div
-                              key={extra.id}
-                              className="flex items-center justify-between bg-white p-2 rounded border border-orange-100"
-                            >
-                              <span className="text-sm font-medium text-gray-700">
-                                {extra.item_name}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs text-gray-400">
-                                  Rs.
+                        <div className="space-y-2">
+                          {selectedBooking.extras
+                            .filter((e) => !e.price || Number(e.price) === 0)
+                            .map((extra) => (
+                              <div
+                                key={extra.id}
+                                className="flex items-center justify-between bg-white p-2 rounded border border-orange-100"
+                              >
+                                <span className="text-sm font-medium text-gray-700">
+                                  {extra.item_name}
                                 </span>
-                                <input
-                                  type="number"
-                                  className="w-20 p-1 text-right text-sm border rounded focus:ring-2 focus:ring-orange-500 outline-none"
-                                  placeholder="0.00"
-                                  onBlur={async (e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (val > 0) {
-                                      try {
-                                        await chargesService.updateItemPrice(
-                                          extra.id,
-                                          val,
-                                        );
-                                        toast.success(
-                                          `Price updated for ${extra.item_name}`,
-                                        );
-
-                                        // Update local state to reflect change and recalculate total
-                                        setSelectedBooking((prev) => {
-                                          const newExtras = prev.extras.map(
-                                            (x) =>
-                                              x.id === extra.id
-                                                ? { ...x, price: val }
-                                                : x,
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-gray-400">
+                                    Rs.
+                                  </span>
+                                  <input
+                                    type="number"
+                                    className="w-20 p-1 text-right text-sm border rounded focus:ring-2 focus:ring-orange-500 outline-none"
+                                    placeholder="0.00"
+                                    onBlur={async (e) => {
+                                      const val = parseFloat(e.target.value);
+                                      if (val > 0) {
+                                        try {
+                                          await chargesService.updateItemPrice(
+                                            extra.id,
+                                            val,
                                           );
-                                          const newExtrasTotal =
-                                            newExtras.reduce(
-                                              (sum, item) =>
-                                                sum + (Number(item.price) || 0),
-                                              0,
+                                          toast.success(
+                                            `Price updated for ${extra.item_name}`,
+                                          );
+
+                                          // Update local state to reflect change and recalculate total
+                                          setSelectedBooking((prev) => {
+                                            const newExtras = prev.extras.map(
+                                              (x) =>
+                                                x.id === extra.id
+                                                  ? { ...x, price: val }
+                                                  : x,
                                             );
-                                          const base = Number(
-                                            prev.totalprice ||
+                                            const newExtrasTotal =
+                                              newExtras.reduce(
+                                                (sum, item) =>
+                                                  sum + (Number(item.price) || 0),
+                                                0,
+                                              );
+                                            const base = Number(
+                                              prev.totalprice ||
                                               prev.total_price ||
                                               0,
+                                            );
+
+                                            // Construct new object
+                                            const updated = {
+                                              ...prev,
+                                              extras: newExtras,
+                                            };
+
+                                            // Update payment amount input automatically
+                                            setPaymentData((d) => ({
+                                              ...d,
+                                              paymentamount: (
+                                                base + newExtrasTotal
+                                              ).toFixed(2),
+                                            }));
+
+                                            return updated;
+                                          });
+                                          // Also trigger main data refresh in background
+                                          fetchData();
+                                        } catch (err) {
+                                          console.error(
+                                            "Failed to update price",
+                                            err,
                                           );
-
-                                          // Construct new object
-                                          const updated = {
-                                            ...prev,
-                                            extras: newExtras,
-                                          };
-
-                                          // Update payment amount input automatically
-                                          setPaymentData((d) => ({
-                                            ...d,
-                                            paymentamount: (
-                                              base + newExtrasTotal
-                                            ).toFixed(2),
-                                          }));
-
-                                          return updated;
-                                        });
-                                        // Also trigger main data refresh in background
-                                        fetchData();
-                                      } catch (err) {
-                                        console.error(
-                                          "Failed to update price",
-                                          err,
-                                        );
-                                        toast.error("Failed to update price");
+                                          toast.error("Failed to update price");
+                                        }
                                       }
-                                    }
-                                  }}
-                                />
+                                    }}
+                                  />
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Payment Summary */}
                   <div className="bg-red-50 rounded-lg p-4 space-y-2 border border-red-100">
@@ -628,8 +628,8 @@ const PaymentManagementPage = () => {
                         {(
                           Number(
                             selectedBooking.totalprice ||
-                              selectedBooking.total_price ||
-                              0,
+                            selectedBooking.total_price ||
+                            0,
                           ) +
                           (selectedBooking.extras || []).reduce(
                             (sum, e) => sum + (Number(e.price) || 0),
