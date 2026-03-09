@@ -99,6 +99,9 @@ deploy:prod:
       DB_NAME="the-washing-machine"
       DB_PORT=5432
       DB_PASSWORD="admin"
+      POSTGRES_USER="admin"
+      POSTGRES_PASSWORD="admin"
+      POSTGRES_DB="the-washing-machine"
       REDIS_HOST="redis"
       REDIS_PORT=6379
       REDIS_PASSWORD=""
@@ -116,7 +119,7 @@ deploy:prod:
       GOOGLE_MAPS_API_KEY=AIzaSyBu-RIKloAJWiQ6xg8ljyralyM_92cgm44
       TELEGRAM_BOT_TOKEN=8307659618:AAGonWLa67vVcwAr2ndhXpYsDlH-_CDOoAE
       ENABLE_TELEGRAM_BOT=true
-      CORS_ORIGIN=http://\${SERVER_IP}
+      CORS_ORIGIN=http://${SERVER_IP}
       EOF
     - ssh azureuser@$SERVER_IP "mkdir -p app"
     - scp .env.prod azureuser@$SERVER_IP:~/app/
