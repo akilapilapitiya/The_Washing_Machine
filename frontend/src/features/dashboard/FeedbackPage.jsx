@@ -17,25 +17,26 @@ import {
   CheckCircle,
   Star,
   Loader2,
-  AlertCircle,
   History,
   ClipboardList,
 } from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { submitFeedback, getMyFeedbacks } from "@/services/feedback.service";
 import { COLORS } from "@/lib/colors";
+import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [completedBookings, setCompletedBookings] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
 
   const [selectedBookingId, setSelectedBookingId] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState(5);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -60,7 +61,7 @@ const FeedbackPage = () => {
       setCompletedBookings(eligibleBookings);
       setFeedbacks(feedbacksData);
     } catch (err) {
-      setError("Failed to load feedback records. Please try again.");
+      toast.error("Failed to load feedback records. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,29 +79,22 @@ const FeedbackPage = () => {
         rating: rating,
       });
 
-      setShowSuccess(true);
+      toast.success("Thank you! Your feedback has been recorded.");
       setFeedbackText("");
       setSelectedBookingId("");
       setRating(5);
 
       // Refresh data to update "Previous Feedback" list
       await fetchInitialData();
-
-      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
-      setError(err.message || "Failed to submit feedback.");
+      toast.error(err.message || "Failed to submit feedback.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShortSL(dateString);
   };
 
   const renderStars = (count, size = 16) => {
@@ -119,41 +113,16 @@ const FeedbackPage = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "",
+    "Your Feedback",
+    "Tell us about your service experience.",
+  );
+
+  if (loading) return <PageLoader message="Loading feedback records..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto px-4 py-12 space-y-10 max-w-5xl">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Your Feedback
-          </h1>
-          <p className="text-gray-500">
-            Tell us about your service experience.
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium text-sm">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 text-green-700 animate-in fade-in slide-in-from-top-4">
-            <CheckCircle size={20} />
-            <p className="font-medium text-sm">
-              Thank you! Your feedback has been recorded.
-            </p>
-          </div>
-        )}
+          <div className="mx-auto w-full max-w-5xl space-y-8">
 
         <Tabs defaultValue="submit" className="space-y-8">
           <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
@@ -334,7 +303,7 @@ const FeedbackPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    
   );
 };
 

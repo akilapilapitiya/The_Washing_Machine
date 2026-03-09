@@ -10,9 +10,9 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle,
   Edit2,
   Trash2,
+  AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -21,6 +21,11 @@ import {
   deleteBooking,
 } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
+import { toast } from "sonner";
+import { formatDateShortSL } from "@/lib/dateFormat";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -55,7 +60,7 @@ const StatusBadge = ({ status }) => {
 const BookingCard = ({ booking, onManage }) => {
   // Format services list
   const servicesList = booking.services
-    ? booking.services.map((s) => s.serviceName).join(", ")
+    ? booking.services.map((s) => s.servicename).join(", ")
     : "No services selected";
 
   // Data mapping from backend
@@ -65,16 +70,26 @@ const BookingCard = ({ booking, onManage }) => {
 
   const plate = booking.vehplate || "";
   const location = "Main Branch - Pannipitiya";
-  const employee = booking.assigned_employee || "Assigned on arrival";
+  const employee = booking.assigned_empname || "Assigned on arrival";
 
   // Calculate total price
-  const totalPrice = booking.bookingtotalprice || 0; // Use totalprice from DB if available
+  const totalPrice = booking.totalprice || booking.bookingtotalprice || 0;
 
   const formattedTotalPrice =
     totalPrice > 0 ? `Rs. ${Number(totalPrice).toLocaleString()}` : "---";
 
   return (
-    <Card className="hover:shadow-md transition-shadow relative">
+    <Card className="hover:shadow-md transition-shadow relative overflow-hidden">
+      {/* Decorative Color Ribbon */}
+      {booking.vehcolor && (
+        <div
+          className="absolute top-0 right-0 w-10 h-10 pointer-events-none z-10"
+          style={{
+            background: `linear-gradient(225deg, ${booking.vehcolor} 50%, transparent 50%)`,
+            opacity: 0.8,
+          }}
+        />
+      )}
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -113,11 +128,7 @@ const BookingCard = ({ booking, onManage }) => {
               className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
             />
             <span className={COLORS.text.primary}>
-              {new Date(booking.bookingdate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatDateShortSL(booking.bookingdate)}
             </span>
           </div>
           <div className="flex items-start gap-2 text-sm">
@@ -153,6 +164,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     if (booking) {
@@ -178,12 +190,16 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
   };
 
   const handleCancelBooking = async () => {
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      variant: "destructive",
+      title: "Cancel Booking?",
+      description:
         "Are you sure you want to cancel this booking? This action cannot be undone.",
-      )
-    )
-      return;
+      confirmText: "Cancel Booking",
+      cancelText: "Keep Booking",
+    });
+
+    if (!confirmed) return;
 
     setIsLoading(true);
     try {
@@ -299,6 +315,7 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 };
@@ -306,7 +323,6 @@ const EditBookingModal = ({ booking, isOpen, onClose, onUpdate, onCancel }) => {
 const ScheduledBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
@@ -319,7 +335,7 @@ const ScheduledBookingsPage = () => {
       const data = await getBookings();
       setBookings(data || []);
     } catch (err) {
-      setError("Failed to load your bookings. Please try again.");
+      toast.error("Failed to load your bookings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -329,10 +345,12 @@ const ScheduledBookingsPage = () => {
     try {
       await updateBooking(id, updates);
       fetchBookings();
-      alert("Booking updated successfully!");
+      toast.success("Booking updated successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to update booking. Please try again.");
+      toast.error("Failed to update booking", {
+        description: "Please try again later",
+      });
     }
   };
 
@@ -340,9 +358,12 @@ const ScheduledBookingsPage = () => {
     try {
       await deleteBooking(id);
       fetchBookings();
+      toast.success("Booking cancelled successfully");
     } catch (err) {
       console.error(err);
-      alert("Failed to cancel booking. Please try again.");
+      toast.error("Failed to cancel booking", {
+        description: "Please try again later",
+      });
     }
   };
 
@@ -350,38 +371,22 @@ const ScheduledBookingsPage = () => {
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Bookings",
+    "My Bookings",
+    "Manage your upcoming service appointments.",
+    <Link to="/dashboard/book">
+      <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold">
+        Book New Service
+      </Button>
+    </Link>,
+  );
+
+  if (loading) return <PageLoader message="Loading bookings..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">My Bookings</h1>
-            <p className="text-gray-500">
-              Manage your upcoming service appointments.
-            </p>
-          </div>
-          <Link to="/dashboard/book">
-            <Button className="bg-red-600 hover:bg-red-700 text-white w-full md:w-auto font-semibold">
-              Book New Service
-            </Button>
-          </Link>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p>{error}</p>
-          </div>
-        )}
-
+    <>
+      <div className="mx-auto w-full max-w-7xl space-y-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">
             <h2 className="text-xl font-semibold">
@@ -425,7 +430,7 @@ const ScheduledBookingsPage = () => {
         onUpdate={handleUpdate}
         onCancel={handleCancel}
       />
-    </div>
+    </>
   );
 };
 

@@ -19,6 +19,16 @@ const VehicleCard = ({ vehicle, selected, onSelect }) => {
         )}
       >
         <CardHeader className="pb-3 pt-4 px-4">
+          {/* Decorative Color Ribbon */}
+          {vehicle.vehcolor && (
+            <div
+              className="absolute top-0 right-0 w-8 h-8 pointer-events-none z-10"
+              style={{
+                background: `linear-gradient(225deg, ${vehicle.vehcolor} 50%, transparent 50%)`,
+                opacity: 0.8,
+              }}
+            />
+          )}
           <CardTitle className="flex justify-between items-start">
             <div className="flex flex-col">
               <span
@@ -45,6 +55,25 @@ const VehicleCard = ({ vehicle, selected, onSelect }) => {
             </span>
           </CardTitle>
         </CardHeader>
+        <CardContent className="px-4 pb-4">
+          <div className="flex flex-wrap gap-2">
+            {vehicle.fuel_type && (
+              <span className="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded border border-gray-100 uppercase font-semibold">
+                {vehicle.fuel_type}
+              </span>
+            )}
+            {vehicle.year && (
+              <span className="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded border border-gray-100 font-semibold">
+                {vehicle.year}
+              </span>
+            )}
+            {vehicle.transmission && (
+              <span className="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded border border-gray-100 uppercase font-semibold">
+                {vehicle.transmission}
+              </span>
+            )}
+          </div>
+        </CardContent>
         {selected && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600" />
         )}

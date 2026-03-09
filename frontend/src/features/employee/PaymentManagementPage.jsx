@@ -4,17 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getBookings } from "@/services/booking.service";
+import { getAllPayments, createPayment } from "@/services/payment.service";
+import * as chargesService from "@/services/charges.service";
+import { printReceipt } from "@/utils/receipt";
+import { toast } from "sonner";
 import {
   DollarSign,
   CheckCircle,
   Plus,
   Loader2,
-  AlertCircle,
   Download,
+  Save,
+  Edit2,
+  ShieldAlert,
 } from "lucide-react";
-import { getBookings } from "@/services/booking.service";
-import { getAllPayments, createPayment } from "@/services/payment.service";
-import { printReceipt } from "@/utils/receipt";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -46,7 +52,83 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
+const ExtraItem = ({ extra, readOnly, onUpdatePrice }) => {
+  const [price, setPrice] = useState(extra.price || "");
+  const [isEditing, setIsEditing] = useState(!extra.price && !readOnly);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!price || isNaN(price) || Number(price) < 0) return;
+    try {
+      setSaving(true);
+      await onUpdatePrice(Number(price));
+      setIsEditing(false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded border border-gray-100">
+      <div>
+        <p className="font-semibold text-gray-800">{extra.item_name}</p>
+        {extra.description && (
+          <p className="text-gray-500 scale-90 origin-left">
+            {extra.description}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {isEditing ? (
+          <div className="flex items-center gap-1">
+            <span className="text-gray-500">Rs.</span>
+            <input
+              type="number"
+              className="w-16 p-1 border rounded text-right"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+            <Button
+              size="icon"
+              className="h-6 w-6"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <Loader2 size={10} className="animate-spin" />
+              ) : (
+                <Save size={10} />
+              )}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span
+              className={`font-mono font-medium ${!extra.price ? "text-red-500" : "text-gray-900"}`}
+            >
+              {extra.price ? `Rs.${extra.price}` : "Pending"}
+            </span>
+            {!readOnly && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 text-gray-400 hover:text-blue-600"
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit2 size={10} />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const PaymentCard = ({ item, onRecordPayment, isPayment, onRefresh }) => {
   // item is either a booking (pending payment) or a payment object (completed)
   const bookingId = isPayment ? item.bookingid : item.bookingid;
   const status = isPayment ? "paid" : item.bookingstatus;
@@ -54,40 +136,65 @@ const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
   const model = item.vehmodel || "";
   const plate = item.vehplate || "";
   const customerName = item.cusname || "Customer";
-  const totalAmount = isPayment
-    ? item.paymentamount
-    : item.totalprice || item.total_price || 0;
-  const date = isPayment ? item.paymentdate : item.bookingdate;
+
+  // Calculate total amount
+  // If isPayment, use recorded payment amount.
+  // If pending, calculate base + extras.
   const services = item.services || [];
+  const extras = item.extras || [];
+
+  // Calculate extras total from items that have a valid price
+  const extrasTotal = extras.reduce(
+    (sum, e) => sum + (Number(e.price) || 0),
+    0,
+  );
+
+  // Base total from booking record (services + travel cost)
+  // Assuming item.totalprice is the database stored total.
+  const baseTotal = Number(item.totalprice || item.total_price || 0);
+
+  // For display:
+  // If paid, show what was paid.
+  // If pending, show projected total (Base + Extras).
+  const displayTotal = isPayment
+    ? Number(item.paymentamount)
+    : baseTotal + extrasTotal;
+
+  const date = isPayment ? item.paymentdate : item.bookingdate;
 
   return (
-    <Card className="flex flex-col h-full">
-      <CardHeader>
+    <Card className="flex flex-col h-full bg-white shadow-sm border-gray-200">
+      <CardHeader className="pb-3 border-b border-gray-50">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg font-bold text-gray-900">
               BK-{bookingId.toString().padStart(4, "0")}
             </CardTitle>
-            <p className="text-sm text-gray-600">
-              {brand} {model} ({plate})
+            <p className="text-sm text-gray-500 font-medium">
+              {brand} {model} <span className="text-gray-300">|</span> {plate}
             </p>
           </div>
           <StatusBadge status={status} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 flex-1 flex flex-col">
+      <CardContent className="space-y-4 flex-1 flex flex-col pt-4">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-gray-600 uppercase font-semibold">
+          <div className="bg-gray-50 p-2 rounded-md">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-0.5">
               Customer
             </p>
-            <p className="text-sm font-medium">{customerName}</p>
+            <p
+              className="text-sm font-semibold text-gray-900 truncate"
+              title={customerName}
+            >
+              {customerName}
+            </p>
           </div>
-          <div>
-            <p className="text-xs text-gray-600 uppercase font-semibold">
+          <div className="bg-gray-50 p-2 rounded-md">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-0.5">
               Date
             </p>
-            <p className="text-sm font-medium">
+            <p className="text-sm font-semibold text-gray-900">
               {new Date(date).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
@@ -97,53 +204,93 @@ const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
           </div>
         </div>
 
-        <div className="flex-1">
-          <p className="text-xs text-gray-600 uppercase font-semibold mb-1">
-            Services
-          </p>
-          <div className="flex flex-wrap gap-1">
-            {services.map((s, idx) => (
-              <span
-                key={idx}
-                className="bg-gray-100 text-[10px] px-2 py-0.5 rounded text-gray-700 italic"
-              >
-                {typeof s === "string" ? s : s.serviceName || s.servicename}
-              </span>
-            ))}
-            {services.length === 0 && (
-              <span className="text-xs text-gray-400 italic">
-                No services listed
-              </span>
-            )}
+        <div className="flex-1 space-y-4">
+          {/* Services List */}
+          <div>
+            <p className="text-xs text-gray-500 uppercase font-semibold mb-2 flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-gray-400"></span>
+              Services
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {services.map((s, idx) => (
+                <span
+                  key={idx}
+                  className="bg-blue-50 text-blue-700 text-[11px] px-2 py-1 rounded font-medium border border-blue-100"
+                >
+                  {typeof s === "string" ? s : s.serviceName || s.servicename}
+                </span>
+              ))}
+              {services.length === 0 && (
+                <span className="text-xs text-gray-400 italic">
+                  No services listed
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Extras List */}
+          {extras.length > 0 && (
+            <div>
+              <p className="text-xs text-gray-500 uppercase font-semibold mb-2 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-orange-400"></span>
+                Extra Items
+              </p>
+              <div className="space-y-1.5">
+                {extras.map((extra) => (
+                  <ExtraItem
+                    key={extra.id}
+                    extra={extra}
+                    readOnly={isPayment}
+                    onUpdatePrice={async (price) => {
+                      await chargesService.updateItemPrice(extra.id, price);
+                      toast.success("Price updated");
+                      if (onRefresh) onRefresh();
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-3 mt-auto">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-700">
-              {isPayment ? "Amount Paid" : "Amount Due"}
+        <div className="bg-gray-50 rounded-lg p-4 mt-auto border border-gray-100">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              {isPayment ? "Amount Paid" : "Total Due"}
             </span>
-            <span className="text-lg font-bold text-gray-900">
-              Rs.{totalAmount}
+            <span className="text-xl font-bold text-gray-900">
+              Rs.{displayTotal.toFixed(2)}
             </span>
           </div>
+          {!isPayment && extrasTotal > 0 && (
+            <div className="text-right">
+              <p className="text-[10px] text-gray-500 font-medium">
+                Includes Rs.{extrasTotal.toFixed(2)} extra charges
+              </p>
+            </div>
+          )}
         </div>
 
         {isPayment && item.paymenttype && (
           <div>
-            <p className="text-xs text-gray-600 uppercase font-semibold mb-1">
+            <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
               Payment Method
             </p>
-            <p className="text-sm font-medium capitalize">{item.paymenttype}</p>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <p className="text-sm font-medium capitalize text-gray-900">
+                {item.paymenttype}
+              </p>
+            </div>
           </div>
         )}
 
         {isPayment && (
-          <div className="pt-2 mt-2 border-t border-gray-100">
+          <div className="pt-2">
             <Button
               variant="outline"
               size="sm"
-              className="w-full gap-2 border-dashed"
+              className="w-full gap-2 border-dashed h-9 text-xs"
               onClick={() => printReceipt(item)}
             >
               <Download size={14} /> Print Receipt
@@ -154,7 +301,7 @@ const PaymentCard = ({ item, onRecordPayment, isPayment }) => {
         {!isPayment && (
           <Button
             onClick={() => onRecordPayment(item)}
-            className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold"
+            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold h-10 transition-all"
           >
             <Plus size={16} />
             Record Payment
@@ -170,18 +317,17 @@ const PaymentManagementPage = () => {
   const [completedPayments, setCompletedPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [paymentData, setPaymentData] = useState({
     paymentamount: "",
     paymenttype: "",
     paymentdate: new Date().toISOString().split("T")[0],
   });
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      toast.dismiss();
       const [bookingsData, paymentsData] = await Promise.all([
         getBookings(),
         getAllPayments(),
@@ -194,10 +340,9 @@ const PaymentManagementPage = () => {
       );
       setPendingBookings(pending);
       setCompletedPayments(paymentsData);
-      setError(null);
     } catch (err) {
       console.error("Error fetching payment data:", err);
-      setError(
+      toast.error(
         "Failed to load payment information. Please check your connection.",
       );
     } finally {
@@ -211,8 +356,14 @@ const PaymentManagementPage = () => {
 
   const handleRecordPayment = (booking) => {
     setSelectedBooking(booking);
+    const extrasTotal = (booking.extras || []).reduce(
+      (sum, e) => sum + (Number(e.price) || 0),
+      0,
+    );
+    const baseTotal = Number(booking.totalprice || booking.total_price || 0);
+
     setPaymentData({
-      paymentamount: booking.totalprice || booking.total_price || "",
+      paymentamount: (baseTotal + extrasTotal).toFixed(2),
       paymenttype: "cash",
       paymentdate: new Date().toISOString().split("T")[0],
     });
@@ -240,56 +391,29 @@ const PaymentManagementPage = () => {
       });
 
       setSelectedBooking(null);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-
+      toast.success("Operation completed successfully");
       // Refresh data
       await fetchData();
     } catch (err) {
       console.error("Error recording payment:", err);
-      alert("Failed to record payment. Please try again.");
+      toast.error("Failed to record payment", {
+        description: "Please try again later",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Payment Management",
+    "Review Payments",
+    "Manage and record customer payments for completed services.",
+  );
+
+  if (loading) return <PageLoader message="Loading payment information..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Payment Management
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Record Payments</h1>
-          <p className="text-gray-500">
-            Manage and record customer payments for completed services.
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {showSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle size={20} className="text-green-600" />
-            <p className="text-green-800 font-medium">
-              Payment recorded successfully and booking marked as paid!
-            </p>
-          </div>
-        )}
-
+          <div className="mx-auto w-full max-w-7xl space-y-8">
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
             <TabsTrigger value="pending" className="font-bold">
@@ -309,6 +433,7 @@ const PaymentManagementPage = () => {
                     item={booking}
                     onRecordPayment={handleRecordPayment}
                     isPayment={false}
+                    onRefresh={fetchData}
                   />
                 ))}
               </div>
@@ -373,6 +498,106 @@ const PaymentManagementPage = () => {
               </CardHeader>
               <CardContent className="pt-6">
                 <form onSubmit={handleSubmitPayment} className="space-y-6">
+                  {/* Unpriced Extras Warning & Input */}
+                  {(selectedBooking.extras || []).some(
+                    (e) => !e.price || Number(e.price) === 0,
+                  ) && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
+                          <ShieldAlert size={16} />
+                          <span>Pending Extra Charges</span>
+                        </div>
+                        <p className="text-xs text-orange-600">
+                          The following items must be priced before recording
+                          payment.
+                        </p>
+
+                        <div className="space-y-2">
+                          {selectedBooking.extras
+                            .filter((e) => !e.price || Number(e.price) === 0)
+                            .map((extra) => (
+                              <div
+                                key={extra.id}
+                                className="flex items-center justify-between bg-white p-2 rounded border border-orange-100"
+                              >
+                                <span className="text-sm font-medium text-gray-700">
+                                  {extra.item_name}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-gray-400">
+                                    Rs.
+                                  </span>
+                                  <input
+                                    type="number"
+                                    className="w-20 p-1 text-right text-sm border rounded focus:ring-2 focus:ring-orange-500 outline-none"
+                                    placeholder="0.00"
+                                    onBlur={async (e) => {
+                                      const val = parseFloat(e.target.value);
+                                      if (val > 0) {
+                                        try {
+                                          await chargesService.updateItemPrice(
+                                            extra.id,
+                                            val,
+                                          );
+                                          toast.success(
+                                            `Price updated for ${extra.item_name}`,
+                                          );
+
+                                          // Update local state to reflect change and recalculate total
+                                          setSelectedBooking((prev) => {
+                                            const newExtras = prev.extras.map(
+                                              (x) =>
+                                                x.id === extra.id
+                                                  ? { ...x, price: val }
+                                                  : x,
+                                            );
+                                            const newExtrasTotal =
+                                              newExtras.reduce(
+                                                (sum, item) =>
+                                                  sum + (Number(item.price) || 0),
+                                                0,
+                                              );
+                                            const base = Number(
+                                              prev.totalprice ||
+                                              prev.total_price ||
+                                              0,
+                                            );
+
+                                            // Construct new object
+                                            const updated = {
+                                              ...prev,
+                                              extras: newExtras,
+                                            };
+
+                                            // Update payment amount input automatically
+                                            setPaymentData((d) => ({
+                                              ...d,
+                                              paymentamount: (
+                                                base + newExtrasTotal
+                                              ).toFixed(2),
+                                            }));
+
+                                            return updated;
+                                          });
+                                          // Also trigger main data refresh in background
+                                          fetchData();
+                                        } catch (err) {
+                                          console.error(
+                                            "Failed to update price",
+                                            err,
+                                          );
+                                          toast.error("Failed to update price");
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
                   {/* Payment Summary */}
                   <div className="bg-red-50 rounded-lg p-4 space-y-2 border border-red-100">
                     <div className="flex justify-between">
@@ -391,9 +616,17 @@ const PaymentManagementPage = () => {
                       </span>
                       <span className="text-xl font-black text-red-600">
                         Rs.
-                        {selectedBooking.totalprice ||
-                          selectedBooking.total_price ||
-                          0}
+                        {(
+                          Number(
+                            selectedBooking.totalprice ||
+                            selectedBooking.total_price ||
+                            0,
+                          ) +
+                          (selectedBooking.extras || []).reduce(
+                            (sum, e) => sum + (Number(e.price) || 0),
+                            0,
+                          )
+                        ).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -458,7 +691,12 @@ const PaymentManagementPage = () => {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={submitting}
+                      disabled={
+                        submitting ||
+                        (selectedBooking.extras || []).some(
+                          (e) => !e.price || Number(e.price) === 0,
+                        )
+                      }
                       className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold min-w-[140px]"
                     >
                       {submitting ? (
@@ -475,7 +713,7 @@ const PaymentManagementPage = () => {
           </div>
         )}
       </div>
-    </div>
+    
   );
 };
 

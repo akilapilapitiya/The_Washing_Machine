@@ -3,13 +3,19 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, User, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { IMAGE_BASE_URL } from "@/configs/env";
 import logo from "../assets/logo.svg";
+import NotificationBell from "./common/NotificationBell";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
+
+  useEffect(() => {
+    // Profile picture loaded from auth context
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,6 +84,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
+                <NotificationBell />
                 <div className="flex flex-col items-end hidden lg:flex">
                   <span className="text-sm font-bold text-gray-900 leading-none">
                     {user?.name || "User"}
@@ -86,8 +93,20 @@ const Navbar = () => {
                     Logged In
                   </span>
                 </div>
-                <Link to="/dashboard">
-                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-lg shadow-red-100 transition-all transform hover:-translate-y-0.5">
+                <Link to="/dashboard" className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform">
+                    {user?.profile_picture_url ? (
+                      <img
+                        src={`${IMAGE_BASE_URL}${user.profile_picture_url}`}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      user?.name?.charAt(0) || "U"
+                    )}
+                  </div>
+                  <Button className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-6 shadow-md transition-all">
                     Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -104,7 +123,7 @@ const Navbar = () => {
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="rounded-full bg-red-600 hover:bg-red-700 text-white px-6 shadow-md shadow-red-500/20 transition-all transform hover:-translate-y-0.5">
+                  <Button className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-6 shadow-md transition-all">
                     Sign Up
                   </Button>
                 </Link>
@@ -147,8 +166,17 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">
-                      {user?.name?.charAt(0) || "U"}
+                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg overflow-hidden border-2 border-white">
+                      {user?.profile_picture_url ? (
+                        <img
+                          src={`${IMAGE_BASE_URL}${user.profile_picture_url}`}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                          crossOrigin="anonymous"
+                        />
+                      ) : (
+                        user?.name?.charAt(0) || "U"
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-gray-900">{user?.name}</p>
@@ -156,13 +184,13 @@ const Navbar = () => {
                     </div>
                   </div>
                   <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg">
                       Go to Dashboard
                     </Button>
                   </Link>
                   <Button
                     variant="outline"
-                    className="w-full rounded-full border-gray-200"
+                    className="w-full rounded-lg border-gray-200"
                     onClick={() => {
                       handleLogout();
                     }}
@@ -175,13 +203,13 @@ const Navbar = () => {
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                     <Button
                       variant="outline"
-                      className="w-full rounded-full border-gray-200 text-gray-700"
+                      className="w-full rounded-lg border-gray-200 text-gray-700"
                     >
                       Log In
                     </Button>
                   </Link>
                   <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg shadow-red-100">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg">
                       Sign Up Now
                     </Button>
                   </Link>

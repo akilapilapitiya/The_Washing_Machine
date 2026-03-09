@@ -6,6 +6,7 @@ import {
   assertRequiredFields,
 } from "../utils/validation.util.js";
 import { NotFoundError, ForbiddenError } from "../utils/errors.util.js";
+import { createNotificationService } from "./notification.service.js";
 
 export const getAllPaymentsService = async () => {
   const result = await pool.query(
@@ -18,7 +19,10 @@ export const getAllPaymentsService = async () => {
       p.bookingid, 
       p.created_at, 
       p.updated_at,
-      c.cusname,
+      c.title,
+      c.first_name,
+      c.last_name,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
       c.custel,
       v.vehbrand,
       v.vehmodel,
@@ -30,7 +34,7 @@ export const getAllPaymentsService = async () => {
     JOIN customer c ON v.cusid = c.cusid
     LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
     LEFT JOIN service s ON sb.serviceid = s.serviceid
-    GROUP BY p.paymentid, c.cusname, c.custel, v.vehbrand, v.vehmodel, v.vehplate
+    GROUP BY p.paymentid, c.title, c.first_name, c.last_name, c.custel, v.vehbrand, v.vehmodel, v.vehplate
     ORDER BY p.created_at DESC
     `,
   );
@@ -165,6 +169,28 @@ export const createPaymentService = async ({
       `UPDATE booking SET bookingstatus = 'paid', updated_at = NOW() WHERE bookingid = $1`,
       [parseInt(bookingid)],
     );
+
+    // Customer Notification
+    // We need customer ID.
+    // Query joined with vehicle/customer to get customer ID from booking ID?
+    // We already checked booking existence: `SELECT bookingid FROM booking WHERE bookingid = $1`
+    // We need to fetch customer info.
+    const bookingInfo = await client.query(
+      `SELECT v.cusid FROM booking b JOIN vehicle v ON b.vehid = v.id WHERE b.bookingid = $1`,
+      [parseInt(bookingid)],
+    );
+
+    if (bookingInfo.rowCount > 0) {
+      const cusId = bookingInfo.rows[0].cusid;
+      await createNotificationService({
+        recipientId: cusId,
+        recipientRole: "customer",
+        title: "Payment Received",
+        message: `Payment of ${paymentamount} received for Booking #${bookingid}. Thank you!`,
+        type: "success",
+        bookingId: parseInt(bookingid),
+      });
+    }
 
     await client.query("COMMIT");
     return result.rows[0];

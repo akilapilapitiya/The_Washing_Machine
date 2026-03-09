@@ -20,12 +20,12 @@ const EmployeeProtectedRoute = ({ children, allowedRoles }) => {
 
   // Redirect to employee login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/employee/login" replace />;
+    return <Navigate to="/employee-login" replace />;
   }
 
   // Redirect to employee login if authenticated but not staff
   if (!isStaff) {
-    return <Navigate to="/employee/login" replace />;
+    return <Navigate to="/employee-login" replace />;
   }
 
   // Check for specific role requirements if provided

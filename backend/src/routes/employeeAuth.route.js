@@ -28,7 +28,7 @@ employeeAuthRouter.get("/roles", authMiddleware, employeeGetAllRoles);
 employeeAuthRouter.post(
   "/signup",
   authMiddleware,
-  restrictTo("owner"),
+  restrictTo("manager", "owner"),
   validateSchema(employeeValidator.createEmployee),
   employeeSignUp,
 );

@@ -25,7 +25,11 @@ export const AuthProvider = ({ children }) => {
           const raw = JSON.parse(storedUser);
 
           if (storedUserType === "customer") {
-            setUser(raw);
+            const normalized = {
+              ...raw,
+              id: raw.id ?? raw.cusid,
+            };
+            setUser(normalized);
             setUserType("customer");
             setIsAuthenticated(true);
             setLoading(false);
@@ -42,6 +46,7 @@ export const AuthProvider = ({ children }) => {
                   mobile: emp.emptel,
                   emptype: emp.emptype || emp.rolename || emp.role,
                   isAdmin: !!emp.is_admin || !!emp.isAdmin,
+                  profile_picture_url: emp.profile_picture_url,
                 };
                 setUser(updated);
                 setUserType("employee");
@@ -92,9 +97,17 @@ export const AuthProvider = ({ children }) => {
     if (type === "customer") {
       normalized = {
         id: userData.cusid ?? userData.id,
-        name: userData.cusname ?? userData.name,
+        firstName: userData.first_name ?? userData.firstName,
+        lastName: userData.last_name ?? userData.lastName,
+        name: userData.first_name
+          ? `${userData.first_name} ${userData.last_name}`.trim()
+          : (userData.cusname ?? userData.name),
         email: userData.cusemail ?? userData.email,
         mobile: userData.telephone ?? userData.mobile ?? userData.custel,
+        title: userData.title,
+        nic: userData.nic,
+        dob: userData.dob,
+        profile_picture_url: userData.profile_picture_url,
       };
     } else if (type === "employee") {
       // Extract emptype from employee data (check fallback names from API)
@@ -108,6 +121,7 @@ export const AuthProvider = ({ children }) => {
         emptype: employeeType, // Store emptype in user object
         isAdmin:
           !!userData.is_admin || !!userData.isAdmin || employeeType === "owner",
+        profile_picture_url: userData.profile_picture_url,
       };
     }
 
@@ -128,6 +142,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Capture userType BEFORE clearing state for correct redirection
+    const type = userType;
+
     setUser(null);
     setUserType(null);
     setEmptype(null); // Clear emptype on logout
@@ -137,9 +154,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("emptype"); // Remove emptype from localStorage
     localStorage.removeItem("token");
 
-    // Redirect based on user type
-    if (userType === "employee") {
-      navigate("/employee/login");
+    // Redirect based on captured user type
+    if (type === "employee") {
+      navigate("/employee-login");
     } else {
       navigate("/login");
     }

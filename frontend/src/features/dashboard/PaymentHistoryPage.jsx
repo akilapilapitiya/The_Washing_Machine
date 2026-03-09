@@ -14,15 +14,14 @@ import {
 import { getMyPayments } from "@/services/payment.service";
 import { printReceipt } from "@/utils/receipt";
 import { COLORS } from "@/lib/colors";
+import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const PaymentHistoryCard = ({ payment }) => {
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShortSL(dateString);
   };
 
   const vehicleName = payment.vehbrand
@@ -110,7 +109,6 @@ const PaymentHistoryCard = ({ payment }) => {
 const PaymentHistoryPage = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -119,7 +117,7 @@ const PaymentHistoryPage = () => {
         const data = await getMyPayments();
         setPayments(data);
       } catch (err) {
-        setError("Could not load payment history. Please refresh.");
+        toast.error("Could not load payment history. Please refresh.");
       } finally {
         setLoading(false);
       }
@@ -127,32 +125,16 @@ const PaymentHistoryPage = () => {
     fetchPayments();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Billing",
+    "Payment History",
+    "Access your complete transaction history and receipts.",
+  );
+
+  if (loading) return <PageLoader message="Loading payments..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto px-4 py-12 space-y-10 max-w-7xl">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Payment History
-          </h1>
-          <p className="text-gray-500">
-            Access your complete transaction history and receipts.
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p className="font-medium">{error}</p>
-          </div>
-        )}
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {payments.length > 0 ? (
@@ -177,7 +159,7 @@ const PaymentHistoryPage = () => {
           )}
         </div>
       </div>
-    </div>
+    
   );
 };
 

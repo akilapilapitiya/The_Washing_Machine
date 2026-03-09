@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Check,
-  Loader2,
-  AlertCircle,
-  Clock,
-  Tag,
-  Box,
-  Layers,
-} from "lucide-react";
+import { Check, Loader2, Clock, Tag, Box, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import * as vehicleService from "@/services/vehicle.service";
-import { COLORS } from "@/lib/colors"; // Keep for consistency if used elsewhere
+import { toast } from "sonner";
+import { COLORS } from "@/lib/colors";
+import BookingStepBar from "@/components/common/BookingStepBar";
 
 const ServiceSelectionPage = () => {
   const location = useLocation();
@@ -23,7 +17,6 @@ const ServiceSelectionPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const vehicleId = location.state?.vehicleId;
 
@@ -36,7 +29,7 @@ const ServiceSelectionPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
+        toast.dismiss();
 
         const [servicesData, vehicleData] = await Promise.all([
           serviceService.getServices(),
@@ -47,7 +40,7 @@ const ServiceSelectionPage = () => {
         setSelectedVehicle(vehicleData);
       } catch (err) {
         console.error("Failed to fetch booking data:", err);
-        setError("Failed to load services. Please try again.");
+        toast.error("Failed to load services. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -151,7 +144,7 @@ const ServiceSelectionPage = () => {
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-4">
           <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed h-10">
-            {service.servicedetails}
+            {service.short_description || service.servicedetails}
           </p>
 
           <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
@@ -166,9 +159,16 @@ const ServiceSelectionPage = () => {
                   </span>
                 </div>
               ) : (
-                <span className="text-base">
-                  Rs. {parseFloat(service.serviceprice).toLocaleString()}
-                </span>
+                <div className="flex flex-col items-end">
+                  {service.is_variable_price && (
+                    <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-none mb-0.5">
+                      Starts From
+                    </span>
+                  )}
+                  <span className="text-base">
+                    Rs. {parseFloat(service.serviceprice).toLocaleString()}
+                  </span>
+                </div>
               )}
             </div>
             {type === "package" ? (
@@ -184,9 +184,9 @@ const ServiceSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={1} />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-red-600">Step 2 of 4</p>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Select Services
           </h1>
@@ -194,19 +194,6 @@ const ServiceSelectionPage = () => {
             Choose a main package and any optional add-ons.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <div className="flex-1">
-              <p className="text-red-800 font-medium text-sm">Error</p>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
 
         {/* Selected Vehicle Summary */}
         {selectedVehicle && (
@@ -265,7 +252,7 @@ const ServiceSelectionPage = () => {
         {/* Add-ons Section */}
         <div className="space-y-4 pt-4">
           <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-            <Layers size={20} className="text-blue-600" />
+            <Layers size={20} className="text-gray-500" />
             <h2 className="text-lg font-bold text-gray-900">
               Optional Add-ons
             </h2>

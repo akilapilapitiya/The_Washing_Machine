@@ -11,6 +11,11 @@ export const getAllEmployees = async () => {
   return response.data?.data?.employees || [];
 };
 
+export const getEmployee = async (id) => {
+  const response = await api.get(`/employee/${id}`);
+  return response.data?.data?.employee;
+};
+
 export const getEmployees = getAllEmployees;
 
 export const addEmployee = async (data) => {
@@ -25,4 +30,30 @@ export const updateEmployee = async (id, data) => {
 
 export const deleteEmployee = async (id) => {
   await api.delete(`/employee/${id}`);
+};
+
+export const updateEmployeeProfilePicture = async (id, file) => {
+  const formData = new FormData();
+  formData.append("profile_picture", file);
+  const response = await api.patch(
+    `/employee/${id}/profile-picture`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
+  return response.data?.data?.employee;
+};
+
+export const changePassword = async (id, oldPassword, newPassword) => {
+  const response = await api.patch(`/employee/${id}/change-password`, {
+    oldPassword,
+    newPassword,
+  });
+  return response.data;
+};
+
+export const getRoles = async () => {
+  const response = await api.get("/employee/roles");
+  return response.data;
 };

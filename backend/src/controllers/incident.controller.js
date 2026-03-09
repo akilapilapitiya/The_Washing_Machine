@@ -41,9 +41,9 @@ export const getIncidents = async (req, res, next) => {
     const result = await pool.query(`
       SELECT 
         i.*,
-        c.cusname as customer_name,
+        TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as customer_name,
         c.cusemail as customer_email,
-        e.empname as employee_name
+        e.first_name || ' ' || e.last_name as employee_name
       FROM incident i
       LEFT JOIN customer c ON i.customer_id = c.cusid
       LEFT JOIN employee e ON i.employee_id = e.empid

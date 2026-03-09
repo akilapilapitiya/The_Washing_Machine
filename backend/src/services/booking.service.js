@@ -11,6 +11,7 @@ import {
 } from "../utils/errors.util.js";
 import * as scheduleService from "./schedule.service.js";
 import { createNotificationService } from "./notification.service.js";
+import { checkDateIsHoliday } from "./systemHoliday.service.js";
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -30,17 +31,41 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
         b.vehid,
         b.totalprice,
         v.cusid,
-        c.cusname,
+        c.title,
+        c.first_name,
+        c.last_name,
+        TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
         c.custel as cusphone,
         c.cusemail,
         v.vehbrand,
         v.vehmodel,
         v.vehplate,
-        json_agg(json_build_object('serviceId', sb.serviceid, 'serviceName', s.servicename, 'servicePrice', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
+        v.vehcolor,
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'serviceId', sb.serviceid, 
+              'servicename', s.servicename, 
+              'serviceprice', s.serviceprice
+            )
+          ) FILTER (WHERE sb.serviceid IS NOT NULL),
+          '[]'::json
+        ) as services,
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', be.id,
+              'item_name', be.item_name,
+              'description', be.description,
+              'price', be.price
+            )
+          ) FILTER (WHERE be.id IS NOT NULL),
+          '[]'::json
+        ) as extras,
         ea.empid as assigned_empid,
-        e.empname as assigned_empname,
+        e.first_name || ' ' || e.last_name as assigned_empname,
         ep.empid as preferred_empid,
-        pe.empname as preferred_empname
+        pe.first_name || ' ' || pe.last_name as preferred_empname
       FROM booking b
       LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
       LEFT JOIN service s ON sb.serviceid = s.serviceid
@@ -50,6 +75,7 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       LEFT JOIN employee e ON ea.empid = e.empid
       LEFT JOIN employeepreference ep ON b.bookingid = ep.bookingid
       LEFT JOIN employee pe ON ep.empid = pe.empid
+      LEFT JOIN booking_extras be ON b.bookingid = be.booking_id
     `;
 
     let queryParams = [];
@@ -78,17 +104,22 @@ export const getAllBookingsService = async (userId, userRole, userEmptype) => {
       b.vehid, 
       b.totalprice,
       v.cusid,
-      c.cusname,
+      c.title,
+      c.first_name,
+      c.last_name,
       c.custel,
       c.cusemail,
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
+      v.vehcolor,
       v.id,
       ea.empid,
-      e.empname,
+      e.first_name,
+      e.last_name,
       ep.empid,
-      pe.empname
+      pe.first_name,
+      pe.last_name
       ORDER BY b.bookingdate DESC, b.bookingstarttime DESC`;
 
     const result = await client.query(query, queryParams);
@@ -116,16 +147,24 @@ export const getBookingService = async (
       b.bookinglocationlongitude,
       b.vehid,
       b.totalprice as bookingtotalprice,
+      b.travel_distance,
+      b.travel_duration,
+      b.travel_cost,
       v.cusid,
       v.vehmileage,
-      c.cusname,
+      c.title,
+      c.first_name,
+      c.last_name,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
       c.custel as cusphone,
       c.cusemail,
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
-      e.empname,
-      json_agg(json_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services
+      v.vehcolor,
+      e.first_name || ' ' || e.last_name as empname,
+      json_agg(DISTINCT jsonb_build_object('serviceName', s.servicename, 'price', s.serviceprice)) FILTER (WHERE sb.serviceid IS NOT NULL) as services,
+      json_agg(DISTINCT jsonb_build_object('id', be.id, 'item_name', be.item_name, 'description', be.description, 'price', be.price)) FILTER (WHERE be.id IS NOT NULL) as extras
     FROM booking b
     LEFT JOIN servicesbooked sb ON b.bookingid = sb.bookingid
     LEFT JOIN service s ON sb.serviceid = s.serviceid
@@ -133,8 +172,9 @@ export const getBookingService = async (
     LEFT JOIN customer c ON v.cusid = c.cusid
     LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
     LEFT JOIN employee e ON ea.empid = e.empid
+    LEFT JOIN booking_extras be ON b.bookingid = be.booking_id
     WHERE b.bookingid = $1
-    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.empname
+    GROUP BY b.bookingid, v.cusid, c.cusid, v.id, e.first_name, e.last_name, c.title, c.first_name, c.last_name
     `,
     [bookingId],
   );
@@ -168,6 +208,9 @@ export const getBookingService = async (
   return booking;
 };
 
+import { getTravelDetails } from "../logics/geo.logic.js";
+import { calculateTravelCost } from "../logics/pricing.logic.js";
+
 export const createBookingService = async ({
   customerId,
   status,
@@ -175,10 +218,13 @@ export const createBookingService = async ({
   startTime,
   locationLatitude,
   locationLongitude,
+  locationType = "branch",
   vehicleId,
   services,
   userRole,
   employeeId,
+  travelDistance,
+  travelDuration,
 }) => {
   assertRequiredFields(
     {
@@ -212,14 +258,22 @@ export const createBookingService = async ({
     throw new ValidationError("Booking date cannot be in the past");
   }
 
+  // Check if the booking date is a system holiday
+  const holiday = await checkDateIsHoliday(date);
+  if (holiday) {
+    throw new ValidationError(
+      `Bookings are not available on ${holiday.holidayname} (System Holiday)`,
+    );
+  }
+
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // 1. Calculate duration and price
+    // 1. Calculate Service Duration and Base Price
     const servicesCheck = await client.query(
-      "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+      "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
       [services],
     );
 
@@ -234,22 +288,67 @@ export const createBookingService = async ({
       throw new ValidationError("You can only select one Service Package.");
     }
 
-    if (servicesCheck.rowCount !== services.length) {
-      throw new NotFoundError("One or more service IDs do not exist");
-    }
-
-    let totalDurationSeconds = 0;
-    let totalPrice = 0;
+    let serviceDurationSeconds = 0;
+    let servicePrice = 0;
 
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
-      totalDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
+      serviceDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
 
       const price = s.has_offer
         ? parseFloat(s.offer_price)
         : parseFloat(s.serviceprice);
-      totalPrice += price;
+      servicePrice += price;
     });
+
+    // 2. Calculate Travel Details & Cost
+    let travelDetails = { distance: 0, duration: 0 };
+
+    // Use frontend values if available (and valid type)
+    if (
+      (travelDistance !== undefined || travelDistance !== null) &&
+      (travelDuration !== undefined || travelDuration !== null) &&
+      locationType === "home"
+    ) {
+      travelDetails = {
+        distance: Number(travelDistance) || 0,
+        duration: Number(travelDuration) || 0,
+      };
+    } else {
+      // Fallback to backend calculation
+      travelDetails = await getTravelDetails(
+        locationLatitude,
+        locationLongitude,
+        locationType,
+      );
+    }
+
+    const travelCost = await calculateTravelCost(travelDetails.distance);
+
+    // Total Price = Service Price + Travel Cost
+    const totalPrice = servicePrice + Number(travelCost);
+
+    // 3. Calculate Total Duration with Round Trip & Buffer
+    // Fetch buffer settings
+    const settingsRes = await client.query(
+      "SELECT value FROM sys_settings WHERE key = 'travel_pricing_rules'",
+    );
+    let bufferMinutes = 30; // Default
+    if (settingsRes.rowCount > 0) {
+      const rules = JSON.parse(settingsRes.rows[0].value);
+      if (rules.buffer_minutes !== undefined)
+        bufferMinutes = Number(rules.buffer_minutes);
+    }
+
+    // Total Duration = Service Duration + (Travel Duration * 2) + Buffer
+    // Travel duration is one-way, so we double it for round trip (go + come back)
+    const travelSeconds = travelDetails.duration * 60;
+    const roundTripSeconds = travelSeconds * 2;
+    const bufferSeconds = bufferMinutes * 60;
+
+    // If not home visit, travel & buffer might be 0 or small, but logic holds if distance is 0.
+    const totalDurationSeconds =
+      serviceDurationSeconds + roundTripSeconds + bufferSeconds;
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
@@ -260,9 +359,9 @@ export const createBookingService = async ({
     const endS = endSeconds % 60;
     const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:${String(endS).padStart(2, "0")}`;
 
-    // 2. Validate vehicle
+    // 3. Validate vehicle
     const vehicleCheck = await client.query(
-      "SELECT id, cusid FROM vehicle WHERE id = $1",
+      "SELECT id, cusid, vehbrand, vehmodel, vehplate FROM vehicle WHERE id = $1",
       [vehicleId],
     );
     if (vehicleCheck.rowCount === 0)
@@ -270,8 +369,16 @@ export const createBookingService = async ({
     if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
       throw new ForbiddenError("You can only book with your own vehicles");
     }
+    const vehicleDetails = vehicleCheck.rows[0];
 
-    // 3. Assign Employee
+    // Fetch Customer Details for Notification
+    const customerRes = await client.query(
+      "SELECT first_name, last_name, custel FROM customer WHERE cusid = $1",
+      [customerId],
+    );
+    const customerDetails = customerRes.rows[0];
+
+    // 4. Assign Employee
     let assignedEmpId = employeeId;
     if (!employeeId || employeeId === "any") {
       const availabilityQuery = `
@@ -281,26 +388,33 @@ export const createBookingService = async ({
           SELECT ea.empid FROM employeeassigned ea
           JOIN schedule s ON ea.bookingid = s.bookingid
           WHERE s.schedulestartdate = $1::date
-          AND NOT (s.scheduleendtime <= $2::time OR s.schedulestarttime >= $3::time)
+          AND NOT (s.scheduleendtime <= ($2::time - ($4 * interval '1 minute')) OR s.schedulestarttime >= $3::time)
         )
         AND e.empid NOT IN (
           SELECT el.empid FROM employeeleave el 
           WHERE $1::date BETWEEN el.leavestartdate AND el.leaveenddate
         )
-        LIMIT 1;
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
       `;
       const availResult = await client.query(availabilityQuery, [
         date,
         startTime,
         endTime,
+        bufferMinutes,
       ]);
-      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to sys account
+      assignedEmpId = availResult.rows[0]?.empid || 1; // Fallback to system account
     }
 
-    // 4. Insert booking
+    // 5. Insert booking
     const bookingResult = await client.query(
-      `INSERT INTO booking (bookingstatus, bookingdate, bookingstarttime, bookingendtime, bookinglocationlatitude, bookinglocationlongitude, vehid, totalprice)
-       VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8) RETURNING bookingid`,
+      `INSERT INTO booking (
+         bookingstatus, bookingdate, bookingstarttime, bookingendtime, 
+         bookinglocationlatitude, bookinglocationlongitude, vehid, totalprice,
+         travel_distance, travel_duration, travel_cost
+       )
+       VALUES ($1, $2::date, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       RETURNING bookingid`,
       [
         status,
         date,
@@ -310,19 +424,28 @@ export const createBookingService = async ({
         locationLongitude,
         vehicleId,
         totalPrice,
+        travelDetails.distance,
+        travelDetails.duration,
+        travelCost,
       ],
     );
     const bookingId = bookingResult.rows[0].bookingid;
 
-    // 5. Link Services
+    // 6. Link Services with Snapshot
     for (const sId of services) {
+      const serviceData = servicesCheck.rows.find((s) => s.serviceid === sId);
+      const snapshotPrice = serviceData.has_offer
+        ? parseFloat(serviceData.offer_price)
+        : parseFloat(serviceData.serviceprice);
+
       await client.query(
-        "INSERT INTO servicesbooked (bookingid, serviceid) VALUES ($1, $2)",
-        [bookingId, sId],
+        `INSERT INTO servicesbooked (bookingid, serviceid, service_name, service_price_at_booking) 
+         VALUES ($1, $2, $3, $4)`,
+        [bookingId, sId, serviceData.servicename, snapshotPrice],
       );
     }
 
-    // 6. Assign Staff and Record Preference
+    // 7. Assign Staff and Record Preference
     if (employeeId && employeeId !== "any") {
       await client.query(
         "INSERT INTO employeepreference (bookingid, empid) VALUES ($1, $2)",
@@ -335,7 +458,7 @@ export const createBookingService = async ({
       [bookingId, assignedEmpId],
     );
 
-    // 7. Schedule
+    // 8. Schedule
     const scheduleId = scheduleService.generateScheduleId("B");
     await client.query(
       `INSERT INTO schedule (scheduleid, schedulestartdate, scheduleenddate, schedulestarttime, scheduleendtime, bookingid)
@@ -343,11 +466,55 @@ export const createBookingService = async ({
       [scheduleId, date, startTime, endTime, bookingId],
     );
 
+    // Customer Notification
+    await createNotificationService({
+      recipientId: customerId,
+      recipientRole: "customer",
+      title: "Booking Confirmed",
+      message: `Your booking (ID: ${bookingId}) has been successfully created related to ${vehicleId} on ${date} at ${startTime}.`,
+      type: "success",
+      bookingId: bookingId,
+    });
+
+    // Employee Notification (if assigned and not 'any')
+    if (assignedEmpId && assignedEmpId !== 1) {
+      const serviceNames = servicesCheck.rows
+        .map((s) => s.servicename)
+        .join(", ");
+      const vehInfo = `${vehicleDetails.vehbrand} ${vehicleDetails.vehmodel} (${vehicleDetails.vehplate})`;
+      const locationInfo =
+        locationType === "home"
+          ? `[Google Maps](https://www.google.com/maps?q=${locationLatitude},${locationLongitude})`
+          : "Branch Visit";
+      const customerName = `${customerDetails.first_name} ${customerDetails.last_name}`;
+
+      const msg = [
+        `*Customer:* ${customerName}`,
+        `*Vehicle:* ${vehInfo}`,
+        `*Service:* ${serviceNames}`,
+        `*Date:* ${date}`,
+        `*Time:* ${startTime}`,
+        `*Location:* ${locationInfo}`,
+        `*Contact:* ${customerDetails.custel}`,
+      ].join("\n");
+
+      await createNotificationService({
+        recipientId: assignedEmpId,
+        recipientRole: "employee",
+        title: "New Job Assigned",
+        message: msg,
+        type: "info",
+        bookingId: bookingId,
+      });
+    }
+
     await client.query("COMMIT");
     return {
       bookingId,
       endTime,
       totalPrice,
+      travelCost,
+      travelDistance: travelDetails.distance,
       assignedEmployeeId: assignedEmpId,
     };
   } catch (error) {
@@ -380,7 +547,8 @@ export const updateBookingService = async (
     await client.query("BEGIN");
 
     const currentRes = await client.query(
-      `SELECT b.*, v.cusid, ea.empid as current_empid FROM booking b
+      `SELECT b.*, v.cusid, v.vehbrand, v.vehmodel, v.vehplate, ea.empid as current_empid 
+       FROM booking b
        JOIN vehicle v ON b.vehid = v.id
        LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
        WHERE b.bookingid = $1`,
@@ -393,6 +561,13 @@ export const updateBookingService = async (
     if (userRole === "customer" && current.cusid !== userId) {
       throw new ForbiddenError("Unauthorized update");
     }
+
+    // Fetch Customer Details
+    const customerRes = await client.query(
+      "SELECT first_name, last_name, custel FROM customer WHERE cusid = $1",
+      [current.cusid],
+    );
+    const customerDetails = customerRes.rows[0];
 
     const { status = null, date, startTime, services, employeeId } = updates;
 
@@ -420,6 +595,18 @@ export const updateBookingService = async (
       });
     }
 
+    // Status Change: In Progress
+    if (status === "inProgress" && current.bookingstatus !== "inProgress") {
+      await createNotificationService({
+        recipientId: current.cusid,
+        recipientRole: "customer",
+        title: "Service Started",
+        message: `Your vehicle service (ID: ${bookingId}) has started.`,
+        type: "info",
+        bookingId: bookingId,
+      });
+    }
+
     const newDate = date || current.bookingdate;
     const newStartTime = startTime || current.bookingstarttime;
 
@@ -428,12 +615,15 @@ export const updateBookingService = async (
     if (employeeId && employeeId !== current.current_empid) {
       // Validate new employee availability (simplified check)
       const check = await client.query(
-        "SELECT empname FROM employee WHERE empid = $1",
+        "SELECT first_name || ' ' || last_name as empname FROM employee WHERE empid = $1",
         [employeeId],
       );
       if (check.rowCount === 0) throw new NotFoundError("Employee not found");
 
       const empName = check.rows[0].empname;
+      console.log(
+        `[DEBUG] Reassigning Booking ${bookingId} from ${current.current_empid} to ${employeeId}`,
+      );
       finalEmpId = employeeId;
 
       await client.query("DELETE FROM employeeassigned WHERE bookingid = $1", [
@@ -444,12 +634,79 @@ export const updateBookingService = async (
         [bookingId, employeeId],
       );
 
-      // Reassignment Notification
+      // Reassignment Notification to Customer
       await createNotificationService({
         recipientId: current.cusid,
         recipientRole: "customer",
         title: "Employee Reassigned",
         message: `Your booking (ID: ${bookingId}) has been reassigned to ${empName}.`,
+        type: "info",
+        bookingId: bookingId,
+      });
+
+      // Notification to Previous Employee (if exists and not system account)
+      if (current.current_empid && current.current_empid !== 1) {
+        console.log(
+          `[DEBUG] Sending Job Removed Notification to Previous EmpID: ${current.current_empid}`,
+        );
+        const prevMsg = [
+          `*Customer:* ${customerDetails.first_name} ${customerDetails.last_name}`,
+          `*Vehicle:* ${current.vehbrand} ${current.vehmodel} (${current.vehplate})`,
+          `*Date:* ${current.bookingdate}`,
+          `*Time:* ${current.bookingstarttime}`,
+        ].join("\n");
+
+        await createNotificationService({
+          recipientId: current.current_empid,
+          recipientRole: "employee",
+          title: "Job Reassigned (Removed)",
+          message: prevMsg,
+          type: "warning",
+          bookingId: bookingId,
+        });
+      }
+
+      // Reassignment Notification to New Employee
+      // Resolve services to get names
+      let currentServices = services;
+      if (!currentServices) {
+        const srvRes = await client.query(
+          "SELECT serviceid FROM servicesbooked WHERE bookingid = $1",
+          [bookingId],
+        );
+        currentServices = srvRes.rows.map((s) => s.serviceid);
+      }
+
+      const srvCheck = await client.query(
+        "SELECT servicename FROM service WHERE serviceid = ANY($1)",
+        [currentServices],
+      );
+      const serviceNames = srvCheck.rows.map((s) => s.servicename).join(", ");
+
+      const locationInfo =
+        current.bookinglocationlatitude && current.bookinglocationlongitude
+          ? `[Google Maps](https://www.google.com/maps?q=${current.bookinglocationlatitude},${current.bookinglocationlongitude})`
+          : "Branch Visit";
+
+      const vehInfo = `${current.vehbrand} ${current.vehmodel} (${current.vehplate})`;
+      const customerName = `${customerDetails.first_name} ${customerDetails.last_name}`;
+
+      const msg = [
+        `*Customer:* ${customerName}`,
+        `*Vehicle:* ${vehInfo}`,
+        `*Date:* ${newDate}`,
+        `*Time:* ${newStartTime}`,
+      ].join("\n");
+
+      console.log(
+        `[DEBUG] Sending Reassignment Notification to EmpID: ${finalEmpId}`,
+      );
+
+      await createNotificationService({
+        recipientId: finalEmpId,
+        recipientRole: "employee",
+        title: "New Job Assigned",
+        message: msg,
         type: "info",
         bookingId: bookingId,
       });
@@ -468,9 +725,19 @@ export const updateBookingService = async (
     let endTime = current.bookingendtime;
     let totalPrice = current.totalprice;
 
+    const settingsRes = await client.query(
+      "SELECT value FROM sys_settings WHERE key = 'travel_pricing_rules'",
+    );
+    let bufferMinutes = 30;
+    if (settingsRes.rowCount > 0) {
+      const rules = JSON.parse(settingsRes.rows[0].value);
+      if (rules.buffer_minutes !== undefined)
+        bufferMinutes = Number(rules.buffer_minutes);
+    }
+
     if (services || startTime) {
       const srvCheck = await client.query(
-        "SELECT servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+        "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
 
@@ -492,8 +759,16 @@ export const updateBookingService = async (
         totalPrice += price;
       });
 
+      // Calculate Duration
+      const travelDuration = current.travel_duration || 0;
+      const roundTripSeconds = travelDuration * 60 * 2;
+      const bufferSeconds = bufferMinutes * 60;
+
       const [sh, sm, ss] = newStartTime.split(":").map(Number);
-      const endSec = sh * 3600 + sm * 60 + (ss || 0) + duration;
+      const startSec = sh * 3600 + sm * 60 + (ss || 0);
+      const totalDurationSec = duration + roundTripSeconds + bufferSeconds;
+
+      const endSec = startSec + totalDurationSec;
       endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;
     }
 
@@ -504,6 +779,7 @@ export const updateBookingService = async (
       newStartTime,
       endTime,
       bookingId,
+      bufferMinutes,
     );
     if (!isAvail) {
       // throw new ValidationError("Conflict detected");
@@ -519,10 +795,17 @@ export const updateBookingService = async (
       await client.query("DELETE FROM servicesbooked WHERE bookingid = $1", [
         bookingId,
       ]);
+
       for (const sId of services) {
+        const serviceData = srvCheck.rows.find((s) => s.serviceid === sId);
+        const snapshotPrice = serviceData.has_offer
+          ? parseFloat(serviceData.offer_price)
+          : parseFloat(serviceData.serviceprice);
+
         await client.query(
-          "INSERT INTO servicesbooked (bookingid, serviceid) VALUES ($1, $2)",
-          [bookingId, sId],
+          `INSERT INTO servicesbooked (bookingid, serviceid, service_name, service_price_at_booking) 
+           VALUES ($1, $2, $3, $4)`,
+          [bookingId, sId, serviceData.servicename, snapshotPrice],
         );
       }
     }

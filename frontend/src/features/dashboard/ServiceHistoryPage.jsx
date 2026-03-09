@@ -10,12 +10,15 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle,
   History,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getBookings } from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
+import { formatDateShortSL } from "@/lib/dateFormat";
+import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -44,9 +47,15 @@ const StatusBadge = ({ status }) => {
 };
 
 const HistoryCard = ({ booking }) => {
-  const servicesList = booking.services
-    ? booking.services.map((s) => s.serviceName).join(", ")
-    : "No services selected";
+  // Improved null checking for services with property name fallbacks
+  const servicesList =
+    booking.services &&
+      Array.isArray(booking.services) &&
+      booking.services.length > 0
+      ? booking.services
+        .map((s) => s.servicename || s.serviceName || "Unknown Service")
+        .join(", ")
+      : "Services not available";
 
   const vehicleName = booking.vehbrand
     ? `${booking.vehbrand} ${booking.vehmodel}`
@@ -56,12 +65,8 @@ const HistoryCard = ({ booking }) => {
   const location = "Main Branch - Pannipitiya";
   const employee = booking.assigned_employee || "Service Team";
 
-  const totalPrice = booking.services
-    ? booking.services.reduce(
-        (sum, s) => sum + (Number(s.servicePrice) || 0),
-        0,
-      )
-    : 0;
+  // Use totalprice from booking (already calculated at booking time)
+  const totalPrice = Number(booking.totalprice) || 0;
 
   const formattedTotalPrice =
     totalPrice > 0 ? `Rs. ${totalPrice.toLocaleString()}` : "---";
@@ -91,13 +96,7 @@ const HistoryCard = ({ booking }) => {
               size={16}
               className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
             />
-            <span>
-              {new Date(booking.bookingdate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
+            <span>{formatDateShortSL(booking.bookingdate)}</span>
           </div>
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <User
@@ -132,7 +131,6 @@ const HistoryCard = ({ booking }) => {
 const ServiceHistoryPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -141,7 +139,7 @@ const ServiceHistoryPage = () => {
         const data = await getBookings();
         setBookings(data || []);
       } catch (err) {
-        setError("Failed to load your service history. Please try again.");
+        toast.error("Failed to load your service history. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -154,35 +152,16 @@ const ServiceHistoryPage = () => {
     (b) => b.bookingstatus === "completed" || b.bookingstatus === "paid",
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className={`h-12 w-12 animate-spin ${COLORS.icon.brand}`} />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Activity Logs",
+    "Service History",
+    "A record of all your past vehicle maintenance and detailing.",
+  );
+
+  if (loading) return <PageLoader message="Loading history..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p
-            className={`text-sm uppercase tracking-wide ${COLORS.text.brand} font-semibold`}
-          >
-            Activity Logs
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">Service History</h1>
-          <p className="text-gray-500">
-            A record of all your past vehicle maintenance and detailing.
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
-            <AlertCircle size={20} />
-            <p>{error}</p>
-          </div>
-        )}
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">
@@ -217,7 +196,7 @@ const ServiceHistoryPage = () => {
           )}
         </div>
       </div>
-    </div>
+    
   );
 };
 

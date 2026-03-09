@@ -142,8 +142,8 @@ const Footer = ({ id }) => {
               reserved.
             </p>
             <Link
-              to="/employee/login"
-              className="text-blue-400 hover:text-blue-300 transition-colors"
+              to="/employee-login"
+              className="text-gray-400 hover:text-white transition-colors text-sm"
             >
               Employee Portal →
             </Link>

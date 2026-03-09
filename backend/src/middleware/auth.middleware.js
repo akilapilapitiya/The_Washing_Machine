@@ -41,14 +41,14 @@ export const authMiddleware = async (req, res, next) => {
     let userExists;
     if (decoded.role === "customer") {
       const result = await pool.query(
-        "SELECT cusid FROM customer WHERE cusid = $1",
-        [decoded.id]
+        "SELECT cusid FROM customer WHERE cusid = $1 AND is_active = true",
+        [decoded.id],
       );
       userExists = result.rowCount > 0;
     } else if (decoded.role === "employee") {
       const result = await pool.query(
         "SELECT empid FROM employee WHERE empid = $1",
-        [decoded.id]
+        [decoded.id],
       );
       userExists = result.rowCount > 0;
     }

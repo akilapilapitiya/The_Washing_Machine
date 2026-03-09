@@ -1,25 +1,31 @@
 import React from "react";
+import logo3M from "../../assets/partnerSection/3m.png";
+import logoAutoGlym from "../../assets/partnerSection/autoglym.png";
+import logoCastrol from "../../assets/partnerSection/castrol.svg";
+import logoChemicalGuys from "../../assets/partnerSection/chemical-guys.png";
+import logoLukoil from "../../assets/partnerSection/lukoil.png";
+import logoMeguiars from "../../assets/partnerSection/meguiars.png";
+import logoMobil from "../../assets/partnerSection/mobil.jpeg";
+import logoNipponPaint from "../../assets/partnerSection/nippon-paint.png";
+import logoSikkens from "../../assets/partnerSection/sikkens.jpeg";
+import logoValvoline from "../../assets/partnerSection/valvoline.png";
+import logoWilita from "../../assets/partnerSection/wilita.jpeg";
+import logoWurth from "../../assets/partnerSection/wurth.png";
 
 const PartnerSection = ({ id }) => {
   const partners = [
-    { name: "3M", logo: "/src/assets/partnerSection/3m.png" },
-    { name: "AutoGlym", logo: "/src/assets/partnerSection/autoglym.png" },
-    { name: "Castrol", logo: "/src/assets/partnerSection/castrol.svg" },
-    {
-      name: "Chemical Guys",
-      logo: "/src/assets/partnerSection/chemical-guys.png",
-    },
-    { name: "Lukoil", logo: "/src/assets/partnerSection/lukoil.png" },
-    { name: "Meguiars", logo: "/src/assets/partnerSection/meguiars.png" },
-    { name: "Mobil", logo: "/src/assets/partnerSection/mobil.jpeg" },
-    {
-      name: "Nippon Paint",
-      logo: "/src/assets/partnerSection/nippon-paint.png",
-    },
-    { name: "Sikkens", logo: "/src/assets/partnerSection/sikkens.jpeg" },
-    { name: "Valvoline", logo: "/src/assets/partnerSection/valvoline.png" },
-    { name: "Wilita", logo: "/src/assets/partnerSection/wilita.jpeg" },
-    { name: "Wurth", logo: "/src/assets/partnerSection/wurth.png" },
+    { name: "3M", logo: logo3M },
+    { name: "AutoGlym", logo: logoAutoGlym },
+    { name: "Castrol", logo: logoCastrol },
+    { name: "Chemical Guys", logo: logoChemicalGuys },
+    { name: "Lukoil", logo: logoLukoil },
+    { name: "Meguiars", logo: logoMeguiars },
+    { name: "Mobil", logo: logoMobil },
+    { name: "Nippon Paint", logo: logoNipponPaint },
+    { name: "Sikkens", logo: logoSikkens },
+    { name: "Valvoline", logo: logoValvoline },
+    { name: "Wilita", logo: logoWilita },
+    { name: "Wurth", logo: logoWurth },
   ];
 
   return (
