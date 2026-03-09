@@ -19,20 +19,21 @@ import * as vehicleService from "@/services/vehicle.service";
 import * as bookingService from "@/services/booking.service";
 import { COLORS } from "@/lib/colors";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import BookingStepBar from "@/components/common/BookingStepBar";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [data, setData] = useState({
     vehicle: null,
     services: [],
   });
 
-  const { vehicleId, serviceIds, locationId, employeeId, date, time } =
-    location.state || {};
+  const { vehicleId, serviceIds, locationData, employeeId, date, time } =
+    location.state || {}; // locationData now holds { id, type, lat, lng, distance }
 
   useEffect(() => {
     if (!vehicleId || !serviceIds) {
@@ -58,7 +59,7 @@ const BookingConfirmationPage = () => {
         });
       } catch (err) {
         console.error("Failed to fetch confirmation data:", err);
-        setError("Failed to load booking details.");
+        toast.error("Failed to load booking details.");
       } finally {
         setLoading(false);
       }
@@ -67,32 +68,46 @@ const BookingConfirmationPage = () => {
     fetchData();
   }, [vehicleId, serviceIds, navigate]);
 
-  const totalPrice = data.services.reduce(
+  const serviceTotal = data.services.reduce(
     (sum, s) => sum + parseFloat(s.serviceprice),
     0,
   );
 
+  // We will assume backend calculates travel cost, but for frontend display we might need it.
+  // For now, let's keep it simple and just show "Calculated at checkout" or similar if we haven't fetched it.
+  // OR, we can implement a quick fetch?
+  // Let's stick to the plan: Backend does the heavy lifting. Frontend checks are for radius.
+  // We can show "Base Price" and "Travel Fee" separately later.
+  const totalPrice = serviceTotal + (locationData?.travelCost || 0);
+
   const handleConfirm = async () => {
     try {
       setSubmitting(true);
-      setError(null);
 
       const bookingData = {
         vehicleId: parseInt(vehicleId),
         services: serviceIds,
         date,
         startTime: time,
-        locationLatitude: 6.9271, // Default to Colombo for now
-        locationLongitude: 79.8612,
+        // Pass location data
+        locationLatitude: locationData?.lat || 6.9271,
+        locationLongitude: locationData?.lng || 79.8612,
+        locationType: locationData?.type || "branch",
+        travelDistance: locationData?.distance || 0,
+        travelDuration: locationData?.duration || 0,
+
         employeeId: employeeId === "any" ? null : employeeId,
         status: "pending",
       };
 
       await bookingService.createBooking(bookingData);
+      toast.success("Booking confirmed successfully!");
       navigate("/dashboard/bookings", { state: { success: true } });
     } catch (err) {
       console.error("Failed to create booking:", err);
-      setError(err.message || "Failed to confirm booking. Please try again.");
+      toast.error(
+        err.message || "Failed to confirm booking. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -130,7 +145,8 @@ const BookingConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+        <BookingStepBar currentStep={5} />
         <div className="space-y-4 text-center max-w-2xl mx-auto">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
@@ -147,16 +163,6 @@ const BookingConfirmationPage = () => {
             </p>
           </div>
         </div>
-
-        {error && (
-          <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-in fade-in zoom-in duration-300">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <p className="text-red-800 font-medium text-sm">{error}</p>
-          </div>
-        )}
 
         <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2">
           {/* Left Column: Details */}
@@ -225,15 +231,25 @@ const BookingConfirmationPage = () => {
               </CardHeader>
               <CardContent className="px-5 pb-5 pt-0">
                 <p className="font-bold text-gray-900 text-sm mb-0.5">
-                  {locationId === "home-visit"
+                  {locationData?.type === "home"
                     ? "Home/On-Site Visit"
                     : "Main Branch Service Center"}
                 </p>
-                <p className="text-gray-500 text-sm">
-                  {locationId === "home-visit"
-                    ? "Colombo & Suburbs Area"
-                    : "488, High level Road, Pannipitiya, Colombo, Sri Lanka"}
-                </p>
+                <div className="text-gray-500 text-sm">
+                  {locationData?.type === "home" ? (
+                    <div className="flex flex-col gap-1">
+                      <span>
+                        Coordinates: {locationData.lat?.toFixed(4)},{" "}
+                        {locationData.lng?.toFixed(4)}
+                      </span>
+                      <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full w-fit">
+                        ~{locationData.distance?.toFixed(1)} km from HQ
+                      </span>
+                    </div>
+                  ) : (
+                    "488, High level Road, Pannipitiya, Colombo, Sri Lanka"
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -277,9 +293,19 @@ const BookingConfirmationPage = () => {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Subtotal</span>
                     <span className="font-medium text-gray-900">
-                      Rs. {totalPrice.toLocaleString()}
+                      Rs. {serviceTotal.toLocaleString()}
                     </span>
                   </div>
+
+                  {locationData?.travelCost > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Travel Fee</span>
+                      <span className="font-medium text-gray-900">
+                        Rs. {locationData.travelCost.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Service Fee</span>
                     <span className="font-medium text-green-600">Included</span>

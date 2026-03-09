@@ -1,6 +1,7 @@
 import pool from "../configs/database.js";
 import { generateScheduleId } from "./schedule.service.js";
 import { AppError, ValidationError } from "../utils/errors.util.js";
+import { createNotificationService } from "./notification.service.js";
 
 /**
  * Record a leave for an employee and block their schedule
@@ -63,6 +64,16 @@ export const createLeave = async ({ empid, startDate, endDate, reason }) => {
     }
 
     await client.query("COMMIT");
+
+    // Notification
+    await createNotificationService({
+      recipientId: empid,
+      recipientRole: "employee", // or 'employee' depending on system
+      title: "Leave Recorded",
+      message: `Your leave from ${startDate} to ${endDate} has been recorded.`,
+      type: "success",
+    });
+
     return { leaveId };
   } catch (error) {
     await client.query("ROLLBACK");
@@ -77,7 +88,7 @@ export const createLeave = async ({ empid, startDate, endDate, reason }) => {
  */
 export const getAllLeaves = async () => {
   const result = await pool.query(
-    `SELECT el.*, e.empname 
+    `SELECT el.*, e.first_name || ' ' || e.last_name AS empname 
      FROM employeeleave el
      JOIN employee e ON el.empid = e.empid
      ORDER BY el.leavestartdate DESC`,
@@ -90,7 +101,7 @@ export const getAllLeaves = async () => {
  */
 export const getLeavesByEmployee = async (empid) => {
   const result = await pool.query(
-    `SELECT el.*, e.empname 
+    `SELECT el.*, e.first_name || ' ' || e.last_name AS empname 
      FROM employeeleave el
      JOIN employee e ON el.empid = e.empid
      WHERE el.empid = $1

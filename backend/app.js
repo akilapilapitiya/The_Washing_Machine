@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cookieParser from "cookie-parser";
 import { PORT } from "./src/configs/env.js";
 import pool from "./src/configs/database.js";
@@ -27,6 +28,11 @@ import catalogRouter from "./src/routes/vehicleCatalog.route.js";
 import incidentRouter from "./src/routes/incident.route.js";
 import reportRouter from "./src/routes/report.route.js";
 import notificationRouter from "./src/routes/notification.route.js";
+import dependentRouter from "./src/routes/dependent.route.js";
+import settingsRouter from "./src/routes/settings.route.js";
+import chargesRouter from "./src/routes/charges.route.js";
+import holidayRouter from "./src/routes/systemHoliday.routes.js";
+import advertisementRouter from "./src/routes/advertisement.route.js";
 import setupSwagger from "./src/configs/swagger.js";
 import initModels from "./src/models/index.js";
 
@@ -50,6 +56,9 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
 
+  // Static files serving
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
   // Body parser error handling
   app.use(bodyParser);
 
@@ -57,6 +66,7 @@ const createApp = () => {
   app.use("/api", testRouter);
   app.use("/api/authemployee", authLimiter, employeeAuthRouter);
   app.use("/api/authcustomer", authLimiter, customerAuthRouter);
+  app.use("/api/advertisement", advertisementRouter);
   app.use("/api/booking", bookingRouter);
   app.use("/api/vehicle", vehicleRouter);
   app.use("/api/service", serviceRouter);
@@ -70,6 +80,11 @@ const createApp = () => {
   app.use("/api/incident", incidentRouter);
   app.use("/api/report", reportRouter);
   app.use("/api/notification", notificationRouter);
+  app.use("/api/dependent", dependentRouter);
+  app.use("/api/dependent", dependentRouter);
+  app.use("/api/settings", settingsRouter);
+  app.use("/api", chargesRouter);
+  app.use("/api", holidayRouter);
 
   // Error handling Middleware
   app.use(errorHandling);
@@ -80,15 +95,29 @@ const createApp = () => {
   return app;
 };
 
+import { createServer } from "http";
+import { initSocket } from "./src/socket/index.js";
+
 const app = createApp();
+const server = createServer(app);
+
+// Initialize Socket.io
+initSocket(server);
+
+// Initialize Telegram Bot
+import { initTelegramBot } from "./src/modules/chat/telegram.service.js";
+if (process.env.TELEGRAM_BOT_TOKEN && process.env.ENABLE_TELEGRAM_BOT === "true") {
+  initTelegramBot();
+}
 
 if (process.env.NODE_ENV !== "test") {
   await initModels(pool);
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
 }
 
-export { createApp };
+export { createApp, server };
+// Apply Service Snapshot Schema
 export default app;

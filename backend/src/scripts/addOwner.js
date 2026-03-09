@@ -6,12 +6,25 @@ async function addOwner() {
   console.log("Creating initial owner account...");
 
   const ownerData = {
-    name: "System Owner",
+    first_name: "Ridma",
+    last_name: "Jayasinghe",
+    name_with_initials: "R. Jayasinghe",
     email: "owner@washingmachine.com",
     password: "Owner@123",
     telephone: "0771234567",
     type: "owner",
     nic: "200012345678",
+    address_number: "100",
+    address_line1: "Pannipitiya Road",
+    address_line2: "Maharagama",
+    dob: "1990-11-29",
+    speciality: "System Management",
+  };
+
+  const ownerDependentData = {
+    name: "Akila Pilapitiya",
+    relationship: "Brother",
+    contact_number: "0774532348",
   };
 
   try {
@@ -36,26 +49,47 @@ async function addOwner() {
 
     // Insert owner
     const result = await pool.query(
-      `INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic, roleid)
-       VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = 'owner'))
-       RETURNING empid, empname, email, emptype, 
-         (SELECT rolename FROM role WHERE rolename = $5::VARCHAR) as rolename`,
+      `INSERT INTO employee (
+         first_name, last_name, name_with_initials, email, emptel, 
+         password_hash, emptype, empnic, address_number, address_line1, address_line2, dob, speciality, roleid
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, (SELECT roleid FROM role WHERE rolename = 'owner'))
+       RETURNING empid, first_name, last_name, email, emptype`,
       [
-        ownerData.name,
+        ownerData.first_name,
+        ownerData.last_name,
+        ownerData.name_with_initials,
         ownerData.email,
         ownerData.telephone,
         passwordHash,
         ownerData.type,
         ownerData.nic,
+        ownerData.address_number,
+        ownerData.address_line1,
+        ownerData.address_line2,
+        ownerData.dob,
+        ownerData.speciality,
       ],
     );
 
     const owner = result.rows[0];
 
-    console.log("\n Owner account created successfully!");
+    // Seed owner dependent
+    await pool.query(
+      `INSERT INTO employee_dependent (empid, name, relationship, contact_number, is_emergency_contact)
+       VALUES ($1, $2, $3, $4, TRUE)`,
+      [
+        owner.empid,
+        ownerDependentData.name,
+        ownerDependentData.relationship,
+        ownerDependentData.contact_number,
+      ],
+    );
+
+    console.log("\n Owner account and dependent created successfully!");
     console.log("=====================================");
     console.log(`ID: ${owner.empid}`);
-    console.log(`Name: ${owner.empname}`);
+    console.log(`Name: ${owner.first_name} ${owner.last_name}`);
     console.log(`Email: ${owner.email}`);
     console.log(`Type: ${owner.emptype}`);
     console.log(`Password: ${ownerData.password}`);

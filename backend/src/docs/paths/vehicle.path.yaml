@@ -52,6 +52,23 @@
               vehmodel:
                 type: string
                 example: Corolla
+              fuel_type:
+                type: string
+                enum: [Petrol, Diesel, Hybrid, Electric, Other]
+                example: Petrol
+              vehcolor:
+                type: string
+                example: "#FF0000"
+              manufacture_year:
+                type: integer
+                example: 2020
+              transmission:
+                type: string
+                enum: [Manual, Automatic]
+                example: Automatic
+              engine_capacity:
+                type: integer
+                example: 1500
     responses:
       "201":
         description: Vehicle created successfully
@@ -100,8 +117,8 @@
   put:
     tags:
       - Vehicle
-    summary: Update Vehicle Mileage
-    description: Employees can update mileage for a vehicle by `vehid`.
+    summary: Update Vehicle
+    description: Update details for a vehicle by `id`. Customers can update their own; employees/managers can update mileage.
     operationId: updateVehicle
     requestBody:
       required: true
@@ -109,12 +126,30 @@
         application/json:
           schema:
             type: object
-            required:
-              - vehmileage
             properties:
               vehmileage:
                 type: integer
                 example: 47000
+              fuel_type:
+                type: string
+                enum: [Petrol, Diesel, Hybrid, Electric, Other]
+                example: Petrol
+              vehcolor:
+                type: string
+                example: "#0000FF"
+              manufacture_year:
+                type: integer
+                example: 2021
+              transmission:
+                type: string
+                enum: [Manual, Automatic]
+                example: Manual
+              engine_capacity:
+                type: integer
+                example: 1600
+              next_service_mileage:
+                type: integer
+                example: 52000
     responses:
       "200":
         description: Vehicle mileage updated successfully

@@ -18,6 +18,16 @@ export const createServiceService = async ({
   offer_price,
   offer_description,
   servicetype = "package",
+  short_description,
+  long_description,
+  image_url,
+  gallery_urls = [],
+  benefits = [],
+  category,
+  is_featured = false,
+  is_variable_price = false,
+  offer_start_date,
+  offer_end_date,
 }) => {
   assertRequiredFields({ servicename, servicetime, serviceprice }, [
     "servicename",
@@ -28,8 +38,14 @@ export const createServiceService = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO service (servicename, servicetime, serviceprice, servicedetails, has_offer, offer_price, offer_description, servicetype)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO service (
+      servicename, servicetime, serviceprice, servicedetails, 
+      short_description, long_description, image_url, gallery_urls, 
+      benefits, category, is_featured, is_variable_price,
+      has_offer, offer_price, offer_description, offer_start_date, offer_end_date,
+      servicetype
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
     RETURNING *
     `,
     [
@@ -37,9 +53,19 @@ export const createServiceService = async ({
       servicetime,
       serviceprice,
       servicedetails,
+      short_description || null,
+      long_description || null,
+      image_url || null,
+      JSON.stringify(gallery_urls),
+      JSON.stringify(benefits),
+      category || null,
+      is_featured,
+      is_variable_price,
       has_offer || false,
       offer_price || null,
       offer_description || null,
+      offer_start_date || null,
+      offer_end_date || null,
       servicetype,
     ],
   );
@@ -95,6 +121,16 @@ export const updateServiceService = async (serviceid, updates) => {
     offer_price,
     offer_description,
     servicetype,
+    short_description,
+    long_description,
+    image_url,
+    gallery_urls,
+    benefits,
+    category,
+    is_featured,
+    is_variable_price,
+    offer_start_date,
+    offer_end_date,
   } = updates;
 
   assertAtLeastOneField(updates, [
@@ -106,6 +142,16 @@ export const updateServiceService = async (serviceid, updates) => {
     "offer_price",
     "offer_description",
     "servicetype",
+    "short_description",
+    "long_description",
+    "image_url",
+    "gallery_urls",
+    "benefits",
+    "category",
+    "is_featured",
+    "is_variable_price",
+    "offer_start_date",
+    "offer_end_date",
   ]);
 
   if (serviceprice) assertPositiveNumber(serviceprice, "serviceprice");
@@ -117,23 +163,43 @@ export const updateServiceService = async (serviceid, updates) => {
         servicetime = COALESCE($2, servicetime),
         serviceprice = COALESCE($3, serviceprice),
         servicedetails = COALESCE($4, servicedetails),
-        has_offer = COALESCE($5, has_offer),
-        offer_price = COALESCE($6, offer_price),
-        offer_description = COALESCE($7, offer_description),
-        servicetype = COALESCE($8, servicetype),
+        short_description = COALESCE($5, short_description),
+        long_description = COALESCE($6, long_description),
+        image_url = COALESCE($7, image_url),
+        gallery_urls = COALESCE($8, gallery_urls),
+        benefits = COALESCE($9, benefits),
+        category = COALESCE($10, category),
+        is_featured = COALESCE($11, is_featured),
+        is_variable_price = COALESCE($12, is_variable_price),
+        has_offer = COALESCE($13, has_offer),
+        offer_price = COALESCE($14, offer_price),
+        offer_description = COALESCE($15, offer_description),
+        offer_start_date = COALESCE($16, offer_start_date),
+        offer_end_date = COALESCE($17, offer_end_date),
+        servicetype = COALESCE($18, servicetype),
         updated_at = NOW()
-    WHERE serviceid = $9
+    WHERE serviceid = $19
     RETURNING *
     `,
     [
-      servicename,
-      servicetime,
-      serviceprice,
-      servicedetails,
-      has_offer,
-      offer_price,
-      offer_description,
-      servicetype,
+      servicename === undefined ? null : servicename,
+      servicetime === undefined ? null : servicetime,
+      serviceprice === undefined ? null : serviceprice,
+      servicedetails === undefined ? null : servicedetails,
+      short_description === undefined ? null : short_description,
+      long_description === undefined ? null : long_description,
+      image_url === undefined ? null : image_url,
+      gallery_urls === undefined ? null : JSON.stringify(gallery_urls),
+      benefits === undefined ? null : JSON.stringify(benefits),
+      category === undefined ? null : category,
+      is_featured === undefined ? null : is_featured,
+      is_variable_price === undefined ? null : is_variable_price,
+      has_offer === undefined ? null : has_offer,
+      offer_price === undefined ? null : offer_price,
+      offer_description === undefined ? null : offer_description,
+      offer_start_date === undefined ? null : offer_start_date,
+      offer_end_date === undefined ? null : offer_end_date,
+      servicetype === undefined ? null : servicetype,
       serviceid,
     ],
   );
@@ -149,11 +215,22 @@ export const updateServiceService = async (serviceid, updates) => {
  * DELETE SERVICE
  */
 export const deleteServiceService = async (serviceid) => {
+  const serviceRes = await pool.query(
+    "SELECT image_url, gallery_urls FROM service WHERE serviceid = $1",
+    [serviceid],
+  );
+
+  if (serviceRes.rowCount === 0) {
+    throw new NotFoundError("Service not found");
+  }
+
+  // Potential physical asset cleanup would go here
+  // For now, we'll just delete the database record
+  // If we had a file utility, we'd use it to remove serviceRes.rows[0].image_url etc.
+
   const result = await pool.query("DELETE FROM service WHERE serviceid = $1", [
     serviceid,
   ]);
 
-  if (result.rowCount === 0) {
-    throw new NotFoundError("Service not found");
-  }
+  return result.rows[0];
 };

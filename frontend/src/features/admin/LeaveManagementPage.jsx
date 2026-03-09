@@ -9,21 +9,20 @@ import {
   Briefcase,
   Trash2,
   Plus,
-  AlertCircle,
   Loader2,
   CheckCircle,
   FileText,
 } from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 import * as employeeService from "@/services/employee.service";
-
+import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 const LeaveManagementPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
 
   const [formData, setFormData] = useState({
     empid: "",
@@ -46,7 +45,7 @@ const LeaveManagementPage = () => {
       setLeaves(leavesData || []);
       setEmployees(empsData.filter((e) => e.emptype !== "owner") || []);
     } catch (err) {
-      setError("Failed to synchronize attendance registry.");
+      toast.error("Failed to synchronize attendance registry.");
     } finally {
       setLoading(false);
     }
@@ -56,59 +55,46 @@ const LeaveManagementPage = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      setError(null);
       await schedulerService.recordLeave(formData);
-      setSuccess("Leave deployment finalized successfully.");
+      toast.success("Leave recorded successfully.");
       setFormData({ empid: "", startDate: "", endDate: "", reason: "" });
       fetchData();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(
+      toast.error(
         err.response?.data?.message ||
-          "Conflict detected in schedule deployment.",
+        "Failed to record leave.",
       );
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-10 w-10 animate-spin text-red-600" />
-      </div>
-    );
-  }
+  useSetPageHeader(
+    "Human Resources",
+    "Staff Attendance",
+    "Manage operative availability and leave records.",
+  );
+
+  if (loading) return <PageLoader message="Loading attendance records..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.2em] text-red-600 font-bold">
-            Human Resources
-          </p>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-            Staff Attendance
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Manage operative availability and mission deployments.
-          </p>
-        </div>
+          <div className="mx-auto w-full max-w-7xl space-y-6">
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Create Leave Form */}
-          <Card className="lg:col-span-1 border-2 border-transparent shadow-sm h-fit">
-            <CardHeader className="bg-gray-900 text-white rounded-t-xl">
-              <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-red-500">
+          <Card className="lg:col-span-1 shadow-sm h-fit">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Plus size={18} />
                 Record Time Off
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent>
               <form onSubmit={handleCreateLeave} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-gray-400">
-                    Target Operative
+                  <Label>
+                    Employee
                   </Label>
                   <select
                     className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -130,7 +116,7 @@ const LeaveManagementPage = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-gray-400">
+                    <Label>
                       Start Date
                     </Label>
                     <Input
@@ -144,7 +130,7 @@ const LeaveManagementPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-gray-400">
+                    <Label>
                       End Date
                     </Label>
                     <Input
@@ -160,8 +146,8 @@ const LeaveManagementPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-gray-400">
-                    Mission Rationale
+                  <Label>
+                    Reason
                   </Label>
                   <Input
                     placeholder="Reason for absence..."
@@ -174,33 +160,15 @@ const LeaveManagementPage = () => {
                   />
                 </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-100 p-3 rounded-lg flex items-center gap-2 text-red-600 animate-in fade-in slide-in-from-top-1">
-                    <AlertCircle size={16} className="flex-shrink-0" />
-                    <p className="text-[10px] font-bold uppercase tracking-tight leading-tight">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                {success && (
-                  <div className="bg-green-50 border border-green-100 p-3 rounded-lg flex items-center gap-2 text-green-600 animate-in fade-in slide-in-from-top-1">
-                    <CheckCircle size={16} className="flex-shrink-0" />
-                    <p className="text-[10px] font-bold uppercase tracking-tight leading-tight">
-                      {success}
-                    </p>
-                  </div>
-                )}
-
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-red-600 hover:bg-black text-white font-black uppercase tracking-widest h-12 shadow-lg shadow-red-100"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
                 >
                   {submitting ? (
                     <Loader2 className="animate-spin" />
                   ) : (
-                    "Deploy Time-Off Block"
+                    "Record Leave"
                   )}
                 </Button>
               </form>
@@ -209,10 +177,10 @@ const LeaveManagementPage = () => {
 
           {/* Leaves List */}
           <Card className="lg:col-span-2 shadow-sm border-gray-100">
-            <CardHeader className="pb-2 border-b">
-              <CardTitle className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400">
-                <FileText size={18} className="text-red-600" />
-                Active Attendance Records
+            <CardHeader className="pb-4 border-b">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText size={18} className="text-gray-400" />
+                Active Leave Records
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -228,7 +196,7 @@ const LeaveManagementPage = () => {
                           <User size={20} />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 uppercase tracking-tight">
+                          <p className="font-medium text-gray-900">
                             {leave.empname}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
@@ -248,30 +216,29 @@ const LeaveManagementPage = () => {
                         </div>
                       </div>
                       <div className="text-right flex items-center gap-6">
-                        <div className="hidden sm:block">
-                          <p className="text-[10px] uppercase font-black text-gray-300 mb-1">
-                            Rationale
+                        <div className="hidden sm:block text-left">
+                          <p className="text-xs font-medium text-gray-500 mb-1">
+                            Reason
                           </p>
-                          <p className="text-xs font-bold text-gray-600 italic">
-                            "{leave.leavereason}"
+                          <p className="text-sm text-gray-700">
+                            {leave.leavereason}
                           </p>
                         </div>
-                        <div className="px-3 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-black uppercase">
-                          Offline
+                        <div className="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-medium">
+                          On Leave
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="py-20 text-center space-y-4">
-                  <Briefcase size={48} className="mx-auto text-gray-100" />
-                  <h3 className="font-black text-xl text-gray-900 uppercase tracking-tight">
-                    Full Deployment
+                <div className="py-12 text-center space-y-3">
+                  <Briefcase size={48} className="mx-auto text-gray-200" />
+                  <h3 className="font-medium text-lg text-gray-900">
+                    No Active Leaves
                   </h3>
-                  <p className="text-gray-400 text-sm max-w-xs mx-auto">
-                    All technical operatives are currently logged for active
-                    duty. No offline records found.
+                  <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                    No staff members are currently on leave. Good to go!
                   </p>
                 </div>
               )}
@@ -279,7 +246,7 @@ const LeaveManagementPage = () => {
           </Card>
         </div>
       </div>
-    </div>
+    
   );
 };
 

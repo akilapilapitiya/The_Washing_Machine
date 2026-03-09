@@ -44,3 +44,6 @@ Thumbs.db
 
 # Optional: Prisma / Sequelize
 prisma/migrations/
+
+#Profile Pictures
+/uploads

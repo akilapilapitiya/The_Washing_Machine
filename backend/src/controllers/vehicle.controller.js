@@ -11,7 +11,17 @@ import { successResponse } from "../utils/response.util.js";
 export const createVehicle = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
-    const { vehplate, vehmileage, vehbrand, vehmodel } = req.body;
+    const {
+      vehplate,
+      vehmileage,
+      vehbrand,
+      vehmodel,
+      fuel_type,
+      vehcolor,
+      manufacture_year,
+      transmission,
+      engine_capacity,
+    } = req.body;
 
     const vehicle = await createVehicleService({
       customerId,
@@ -19,6 +29,12 @@ export const createVehicle = async (req, res, next) => {
       vehmileage,
       vehbrand,
       vehmodel,
+      fuel_type,
+      vehcolor,
+      manufacture_year,
+      transmission,
+      engine_capacity,
+      next_service_mileage: 0, // Automated behind the scenes as per user request
     });
 
     successResponse(res, 201, "Vehicle created successfully", { vehicle });
@@ -36,7 +52,7 @@ export const getCustomerVehicles = async (req, res, next) => {
     const vehicles = await getAllVehiclesByRoleService(
       userId,
       userRole,
-      userEmptype
+      userEmptype,
     );
 
     successResponse(res, 200, "Vehicles retrieved successfully", { vehicles });
@@ -52,12 +68,7 @@ export const getVehicle = async (req, res, next) => {
     const userRole = req.user.role;
     const userEmptype = req.user.emptype;
 
-    const vehicle = await getVehicleService(
-      id,
-      userId,
-      userRole,
-      userEmptype
-    );
+    const vehicle = await getVehicleService(id, userId, userRole, userEmptype);
 
     successResponse(res, 200, "Vehicle retrieved successfully", { vehicle });
   } catch (error) {
@@ -68,11 +79,11 @@ export const getVehicle = async (req, res, next) => {
 export const updateVehicle = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { vehmileage } = req.body;
+    const updates = req.body;
 
-    const vehicle = await updateVehicleService(id, vehmileage);
+    const vehicle = await updateVehicleService(id, updates);
 
-    successResponse(res, 200, "Vehicle mileage updated successfully", {
+    successResponse(res, 200, "Vehicle updated successfully", {
       vehicle,
     });
   } catch (error) {

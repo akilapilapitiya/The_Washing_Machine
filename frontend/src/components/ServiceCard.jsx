@@ -1,6 +1,8 @@
 import React from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import { COLORS } from "@/lib/colors";
+import { IMAGE_BASE_URL } from "@/configs/env";
+import { Button } from "@/components/ui/button";
 
 /**
  * Reusable ServiceCard Component
@@ -16,7 +18,7 @@ import { COLORS } from "@/lib/colors";
  * @param {string} service.color - Icon color class (e.g., "text-blue-600")
  * @param {string} service.bgColor - Background color class (e.g., "bg-blue-50")
  */
-const ServiceCard = ({ service }) => {
+const ServiceCard = ({ service, onReadMore }) => {
   const Icon = service.icon;
 
   // Format price to currency
@@ -49,11 +51,23 @@ const ServiceCard = ({ service }) => {
         </div>
       )}
 
-      <div
-        className={`inline-flex items-center justify-center w-14 h-14 ${service.bgColor || COLORS.bg.brandLight} rounded-lg mb-4 group-hover:scale-110 transition-transform duration-300`}
-      >
-        {Icon && (
-          <Icon className={`h-7 w-7 ${service.color || COLORS.icon.brand}`} />
+      <div className="mb-4 relative rounded-lg overflow-hidden group-hover:shadow-md transition-all h-48 w-full bg-gray-50 flex items-center justify-center">
+        {service.image_url ? (
+          <img
+            src={`${IMAGE_BASE_URL}${service.image_url}`}
+            alt={service.servicename}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div
+            className={`inline-flex items-center justify-center w-16 h-16 ${service.bgColor || COLORS.bg.brandLight} rounded-full group-hover:scale-110 transition-transform duration-300`}
+          >
+            {Icon && (
+              <Icon
+                className={`h-8 w-8 ${service.color || COLORS.icon.brand}`}
+              />
+            )}
+          </div>
         )}
       </div>
 
@@ -61,12 +75,13 @@ const ServiceCard = ({ service }) => {
         {service.servicename}
       </h3>
 
-      <p className="text-gray-600 mb-4 leading-relaxed">
-        {service.servicedetails ||
+      <p className="text-gray-600 mb-4 leading-relaxed line-clamp-2 h-12">
+        {service.short_description ||
+          service.servicedetails ||
           "Professional service with attention to detail."}
       </p>
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
         <div className="flex flex-col">
           {service.has_offer ? (
             <div>
@@ -78,17 +93,36 @@ const ServiceCard = ({ service }) => {
               </div>
             </div>
           ) : (
-            <span className="text-lg font-bold text-gray-900">
-              {formattedPrice}
-            </span>
+            <div className="flex flex-col">
+              {service.is_variable_price && (
+                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-none mb-0.5">
+                  Starts From
+                </span>
+              )}
+              <span className="text-lg font-bold text-gray-900">
+                {formattedPrice}
+              </span>
+            </div>
           )}
           <span className="text-xs text-gray-500">
             Duration: {service.servicetime}
           </span>
         </div>
-        <ArrowRight
-          className={`h-5 w-5 ${COLORS.icon.brand} group-hover:translate-x-1 transition-transform duration-300`}
-        />
+
+        {onReadMore && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              onReadMore(service);
+            }}
+            className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-2 h-auto"
+          >
+            <span className="sr-only">Details</span>
+            <Info size={20} />
+          </Button>
+        )}
       </div>
     </div>
   );

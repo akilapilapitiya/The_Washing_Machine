@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
+import { toast } from "sonner";
 
 const EmployeeIncidentPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -78,15 +79,17 @@ const EmployeeIncidentPage = () => {
       setDescription("");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert("Failed to report incident");
+      console.error(err);
+      toast.error("Failed to report incident", {
+        description: "Please try again later",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
+          <div className="container mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold flex items-center gap-2 text-red-700">
             <ShieldAlert /> Report Incident
@@ -225,7 +228,7 @@ const EmployeeIncidentPage = () => {
           </Card>
         </div>
       </div>
-    </div>
+    
   );
 };
 

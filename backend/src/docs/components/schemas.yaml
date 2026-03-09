@@ -50,9 +50,19 @@ Customer:
     cusid:
       type: integer
       example: 1
+    title:
+      type: string
+      example: "Mr."
+    first_name:
+      type: string
+      example: "Jane"
+    last_name:
+      type: string
+      example: "Doe"
     cusname:
       type: string
-      example: Jane Doe
+      description: Derived full name
+      example: "Mr. Jane Doe"
     cusemail:
       type: string
       format: email
@@ -60,6 +70,24 @@ Customer:
     custel:
       type: string
       example: "0771234567"
+    nic:
+      type: string
+      example: "199012345678"
+    dob:
+      type: string
+      format: date
+      example: "1990-01-01"
+    latitude:
+      type: number
+      format: float
+      example: 6.9271
+    longitude:
+      type: number
+      format: float
+      example: 79.8612
+    profile_picture_url:
+      type: string
+      example: "https://example.com/profile.jpg"
 
 Employee:
   type: object
@@ -127,6 +155,26 @@ Vehicle:
     vehmileage:
       type: number
       example: 12000
+    fuel_type:
+      type: string
+      enum: [Petrol, Diesel, Hybrid, Electric, Other]
+      example: Hybrid
+    vehcolor:
+      type: string
+      example: "#3b82f6"
+    manufacture_year:
+      type: integer
+      example: 2018
+    transmission:
+      type: string
+      enum: [Manual, Automatic]
+      example: Automatic
+    engine_capacity:
+      type: integer
+      example: 1800
+    next_service_mileage:
+      type: integer
+      example: 15000
 
 Service:
   type: object

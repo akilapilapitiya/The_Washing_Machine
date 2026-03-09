@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Calendar,
-  Clock,
-  FileText,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
+import { Calendar, Clock, FileText, Loader2, CheckCircle } from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
-
+import { toast } from "sonner";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 const LeaveCard = ({ leave }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -77,7 +72,6 @@ const LeaveCard = ({ leave }) => {
 const MyLeavesPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchMyLeaves();
@@ -86,12 +80,12 @@ const MyLeavesPage = () => {
   const fetchMyLeaves = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.dismiss();
       const data = await schedulerService.getMyLeaves();
       setLeaves(data || []);
     } catch (err) {
       console.error("Failed to fetch leaves:", err);
-      setError("Failed to load your leave records. Please try again.");
+      toast.error("Failed to load your leave records. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -108,92 +102,73 @@ const MyLeavesPage = () => {
     (leave) => new Date(leave.leaveenddate) < today,
   );
 
+  useSetPageHeader(
+    "Employee Portal",
+    "My Leaves",
+    "View your approved leave requests and time off.",
+  );
+
+  if (loading) return <PageLoader message="Loading leave records..." />;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Employee Portal
-          </p>
-          <h1 className="text-3xl font-bold">My Leaves</h1>
-          <p className="text-gray-600">
-            View your approved leave requests and time off.
-          </p>
+          <div className="mx-auto w-full max-w-7xl space-y-8">
+        <div className="space-y-8">
+          {/* Upcoming Leaves */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Calendar size={20} className="text-red-600" />
+              Upcoming & Active Leaves
+            </h2>
+            {upcomingLeaves.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {upcomingLeaves.map((leave) => (
+                  <LeaveCard key={leave.leaveid} leave={leave} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 py-12">
+                <CardContent className="text-center space-y-4">
+                  <Calendar size={48} className="mx-auto text-gray-200" />
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold">No Upcoming Leaves</h3>
+                    <p className="text-gray-500">
+                      You don't have any approved leaves scheduled.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Past Leaves */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <FileText size={20} className="text-gray-600" />
+              Leave History
+            </h2>
+            {pastLeaves.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pastLeaves.map((leave) => (
+                  <LeaveCard key={leave.leaveid} leave={leave} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 py-12">
+                <CardContent className="text-center space-y-4">
+                  <FileText size={48} className="mx-auto text-gray-200" />
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold">No Leave History</h3>
+                    <p className="text-gray-500">
+                      Your past leave records will appear here.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-red-600" />
-            <p className="text-red-800 font-medium">{error}</p>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 size={32} className="animate-spin text-red-600" />
-            <p className="text-gray-500 font-medium italic">
-              Loading leave records...
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Upcoming Leaves */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Calendar size={20} className="text-red-600" />
-                Upcoming & Active Leaves
-              </h2>
-              {upcomingLeaves.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {upcomingLeaves.map((leave) => (
-                    <LeaveCard key={leave.leaveid} leave={leave} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 py-12">
-                  <CardContent className="text-center space-y-4">
-                    <Calendar size={48} className="mx-auto text-gray-200" />
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-bold">No Upcoming Leaves</h3>
-                      <p className="text-gray-500">
-                        You don't have any approved leaves scheduled.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Past Leaves */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <FileText size={20} className="text-gray-600" />
-                Leave History
-              </h2>
-              {pastLeaves.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {pastLeaves.map((leave) => (
-                    <LeaveCard key={leave.leaveid} leave={leave} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 py-12">
-                  <CardContent className="text-center space-y-4">
-                    <FileText size={48} className="mx-auto text-gray-200" />
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-bold">No Leave History</h3>
-                      <p className="text-gray-500">
-                        Your past leave records will appear here.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    
   );
 };
 

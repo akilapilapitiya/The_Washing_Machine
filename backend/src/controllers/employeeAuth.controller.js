@@ -11,15 +11,36 @@ import { successResponse } from "../utils/response.util.js";
 
 export const employeeSignUp = async (req, res, next) => {
   try {
-    const { name, email, password, telephone, type, nic } = req.body;
-
-    const { employee, token } = await signUp({
-      name,
+    const {
+      first_name,
+      last_name,
+      name_with_initials,
       email,
       password,
       telephone,
       type,
       nic,
+      address_number,
+      address_line1,
+      address_line2,
+      dob,
+      speciality,
+    } = req.body;
+
+    const { employee, token } = await signUp({
+      first_name,
+      last_name,
+      name_with_initials,
+      email,
+      password,
+      telephone,
+      type,
+      nic,
+      address_number,
+      address_line1,
+      address_line2,
+      dob,
+      speciality,
     });
 
     // Set token as httpOnly cookie
@@ -52,6 +73,7 @@ export const employeeSignIn = async (req, res, next) => {
       emptel: employee.emptel,
       role: employee.role,
       emptype: employee.emptype,
+      profile_picture_url: employee.profile_picture_url,
     };
 
     res.cookie("jwt", token, {

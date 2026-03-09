@@ -15,6 +15,21 @@ export const getCustomers = async () => {
 };
 
 /**
+ * Get a single customer by ID
+ * @param {number|string} id - Customer ID
+ * @returns {Promise<Object>} - Customer data
+ */
+export const getCustomer = async (id) => {
+  try {
+    const response = await api.get(`/customer/${id}`);
+    return response.data?.data?.customer;
+  } catch (error) {
+    console.error(`Error fetching customer ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Update a customer
  * @param {number|string} id - Customer ID
  * @param {Object} updates - Updated customer data
@@ -38,6 +53,51 @@ export const deleteCustomer = async (id) => {
     await api.delete(`/customer/${id}`);
   } catch (error) {
     console.error(`Error deleting customer ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Update profile picture
+ * @param {number|string} id - Customer ID
+ * @param {File} file - Image file
+ */
+export const updateProfilePicture = async (id, file) => {
+  try {
+    const formData = new FormData();
+    formData.append("profile_picture", file);
+
+    const response = await api.patch(
+      `/customer/${id}/profile-picture`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data?.data?.customer;
+  } catch (error) {
+    console.error(`Error uploading profile picture for customer ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Change password
+ * @param {number|string} id - Customer ID
+ * @param {string} oldPassword - Current password
+ * @param {string} newPassword - New password
+ */
+export const changePassword = async (id, oldPassword, newPassword) => {
+  try {
+    const response = await api.patch(`/customer/${id}/change-password`, {
+      oldPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error changing password for customer ${id}:`, error);
     throw error;
   }
 };

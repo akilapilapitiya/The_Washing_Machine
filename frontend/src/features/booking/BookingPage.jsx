@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import VehicleCard from "./VehicleCard";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Loader2, AlertCircle, Car, ArrowRight } from "lucide-react";
+import { Plus, Loader2, Car, ArrowRight } from "lucide-react";
 import * as vehicleService from "@/services/vehicle.service";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+import { toast } from "sonner";
 const BookingPage = () => {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchVehicles();
@@ -21,12 +21,12 @@ const BookingPage = () => {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.dismiss();
       const vehicles = await vehicleService.getVehicles();
       setVehicles(vehicles);
     } catch (err) {
       console.error("Failed to fetch vehicles:", err);
-      setError(err.message || "Failed to load vehicles. Please try again.");
+      toast.error(err.message || "Failed to load vehicles. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -50,27 +50,6 @@ const BookingPage = () => {
             Choose one of your registered vehicles to continue the booking.
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-100 rounded-lg p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-            <AlertCircle
-              size={20}
-              className="text-red-600 flex-shrink-0 mt-0.5"
-            />
-            <div className="flex-1">
-              <p className="text-red-800 font-semibold text-sm">System Error</p>
-              <p className="text-red-700 text-sm mt-0.5">{error}</p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={fetchVehicles}
-              className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              Retry
-            </Button>
-          </div>
-        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -118,6 +97,10 @@ const BookingPage = () => {
                     make: vehicle.vehbrand,
                     model: vehicle.vehmodel,
                     plate: vehicle.vehplate,
+                    fuel_type: vehicle.fuel_type,
+                    year: vehicle.manufacture_year,
+                    transmission: vehicle.transmission,
+                    vehcolor: vehicle.vehcolor,
                   }}
                   selected={vehicle.id === selectedVehicleId}
                   onSelect={setSelectedVehicleId}

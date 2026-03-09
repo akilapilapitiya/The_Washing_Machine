@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 import * as incidentService from "@/services/incident.service";
 import { COLORS } from "@/lib/colors";
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
+import { toast } from "sonner";
 const ManageIncidentsPage = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchIncidents();
@@ -30,7 +32,7 @@ const ManageIncidentsPage = () => {
       setIncidents(data.data || data || []);
     } catch (err) {
       console.error("Failed to load incidents:", err);
-      setError("Failed to monitor safety channels.");
+      toast.error("Failed to monitor safety channels.");
     } finally {
       setLoading(false);
     }
@@ -71,28 +73,17 @@ const ManageIncidentsPage = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Security & Safety
-          </p>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <ShieldAlert className="text-red-600" />
-            Incident Reports
-          </h1>
-          <p className="text-gray-600">
-            Review and resolve staff-reported issues regarding customer
-            interactions.
-          </p>
-        </div>
+  useSetPageHeader(
+    "Security & Safety",
+    "Incident Reports",
+    "Review and resolve staff-reported issues regarding customer interactions.",
+  );
 
-        {loading ? (
-          <div className="flex justify-center py-24">
-            <Loader2 className="animate-spin text-red-600 h-12 w-12" />
-          </div>
-        ) : incidents.length > 0 ? (
+  if (loading) return <PageLoader message="Loading incidents..." />;
+
+  return (
+          <div className="mx-auto w-full max-w-7xl space-y-8">
+        {incidents.length > 0 ? (
           <div className="grid gap-6">
             {incidents.map((incident) => (
               <Card
@@ -204,7 +195,7 @@ const ManageIncidentsPage = () => {
           </Card>
         )}
       </div>
-    </div>
+    
   );
 };
 

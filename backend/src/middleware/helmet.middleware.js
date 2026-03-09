@@ -25,6 +25,8 @@ const helmetConfig = helmet({
   noSniff: true, // Prevent MIME type sniffing
   xssFilter: true, // Enable XSS filtering
   hidePoweredBy: true, // Hide Express.js in X-Powered-By header
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false,
 });
 
 export default helmetConfig;

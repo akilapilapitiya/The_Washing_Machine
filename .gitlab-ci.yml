@@ -1,0 +1,187 @@
+stages:
+  - infra
+  - build
+  - deploy
+  - ssl
+  - seed
+
+# ==========================================
+# STAGE: SSL (One-time certificate issuance)
+# ==========================================
+ssl:init:
+  stage: ssl
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
+  script:
+    - export SERVER_IP=$(cat server_ip.txt)
+    # Use named Docker volumes (same ones the frontend container mounts)
+    - ssh azureuser@$SERVER_IP "docker run --rm
+        --mount source=app_certbot_certs,target=/etc/letsencrypt
+        --mount source=app_certbot_www,target=/var/www/certbot
+        certbot/certbot certonly
+        --webroot -w /var/www/certbot
+        --non-interactive --agree-tos --force-renewal
+        --email akilapilapitiya4@gmail.com
+        -d washingmachine.truegate.live"
+    # Confirm cert is in the right place
+    - ssh azureuser@$SERVER_IP "docker run --rm --mount source=app_certbot_certs,target=/etc/letsencrypt alpine ls /etc/letsencrypt/live/ || echo 'CERT NOT FOUND'"
+    # Restart frontend — entrypoint script detects cert and switches to HTTPS
+    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml restart frontend"
+    - echo "HTTPS is now active at https://washingmachine.truegate.live"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+      when: manual
+
+# ==========================================
+# STAGE: SEED (Manual Database Initialization)
+# ==========================================
+seed:prod:
+  stage: seed
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
+  script:
+    - export SERVER_IP=$(cat server_ip.txt)
+    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml exec -T backend npm run db:seed"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+      when: manual
+
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}/terraform
+  TF_STATE_NAME: default
+  BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend:latest
+  FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend:latest
+
+# ==========================================
+# STAGE: INFRASTRUCTURE (Terraform)
+# ==========================================
+terraform:apply:
+  stage: infra
+  image:
+    name: hashicorp/terraform:latest
+    entrypoint: [""]
+  before_script:
+    - cd $TF_ROOT
+    - terraform init
+      -backend-config="address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}"
+      -backend-config="lock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}/lock"
+      -backend-config="unlock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_NAME}/lock"
+      -backend-config="username=gitlab-ci-token"
+      -backend-config="password=${CI_JOB_TOKEN}"
+      -backend-config="lock_method=POST"
+      -backend-config="unlock_method=DELETE"
+      -backend-config="retry_wait_min=5"
+  script:
+    - terraform apply -auto-approve
+    - terraform output -raw instance_public_ip > ${CI_PROJECT_DIR}/server_ip.txt
+  artifacts:
+    paths:
+      - server_ip.txt
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+
+# ==========================================
+# STAGE: BUILD (Docker)
+# ==========================================
+build:backend:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $BACKEND_IMAGE ./backend
+    - docker push $BACKEND_IMAGE
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+
+build:frontend:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  dependencies:
+    - terraform:apply
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build
+      --build-arg VITE_API_BASE_URL=https://washingmachine.truegate.live/api
+      --build-arg VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+      -t $FRONTEND_IMAGE ./frontend
+    - docker push $FRONTEND_IMAGE
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+
+# ==========================================
+# STAGE: DEPLOY (SSH to EC2)
+# ==========================================
+deploy:prod:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
+  script:
+    - export SERVER_IP=$(cat server_ip.txt)
+    - printf 'NODE_ENV=production\n' > .env.prod
+    - printf 'PORT=5500\n' >> .env.prod
+    - printf 'DB_USER=admin\n' >> .env.prod
+    - printf 'DB_HOST=db\n' >> .env.prod
+    - printf 'DB_NAME=the-washing-machine\n' >> .env.prod
+    - printf 'DB_PORT=5432\n' >> .env.prod
+    - printf 'DB_PASSWORD=admin\n' >> .env.prod
+    - printf 'POSTGRES_USER=admin\n' >> .env.prod
+    - printf 'POSTGRES_PASSWORD=admin\n' >> .env.prod
+    - printf 'POSTGRES_DB=the-washing-machine\n' >> .env.prod
+    - printf 'POSTGRES_HOST=db\n' >> .env.prod
+    - printf 'REDIS_HOST=redis\n' >> .env.prod
+    - printf 'REDIS_PORT=6379\n' >> .env.prod
+    - printf 'REDIS_DB=0\n' >> .env.prod
+    - printf 'JWT_SECRET=secretme\n' >> .env.prod
+    - printf 'JWT_EXPIRES_IN=1d\n' >> .env.prod
+    - printf 'COOKIE_AGE=7\n' >> .env.prod
+    - printf 'SALT_ROUNDS=12\n' >> .env.prod
+    - printf 'OTP_EXPIRES_IN_MINUTES=10\n' >> .env.prod
+    - printf 'SMTP_HOST=smtp.gmail.com\n' >> .env.prod
+    - printf 'SMTP_PORT=465\n' >> .env.prod
+    - printf 'SMTP_SECURE=true\n' >> .env.prod
+    - printf 'SMTP_USER=akilapilapitiya4@gmail.com\n' >> .env.prod
+    - printf 'SMTP_PASS=zvof tkkw vmlj jyeb\n' >> .env.prod
+    - printf 'GOOGLE_MAPS_API_KEY=AIzaSyBu-RIKloAJWiQ6xg8ljyralyM_92cgm44\n' >> .env.prod
+    - printf 'TELEGRAM_BOT_TOKEN=8307659618:AAGonWLa67vVcwAr2ndhXpYsDlH-_CDOoAE\n' >> .env.prod
+    - printf 'ENABLE_TELEGRAM_BOT=true\n' >> .env.prod
+    - printf 'CORS_ORIGIN=https://washingmachine.truegate.live\n' >> .env.prod
+    - echo "--- .env.prod preview (first 5 lines) ---"
+    - head -5 .env.prod
+    - echo "------------------------------------------"
+    - ssh azureuser@$SERVER_IP "mkdir -p app"
+    - scp .env.prod azureuser@$SERVER_IP:~/app/
+    - scp docker-compose.prod.yml azureuser@$SERVER_IP:~/app/
+    - ssh azureuser@$SERVER_IP "cd app && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml pull"
+    - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml up -d"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"

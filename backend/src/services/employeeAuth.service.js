@@ -18,12 +18,19 @@ import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
 export const signUp = async ({
-  name,
+  first_name,
+  last_name,
+  name_with_initials,
   email,
   password,
   telephone,
   type,
   nic,
+  address_number,
+  address_line1,
+  address_line2,
+  dob,
+  speciality,
 }) => {
   const existing = await pool.query(
     "SELECT empid FROM employee WHERE email = $1",
@@ -42,12 +49,31 @@ export const signUp = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO employee (empname, email, emptel, password_hash, emptype, empnic, roleid)
-    VALUES ($1, $2, $3, $4, $5, $6, (SELECT roleid FROM role WHERE rolename = $5::VARCHAR))
-    RETURNING empid, empname, email, emptel, emptype, empnic, 
-      (SELECT rolename FROM role WHERE rolename = $5::VARCHAR) as rolename
+    INSERT INTO employee (
+      first_name, last_name, name_with_initials, email, emptel, 
+      password_hash, emptype, empnic, address_number, address_line1, 
+      address_line2, dob, speciality, roleid
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, (SELECT roleid FROM role WHERE rolename = $7::VARCHAR))
+    RETURNING empid, first_name, last_name, email, emptel, emptype, empnic, 
+      first_name || ' ' || last_name AS empname,
+      (SELECT rolename FROM role WHERE rolename = $7::VARCHAR) as rolename
     `,
-    [name, email, telephone, passwordHash, type, nic],
+    [
+      first_name,
+      last_name,
+      name_with_initials,
+      email,
+      telephone,
+      passwordHash,
+      type,
+      nic,
+      address_number,
+      address_line1,
+      address_line2,
+      dob,
+      speciality,
+    ],
   );
 
   const employee = {
@@ -64,7 +90,8 @@ export const signUp = async ({
 export const signIn = async ({ email, password }) => {
   const result = await pool.query(
     `
-    SELECT e.empid, e.empname, e.email, e.emptel, e.password_hash, r.rolename 
+    SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, e.password_hash, 
+           e.first_name || ' ' || e.last_name AS empname, r.rolename, e.profile_picture_url 
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
     WHERE e.email = $1
@@ -86,10 +113,13 @@ export const signIn = async ({ email, password }) => {
   const employee = {
     empid: row.empid,
     empname: row.empname,
+    first_name: row.first_name,
+    last_name: row.last_name,
     email: row.email,
     emptel: row.emptel,
     role: row.rolename,
     emptype: row.rolename,
+    profile_picture_url: row.profile_picture_url,
   };
   const token = generateToken(row.empid, "employee", row.rolename);
   return { employee, token };
@@ -134,11 +164,15 @@ export const requestPasswordReset = async (email) => {
   // Log OTP to console (in production, send via email)
   logOTPToConsole(email, otp);
 
-  // Send OTP via email
+  // Send OTP via email (Background Job)
   try {
-    await sendOtpEmail(email, otp);
+    await addEmailJob({
+      type: "otp",
+      to: email,
+      data: { otp },
+    });
   } catch (error) {
-    // Fail silently, error is logged in email service
+    // Fail silently, error is logged
   }
 
   return {
@@ -225,7 +259,11 @@ export const verifyOTPAndResetPassword = async ({
 export const getEmployeeById = async (empid) => {
   const result = await pool.query(
     `
-    SELECT e.empid, e.empname, e.email, e.emptel, r.rolename, r.is_admin
+    SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, r.rolename, r.is_admin,
+           e.first_name || ' ' || e.last_name AS empname,
+           e.name_with_initials, e.address_number, e.address_line1, e.address_line2, 
+           e.dob, e.speciality, e.profile_picture_url, e.created_at, e.updated_at,
+           (SELECT json_agg(d.*) FROM employee_dependent d WHERE d.empid = e.empid) as dependents
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
     WHERE e.empid = $1

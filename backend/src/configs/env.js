@@ -2,6 +2,8 @@ import { config } from "dotenv";
 
 const envFile = `.env.${process.env.NODE_ENV || "development"}.local`;
 config({ path: envFile });
+// Root fallback for Docker/Production
+config();
 
 export const {
   PORT,
@@ -13,6 +15,10 @@ export const {
   DB_PASSWORD,
   JWT_SECRET,
   JWT_EXPIRES_IN,
+  REDIS_HOST,
+  REDIS_PORT,
+  REDIS_PASSWORD,
+  GOOGLE_MAPS_API_KEY,
 } = process.env;
 
 export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
