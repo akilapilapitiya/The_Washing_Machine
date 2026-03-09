@@ -716,19 +716,26 @@ const ProfilePage = () => {
                   {userType === "customer" && (
                     <div className="md:col-span-2 space-y-4">
                       <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                        Service Territory
+                        Home Location
                       </Label>
-                      <div className="rounded-xl overflow-hidden border border-gray-100 h-[240px] bg-gray-100 shadow-inner">
-                        <iframe
-                          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.58290458633!2d79.786164!3d6.927079!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a70ad%3A0x2db30c0635313b24!2sColombo!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk"
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          allowFullScreen=""
-                          loading="lazy"
-                          className="grayscale opacity-60"
-                        ></iframe>
-                      </div>
+                      {user?.latitude && user?.longitude ? (
+                        <div className="rounded-xl overflow-hidden border border-gray-100 h-[240px] shadow-inner">
+                          <iframe
+                            src={`https://maps.google.com/maps?q=${user.latitude},${user.longitude}&z=15&output=embed`}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
+                          ></iframe>
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-gray-200 h-[120px] flex flex-col items-center justify-center gap-2 bg-gray-50 text-gray-400">
+                          <MapPin size={24} />
+                          <p className="text-sm font-medium">No home location saved</p>
+                          <p className="text-xs">Set your location during booking to save it here</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
