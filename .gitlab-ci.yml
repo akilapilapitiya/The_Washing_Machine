@@ -36,6 +36,7 @@ terraform:apply:
       - server_ip.txt
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
 
 # ==========================================
 # STAGE: BUILD (Docker)
@@ -52,6 +53,7 @@ build:backend:
     - docker push $BACKEND_IMAGE
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
 
 build:frontend:
   stage: build
@@ -72,6 +74,7 @@ build:frontend:
     - docker push $FRONTEND_IMAGE
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
 
 # ==========================================
 # STAGE: DEPLOY (SSH to EC2)
@@ -94,3 +97,4 @@ deploy:prod:
     - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml up -d"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
