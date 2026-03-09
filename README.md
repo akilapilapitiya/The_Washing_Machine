@@ -9,7 +9,6 @@ The Washing Machine is a complete enterprise solution for modern vehicle service
 **Built for scalability, security, and superior user experience.**
 
 ## ✨ Key Features
-
 ### Customer Experience
 
 - ✅ **6-Step Booking Flow:** Intuitive vehicle → service → location → employee → time → confirmation flow
