@@ -2,6 +2,28 @@ stages:
   - infra
   - build
   - deploy
+  - seed
+
+# ==========================================
+# STAGE: SEED (Manual Database Initialization)
+# ==========================================
+seed:prod:
+  stage: seed
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
+  script:
+    - export SERVER_IP=$(cat server_ip.txt)
+    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml exec -T backend npm run db:seed"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+      when: manual
 
 variables:
   TF_ROOT: ${CI_PROJECT_DIR}/terraform
@@ -94,20 +116,21 @@ deploy:prod:
       cat <<EOF > .env.prod
       NODE_ENV=production
       PORT=5500
-      DB_USER="admin"
-      DB_HOST="db"
-      DB_NAME="the-washing-machine"
+      DB_USER=admin
+      DB_HOST=db
+      DB_NAME=the-washing-machine
       DB_PORT=5432
-      DB_PASSWORD="admin"
-      POSTGRES_USER="admin"
-      POSTGRES_PASSWORD="admin"
-      POSTGRES_DB="the-washing-machine"
-      REDIS_HOST="redis"
+      DB_PASSWORD=admin
+      POSTGRES_USER=admin
+      POSTGRES_PASSWORD=admin
+      POSTGRES_DB=the-washing-machine
+      POSTGRES_HOST=db
+      REDIS_HOST=redis
       REDIS_PORT=6379
       REDIS_PASSWORD=""
       REDIS_DB=0
-      JWT_SECRET="secretme"
-      JWT_EXPIRES_IN="1d"
+      JWT_SECRET=secretme
+      JWT_EXPIRES_IN=1d
       COOKIE_AGE=7
       SALT_ROUNDS=12
       OTP_EXPIRES_IN_MINUTES=10
@@ -115,7 +138,7 @@ deploy:prod:
       SMTP_PORT=465
       SMTP_SECURE=true
       SMTP_USER=akilapilapitiya4@gmail.com
-      SMTP_PASS="zvof tkkw vmlj jyeb"
+      SMTP_PASS=zvof tkkw vmlj jyeb
       GOOGLE_MAPS_API_KEY=AIzaSyBu-RIKloAJWiQ6xg8ljyralyM_92cgm44
       TELEGRAM_BOT_TOKEN=8307659618:AAGonWLa67vVcwAr2ndhXpYsDlH-_CDOoAE
       ENABLE_TELEGRAM_BOT=true
