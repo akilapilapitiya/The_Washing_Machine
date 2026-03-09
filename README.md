@@ -1,167 +1,254 @@
-# The Washing Machine – Vehicle Service Booking Platform
+# The Washing Machine
 
-A premium, full-stack vehicle service management platform built with modern web technologies. The Washing Machine delivers a seamless booking experience for customers and a comprehensive management suite for business operations, featuring robust security, real-time scheduling, and advanced analytics.
+A full-stack vehicle service booking platform for modern automotive businesses. The system provides a customer self-service portal, an employee management suite, and a complete administrative interface, delivered as a containerised application with an automated CI/CD pipeline.
 
-## 🎯 Project Overview
+**Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
 
-The Washing Machine is a complete enterprise solution for modern vehicle service businesses (car wash, detailing, maintenance). It features dual high-performance portals for customers and employees, handling complex scheduling, service catalogs, fleet management, payment processing, incident tracking, employee leave management, and business analytics—all with a unified, professional "Hot Red" design aesthetic.
+---
 
-**Built for scalability, security, and superior user experience.**
+## Repository Structure
 
-## ✨ Key Features
-### Customer Experience
+```
+The_Washing_Machine/
+├── backend/              # Node.js + Express REST API
+├── frontend/             # React + Vite SPA
+├── terraform/            # Azure infrastructure (IaC)
+├── .github/workflows/    # GitHub Actions (mirror to GitLab)
+├── .gitlab-ci.yml        # CI/CD pipeline definition
+├── docker-compose.yml    # Local development stack
+└── docker-compose.prod.yml # Production stack
+```
 
-- ✅ **6-Step Booking Flow:** Intuitive vehicle → service → location → employee → time → confirmation flow
-- ✅ **Fleet Management:** Comprehensive vehicle registration and lifecycle tracking
-- ✅ **Real-Time Scheduling:** Live availability checking with conflict prevention
-- ✅ **Payment History:** Complete transaction records and receipts
-- ✅ **Service Feedback:** Rating and review system for quality assurance
-- ✅ **Profile Management:** Avatar upload, personal information editing, password management
+Each subdirectory contains its own `README.md` with detailed documentation:
 
-### Employee Portal
+- [backend/README.md](./backend/README.md) — API architecture, routes, database schema, auth, testing
+- [frontend/README.md](./frontend/README.md) — SPA architecture, routing, state management, build
+- [terraform/README.md](./terraform/README.md) — Azure resources, NSG rules, VM spec, state management
 
-- ✅ **Service Queue Dashboard:** Manage assigned bookings from scheduled to completed
-- ✅ **Status Updates:** Real-time service progress tracking
-- ✅ **Payment Recording:** Cashier interface for payment processing
-- ✅ **Leave Management:** Request time off with approval workflow
-- ✅ **Incident Reporting:** Document and track service-related incidents with photo upload
-- ✅ **Telegram Bot Integration:** Receive job notifications, view details, and update status directly from Telegram
+---
 
-### Business Administration
+## System Architecture
 
-- ✅ **Employee Management:** Full CRUD operations, role assignment (Owner, Employee, Cashier)
-- ✅ **Service Catalog:** Pricing management, add-ons, active/inactive status, and **Promotional Offers**
-- ✅ **Customer Database:** View and manage customer information
-- ✅ **Leave Approvals:** Review and approve/reject employee leave requests
-- ✅ **Incident Resolution:** Track and resolve reported incidents
-- ✅ **Vehicle Catalog:** Standardized vehicle type classification
-- ✅ **Advanced Analytics:**
-  - Daily Income Reports with date filtering
-  - Employee Performance metrics
-  - Booking statistics and trends
+```
+User (Browser)
+    │
+    ▼
+Nginx (port 80 / 443)              ← React SPA + Let's Encrypt SSL
+    │
+    ├── /                          → Serves compiled React bundle
+    └── /api/*                     → Proxies to backend:5500
+                                            │
+                                   ┌────────┼────────┐
+                                   │                 │
+                               PostgreSQL          Redis
+                               (data store)   (cache + queue broker)
+                                                     │
+                                                 BullMQ Worker
+                                                 (email dispatch)
+                                                     │
+                                                 Socket.io
+                                                 (real-time push)
+                                                     │
+                                               Telegram Bot
+                                             (employee notifications)
+```
 
-### Technical Features
+All services run as Docker containers on a single Azure B1s VM. The Nginx frontend container acts as both the static asset server and the reverse proxy for the API — no ports other than 80 and 443 are exposed publicly.
 
-- ✅ **Role-Based Access Control:** 4 distinct roles (Customer, Employee, Cashier, Owner)
-- ✅ **JWT Authentication:** Secure token-based auth with password reset via email OTP
-- ✅ **Email Notifications:** Nodemailer integration for password recovery
-- ✅ **Comprehensive Testing:** 11 backend + 14 frontend test suites
-- ✅ **API Documentation:** Interactive Swagger/OpenAPI documentation
-- ✅ **Security Hardening:** Rate limiting, Helmet.js, CORS, input validation
-- ✅ **Containerized Infrastructure:** One-command setup for Database and Redis via Docker Compose
+---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-### Backend (Node.js + Express)
+### Backend
 
-| Category                | Technologies                                          |
-| ----------------------- | ----------------------------------------------------- |
-| **Runtime & Framework** | Node.js 18+, Express.js ~4.16.1                       |
-| **Database**            | PostgreSQL ^8.16.3 with connection pooling            |
-| **Messaging & Cache**   | **Redis** (for Telegram linking and caching)          |
-| **Authentication**      | JWT (jsonwebtoken ^9.0.3), bcryptjs ^3.0.3            |
-| **Validation**          | Joi ^18.0.2                                           |
-| **Security**            | Helmet ^8.1.0, CORS ^2.8.5, express-rate-limit ^8.2.1 |
-| **Email**               | Nodemailer ^7.0.12                                    |
-| **Bot Integration**     | **Node Telegram Bot API** ^0.66.0                     |
-| **Testing**             | Jest ^29.7.0, Supertest ^7.0.0                        |
-| **Documentation**       | Swagger UI Express ^5.0.1, YAMLJS ^0.3.0              |
-| **Infrastructure**      | **Docker & Docker Compose**                           |
+| Category | Technology |
+|---|---|
+| Runtime | Node.js 18+ (ES Modules) |
+| Framework | Express.js ~4.16 |
+| Database | PostgreSQL 15 (pg pool, raw SQL) |
+| Cache / Queue | Redis 7 + ioredis + BullMQ |
+| Auth | JWT + bcryptjs |
+| Validation | Joi |
+| File uploads | Multer |
+| Email | Nodemailer (SMTP) |
+| Real-time | Socket.io 4 |
+| Bot | node-telegram-bot-api |
+| API docs | Swagger UI Express |
+| Testing | Jest + Supertest |
 
-### Frontend (React + Vite)
+### Frontend
 
-| Category             | Technologies                                |
-| -------------------- | ------------------------------------------- |
-| **Framework**        | React 19.2.0, Vite 7.2.4                    |
-| **Routing**          | React Router DOM 7.11.0                     |
-| **Styling**          | Tailwind CSS 4.1.18 (OKLCH color space)     |
-| **UI Components**    | shadcn/ui (Radix UI), Lucide React 0.562.0  |
-| **HTTP Client**      | Axios 1.13.2                                |
-| **State Management** | React Context API                           |
-| **Testing**          | Vitest 4.0.18, React Testing Library 16.3.2 |
-| **Build Tool**       | Vite with fast HMR                          |
+| Category | Technology |
+|---|---|
+| Framework | React 19 + Vite 7 |
+| Routing | React Router DOM 7 |
+| Styling | Tailwind CSS v4 |
+| UI Primitives | Radix UI |
+| HTTP | Axios |
+| Forms | React Hook Form |
+| Maps | @vis.gl/react-google-maps |
+| Real-time | Socket.io client |
+| Testing | Vitest + React Testing Library |
 
-## � Quick Start
+### Infrastructure
+
+| Category | Technology |
+|---|---|
+| Cloud | Microsoft Azure (East US) |
+| IaC | Terraform + AzureRM provider |
+| Compute | Azure B1s VM (Ubuntu 22.04 LTS) |
+| Containers | Docker + Docker Compose |
+| Reverse proxy | Nginx |
+| SSL | Let's Encrypt (Certbot, auto-renew) |
+| CI/CD | GitLab CI/CD |
+| Source mirror | GitHub Actions → GitLab |
+
+---
+
+## User Roles
+
+| Role | Type | Capabilities |
+|---|---|---|
+| Customer | Customer account | Book services, manage vehicles, payment history, feedback |
+| Employee | Employee account | View assigned jobs, update status, leave requests, incident filing |
+| Cashier | Employee (`emptype=cashier`) | All employee capabilities + payment recording |
+| Owner | Employee (`emptype=owner`) | Full administrative access across all features |
+
+---
+
+## CI/CD Pipeline
+
+Pushes and pull requests to `main` on GitHub trigger the following:
+
+```
+GitHub (main branch)
+    └── GitHub Actions: mirror to GitLab
+            └── GitLab CI/CD:
+                ├── infra    → terraform apply  (provision / update Azure VM)
+                ├── build    → docker build + push  (backend + frontend images)
+                ├── deploy   → SSH to VM, write .env.prod, docker compose up
+                ├── ssl      → [manual] Certbot issues Let's Encrypt certificate
+                └── seed     → [manual] seed roles, settings, owner account
+```
+
+The `ssl` and `seed` stages are triggered manually and are one-time operations. All other stages run automatically.
+
+---
+
+## Production Services
+
+| Container | Role | Exposed |
+|---|---|---|
+| `washing_machine_frontend` | Nginx: serves SPA + proxies `/api` | 80, 443 |
+| `washing_machine_backend` | Node.js API | Internal only |
+| `washing_machine_db` | PostgreSQL 15 | Internal only |
+| `washing_machine_redis` | Redis 7 | Internal only |
+| `washing_machine_certbot` | Certificate renewal (every 12 h) | — |
+
+---
+
+## Quick Start — Local Development
 
 ### Prerequisites
 
-- **Node.js** v18+
-- **Docker & Docker Compose** (Recommended for DB/Redis)
-- **npm** package manager
+- Node.js v18+
+- Docker and Docker Compose
 
-### Installation
-
-#### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd The_Washing_Machine
-```
-
-#### 2. Infrastructure Setup (Docker)
-
-Start the PostgreSQL and Redis containers:
+### 1. Start infrastructure
 
 ```bash
 docker-compose up -d
 ```
 
-#### 3. Backend Setup
+Starts PostgreSQL and Redis locally.
+
+### 2. Backend
 
 ```bash
 cd backend
 npm install
 cp .env.example .env.development.local
-# Update DB_PASSWORD and add TELEGRAM_BOT_TOKEN
-nano .env.development.local
-```
-
-#### 4. Database Initialization
-
-```bash
-# Reset database schema and seed default owner
+# Set DB_PASSWORD, JWT_SECRET, SMTP credentials, TELEGRAM_BOT_TOKEN
 npm run db:reset:seed
-```
-
-#### 5. Frontend Setup
-
-```bash
-cd ../frontend
-npm install
-cp .env.example .env
 npm run dev
 ```
 
-## 🧪 Testing
+API available at `http://localhost:5500`.
 
-### Backend Testing (Jest + Supertest)
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+# Set VITE_API_BASE_URL=http://localhost:5500/api
+# Set VITE_GOOGLE_MAPS_API_KEY=your_key
+npm run dev
+```
+
+Application available at `http://localhost:5173`.
+
+---
+
+## First-Time Production Deployment
+
+### Prerequisites
+
+1. An Azure service principal with Contributor rights — set `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_SUBSCRIPTION_ID`, `ARM_TENANT_ID` as protected GitLab CI/CD variables.
+2. An SSH key pair — set `SSH_PUBLIC_KEY` and `SSH_PRIVATE_KEY` (base64-encoded private key) as GitLab CI/CD variables.
+3. A Google Maps API key — set `VITE_GOOGLE_MAPS_API_KEY` as a GitLab CI/CD variable.
+4. A DNS `A` record: `washingmachine` → VM public IP at your DNS provider.
+
+### Deployment sequence
+
+```bash
+# 1. Push to main — pipeline runs infra → build → deploy automatically
+git push origin main
+
+# 2. In GitLab: trigger ssl:init manually (one-time)
+#    Certbot obtains the Let's Encrypt certificate via webroot
+#    Container restarts; Nginx switches to HTTPS config
+
+# 3. In GitLab: trigger seed:prod manually (one-time)
+#    Runs role seeding and creates the owner account
+```
+
+Default owner credentials after seeding (change immediately):
+```
+Email:    owner@washingmachine.lk
+Password: Owner@123
+```
+
+---
+
+## Testing
+
+### Backend
 
 ```bash
 cd backend
 npm test
 ```
 
-**Test Coverage:**
-- Authentication, Bookings, Vehicles, Services, Payments, Feedback, Profile, and **Notifications**.
+9 test suites covering: customer auth, employee auth, bookings, vehicles, services, payments, feedback, profile, and health check.
 
-## 🆕 Recent Additions (v1.4.0)
+### Frontend
 
-### Infrastructure & Core
-- ✅ **Docker Integration**: Simplified setup with Docker Compose for Postgres and Redis.
-- ✅ **Model-Driven Schema**: Unified database synchronization from model definitions.
-- ✅ **Redis Support**: Implemented for stateful bot interactions and future performance gains.
+```bash
+cd frontend
+npm run test:run
+```
 
-### Features
-- ✅ **Telegram Bot**: Real-time job notifications and status management for employees.
-- ✅ **Service Offers**: Support for promotional pricing and snapshotting prices at booking time.
-- ✅ **Travel Logistics**: Dynamic travel cost and duration calculation integrated into the booking flow.
-
-## 📄 License
-
-This project is proprietary software. All rights reserved.
+Vitest with React Testing Library in a jsdom environment.
 
 ---
 
-**Version:** 1.4.0  
-**Last Updated:** February 26, 2026  
-**Status:** Production Ready with Containerized Utilities
+## License
+
+Proprietary software. All rights reserved.
+
+---
+
+**Version:** 1.5.0
+**Last Updated:** March 9, 2026
+**Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
