@@ -21,7 +21,8 @@ resource "azurerm_public_ip" "main" {
   name                = "${var.project_name}-pip"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_security_group" "main" {
