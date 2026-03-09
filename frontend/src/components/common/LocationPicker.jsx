@@ -71,28 +71,28 @@ const LocationPicker = ({ onLocationSelect, initialLocation }) => {
     setCalculating(true);
     setError(null);
 
-    const service = new google.maps.DistanceMatrixService();
-
     try {
-      const response = await service.getDistanceMatrix({
-        origins: [hqCoords],
-        destinations: [destination],
+      // Use new Routes API (replaces deprecated DistanceMatrixService)
+      const { RoutesLibrary } = await google.maps.importLibrary("routes");
+      const routeMatrix = new RoutesLibrary.RouteMatrixService();
+
+      const request = {
+        origins: [{ waypoint: { location: { latLng: { latitude: hqCoords.lat, longitude: hqCoords.lng } } } }],
+        destinations: [{ waypoint: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } } }],
         travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC,
-      });
+      };
 
-      const element = response.rows[0].elements[0];
+      const response = await routeMatrix.computeRouteMatrix(request);
+      const element = response?.[0];
 
-      if (element.status === "OK") {
-        const distanceKm = element.distance.value / 1000;
-        const durationMins = Math.ceil(element.duration.value / 60);
+      if (element && element.status === "OK") {
+        const distanceKm = (element.distanceMeters || 0) / 1000;
+        const durationMins = Math.ceil((element.duration?.seconds || 0) / 60);
 
         if (distanceKm > MAX_RADIUS_KM) {
           const msg = `Location is ${distanceKm.toFixed(1)}km away (Driving). We only service within ${MAX_RADIUS_KM}km of our HQ.`;
           setError(msg);
           toast.error(msg);
-          // Still pass data but maybe with error flag? Or just don't pass?
-          // For now, allow selection but show error (blocking next step optionally)
           onLocationSelect(null);
         } else {
           onLocationSelect({
@@ -100,41 +100,32 @@ const LocationPicker = ({ onLocationSelect, initialLocation }) => {
             lng: destination.lng,
             distance: distanceKm,
             duration: durationMins,
-            address: response.destinationAddresses[0],
           });
         }
       } else {
-        // Fallback or error
-        console.error("Distance Matrix failed:", element.status);
-        setError("Could not calculate driving distance.");
-        // Fallback to haversine or allow simplistic selection?
-        // Let's rely on backend validation if frontend fails
-        // But for "radius check", we might need to block.
-        // Fallback to Haversine
-        const haversineDist = calculateDistance(
-          hqCoords.lat,
-          hqCoords.lng,
-          destination.lat,
-          destination.lng,
-        );
-        if (haversineDist > MAX_RADIUS_KM) {
-          setError(
-            `Location is too far (~${haversineDist.toFixed(1)}km). Limit is ${MAX_RADIUS_KM}km.`,
-          );
-          onLocationSelect(null);
-        } else {
-          onLocationSelect({
-            lat: destination.lat,
-            lng: destination.lng,
-            distance: haversineDist,
-            duration: Math.ceil(haversineDist * 2), // Rough estimate
-            isEstimate: true,
-          });
-        }
+        throw new Error(element?.status || "No route found");
       }
     } catch (err) {
-      console.error("Distance calculation error:", err);
-      setError("Failed to calculate distance.");
+      console.warn("Routes API failed, falling back to Haversine:", err.message);
+      // Fallback to Haversine formula
+      const haversineDist = calculateDistance(
+        hqCoords.lat, hqCoords.lng,
+        destination.lat, destination.lng,
+      );
+      if (haversineDist > MAX_RADIUS_KM) {
+        const msg = `Location is too far (~${haversineDist.toFixed(1)}km). Limit is ${MAX_RADIUS_KM}km.`;
+        setError(msg);
+        toast.error(msg);
+        onLocationSelect(null);
+      } else {
+        onLocationSelect({
+          lat: destination.lat,
+          lng: destination.lng,
+          distance: haversineDist,
+          duration: Math.ceil(haversineDist * 2),
+          isEstimate: true,
+        });
+      }
     } finally {
       setCalculating(false);
     }
