@@ -1,92 +1,119 @@
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  tags = {
-    Name = "${var.project_name}-vpc"
+resource "azurerm_resource_group" "main" {
+  name     = "${var.project_name}-rg"
+  location = var.location
+}
+
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.project_name}-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+}
+
+resource "azurerm_subnet" "internal" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "main" {
+  name                = "${var.project_name}-pip"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_network_security_group" "main" {
+  name                = "${var.project_name}-nsg"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "API"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5500"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
 }
 
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_region}a"
-  tags = {
-    Name = "${var.project_name}-public-subnet"
+resource "azurerm_network_interface" "main" {
+  name                = "${var.project_name}-nic"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.internal.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.main.id
   }
 }
 
-resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
-  tags = {
-    Name = "${var.project_name}-igw"
-  }
+resource "azurerm_network_interface_security_group_association" "main" {
+  network_interface_id      = azurerm_network_interface.main.id
+  network_security_group_id = azurerm_network_security_group.main.id
 }
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.gw.id
-  }
-  tags = {
-    Name = "${var.project_name}-public-rt"
-  }
-}
+resource "azurerm_linux_virtual_machine" "main" {
+  name                = "${var.project_name}-vm"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  size                = var.vm_size
+  admin_username      = var.admin_username
+  network_interface_ids = [
+    azurerm_network_interface.main.id,
+  ]
 
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_security_group" "app_sg" {
-  name        = "${var.project_name}-sg"
-  description = "Allow web and ssh traffic"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  admin_ssh_key {
+    username   = var.admin_username
+    public_key = var.ssh_public_key
   }
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  ingress {
-    from_port   = 5500
-    to_port     = 5500
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.project_name}-sg"
-  }
-}
-
-resource "aws_instance" "app_server" {
-  ami           = "ami-0e2c8ccd4e1223c32" # Ubuntu 24.04 LTS in us-east-1
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.app_sg.id]
-  key_name      = "wm-key" # Assumes you have created this key in AWS
-
-  user_data = <<-EOF
+  user_data = base64encode(<<-EOF
               #!/bin/bash
-              # Setup Swap (Critical for t3.micro to avoid OOM)
+              # Setup Swap (Critical for B1s to avoid OOM)
               fallocate -l 2G /swapfile
               chmod 600 /swapfile
               mkswap /swapfile
@@ -94,15 +121,11 @@ resource "aws_instance" "app_server" {
               echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
 
               # Install Docker
-              apt update
-              apt install -y docker.io docker-compose-v2
-              usermod -aG docker ubuntu
+              apt-get update
+              apt-get install -y docker.io docker-compose-v2
+              usermod -aG docker ${var.admin_username}
               EOF
-
-  root_block_device {
-    volume_size = 20
-    volume_type = "gp3"
-  }
+  )
 
   tags = {
     Name = "${var.project_name}-server"

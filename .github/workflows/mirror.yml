@@ -3,7 +3,7 @@ name: Mirror to GitLab
 on:
   push:
     branches:
-      - main
+      - feat/production-automation
 
 jobs:
   mirror:
@@ -15,4 +15,4 @@ jobs:
       - name: Mirror to GitLab
         run: |
           git remote add gitlab https://${{ secrets.GITLAB_USERNAME }}:${{ secrets.GITLAB_TOKEN }}@gitlab.com/akilapilapitiya/The_Washing_Machine.git
-          git push --force gitlab main
+          git push --force gitlab feat/production-automation
