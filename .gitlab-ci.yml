@@ -90,7 +90,36 @@ deploy:prod:
     - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
   script:
     - export SERVER_IP=$(cat server_ip.txt)
+    - |
+      cat <<EOF > .env.prod
+      NODE_ENV=production
+      PORT=5500
+      DB_USER="admin"
+      DB_HOST="db"
+      DB_NAME="the-washing-machine"
+      DB_PORT=5432
+      DB_PASSWORD="admin"
+      REDIS_HOST="redis"
+      REDIS_PORT=6379
+      REDIS_PASSWORD=""
+      REDIS_DB=0
+      JWT_SECRET="secretme"
+      JWT_EXPIRES_IN="1d"
+      COOKIE_AGE=7
+      SALT_ROUNDS=12
+      OTP_EXPIRES_IN_MINUTES=10
+      SMTP_HOST=smtp.gmail.com
+      SMTP_PORT=465
+      SMTP_SECURE=true
+      SMTP_USER=akilapilapitiya4@gmail.com
+      SMTP_PASS="zvof tkkw vmlj jyeb"
+      GOOGLE_MAPS_API_KEY=AIzaSyBu-RIKloAJWiQ6xg8ljyralyM_92cgm44
+      TELEGRAM_BOT_TOKEN=8307659618:AAGonWLa67vVcwAr2ndhXpYsDlH-_CDOoAE
+      ENABLE_TELEGRAM_BOT=true
+      CORS_ORIGIN=http://\${SERVER_IP}
+      EOF
     - ssh azureuser@$SERVER_IP "mkdir -p app"
+    - scp .env.prod azureuser@$SERVER_IP:~/app/
     - scp docker-compose.prod.yml azureuser@$SERVER_IP:~/app/
     - ssh azureuser@$SERVER_IP "cd app && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
     - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml pull"
