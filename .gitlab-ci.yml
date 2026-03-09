@@ -19,12 +19,18 @@ ssl:init:
     - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
   script:
     - export SERVER_IP=$(cat server_ip.txt)
-    # Stop nginx to free port 80 for standalone certbot
-    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml stop frontend"
-    # Run certbot standalone to obtain the certificate
-    - ssh azureuser@$SERVER_IP "docker run --rm -p 80:80 -v /home/azureuser/app/certbot_certs:/etc/letsencrypt certbot/certbot certonly --standalone --non-interactive --agree-tos --email akilapilapitiya4@gmail.com -d washingmachine.truegate.live"
-    # Restart nginx with the new cert
-    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml start frontend"
+    # Run certbot webroot — nginx stays up to serve the ACME challenge on /.well-known/
+    - ssh azureuser@$SERVER_IP "docker run --rm
+        -v /home/azureuser/app/certbot_certs:/etc/letsencrypt
+        -v /home/azureuser/app/certbot_www:/var/www/certbot
+        certbot/certbot certonly
+        --webroot -w /var/www/certbot
+        --non-interactive --agree-tos
+        --email akilapilapitiya4@gmail.com
+        -d washingmachine.truegate.live"
+    # Restart frontend — entrypoint script detects cert and switches to HTTPS
+    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml restart frontend"
+    - echo "HTTPS is now active at https://washingmachine.truegate.live"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual
