@@ -20,6 +20,9 @@ const createServiceTable = async (pool) => {
       offer_start_date TIMESTAMP,
       offer_end_date TIMESTAMP,
       servicetype VARCHAR(20) DEFAULT 'package',
+      has_offer BOOLEAN DEFAULT FALSE,
+      offer_price DECIMAL(10,2),
+      offer_description TEXT,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
