@@ -121,6 +121,7 @@ deploy:prod:
       ENABLE_TELEGRAM_BOT=true
       CORS_ORIGIN=http://${SERVER_IP}
       EOF
+    - echo "Successfully generated .env.prod for IP ${SERVER_IP}"
     - ssh azureuser@$SERVER_IP "mkdir -p app"
     - scp .env.prod azureuser@$SERVER_IP:~/app/
     - scp docker-compose.prod.yml azureuser@$SERVER_IP:~/app/

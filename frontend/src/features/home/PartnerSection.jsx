@@ -1,25 +1,31 @@
 import React from "react";
 
 const PartnerSection = ({ id }) => {
+  const getLogoUrl = (path) => {
+    // path starts with /src/assets/...
+    const fileName = path.split('/').pop();
+    return new URL(`../../assets/partnerSection/${fileName}`, import.meta.url).href;
+  };
+
   const partners = [
-    { name: "3M", logo: "/src/assets/partnerSection/3m.png" },
-    { name: "AutoGlym", logo: "/src/assets/partnerSection/autoglym.png" },
-    { name: "Castrol", logo: "/src/assets/partnerSection/castrol.svg" },
+    { name: "3M", logo: getLogoUrl("/src/assets/partnerSection/3m.png") },
+    { name: "AutoGlym", logo: getLogoUrl("/src/assets/partnerSection/autoglym.png") },
+    { name: "Castrol", logo: getLogoUrl("/src/assets/partnerSection/castrol.svg") },
     {
       name: "Chemical Guys",
-      logo: "/src/assets/partnerSection/chemical-guys.png",
+      logo: getLogoUrl("/src/assets/partnerSection/chemical-guys.png"),
     },
-    { name: "Lukoil", logo: "/src/assets/partnerSection/lukoil.png" },
-    { name: "Meguiars", logo: "/src/assets/partnerSection/meguiars.png" },
-    { name: "Mobil", logo: "/src/assets/partnerSection/mobil.jpeg" },
+    { name: "Lukoil", logo: getLogoUrl("/src/assets/partnerSection/lukoil.png") },
+    { name: "Meguiars", logo: getLogoUrl("/src/assets/partnerSection/meguiars.png") },
+    { name: "Mobil", logo: getLogoUrl("/src/assets/partnerSection/mobil.jpeg") },
     {
       name: "Nippon Paint",
-      logo: "/src/assets/partnerSection/nippon-paint.png",
+      logo: getLogoUrl("/src/assets/partnerSection/nippon-paint.png"),
     },
-    { name: "Sikkens", logo: "/src/assets/partnerSection/sikkens.jpeg" },
-    { name: "Valvoline", logo: "/src/assets/partnerSection/valvoline.png" },
-    { name: "Wilita", logo: "/src/assets/partnerSection/wilita.jpeg" },
-    { name: "Wurth", logo: "/src/assets/partnerSection/wurth.png" },
+    { name: "Sikkens", logo: getLogoUrl("/src/assets/partnerSection/sikkens.jpeg") },
+    { name: "Valvoline", logo: getLogoUrl("/src/assets/partnerSection/valvoline.png") },
+    { name: "Wilita", logo: getLogoUrl("/src/assets/partnerSection/wilita.jpeg") },
+    { name: "Wurth", logo: getLogoUrl("/src/assets/partnerSection/wurth.png") },
   ];
 
   return (
