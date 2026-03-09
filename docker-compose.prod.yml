@@ -22,11 +22,6 @@ services:
     container_name: washing_machine_backend
     ports:
       - "5500:5500"
-    environment:
-      NODE_ENV: production
-      PORT: 5500
-      CORS_ORIGIN: ${CORS_ORIGIN}
-      # Other variables will be picked up from .env.prod if present
     env_file:
       - .env.prod
     depends_on:
