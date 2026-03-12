@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import { format, startOfWeek, startOfMonth } from "date-fns";
+import DataTable from "@/components/common/DataTable";
 const DailyIncomeReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);

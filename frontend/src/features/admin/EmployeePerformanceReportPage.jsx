@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import { format, startOfWeek, startOfMonth } from "date-fns";
+import DataTable from "@/components/common/DataTable";
 const EmployeePerformanceReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +37,9 @@ const EmployeePerformanceReportPage = () => {
         startDate,
         endDate,
       );
-      setReport(data || []);
+      // Filter to show only employees (exclude owner and cashier)
+      const filteredData = (data || []).filter(item => item.emptype === "employee");
+      setReport(filteredData);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load report data");
