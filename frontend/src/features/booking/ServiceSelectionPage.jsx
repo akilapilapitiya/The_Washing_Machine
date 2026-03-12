@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Loader2, Clock, Tag, Box, Layers } from "lucide-react";
@@ -9,6 +9,7 @@ import * as vehicleService from "@/services/vehicle.service";
 import { toast } from "sonner";
 import { COLORS } from "@/lib/colors";
 import BookingStepBar from "@/components/common/BookingStepBar";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const ServiceSelectionPage = () => {
   const location = useLocation();
@@ -80,6 +81,15 @@ const ServiceSelectionPage = () => {
         : [...prev, serviceId],
     );
   };
+
+  const toolbar = useMemo(() => <BookingStepBar currentStep={1} />, []);
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select Services",
+    "Choose a main package and any optional add-ons.",
+    null,
+    toolbar
+  );
 
   const handleContinue = () => {
     navigate("/dashboard/booking/location", {
@@ -184,17 +194,7 @@ const ServiceSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={1} />
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Services
-          </h1>
-          <p className="text-gray-600">
-            Choose a main package and any optional add-ons.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         {/* Selected Vehicle Summary */}
         {selectedVehicle && (
           <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">

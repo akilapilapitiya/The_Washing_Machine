@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Home, Loader2 } from "lucide-react";
@@ -8,6 +8,7 @@ import LocationPicker from "@/components/common/LocationPicker";
 import { getPricingRules } from "@/services/settings.service";
 import { toast } from "sonner";
 import BookingStepBar from "@/components/common/BookingStepBar";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const locations = [
   {
@@ -99,19 +100,18 @@ const LocationSelectionPage = () => {
     setMapLocation(location);
   };
 
+  const toolbar = useMemo(() => <BookingStepBar currentStep={2} />, []);
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select Location",
+    "Choose where you'd like to receive your service.",
+    null,
+    toolbar
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={2} />
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Location
-          </h1>
-          <p className="text-gray-600">
-            Choose where you'd like to receive your service.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
           {locations.map((loc) => {
             const Icon = loc.icon;

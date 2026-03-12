@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import * as schedulerService from "@/services/scheduler.service";
 import * as holidayService from "@/services/systemHoliday.service";
 import { toast } from "sonner";
 import BookingStepBar from "@/components/common/BookingStepBar";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 // Generate time slots between 9 AM and 4 PM
 const generateTimeSlots = () => {
   const slots = [];
@@ -185,19 +186,18 @@ const DateTimeSelectionPage = () => {
     return availableSlots.includes(slotValue);
   };
 
+  const toolbar = useMemo(() => <BookingStepBar currentStep={4} />, []);
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select Date & Time",
+    "Choose your preferred appointment date and time.",
+    null,
+    toolbar
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={4} />
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Date &amp; Time
-          </h1>
-          <p className="text-gray-600">
-            Choose your preferred appointment date and time.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         <div className="max-w-4xl space-y-6">
           {/* Date Selection */}
           <Card className="border border-gray-200 shadow-sm">

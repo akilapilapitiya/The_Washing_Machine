@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { IMAGE_BASE_URL } from "@/configs/env";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import * as employeeService from "@/services/employee.service";
 import * as vehicleService from "@/services/vehicle.service";
 import { toast } from "sonner";
 import BookingStepBar from "@/components/common/BookingStepBar";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 const roleLabels = {
   junior: "Frontline Detailer",
   mid: "Service Specialist",
@@ -81,19 +82,18 @@ const EmployeeSelectionPage = () => {
     });
   };
 
+  const toolbar = useMemo(() => <BookingStepBar currentStep={3} />, []);
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select Preferred Employee",
+    "Choose a specific employee or let us assign the best available.",
+    null,
+    toolbar
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={3} />
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Preferred Employee
-          </h1>
-          <p className="text-gray-600">
-            Choose a specific employee or let us assign the best available.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         {/* Selected Vehicle Summary */}
         {selectedVehicle && (
           <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">

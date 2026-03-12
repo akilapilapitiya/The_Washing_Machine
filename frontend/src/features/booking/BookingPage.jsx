@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import VehicleCard from "./VehicleCard";
 import { Link, useNavigate } from "react-router-dom";
@@ -6,8 +6,10 @@ import { Plus, Loader2, Car, ArrowRight } from "lucide-react";
 import * as vehicleService from "@/services/vehicle.service";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingStepBar from "@/components/common/BookingStepBar";
 import { toast } from "sonner";
+
 const BookingPage = () => {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
@@ -32,6 +34,15 @@ const BookingPage = () => {
     }
   };
 
+  const toolbar = useMemo(() => <BookingStepBar currentStep={1} />, []);
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select a vehicle",
+    "Choose one of your registered vehicles to continue the booking.",
+    null,
+    toolbar
+  );
+
   const handleContinue = () => {
     navigate("/dashboard/booking/services", {
       state: { vehicleId: selectedVehicleId },
@@ -40,17 +51,7 @@ const BookingPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-8 max-w-5xl">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-red-600">Book Service</p>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select a vehicle
-          </h1>
-          <p className="text-gray-600">
-            Choose one of your registered vehicles to continue the booking.
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="text-center space-y-4">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,6 +21,7 @@ import { COLORS } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import BookingStepBar from "@/components/common/BookingStepBar";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
@@ -135,6 +136,15 @@ const BookingConfirmationPage = () => {
         : `${hourNum - 12}:00 PM`;
   };
 
+  const toolbar = useMemo(() => <BookingStepBar currentStep={5} />, []);
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Review & Confirm",
+    "Please review your service details before we dispatch our expert team.",
+    null,
+    toolbar
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -145,25 +155,7 @@ const BookingConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={5} />
-        <div className="space-y-4 text-center max-w-2xl mx-auto">
-          <div className="flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-sm">
-              <CheckCircle size={32} className="text-green-600" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Review & Confirm
-            </h1>
-            <p className="text-gray-600">
-              Please review your service details before we dispatch our expert
-              team.
-            </p>
-          </div>
-        </div>
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2">
           {/* Left Column: Details */}
           <div className="space-y-4">
