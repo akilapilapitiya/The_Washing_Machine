@@ -46,87 +46,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const HistoryCard = ({ booking }) => {
-  // Improved null checking for services with property name fallbacks
-  const servicesList =
-    booking.services &&
-      Array.isArray(booking.services) &&
-      booking.services.length > 0
-      ? booking.services
-        .map((s) => s.servicename || s.serviceName || "Unknown Service")
-        .join(", ")
-      : "Services not available";
-
-  const vehicleName = booking.vehbrand
-    ? `${booking.vehbrand} ${booking.vehmodel}`
-    : `Vehicle ID: ${booking.vehid}`;
-
-  const plate = booking.vehplate || "";
-  const location = "Main Branch - Pannipitiya";
-  const employee = booking.assigned_employee || "Service Team";
-
-  // Use totalprice from booking (already calculated at booking time)
-  const totalPrice = Number(booking.totalprice) || 0;
-
-  const formattedTotalPrice =
-    totalPrice > 0 ? `Rs. ${totalPrice.toLocaleString()}` : "---";
-
-  return (
-    <Card className="border-gray-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg font-bold">{vehicleName}</CardTitle>
-            <p className={`text-sm ${COLORS.text.secondary}`}>{plate}</p>
-          </div>
-          <StatusBadge status={booking.bookingstatus} />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-start gap-2 text-sm text-gray-600">
-            <Wrench
-              size={16}
-              className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
-            />
-            <span>{servicesList}</span>
-          </div>
-          <div className="flex items-start gap-2 text-sm text-gray-600">
-            <Calendar
-              size={16}
-              className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
-            />
-            <span>{formatDateShortSL(booking.bookingdate)}</span>
-          </div>
-          <div className="flex items-start gap-2 text-sm text-gray-600">
-            <User
-              size={16}
-              className={`${COLORS.icon.brand} mt-0.5 flex-shrink-0`}
-            />
-            <span>{employee}</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex flex-col">
-            <span className="text-xs text-gray-500 uppercase font-bold">
-              Total Paid
-            </span>
-            <span className={`text-lg font-bold ${COLORS.text.brand}`}>
-              {formattedTotalPrice}
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-500 hover:text-red-600 font-bold"
-          >
-            View Receipt
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 const ServiceHistoryPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -291,3 +210,5 @@ const ServiceHistoryPage = () => {
 };
 
 export default ServiceHistoryPage;
+
+// End of file

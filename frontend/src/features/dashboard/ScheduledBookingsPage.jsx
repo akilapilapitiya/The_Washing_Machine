@@ -400,15 +400,107 @@ const ScheduledBookingsPage = () => {
           </div>
 
           {upcomingBookings.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {upcomingBookings.map((booking) => (
-                <BookingCard
-                  key={booking.bookingid}
-                  booking={booking}
-                  onManage={setSelectedBooking}
-                />
-              ))}
-            </div>
+            <Card className="border-gray-200 shadow-sm overflow-hidden bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Reference
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Vehicle
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Date & Time
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Services
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">
+                        Amount
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Status
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {upcomingBookings.map((booking) => {
+                      const vehicleName = booking.vehbrand
+                        ? `${booking.vehbrand} ${booking.vehmodel}`
+                        : `Vehicle ID: ${booking.vehid}`;
+                      const plate = booking.vehplate || "";
+                      const servicesList = booking.services
+                        ? booking.services.map((s) => s.servicename).join(", ")
+                        : "No services";
+                      const totalPrice = booking.totalprice || booking.bookingtotalprice || 0;
+
+                      return (
+                        <tr
+                          key={booking.bookingid}
+                          className="hover:bg-gray-50/50 transition-colors group"
+                        >
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-xs font-bold text-gray-600">
+                              #{booking.bookingid}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-gray-900 leading-tight">
+                                {vehicleName}
+                              </span>
+                              <span className="text-[10px] font-mono text-gray-500 italic">
+                                {plate}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
+                                <Calendar size={12} className="text-red-600" />
+                                {formatDateShortSL(booking.bookingdate)}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">
+                                <Clock size={12} className="text-gray-400" />
+                                {booking.bookingstarttime} - {booking.bookingendtime}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-xs text-gray-600 font-medium line-clamp-1 max-w-[200px]" title={servicesList}>
+                              {servicesList}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className={`text-sm font-black ${COLORS.text.brand}`}>
+                              Rs. {Number(totalPrice).toLocaleString()}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <StatusBadge status={booking.bookingstatus} />
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedBooking(booking)}
+                              className="h-8 text-[11px] font-black uppercase text-gray-400 hover:text-red-600 hover:bg-red-50 p-2"
+                            >
+                              Manage
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           ) : (
             <Card className="border-dashed">
               <CardContent className="text-center py-16">
