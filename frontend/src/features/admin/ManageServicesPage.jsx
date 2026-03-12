@@ -17,6 +17,7 @@ import {
   Layers,
 } from "lucide-react";
 import * as serviceService from "@/services/service.service";
+import { PageLoader } from "@/components/common/LoadingStates";
 
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -55,7 +56,6 @@ const ManageServicesPage = () => {
     is_featured: false,
     is_variable_price: false,
   });
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
@@ -76,10 +76,10 @@ const ManageServicesPage = () => {
     }
   };
 
-  const uniqueCategories = [
+  const uniqueCategories = React.useMemo(() => [
     "All",
     ...new Set(services.map((s) => s.category).filter(Boolean)),
-  ];
+  ], [services]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -115,7 +115,7 @@ const ManageServicesPage = () => {
     }
   };
 
-  const resetForm = () => {
+  const resetForm = React.useCallback(() => {
     setImageFile(null);
     setFormData({
       servicename: "",
@@ -137,7 +137,7 @@ const ManageServicesPage = () => {
       is_featured: false,
       is_variable_price: false,
     });
-  };
+  }, []);
 
   const handleAddService = async (e) => {
     e.preventDefault();
@@ -167,7 +167,7 @@ const ManageServicesPage = () => {
       await serviceService.createService(payload);
       resetForm();
       setShowAddForm(false);
-      setSuccessMessage("Service added successfully!");
+      toast.success("Service added successfully!");
       toast.success("Operation completed successfully");
       await fetchServices();
     } catch (err) {
@@ -203,7 +203,7 @@ const ManageServicesPage = () => {
       resetForm();
       setShowEditForm(false);
       setSelectedService(null);
-      setSuccessMessage("Service updated successfully!");
+      toast.success("Service updated successfully!");
       toast.success("Operation completed successfully");
       await fetchServices();
     } catch (err) {
@@ -228,7 +228,7 @@ const ManageServicesPage = () => {
     try {
       setIsSubmitting(true);
       await serviceService.deleteService(serviceid);
-      setSuccessMessage("Service deleted successfully!");
+      toast.success("Service deleted successfully!");
       toast.success("Operation completed successfully");
       await fetchServices();
     } catch (err) {
@@ -274,11 +274,11 @@ const ManageServicesPage = () => {
     setShowEditForm(true);
   };
 
-  const openAddForm = () => {
+  const openAddForm = React.useCallback(() => {
     resetForm();
     setImageFile(null);
     setShowAddForm(true);
-  };
+  }, [resetForm]);
 
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
@@ -289,13 +289,35 @@ const ManageServicesPage = () => {
       <Plus size={18} />
       Add Service
     </Button>
-  ), []);
+  ), [openAddForm]);
+
+  const toolbar = React.useMemo(() => {
+    if (loading || services.length === 0) return null;
+    return (
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        {uniqueCategories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              selectedCategory === category
+                ? "bg-white text-red-600 shadow-sm border border-red-100"
+                : "bg-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+    );
+  }, [loading, services, selectedCategory, uniqueCategories]);
 
   useSetPageHeader(
     "Services",
     "Service Registry",
     "Add, edit, and manage all available services.",
     headerAction,
+    toolbar,
   );
 
   const columns = [
@@ -435,30 +457,9 @@ const ManageServicesPage = () => {
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl space-y-6">
-
-        {/* Category Filter */}
-        {!loading && services.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {uniqueCategories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === category
-                  ? "bg-red-600 text-white shadow-md shadow-red-100"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-                  }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
-
         <div className="space-y-6">
           {loading ? (
-            <div className="flex items-center justify-center py-24">
-              <Loader2 size={32} className="animate-spin text-red-600" />
-            </div>
+            <PageLoader message="Loading service catalog..." />
           ) : (
             <DataTable
               columns={columns}
