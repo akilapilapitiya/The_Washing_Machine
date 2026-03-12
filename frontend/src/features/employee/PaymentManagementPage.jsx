@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -128,187 +129,93 @@ const ExtraItem = ({ extra, readOnly, onUpdatePrice }) => {
   );
 };
 
-const PaymentCard = ({ item, onRecordPayment, isPayment, onRefresh }) => {
-  // item is either a booking (pending payment) or a payment object (completed)
-  const bookingId = isPayment ? item.bookingid : item.bookingid;
-  const status = isPayment ? "paid" : item.bookingstatus;
-  const brand = item.vehbrand || "Vehicle";
-  const model = item.vehmodel || "";
-  const plate = item.vehplate || "";
-  const customerName = item.cusname || "Customer";
-
-  // Calculate total amount
-  // If isPayment, use recorded payment amount.
-  // If pending, calculate base + extras.
-  const services = item.services || [];
-  const extras = item.extras || [];
-
-  // Calculate extras total from items that have a valid price
-  const extrasTotal = extras.reduce(
-    (sum, e) => sum + (Number(e.price) || 0),
-    0,
-  );
-
-  // Base total from booking record (services + travel cost)
-  // Assuming item.totalprice is the database stored total.
-  const baseTotal = Number(item.totalprice || item.total_price || 0);
-
-  // For display:
-  // If paid, show what was paid.
-  // If pending, show projected total (Base + Extras).
-  const displayTotal = isPayment
-    ? Number(item.paymentamount)
-    : baseTotal + extrasTotal;
-
-  const date = isPayment ? item.paymentdate : item.bookingdate;
+const PaymentTable = ({ items, onRecordPayment, isPayment, onRefresh }) => {
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return format(date, "MMM d, yyyy");
+  };
 
   return (
-    <Card className="flex flex-col h-full bg-white shadow-sm border-gray-200">
-      <CardHeader className="pb-3 border-b border-gray-50">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg font-bold text-gray-900">
-              BK-{bookingId.toString().padStart(4, "0")}
-            </CardTitle>
-            <p className="text-sm text-gray-500 font-medium">
-              {brand} {model} <span className="text-gray-300">|</span> {plate}
-            </p>
-          </div>
-          <StatusBadge status={status} />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 flex-1 flex flex-col pt-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-2 rounded-md">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-0.5">
-              Customer
-            </p>
-            <p
-              className="text-sm font-semibold text-gray-900 truncate"
-              title={customerName}
-            >
-              {customerName}
-            </p>
-          </div>
-          <div className="bg-gray-50 p-2 rounded-md">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-0.5">
-              Date
-            </p>
-            <p className="text-sm font-semibold text-gray-900">
-              {new Date(date).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100">
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">ID</th>
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Customer & Vehicle</th>
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Date</th>
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Amount</th>
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Status</th>
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {items.map((item) => {
+              const bookingId = item.bookingid;
+              const status = isPayment ? "paid" : item.bookingstatus;
+              const extrasTotal = (item.extras || []).reduce((sum, e) => sum + (Number(e.price) || 0), 0);
+              const baseTotal = Number(item.totalprice || item.total_price || 0);
+              const displayTotal = isPayment ? Number(item.paymentamount) : baseTotal + extrasTotal;
+              const date = isPayment ? item.paymentdate : item.bookingdate;
 
-        <div className="flex-1 space-y-4">
-          {/* Services List */}
-          <div>
-            <p className="text-xs text-gray-500 uppercase font-semibold mb-2 flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-gray-400"></span>
-              Services
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {services.map((s, idx) => (
-                <span
-                  key={idx}
-                  className="bg-blue-50 text-blue-700 text-[11px] px-2 py-1 rounded font-medium border border-blue-100"
-                >
-                  {typeof s === "string" ? s : s.serviceName || s.servicename}
-                </span>
-              ))}
-              {services.length === 0 && (
-                <span className="text-xs text-gray-400 italic">
-                  No services listed
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Extras List */}
-          {extras.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-2 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-orange-400"></span>
-                Extra Items
-              </p>
-              <div className="space-y-1.5">
-                {extras.map((extra) => (
-                  <ExtraItem
-                    key={extra.id}
-                    extra={extra}
-                    readOnly={isPayment}
-                    onUpdatePrice={async (price) => {
-                      await chargesService.updateItemPrice(extra.id, price);
-                      toast.success("Price updated");
-                      if (onRefresh) onRefresh();
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-gray-50 rounded-lg p-4 mt-auto border border-gray-100">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              {isPayment ? "Amount Paid" : "Total Due"}
-            </span>
-            <span className="text-xl font-bold text-gray-900">
-              Rs.{displayTotal.toFixed(2)}
-            </span>
-          </div>
-          {!isPayment && extrasTotal > 0 && (
-            <div className="text-right">
-              <p className="text-[10px] text-gray-500 font-medium">
-                Includes Rs.{extrasTotal.toFixed(2)} extra charges
-              </p>
-            </div>
-          )}
-        </div>
-
-        {isPayment && item.paymenttype && (
-          <div>
-            <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
-              Payment Method
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <p className="text-sm font-medium capitalize text-gray-900">
-                {item.paymenttype}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {isPayment && (
-          <div className="pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-2 border-dashed h-9 text-xs"
-              onClick={() => printReceipt(item)}
-            >
-              <Download size={14} /> Print Receipt
-            </Button>
-          </div>
-        )}
-
-        {!isPayment && (
-          <Button
-            onClick={() => onRecordPayment(item)}
-            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold h-10 transition-all"
-          >
-            <Plus size={16} />
-            Record Payment
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+              return (
+                <tr key={isPayment ? item.paymentid : item.bookingid} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <span className="font-mono font-bold text-gray-500 text-sm">
+                      #{String(bookingId).padStart(4, "0")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-gray-900 text-sm">{item.cusname || "Unregistered"}</span>
+                      <span className="text-xs text-gray-500 font-medium">
+                        {item.vehbrand} {item.vehmodel} • {item.vehplate}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-600">
+                    {formatDate(date)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">Rs.{displayTotal.toFixed(2)}</span>
+                      {!isPayment && extrasTotal > 0 && (
+                        <span className="text-[10px] text-orange-600 font-medium">Incl. Rs.{extrasTotal.toFixed(2)} extras</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={status} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {isPayment ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-[10px] font-black uppercase border-gray-200"
+                          onClick={() => printReceipt(item)}
+                        >
+                          <Download size={14} className="mr-1" /> Receipt
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => onRecordPayment(item)}
+                          className="h-8 text-[10px] font-black uppercase bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Record Payment
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
@@ -323,6 +230,7 @@ const PaymentManagementPage = () => {
     paymenttype: "",
     paymentdate: new Date().toISOString().split("T")[0],
   });
+  const [searchParams] = useSearchParams();
 
   const fetchData = async () => {
     try {
@@ -349,6 +257,19 @@ const PaymentManagementPage = () => {
       setLoading(false);
     }
   };
+
+  // Deep linking logic
+  useEffect(() => {
+    if (!loading && pendingBookings.length > 0) {
+      const bookingId = searchParams.get("bookingId");
+      if (bookingId) {
+        const booking = pendingBookings.find(b => b.bookingid.toString() === bookingId);
+        if (booking) {
+          handleRecordPayment(booking);
+        }
+      }
+    }
+  }, [loading, pendingBookings, searchParams]);
 
   useEffect(() => {
     fetchData();
@@ -426,17 +347,12 @@ const PaymentManagementPage = () => {
 
           <TabsContent value="pending" className="space-y-4">
             {pendingBookings.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pendingBookings.map((booking) => (
-                  <PaymentCard
-                    key={booking.bookingid}
-                    item={booking}
-                    onRecordPayment={handleRecordPayment}
-                    isPayment={false}
-                    onRefresh={fetchData}
-                  />
-                ))}
-              </div>
+              <PaymentTable
+                items={pendingBookings}
+                onRecordPayment={handleRecordPayment}
+                isPayment={false}
+                onRefresh={fetchData}
+              />
             ) : (
               <Card>
                 <CardContent className="text-center py-12">
@@ -457,15 +373,10 @@ const PaymentManagementPage = () => {
 
           <TabsContent value="completed" className="space-y-4">
             {completedPayments.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {completedPayments.map((payment) => (
-                  <PaymentCard
-                    key={payment.paymentid}
-                    item={payment}
-                    isPayment={true}
-                  />
-                ))}
-              </div>
+              <PaymentTable
+                items={completedPayments}
+                isPayment={true}
+              />
             ) : (
               <Card>
                 <CardContent className="text-center py-12">
