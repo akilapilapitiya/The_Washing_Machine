@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -276,203 +277,155 @@ const EmployeeManagementPage = () => {
     </Button>
   ), []);
 
+  // Toolbar: Stat Pills
+  const toolbar = useMemo(
+    () => (
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Users size={14} className="text-gray-500" />
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total</span>
+          <span className="text-sm font-black text-gray-900">{employees.length}</span>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Shield size={14} className="text-red-500" />
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Owners</span>
+          <span className="text-sm font-black text-gray-900">{employees.filter((e) => e.emptype === "owner").length}</span>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <CreditCard size={14} className="text-purple-500" />
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Cashiers</span>
+          <span className="text-sm font-black text-gray-900">{employees.filter((e) => e.emptype === "cashier").length}</span>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Briefcase size={14} className="text-blue-500" />
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Staff</span>
+          <span className="text-sm font-black text-gray-900">{employees.filter((e) => e.emptype === "employee").length}</span>
+        </div>
+      </div>
+    ),
+    [employees],
+  );
+
   useSetPageHeader(
     "Staff",
     "Team Management",
     "Register new staff and manage roles.",
     headerAction,
+    toolbar,
   );
+
+  const columns = [
+    {
+      key: "employee",
+      label: "Employee & ID",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            {row.profile_picture_url ? (
+              <img
+                src={`${IMAGE_BASE_URL}${row.profile_picture_url}`}
+                alt={row.empname}
+                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold border-2 border-white shadow-sm text-xs">
+                {row.first_name?.[0]}
+                {row.last_name?.[0]}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="font-bold text-gray-900">{row.empname}</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+              ID: #{row.empid}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "contact",
+      label: "Contact Details",
+      render: (row) => (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2 text-xs font-semibold">
+            <Mail size={12} className="text-gray-400" />
+            <span>{row.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+            <Phone size={12} className="text-gray-400" />
+            <span>{row.emptel}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "rank",
+      label: "Rank & Role",
+      render: (row) => <LevelBadge level={row.emptype} roles={roles} />,
+    },
+    {
+      key: "joined",
+      label: "Joined Date",
+      render: (row) => (
+        <span className="text-xs font-bold text-gray-500">
+          {new Date(row.created_at).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            onClick={() => {
+              setSelectedEmployee(row);
+              setExpandedId(row.empid);
+            }}
+            variant="ghost"
+            className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
+          >
+            More Info
+          </Button>
+          <button
+            onClick={() => openPromoteForm(row)}
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+            title="Update Role"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDeleteEmployee(row.empid)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            title="Terminate"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
       <div className="mx-auto w-full max-w-7xl space-y-6">
-
-        {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-lg text-gray-600">
-                  <Users size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Staff
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-red-50 rounded-lg text-red-600">
-                  <Shield size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Owners</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.filter((e) => e.emptype === "owner").length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-50 rounded-lg text-purple-600">
-                  <CreditCard size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Cashiers</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.filter((e) => e.emptype === "cashier").length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
-                  <Briefcase size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Staff</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.filter((e) => e.emptype === "employee").length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Employees Table/Cards */}
+        {/* Employees Table */}
         <div className="space-y-4">
           {loading ? (
             <PageLoader message="Loading directory..." />
           ) : employees.length > 0 ? (
             <>
-              <Card className="overflow-hidden border-gray-200 shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                      <tr>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Employee & ID
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Contact Details
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Rank & Role
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Joined Date
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
-                      {employees.map((employee) => (
-                        <tr
-                          key={employee.empid}
-                          className="hover:bg-gray-50/50 transition-colors group"
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative shrink-0">
-                                {employee.profile_picture_url ? (
-                                  <img
-                                    src={`${IMAGE_BASE_URL}${employee.profile_picture_url}`}
-                                    alt={employee.empname}
-                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold border-2 border-white shadow-sm text-xs">
-                                    {employee.first_name?.[0]}
-                                    {employee.last_name?.[0]}
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-bold text-gray-900">
-                                  {employee.empname}
-                                </p>
-                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
-                                  ID: #{employee.empid}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2 text-xs font-semibold">
-                                <Mail size={12} className="text-gray-400" />
-                                <span>{employee.email}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
-                                <Phone size={12} className="text-gray-400" />
-                                <span>{employee.emptel}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <LevelBadge
-                              level={employee.emptype}
-                              roles={roles}
-                            />
-                          </td>
-                          <td className="px-6 py-4 text-xs font-bold text-gray-500">
-                            {new Date(employee.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                onClick={() => {
-                                  setSelectedEmployee(employee);
-                                  setExpandedId(employee.empid);
-                                }}
-                                variant="ghost"
-                                className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
-                              >
-                                More Info
-                              </Button>
-                              <button
-                                onClick={() => openPromoteForm(employee)}
-                                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-                                title="Update Role"
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteEmployee(employee.empid)
-                                }
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                title="Terminate"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
+              <DataTable
+                columns={columns}
+                data={employees}
+                keyField="empid"
+                emptyIcon={Users}
+                emptyTitle="No staff found"
+                emptySubtitle="Your employee directory is empty."
+              />
 
               {/* Employee Detail Modal */}
               {expandedId && selectedEmployee && (
