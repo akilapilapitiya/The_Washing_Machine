@@ -107,10 +107,8 @@ const DailyIncomeReportPage = () => {
 
   const maxDate = format(new Date(), "yyyy-MM-dd");
 
-  useSetPageHeader(
-    "Financial Reports",
-    "Daily Income Report",
-    "Track revenue and transaction volume over time.",
+  // Memoize action element for stable reference
+  const headerAction = React.useMemo(() => (
     <div className="flex flex-col md:flex-row items-end md:items-center gap-3">
       <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200">
         <button 
@@ -161,6 +159,13 @@ const DailyIncomeReportPage = () => {
         </div>
       </div>
     </div>
+  ), [startDate, endDate, maxDate]);
+
+  useSetPageHeader(
+    "Financial Reports",
+    "Daily Income Report",
+    "Track revenue and transaction volume over time.",
+    headerAction,
   );
 
   return (

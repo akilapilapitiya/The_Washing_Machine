@@ -71,10 +71,8 @@ const LeaveManagementPage = () => {
     }
   };
 
-  useSetPageHeader(
-    "Human Resources",
-    "Staff Attendance",
-    "Manage operative availability and leave records.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
       className="bg-red-600 hover:bg-red-700 text-white font-semibold"
@@ -82,6 +80,13 @@ const LeaveManagementPage = () => {
       <Plus size={16} className="mr-2" />
       Record Leave
     </Button>
+  ), []);
+
+  useSetPageHeader(
+    "Human Resources",
+    "Staff Attendance",
+    "Manage operative availability and leave records.",
+    headerAction,
   );
 
   if (loading) return <PageLoader message="Loading attendance records..." />;

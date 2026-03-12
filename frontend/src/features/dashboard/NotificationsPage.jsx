@@ -25,10 +25,8 @@ const NotificationsPage = () => {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  useSetPageHeader(
-    "Updates",
-    "Notifications",
-    "Stay tuned with your latest bookings and system alerts.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       variant="outline"
       size="sm"
@@ -38,7 +36,14 @@ const NotificationsPage = () => {
     >
       <CheckCircle size={14} className="mr-2" />
       Mark all read
-    </Button>,
+    </Button>
+  ), [unreadCount]);
+
+  useSetPageHeader(
+    "Updates",
+    "Notifications",
+    "Stay tuned with your latest bookings and system alerts.",
+    headerAction,
   );
 
   const handleNotificationClick = async (notification) => {

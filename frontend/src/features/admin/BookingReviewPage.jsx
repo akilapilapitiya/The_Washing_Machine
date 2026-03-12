@@ -187,10 +187,8 @@ const BookingReviewPage = () => {
     }
   };
 
-  useSetPageHeader(
-    "Booking Administration",
-    "Booking Review",
-    "Manage assignments and review customer preferences.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={fetchBookings}
       variant="outline"
@@ -199,6 +197,13 @@ const BookingReviewPage = () => {
     >
       <RefreshCw size={16} /> Refresh
     </Button>
+  ), []);
+
+  useSetPageHeader(
+    "Booking Administration",
+    "Booking Review",
+    "Manage assignments and review customer preferences.",
+    headerAction,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;

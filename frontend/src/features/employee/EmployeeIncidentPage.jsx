@@ -99,10 +99,8 @@ const EmployeeIncidentPage = () => {
     }
   };
 
-  useSetPageHeader(
-    "Safety & Security",
-    "Employee Incident Log",
-    "Monitor reported issues and safety concerns regarding customer interactions.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowReportModal(true)}
       className="bg-red-600 hover:bg-red-700 text-white font-semibold"
@@ -110,6 +108,13 @@ const EmployeeIncidentPage = () => {
       <Plus size={16} className="mr-2" />
       Report Incident
     </Button>
+  ), []);
+
+  useSetPageHeader(
+    "Safety & Security",
+    "Employee Incident Log",
+    "Monitor reported issues and safety concerns regarding customer interactions.",
+    headerAction,
   );
 
   if (loading) return <PageLoader message="Loading safety reports..." />;

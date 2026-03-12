@@ -190,10 +190,8 @@ const ProfilePage = () => {
     fetchFreshData();
   }, [user?.id, userType]);
 
-  useSetPageHeader(
-    userType === "customer" ? "Customer Portal" : "Management Portal",
-    "Profile Settings",
-    "Manage your personal information and account preferences.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     !isEditing ? (
       <Button
         onClick={() => setIsEditing(true)}
@@ -201,7 +199,14 @@ const ProfilePage = () => {
       >
         <Edit size={16} className="mr-2" /> Edit Profile
       </Button>
-    ) : null,
+    ) : null
+  ), [isEditing]);
+
+  useSetPageHeader(
+    userType === "customer" ? "Customer Portal" : "Management Portal",
+    "Profile Settings",
+    "Manage your personal information and account preferences.",
+    headerAction,
   );
 
   const fetchDependentsAndVehicles = async () => {

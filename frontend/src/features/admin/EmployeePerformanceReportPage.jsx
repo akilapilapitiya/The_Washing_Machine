@@ -118,10 +118,8 @@ const EmployeePerformanceReportPage = () => {
 
   const maxDate = format(new Date(), "yyyy-MM-dd");
 
-  useSetPageHeader(
-    "Financial Reports",
-    "Employee Performance",
-    "Track staff productivity and revenue generation.",
+  // Memoize action element for stable reference
+  const headerAction = React.useMemo(() => (
     <div className="flex flex-col md:flex-row items-end md:items-center gap-3">
       <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200">
         <button 
@@ -172,6 +170,13 @@ const EmployeePerformanceReportPage = () => {
         </div>
       </div>
     </div>
+  ), [startDate, endDate, maxDate]);
+
+  useSetPageHeader(
+    "Financial Reports",
+    "Employee Performance",
+    "Track staff productivity and revenue generation.",
+    headerAction,
   );
 
   return (

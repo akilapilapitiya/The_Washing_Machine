@@ -279,17 +279,22 @@ const ManageServicesPage = () => {
     setShowAddForm(true);
   };
 
-  useSetPageHeader(
-    "Services",
-    "Service Registry",
-    "Add, edit, and manage all available services.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={openAddForm}
       className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
     >
       <Plus size={18} />
       Add Service
-    </Button>,
+    </Button>
+  ), []);
+
+  useSetPageHeader(
+    "Services",
+    "Service Registry",
+    "Add, edit, and manage all available services.",
+    headerAction,
   );
 
   return (

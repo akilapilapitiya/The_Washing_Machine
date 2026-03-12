@@ -371,15 +371,20 @@ const ScheduledBookingsPage = () => {
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
 
-  useSetPageHeader(
-    "Bookings",
-    "My Bookings",
-    "Manage your upcoming service appointments.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Link to="/dashboard/book">
       <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold">
         Book New Service
       </Button>
-    </Link>,
+    </Link>
+  ), []);
+
+  useSetPageHeader(
+    "Bookings",
+    "My Bookings",
+    "Manage your upcoming service appointments.",
+    headerAction,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;

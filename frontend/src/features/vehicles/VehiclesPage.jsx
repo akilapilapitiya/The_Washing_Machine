@@ -77,10 +77,8 @@ const VehiclesPage = () => {
     initData();
   }, []);
 
-  useSetPageHeader(
-    "Garage",
-    "Manage your vehicles",
-    "Add, view, and manage all your vehicles in one place.",
+  // Memoize action button for stable reference in useSetPageHeader
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
       className="bg-red-600 hover:bg-red-700 text-white font-semibold"
@@ -88,7 +86,14 @@ const VehiclesPage = () => {
     >
       <Plus size={16} className="mr-2" />
       Add Vehicle
-    </Button>,
+    </Button>
+  ), [loading]);
+
+  useSetPageHeader(
+    "Garage",
+    "Manage your vehicles",
+    "Add, view, and manage all your vehicles in one place.",
+    headerAction,
   );
 
   // Derived state for dropdowns

@@ -391,10 +391,8 @@ const DashboardPage = () => {
     .sort((a, b) => new Date(b.bookingdate) - new Date(a.bookingdate))
     .slice(0, 3);
 
-  useSetPageHeader(
-    "",
-    `Welcome back, ${user?.name?.split(" ")[0] || "there"}`,
-    "Here's what's happening with your account today.",
+  // Memoize action button for stable reference in useSetPageHeader
+  const headerAction = React.useMemo(() => (
     isCustomer ? (
       <Link to="/dashboard/book">
         <Button className={`${COLORS.bg.brand} ${COLORS.bg.brandHover} text-white px-6`}>
@@ -402,7 +400,14 @@ const DashboardPage = () => {
           New Booking
         </Button>
       </Link>
-    ) : null,
+    ) : null
+  ), [isCustomer]);
+
+  useSetPageHeader(
+    "",
+    `Welcome back, ${user?.name?.split(" ")[0] || "there"}`,
+    "Here's what's happening with your account today.",
+    headerAction,
   );
 
   return (
