@@ -9,6 +9,7 @@ import {
   Briefcase,
   Trash2,
   Plus,
+  X,
   Loader2,
   CheckCircle,
   FileText,
@@ -45,7 +46,7 @@ const LeaveManagementPage = () => {
       ]);
       setLeaves(leavesData || []);
       setEmployees(empsData.filter((e) => e.emptype !== "owner") || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to synchronize attendance registry.");
     } finally {
       setLoading(false);

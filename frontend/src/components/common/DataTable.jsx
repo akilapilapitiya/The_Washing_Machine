@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { InboxIcon } from "lucide-react";
 
 /**
@@ -13,27 +14,80 @@ import { InboxIcon } from "lucide-react";
  * @param {string} [emptySubtitle] - description text for empty state
  * @param {React.ReactNode} [emptyAction]   - optional CTA button for empty state
  * @param {string} [className]     - optional extra className on the outer Card
+ * @param {boolean} [showSearch]    - show client-side search input
+ * @param {string} [searchPlaceholder] - search input placeholder
+ * @param {Array<string>} [searchKeys] - row fields to search (defaults to all primitive fields)
  */
 const DataTable = ({
   columns = [],
   data = [],
   keyField = "id",
-  emptyIcon: EmptyIcon = InboxIcon,
+  emptyIcon,
   emptyTitle = "Nothing here yet",
   emptySubtitle = "Records will appear here once available.",
   emptyAction = null,
   className = "",
+  showSearch,
+  searchPlaceholder = "",
+  searchKeys = [],
 }) => {
-  if (data.length === 0) {
+  const [query, setQuery] = React.useState("");
+  const EmptyStateIcon = emptyIcon || InboxIcon;
+
+  const isSearchEnabled = showSearch ?? Boolean(searchPlaceholder);
+
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredData = React.useMemo(() => {
+    if (!isSearchEnabled || !normalizedQuery) return data;
+
+    return data.filter((row) => {
+      const fields =
+        searchKeys.length > 0
+          ? searchKeys.map((key) => row[key])
+          : Object.values(row);
+
+      return fields.some((value) => {
+        if (
+          value === null ||
+          value === undefined ||
+          typeof value === "object" ||
+          typeof value === "function"
+        ) {
+          return false;
+        }
+
+        return String(value).toLowerCase().includes(normalizedQuery);
+      });
+    });
+  }, [data, isSearchEnabled, normalizedQuery, searchKeys]);
+
+  if (filteredData.length === 0) {
     return (
       <Card className={`border-dashed border-2 py-24 bg-transparent border-gray-200 ${className}`}>
         <CardContent className="flex flex-col items-center justify-center gap-4 text-center">
+          {isSearchEnabled && data.length > 0 && (
+            <div className="w-full max-w-sm mb-4">
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={searchPlaceholder || "Search records..."}
+                className="h-10"
+              />
+            </div>
+          )}
           <div className="p-4 bg-gray-100 rounded-full text-gray-300">
-            <EmptyIcon size={48} />
+            <EmptyStateIcon size={48} />
           </div>
           <div className="space-y-1">
-            <h3 className="text-xl font-black text-gray-900">{emptyTitle}</h3>
-            <p className="text-sm text-gray-500 max-w-xs mx-auto">{emptySubtitle}</p>
+            <h3 className="text-xl font-black text-gray-900">
+              {isSearchEnabled && normalizedQuery ? "No matching records" : emptyTitle}
+            </h3>
+            <p className="text-sm text-gray-500 max-w-xs mx-auto">
+              {isSearchEnabled && normalizedQuery
+                ? "Try a different keyword."
+                : emptySubtitle}
+            </p>
           </div>
           {emptyAction && <div>{emptyAction}</div>}
         </CardContent>
@@ -43,6 +97,16 @@ const DataTable = ({
 
   return (
     <Card className={`border-gray-200 shadow-sm overflow-hidden bg-white ${className}`}>
+      {isSearchEnabled && (
+        <div className="p-4 border-b border-gray-100 bg-white">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={searchPlaceholder || "Search records..."}
+            className="h-10 max-w-sm"
+          />
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -58,7 +122,7 @@ const DataTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {data.map((row) => (
+            {filteredData.map((row) => (
               <tr
                 key={row[keyField]}
                 className="hover:bg-gray-50/50 transition-colors group"
