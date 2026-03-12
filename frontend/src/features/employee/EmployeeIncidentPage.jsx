@@ -125,42 +125,59 @@ const EmployeeIncidentPage = () => {
                 />
               </div>
             </CardHeader>
-            <CardContent className="max-h-[500px] overflow-y-auto space-y-3">
+            <CardContent className="max-h-[500px] overflow-y-auto p-0">
               {loading ? (
-                <div className="flex justify-center p-4">
-                  <Loader2 className="animate-spin" />
+                <div className="flex justify-center p-8">
+                  <Loader2 className="animate-spin text-gray-400" />
                 </div>
               ) : (
-                filteredBookings.map((booking) => (
-                  <div
-                    key={booking.bookingid}
-                    onClick={() => setSelectedBooking(booking)}
-                    className={`p-4 rounded-lg border cursor-pointer transition-colors ${
-                      selectedBooking?.bookingid === booking.bookingid
-                        ? "bg-red-50 border-red-500 ring-1 ring-red-500"
-                        : "hover:bg-gray-50 border-gray-200"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-bold flex items-center gap-2">
-                          <span className="text-sm bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-                            #{booking.bookingid}
-                          </span>
-                          {booking.cusname}
-                        </h4>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {booking.vehbrand} {booking.vehmodel} (
-                          {booking.vehplate})
-                        </p>
-                      </div>
-                      {/* Badge fallback */}
-                      <span className="text-xs font-bold uppercase text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                        {booking.bookingstatus}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-100">
+                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-gray-400">Booking</th>
+                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-gray-400">Customer</th>
+                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-gray-400">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {filteredBookings.map((booking) => (
+                        <tr 
+                          key={booking.bookingid}
+                          onClick={() => setSelectedBooking(booking)}
+                          className={`cursor-pointer transition-colors ${
+                            selectedBooking?.bookingid === booking.bookingid
+                              ? "bg-red-50"
+                              : "hover:bg-gray-50/80"
+                          }`}
+                        >
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col">
+                              <span className="font-mono font-bold text-gray-500 text-xs">#{booking.bookingid}</span>
+                              <span className="text-[10px] text-gray-400 font-medium">{booking.vehplate}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-gray-900 text-xs">{booking.cusname}</span>
+                              <span className="text-[10px] text-gray-400">{booking.vehbrand}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                              {booking.bookingstatus}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {!loading && filteredBookings.length === 0 && (
+                <div className="p-8 text-center text-gray-400 text-sm">
+                  No bookings found.
+                </div>
               )}
             </CardContent>
           </Card>
