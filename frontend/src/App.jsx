@@ -19,6 +19,7 @@ import EmployeeLogin from "./pages/EmployeeLogin";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import ServiceSelectionPage from "./features/booking/ServiceSelectionPage";
+import AddonsSelectionPage from "./features/booking/AddonsSelectionPage";
 import LocationSelectionPage from "./features/booking/LocationSelectionPage";
 import EmployeeSelectionPage from "./features/booking/EmployeeSelectionPage";
 import DateTimeSelectionPage from "./features/booking/DateTimeSelectionPage";
@@ -163,6 +164,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <ServiceSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/addons"
+              element={
+                <ProtectedRoute>
+                  <AddonsSelectionPage />
                 </ProtectedRoute>
               }
             />

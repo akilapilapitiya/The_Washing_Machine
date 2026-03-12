@@ -172,7 +172,8 @@ All routes are defined in `App.jsx` and organised into three layout zones:
 |---|---|
 | `/dashboard` | Dashboard |
 | `/dashboard/book` | Booking (vehicle selection) |
-| `/dashboard/booking/services` | ServiceSelectionPage |
+| `/dashboard/booking/services` | ServiceSelectionPage (main package selection) |
+| `/dashboard/booking/addons` | AddonsSelectionPage (optional add-ons) |
 | `/dashboard/booking/location` | LocationSelectionPage |
 | `/dashboard/booking/employee` | EmployeeSelectionPage |
 | `/dashboard/booking/datetime` | DateTimeSelectionPage |
@@ -302,17 +303,18 @@ The base URL is set from `VITE_API_BASE_URL` at build time. In production this i
 
 ## Feature Domains
 
-### Booking (5-Step Wizard)
+### Booking (6-Step Wizard)
 
-A sequential wizard spread across five routes under `/dashboard/booking/*`. Each step stores partial booking state in component state passed forward via navigation state or fetched from the booking record.
+A sequential wizard spread across six routes under `/dashboard/booking/*`. Each step stores partial booking state in component state passed forward via navigation state or fetched from the booking record.
 
 ```
 /dashboard/book             → Vehicle selection
-    └── /booking/services   → Service selection (multi-select + add-ons)
-        └── /booking/location → Map-based location picker (Google Maps + distance validation)
-            └── /booking/employee → Preferred employee selection
-                └── /booking/datetime → Date and time slot selection
-                    └── /booking/confirmation → Review + submit
+    └── /booking/services   → Service package selection (radio: select 1)
+        └── /booking/addons → Optional add-ons selection (checkbox: select many)
+            └── /booking/location → Map-based location picker (Google Maps + distance validation)
+                └── /booking/employee → Preferred employee selection
+                    └── /booking/datetime → Date and time slot selection
+                        └── /booking/confirmation → Review + submit
 ```
 
 ### Admin (12 pages, owner-only unless noted)
