@@ -9,6 +9,8 @@ import {
   Trash2,
   AlertCircle,
   Hash,
+  CheckCircle,
+  Clock3,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -23,6 +25,8 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const BookingCard = ({ booking, onManage }) => {
   // Format services list
@@ -291,6 +295,8 @@ const ScheduledBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     fetchBookings();
@@ -301,7 +307,7 @@ const ScheduledBookingsPage = () => {
       setLoading(true);
       const data = await getBookings();
       setBookings(data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load your bookings. Please try again.");
     } finally {
       setLoading(false);
@@ -338,6 +344,44 @@ const ScheduledBookingsPage = () => {
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
 
+  const filteredBookings = upcomingBookings.filter((booking) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [
+        booking.vehbrand,
+        booking.vehmodel,
+        booking.vehplate,
+        booking.services?.map((s) => s.servicename).join(" "),
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Clock3, label: "Upcoming", value: upcomingBookings.length, iconClassName: "text-orange-500" },
+          { icon: CheckCircle, label: "Scheduled", value: bookings.filter((b) => b.bookingstatus === "pending").length, iconClassName: "text-blue-500" },
+        ]}
+        filters={[
+          { id: "all", label: "All" },
+          { id: "today", label: "Today" },
+          { id: "week", label: "This Week" },
+          { id: "upcoming", label: "Upcoming" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by vehicle or service..."
+      />
+    ),
+    [dateRange, upcomingBookings, searchQuery, bookings],
+  );
+
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Link to="/dashboard/book">
@@ -352,6 +396,7 @@ const ScheduledBookingsPage = () => {
     "My Bookings",
     "Manage your upcoming service appointments.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;
@@ -403,20 +448,15 @@ const ScheduledBookingsPage = () => {
     {
       key: "services",
       label: "Services",
-      render: (row) => {
-        const servicesList = row.services
-          ? row.services.map((s) => s.servicename).join(", ")
-          : "No services";
-        return (
-          <div className="flex flex-wrap gap-1 max-w-[200px]">
-            {row.services?.map((s, idx) => (
-              <span key={idx} className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase">
-                {s.servicename}
-              </span>
-            )) ?? <span className="text-[10px] text-gray-400 italic">—</span>}
-          </div>
-        );
-      },
+      render: (row) => (
+        <div className="flex flex-wrap gap-1 max-w-[200px]">
+          {row.services?.map((s, idx) => (
+            <span key={idx} className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase">
+              {s.servicename}
+            </span>
+          )) ?? <span className="text-[10px] text-gray-400 italic">—</span>}
+        </div>
+      ),
     },
     {
       key: "totalprice",
@@ -460,7 +500,7 @@ const ScheduledBookingsPage = () => {
       <div className="mx-auto w-full max-w-7xl">
         <DataTable
           columns={columns}
-          data={upcomingBookings}
+          data={filteredBookings}
           keyField="bookingid"
           emptyIcon={Calendar}
           emptyTitle="No upcoming bookings"

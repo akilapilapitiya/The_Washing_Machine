@@ -9,10 +9,14 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const ServiceHistoryPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -36,10 +40,48 @@ const ServiceHistoryPage = () => {
       b.bookingstatus === "cancelled",
   );
 
+  const filteredBookings = historyBookings.filter((booking) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [
+        booking.vehbrand,
+        booking.vehmodel,
+        booking.services?.map((s) => s.servicename).join(" "),
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: History, label: "Total", value: historyBookings.length, iconClassName: "text-gray-500" },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "month", label: "This Month" },
+          { id: "week", label: "Past 3 Months" },
+          { id: "today", label: "Past Year" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by vehicle or service..."
+      />
+    ),
+    [dateRange, historyBookings, searchQuery],
+  );
+
   useSetPageHeader(
     "Activity Logs",
     "Service History",
     "A record of all your past vehicle maintenance and detailing.",
+    undefined,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading history..." />;
@@ -158,7 +200,7 @@ const ServiceHistoryPage = () => {
     <div className="mx-auto w-full max-w-7xl">
       <DataTable
         columns={columns}
-        data={historyBookings}
+        data={filteredBookings}
         keyField="bookingid"
         emptyIcon={History}
         emptyTitle="No past services"

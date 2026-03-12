@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const renderStars = (count, size = 12) => (
   <div className="flex gap-0.5">
@@ -45,6 +46,8 @@ const FeedbackPage = () => {
   const [selectedBookingId, setSelectedBookingId] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState(5);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("all");
 
   const fetchInitialData = async () => {
     try {
@@ -71,6 +74,48 @@ const FeedbackPage = () => {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  const filteredFeedbacks = feedbacks.filter((feedback) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [feedback.vehbrand, feedback.vehmodel, feedback.feedbackdescription].some((value) =>
+        String(value || "").toLowerCase().includes(query),
+      );
+
+    const matchesRating =
+      ratingFilter === "all" || Number(feedback.rating || 5) === Number(ratingFilter);
+    return matchesSearch && matchesRating;
+  });
+
+  const avgRating = feedbacks.length > 0
+    ? (feedbacks.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) / feedbacks.length).toFixed(1)
+    : 0;
+  const fiveStarCount = feedbacks.filter((f) => Number(f.rating) === 5).length;
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: MessageSquare, label: "Total Reviews", value: feedbacks.length, iconClassName: "text-blue-500" },
+          { icon: Star, label: "Avg Rating", value: `${avgRating}/5`, iconClassName: "text-yellow-500" },
+          { icon: Hash, label: "5-Star", value: fiveStarCount, iconClassName: "text-green-500" },
+        ]}
+        filters={[
+          { id: "all", label: "All" },
+          { id: "5", label: "5-Star" },
+          { id: "4", label: "4-Star" },
+          { id: "3", label: "3-Star" },
+        ]}
+        activeFilter={ratingFilter}
+        onFilterChange={setRatingFilter}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by vehicle or feedback..."
+      />
+    ),
+    [feedbacks, avgRating, fiveStarCount, ratingFilter, searchQuery],
+  );
 
   const handleSubmitFeedback = async (e) => {
     e.preventDefault();
@@ -113,6 +158,7 @@ const FeedbackPage = () => {
     "Service Feedback",
     "Monitor your reviews and share your latest service experience.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading feedback records..." />;
@@ -183,7 +229,7 @@ const FeedbackPage = () => {
     <div className="mx-auto w-full max-w-7xl">
       <DataTable
         columns={columns}
-        data={feedbacks}
+        data={filteredFeedbacks}
         keyField="feedbackid"
         emptyIcon={MessageSquare}
         emptyTitle="No feedback history"

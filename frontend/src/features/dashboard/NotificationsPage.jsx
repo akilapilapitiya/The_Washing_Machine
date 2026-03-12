@@ -20,13 +20,21 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const NotificationsPage = () => {
   const { notifications, markAsRead, markAllAsRead, loading } = useNotification();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [readFilter, setReadFilter] = React.useState("all");
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const filteredNotifications = notifications.filter((notif) => {
+    if (readFilter === "unread") return !notif.is_read;
+    if (readFilter === "read") return notif.is_read;
+    return true; // all
+  });
 
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
@@ -40,13 +48,33 @@ const NotificationsPage = () => {
       <CheckCircle size={14} className="mr-2" />
       Mark all read
     </Button>
-  ), [unreadCount]);
+  ), [unreadCount, markAllAsRead]);
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Bell, label: "Total", value: notifications.length, iconClassName: "text-blue-500" },
+          { icon: AlertTriangle, label: "Unread", value: unreadCount, iconClassName: "text-red-500" },
+        ]}
+        filters={[
+          { id: "all", label: "All" },
+          { id: "unread", label: "Unread" },
+          { id: "read", label: "Read" },
+        ]}
+        activeFilter={readFilter}
+        onFilterChange={setReadFilter}
+      />
+    ),
+    [notifications.length, unreadCount, readFilter],
+  );
 
   useSetPageHeader(
     "Updates",
     "Notifications",
     "Stay tuned with your latest bookings and system alerts.",
     headerAction,
+    toolbar,
   );
 
   const handleNotificationClick = async (notification) => {
@@ -173,7 +201,7 @@ const NotificationsPage = () => {
     <div className="mx-auto w-full max-w-7xl">
       <DataTable
         columns={columns}
-        data={notifications}
+        data={filteredNotifications}
         keyField="id"
         emptyIcon={Bell}
         emptyTitle="No notifications yet"

@@ -12,6 +12,7 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as vehicleService from "@/services/vehicle.service";
@@ -19,16 +20,17 @@ import * as catalogService from "@/services/vehicleCatalog.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form State
   const [newVehicle, setNewVehicle] = useState({
@@ -57,7 +59,6 @@ const VehiclesPage = () => {
     const initData = async () => {
       try {
         setLoading(true);
-        setError(null);
 
         const [vehRes, catRes] = await Promise.all([
           vehicleService.getVehicles(),
@@ -90,11 +91,40 @@ const VehiclesPage = () => {
     </Button>
   ), [loading]);
 
+  const filteredVehicles = vehicles.filter((vehicle) => {
+    const query = searchQuery.trim().toLowerCase();
+    return (
+      !query ||
+      [
+        vehicle.vehbrand,
+        vehicle.vehmodel,
+        vehicle.vehplate,
+        vehicle.vehcolor,
+      ].some((value) => String(value || "").toLowerCase().includes(query))
+    );
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Car, label: "Total", value: vehicles.length, iconClassName: "text-blue-500" },
+          { icon: Gauge, label: "Service Due", value: vehicles.filter((v) => v.next_service_mileage && v.next_service_mileage > 0).length, iconClassName: "text-red-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by brand, model, plate, or color..."
+      />
+    ),
+    [vehicles, searchQuery],
+  );
+
   useSetPageHeader(
     "Garage",
     "Manage your vehicles",
     "Add, view, and manage all your vehicles in one place.",
     headerAction,
+    toolbar,
   );
 
   // Derived state for dropdowns
@@ -800,7 +830,7 @@ const VehiclesPage = () => {
                 ),
               },
             ]}
-            data={vehicles}
+            data={filteredVehicles}
             keyField="id"
             emptyIcon={Car}
             emptyTitle="No Vehicles Found"

@@ -8,10 +8,14 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const PaymentHistoryPage = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -28,10 +32,49 @@ const PaymentHistoryPage = () => {
     fetchPayments();
   }, []);
 
+  const filteredPayments = payments.filter((payment) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [payment.paymenttype, String(payment.paymentamount || "")].some((value) =>
+        String(value || "").toLowerCase().includes(query),
+      );
+
+    const matchesDate = matchesQuickDateRange(payment.paymentdate, dateRange);
+    return matchesSearch && matchesDate;
+  });
+
+  const totalAmount = payments.reduce((sum, p) => sum + (Number(p.paymentamount) || 0), 0);
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Wallet, label: "Total Paid", value: `Rs. ${totalAmount.toLocaleString()}`, iconClassName: "text-green-500" },
+          { icon: Hash, label: "Transactions", value: payments.length, iconClassName: "text-blue-500" },
+        ]}
+        filters={[
+          { id: "all", label: "All" },
+          { id: "month", label: "This Month" },
+          { id: "week", label: "Last 3 Months" },
+          { id: "today", label: "This Year" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by payment method or amount..."
+      />
+    ),
+    [dateRange, payments, searchQuery, totalAmount],
+  );
+
   useSetPageHeader(
     "Billing",
     "Payment History",
     "Access your complete transaction history and receipts.",
+    undefined,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading payments..." />;
@@ -146,7 +189,7 @@ const PaymentHistoryPage = () => {
     <div className="mx-auto w-full max-w-7xl">
       <DataTable
         columns={columns}
-        data={payments}
+        data={filteredPayments}
         keyField="paymentid"
         emptyIcon={Wallet}
         emptyTitle="No payments recorded"
