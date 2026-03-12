@@ -29,6 +29,7 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageVehicleCatalogPage = () => {
   const [models, setModels] = useState([]);
@@ -45,6 +46,7 @@ const ManageVehicleCatalogPage = () => {
   const [newBrandName, setNewBrandName] = useState("");
   const [newModelName, setNewModelName] = useState("");
   const [viewingBrand, setViewingBrand] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [submittingBrand, setSubmittingBrand] = useState(false);
   const [submittingModel, setSubmittingModel] = useState(false);
@@ -206,7 +208,15 @@ const ManageVehicleCatalogPage = () => {
   const brandData = sortedBrands.map((brand) => ({
     brand,
     models: groupedCatalog[brand],
-  }));
+  })).filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return (
+      item.brand.toLowerCase().includes(query) ||
+      item.models.some((model) => String(model.model || "").toLowerCase().includes(query))
+    );
+  });
 
   // Memoize action element for stable reference
   const headerAction = React.useMemo(() => (
@@ -230,17 +240,17 @@ const ManageVehicleCatalogPage = () => {
   ), []);
 
   const toolbar = React.useMemo(() => (
-    <div className="flex items-center gap-4">
-      <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border shadow-sm text-xs font-bold text-gray-700">
-        <Layers size={14} className="text-red-600" />
-        {sortedBrands.length} Brands
-      </div>
-      <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border shadow-sm text-xs font-bold text-gray-700">
-        <Car size={14} className="text-red-600" />
-        {models.filter((i) => i.model).length} Models Registered
-      </div>
-    </div>
-  ), [sortedBrands.length, models]);
+    <PageToolbar
+      stats={[
+        { icon: Layers, label: "Brands", value: sortedBrands.length, iconClassName: "text-red-600" },
+        { icon: Car, label: "Models", value: models.filter((i) => i.model).length, iconClassName: "text-red-600" },
+      ]}
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      searchPlaceholder="Search brands or models..."
+      searchWidthClass="sm:w-80"
+    />
+  ), [models, searchQuery, sortedBrands.length]);
 
   useSetPageHeader(
     "System Administration",
@@ -258,10 +268,9 @@ const ManageVehicleCatalogPage = () => {
         columns={columns}
         data={brandData}
         keyField="brand"
-        searchPlaceholder="Search brands..."
         emptyIcon={Car}
         emptyTitle="No brands found"
-        emptySubtitle="Start by adding a vehicle brand to the catalog."
+        emptySubtitle={searchQuery ? "No brands match your search." : "Start by adding a vehicle brand to the catalog."}
       />
 
       {/* Add Brand Modal */}

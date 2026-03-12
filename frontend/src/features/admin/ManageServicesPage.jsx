@@ -24,6 +24,7 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -35,6 +36,7 @@ const ManageServicesPage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
     servicename: "",
@@ -291,26 +293,22 @@ const ManageServicesPage = () => {
     </Button>
   ), [openAddForm]);
 
-  const toolbar = React.useMemo(() => {
-    if (loading || services.length === 0) return null;
-    return (
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {uniqueCategories.map((category) => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
-              selectedCategory === category
-                ? "bg-white text-red-600 shadow-sm border border-red-100"
-                : "bg-transparent text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            {category}
-          </button>
-        ))}
-      </div>
-    );
-  }, [loading, services, selectedCategory, uniqueCategories]);
+  const toolbar = React.useMemo(() => (
+    <PageToolbar
+      stats={[
+        { icon: Box, label: "Total", value: services.length, iconClassName: "text-gray-500" },
+        { icon: Tag, label: "Offers", value: services.filter((service) => service.has_offer).length, iconClassName: "text-red-500" },
+        { icon: Layers, label: "Featured", value: services.filter((service) => service.is_featured).length, iconClassName: "text-yellow-500" },
+      ]}
+      filters={uniqueCategories.map((category) => ({ id: category, label: category }))}
+      activeFilter={selectedCategory}
+      onFilterChange={setSelectedCategory}
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      searchPlaceholder="Search services..."
+      searchWidthClass="sm:w-80"
+    />
+  ), [searchQuery, selectedCategory, services, uniqueCategories]);
 
   useSetPageHeader(
     "Services",
@@ -454,6 +452,24 @@ const ManageServicesPage = () => {
     },
   ];
 
+  const filteredServices = services.filter((service) => {
+    const matchesCategory =
+      selectedCategory === "All" || service.category === selectedCategory;
+
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [
+        service.servicename,
+        service.servicedetails,
+        service.category,
+        service.servicetype,
+        service.short_description,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    return matchesCategory && matchesSearch;
+  });
+
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -463,15 +479,11 @@ const ManageServicesPage = () => {
           ) : (
             <DataTable
               columns={columns}
-              data={services.filter(
-                (s) =>
-                  selectedCategory === "All" ||
-                  s.category === selectedCategory,
-              )}
+              data={filteredServices}
               keyField="serviceid"
               emptyIcon={Box}
               emptyTitle="No services yet"
-              emptySubtitle="Add your first service package to get started."
+              emptySubtitle={searchQuery ? "No services match your current filters." : "Add your first service package to get started."}
               emptyAction={
                 <Button onClick={openAddForm} className="bg-red-600 hover:bg-red-700 mt-4">
                   <Plus size={16} className="mr-2" />

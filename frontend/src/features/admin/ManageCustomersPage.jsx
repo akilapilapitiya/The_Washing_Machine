@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Users,
@@ -11,7 +10,6 @@ import {
   Calendar,
   X,
   CheckCircle,
-  Search,
   Loader2,
   ShieldCheck,
   ShieldAlert,
@@ -28,6 +26,7 @@ import { IMAGE_BASE_URL } from "@/configs/env";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageCustomersPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -96,43 +95,23 @@ const ManageCustomersPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <div className="flex flex-col sm:flex-row w-full gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <Users size={14} className="text-gray-500" />
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total</span>
-            <span className="text-sm font-black text-gray-900">{customers.length}</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <UserCheck size={14} className="text-green-500" />
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Active</span>
-            <span className="text-sm font-black text-gray-900">{customers.filter((c) => c.is_active).length}</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <UserX size={14} className="text-gray-500" />
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Restricted</span>
-            <span className="text-sm font-black text-gray-900">{customers.filter((c) => !c.is_active).length}</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <Car size={14} className="text-purple-500" />
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Bookings</span>
-            <span className="text-sm font-black text-gray-900">
-              {customers.reduce((acc, curr) => acc + (curr.totalbookings || 0), 0)}
-            </span>
-          </div>
-        </div>
-
-        <div className="relative w-full sm:w-80">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Search members..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm rounded-lg bg-white border-gray-200"
-          />
-        </div>
-      </div>
+      <PageToolbar
+        stats={[
+          { icon: Users, label: "Total", value: customers.length, iconClassName: "text-gray-500" },
+          { icon: UserCheck, label: "Active", value: customers.filter((c) => c.is_active).length, iconClassName: "text-green-500" },
+          { icon: UserX, label: "Restricted", value: customers.filter((c) => !c.is_active).length, iconClassName: "text-gray-500" },
+          {
+            icon: Car,
+            label: "Bookings",
+            value: customers.reduce((acc, curr) => acc + (curr.totalbookings || 0), 0),
+            iconClassName: "text-purple-500",
+          },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search members..."
+        searchWidthClass="sm:w-80"
+      />
     ),
     [customers, searchQuery]
   );

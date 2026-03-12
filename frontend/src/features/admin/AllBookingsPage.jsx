@@ -1,20 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
   Clock,
-  Car,
-  User,
-  ChevronRight,
-  Loader2,
   Briefcase,
   Wrench,
   CheckCircle,
-  Search,
-  Filter,
 } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { Link } from "react-router-dom";
@@ -24,21 +16,18 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
+import { toast } from "sonner";
 
 const AllBookingsPage = () => {
   const [services, setServices] = useState([]);
-  const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("all");
   const { isOwner, isCashier } = useAuth();
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
-
-  const fetchServices = async () => {
+  const fetchServices = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await bookingService.getBookings();
@@ -48,7 +37,6 @@ const AllBookingsPage = () => {
         const foundBooking = data.find(b => String(b.bookingid) === searchId);
         if (foundBooking) {
           setServices([foundBooking]); // Show only the targeted booking
-          setSelectedBooking(foundBooking); // Keep track of the selected booking
           setSearchQuery(searchId); // Pre-fill search query with the ID
         } else {
           setServices([]); // No booking found for the ID
@@ -63,7 +51,11 @@ const AllBookingsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
 
   const filteredServices = services.filter((s) => {
     // Search query filter
@@ -105,68 +97,48 @@ const AllBookingsPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <div className="flex flex-col md:flex-row w-full gap-4 items-start md:items-center justify-between">
-        <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
-          <button
-            onClick={() => setActiveTab("upcoming")}
-            className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-              activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            Upcoming ({pendingServices.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("in-progress")}
-            className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-              activeTab === "in-progress" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            Active ({inProgressServices.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("completed")}
-            className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-              activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            Completed ({completedServices.length})
-          </button>
-        </div>
-
-        <div className="flex flex-1 w-full md:w-auto items-center gap-3 justify-end flex-wrap">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
-            <Filter size={16} className="text-gray-400 flex-shrink-0" />
-            {[
-              { id: "all", label: "All Time" },
-              { id: "today", label: "Today" },
-              { id: "week", label: "This Week" },
-              { id: "month", label: "This Month" },
-            ].map((range) => (
-              <button
-                key={range.id}
-                onClick={() => setDateRange(range.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
-                  dateRange === range.id
-                    ? "bg-red-600 text-white border-red-600 shadow-sm"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                {range.label}
-              </button>
-            ))}
+      <PageToolbar
+        leftSlot={
+          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab("upcoming")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Upcoming ({pendingServices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("in-progress")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "in-progress" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Active ({inProgressServices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Completed ({completedServices.length})
+            </button>
           </div>
-          <div className="relative w-full sm:w-64 flex-shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search bookings..."
-              className="w-full pl-9 h-9 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-red-500 bg-white shadow-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
+        }
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "week", label: "This Week" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search bookings..."
+        searchWidthClass="sm:w-64"
+      />
     ),
     [activeTab, pendingServices.length, inProgressServices.length, completedServices.length, dateRange, searchQuery]
   );

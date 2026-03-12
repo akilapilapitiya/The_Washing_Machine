@@ -24,14 +24,16 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageAdvertisementsPage = () => {
-  const { user } = useAuth();
+  useAuth();
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const [formData, setFormData] = useState({
@@ -51,7 +53,7 @@ const ManageAdvertisementsPage = () => {
       setLoading(true);
       const response = await advertisementService.getAdminAds();
       setAds(response.data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch advertisements");
     } finally {
       setLoading(false);
@@ -142,7 +144,7 @@ const ManageAdvertisementsPage = () => {
         await advertisementService.deleteAd(id);
         toast.success("Advertisement deleted");
         fetchAds();
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete advertisement");
       }
     }
@@ -191,25 +193,20 @@ const ManageAdvertisementsPage = () => {
   // Prepare Toolbar (SubHeader row 2) stats
   const toolbar = useMemo(
     () => (
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <BarChart3 size={14} className="text-gray-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Ads</span>
-          <span className="text-sm font-black text-gray-900">{ads.length}</span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <CheckCircle size={14} className="text-green-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Active</span>
-          <span className="text-sm font-black text-gray-900">{activeAds.length}</span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Clock size={14} className="text-red-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Expired</span>
-          <span className="text-sm font-black text-gray-900">{expiredAds.length}</span>
-        </div>
-      </div>
+      <PageToolbar
+        stats={[
+          { icon: BarChart3, label: "Total Ads", value: ads.length, iconClassName: "text-gray-500" },
+          { icon: CheckCircle, label: "Active", value: activeAds.length, iconClassName: "text-green-500" },
+          { icon: Clock, label: "Expired", value: expiredAds.length, iconClassName: "text-red-500" },
+          { icon: Clock, label: "Expiring Soon", value: expiringSoonAds.length, iconClassName: "text-amber-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search advertisements..."
+        searchWidthClass="sm:w-80"
+      />
     ),
-    [ads.length, activeAds.length, expiredAds.length]
+    [activeAds.length, ads.length, expiredAds.length, expiringSoonAds.length, searchQuery]
   );
 
   useSetPageHeader(
@@ -302,6 +299,17 @@ const ManageAdvertisementsPage = () => {
 
   if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;
 
+  const filteredAds = ads.filter((ad) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    const status = ad.expiry_date && new Date(ad.expiry_date) < new Date() ? "expired" : "active";
+
+    return [ad.title, ad.client_name, ad.client_contact, status].some((value) =>
+      String(value || "").toLowerCase().includes(query),
+    );
+  });
+
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl space-y-8">
@@ -355,11 +363,11 @@ const ManageAdvertisementsPage = () => {
         ) : (
           <DataTable
             columns={columns}
-            data={ads}
+            data={filteredAds}
             keyField="id"
             emptyIcon={ImageIcon}
             emptyTitle="No advertisements yet"
-            emptySubtitle="Upload your first ad to show on the public home page."
+            emptySubtitle={searchQuery ? "No advertisements match your search." : "Upload your first ad to show on the public home page."}
             emptyAction={
               <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold mt-4">
                 <Plus size={16} className="mr-2" />

@@ -23,6 +23,7 @@ import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import { format } from "date-fns";
 import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
@@ -119,6 +120,7 @@ const PaymentManagementPage = () => {
     bookingid: "",
   });
   const [activeTab, setActiveTab] = useState("pending");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -178,26 +180,38 @@ const PaymentManagementPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
-        <button
-          onClick={() => setActiveTab("pending")}
-          className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-            activeTab === "pending" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          Pending ({pendingBookings.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("completed")}
-          className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-            activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          Completed ({completedPayments.length})
-        </button>
-      </div>
+      <PageToolbar
+        leftSlot={
+          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "pending" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Pending ({pendingBookings.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Completed ({completedPayments.length})
+            </button>
+          </div>
+        }
+        stats={[
+          { icon: DollarSign, label: "Pending", value: pendingBookings.length, iconClassName: "text-red-500" },
+          { icon: CheckCircle, label: "Completed", value: completedPayments.length, iconClassName: "text-green-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder={activeTab === "completed" ? "Search payments..." : "Search bookings..."}
+        searchWidthClass="sm:w-72"
+      />
     ),
-    [activeTab, pendingBookings.length, completedPayments.length]
+    [activeTab, completedPayments.length, pendingBookings.length, searchQuery]
   );
 
   useSetPageHeader(
@@ -299,7 +313,22 @@ const PaymentManagementPage = () => {
   ];
 
   const getActiveData = () => {
-    return isPaymentView ? completedPayments : pendingBookings;
+    const source = isPaymentView ? completedPayments : pendingBookings;
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return source;
+
+    return source.filter((row) =>
+      [
+        row.paymentid,
+        row.bookingid,
+        row.cusname,
+        row.vehbrand,
+        row.vehmodel,
+        row.vehplate,
+        row.paymenttype,
+      ].some((value) => String(value || "").toLowerCase().includes(query)),
+    );
   };
 
   const emptyProps = isPaymentView
@@ -314,7 +343,7 @@ const PaymentManagementPage = () => {
         keyField={isPaymentView ? "paymentid" : "bookingid"}
         emptyIcon={emptyProps.icon}
         emptyTitle={emptyProps.title}
-        emptySubtitle={emptyProps.subtitle}
+        emptySubtitle={searchQuery ? "No records match your search." : emptyProps.subtitle}
       />
 
         {/* Payment Recording Modal */}

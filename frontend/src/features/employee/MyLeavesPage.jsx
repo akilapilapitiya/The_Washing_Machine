@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const MyLeavesPage = () => {
   const [leaves, setLeaves] = useState([]);
@@ -62,26 +63,35 @@ const MyLeavesPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
-        <button
-          onClick={() => setActiveTab("upcoming")}
-          className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-            activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          Upcoming
-        </button>
-        <button
-          onClick={() => setActiveTab("history")}
-          className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-            activeTab === "history" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          History
-        </button>
-      </div>
+      <PageToolbar
+        leftSlot={
+          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab("upcoming")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Upcoming ({upcomingLeaves.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("history")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "history" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              History ({pastLeaves.length})
+            </button>
+          </div>
+        }
+        stats={[
+          { icon: Calendar, label: "Total", value: leaves.length, iconClassName: "text-gray-500" },
+          { icon: CheckCircle, label: "Upcoming", value: upcomingLeaves.length, iconClassName: "text-green-500" },
+          { icon: FileText, label: "History", value: pastLeaves.length, iconClassName: "text-gray-500" },
+        ]}
+      />
     ),
-    [activeTab]
+    [activeTab, leaves.length, pastLeaves.length, upcomingLeaves.length]
   );
 
   useSetPageHeader(

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
@@ -17,11 +16,13 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const AssignedServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchAssignedServices = async () => {
@@ -51,30 +52,42 @@ const AssignedServicesPage = () => {
   // Toolbar: tab switcher lives in PageSubHeader's second row
   const toolbar = useMemo(
     () => (
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-transparent border-0 p-0 gap-1 h-auto">
-          <TabsTrigger
-            value="upcoming"
-            className="px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-gray-100 border-0"
-          >
-            Upcoming ({pendingServices.length})
-          </TabsTrigger>
-          <TabsTrigger
-            value="in-progress"
-            className="px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-gray-100 border-0"
-          >
-            In Progress ({inProgressServices.length})
-          </TabsTrigger>
-          <TabsTrigger
-            value="completed"
-            className="px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:bg-gray-100 border-0"
-          >
-            History ({completedServices.length})
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <PageToolbar
+        leftSlot={
+          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab("upcoming")}
+              className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                activeTab === "upcoming" ? "bg-red-600 text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              Upcoming ({pendingServices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("in-progress")}
+              className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                activeTab === "in-progress" ? "bg-red-600 text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              In Progress ({inProgressServices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                activeTab === "completed" ? "bg-red-600 text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              History ({completedServices.length})
+            </button>
+          </div>
+        }
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search assignments..."
+        searchWidthClass="sm:w-72"
+      />
     ),
-    [activeTab, pendingServices.length, inProgressServices.length, completedServices.length],
+    [activeTab, completedServices.length, inProgressServices.length, pendingServices.length, searchQuery],
   );
 
   useSetPageHeader(
@@ -185,6 +198,19 @@ const AssignedServicesPage = () => {
         ? inProgressServices
         : completedServices;
 
+  const visibleData = currentData.filter((row) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return [
+      row.bookingid,
+      row.cusname,
+      row.vehbrand,
+      row.vehmodel,
+      row.vehplate,
+    ].some((value) => String(value || "").toLowerCase().includes(query));
+  });
+
   const emptyConfigs = {
     upcoming: {
       icon: Calendar,
@@ -209,11 +235,11 @@ const AssignedServicesPage = () => {
     <div className="mx-auto w-full max-w-7xl">
       <DataTable
         columns={columns}
-        data={currentData}
+        data={visibleData}
         keyField="bookingid"
         emptyIcon={empty.icon}
         emptyTitle={empty.title}
-        emptySubtitle={empty.subtitle}
+        emptySubtitle={searchQuery ? "No assignments match your search." : empty.subtitle}
       />
     </div>
   );

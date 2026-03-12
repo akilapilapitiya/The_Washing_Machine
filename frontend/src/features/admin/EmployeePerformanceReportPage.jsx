@@ -17,6 +17,7 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import { format, startOfWeek, startOfMonth } from "date-fns";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 const EmployeePerformanceReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,7 @@ const EmployeePerformanceReportPage = () => {
     firstDay.toISOString().split("T")[0],
   );
   const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
+  const [quickRange, setQuickRange] = useState("month");
 
   const fetchReport = React.useCallback(async () => {
     try {
@@ -52,10 +54,11 @@ const EmployeePerformanceReportPage = () => {
     fetchReport();
   }, [fetchReport]);
 
-  const setQuickRange = (range) => {
+  const applyQuickRange = (range) => {
     const now = new Date();
     const todayStr = format(now, "yyyy-MM-dd");
-    
+    setQuickRange(range);
+
     if (range === "today") {
       setStartDate(todayStr);
       setEndDate(todayStr);
@@ -117,85 +120,53 @@ const EmployeePerformanceReportPage = () => {
 
   const maxDate = format(new Date(), "yyyy-MM-dd");
 
-  // Memoize action element for stable reference
-  // Memoize summary pills for the toolbar
-  const summaryPills = React.useMemo(() => (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2 border px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all hover:border-yellow-100 group">
-        <TrendingUp size={14} className="text-yellow-500" />
-        <div className="flex flex-col max-w-[120px]">
-          <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400 leading-none">MVP</span>
-          <span className="text-xs font-bold text-gray-900 leading-none mt-0.5 truncate" title={topPerformer?.empname}>
-            {topPerformer ? topPerformer.empname : "N/A"}
-          </span>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 border px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all hover:border-blue-100">
-        <Briefcase size={14} className="text-blue-500" />
-        <div className="flex flex-col">
-          <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400 leading-none">Total Jobs</span>
-          <span className="text-xs font-bold text-gray-900 leading-none mt-0.5">{totalJobs}</span>
-        </div>
-      </div>
-    </div>
-  ), [topPerformer, totalJobs]);
-
   const toolbar = React.useMemo(() => (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full">
-      <div className="flex items-center gap-4">
-        {summaryPills}
-        <div className="h-8 w-px bg-gray-200 hidden md:block" />
-        <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200">
-          <button 
-            onClick={() => setQuickRange("today")}
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
-              startDate === endDate && startDate === maxDate 
-                ? "bg-white text-red-600 shadow-sm" 
-                : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            Today
-          </button>
-          <button 
-            onClick={() => setQuickRange("week")}
-            className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md text-gray-500 hover:text-gray-900 transition-all"
-          >
-            This Week
-          </button>
-          <button 
-            onClick={() => setQuickRange("month")}
-            className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md text-gray-500 hover:text-gray-900 transition-all"
-          >
-            This Month
-          </button>
+    <PageToolbar
+      stats={[
+        { icon: TrendingUp, label: "MVP", value: topPerformer ? topPerformer.empname : "N/A", iconClassName: "text-yellow-500" },
+        { icon: Briefcase, label: "Total Jobs", value: totalJobs, iconClassName: "text-blue-500" },
+        { icon: Users, label: "Staff", value: report.length, iconClassName: "text-gray-500" },
+      ]}
+      filters={[
+        { id: "today", label: "Today" },
+        { id: "week", label: "This Week" },
+        { id: "month", label: "This Month" },
+      ]}
+      activeFilter={quickRange}
+      onFilterChange={applyQuickRange}
+      rightSlot={
+        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">From</label>
+            <input
+              type="date"
+              value={startDate}
+              max={maxDate}
+              onChange={(e) => {
+                setQuickRange("custom");
+                setStartDate(e.target.value);
+              }}
+              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+            />
+          </div>
+          <div className="h-6 w-px bg-gray-200 shrink-0"></div>
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">To</label>
+            <input
+              type="date"
+              value={endDate}
+              max={maxDate}
+              onChange={(e) => {
+                setQuickRange("custom");
+                setEndDate(e.target.value);
+              }}
+              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+            />
+          </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
-        <div className="flex flex-col flex-1 md:flex-none">
-          <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">From</label>
-          <input
-            type="date"
-            value={startDate}
-            max={maxDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
-          />
-        </div>
-        <div className="h-6 w-px bg-gray-200 shrink-0"></div>
-        <div className="flex flex-col flex-1 md:flex-none">
-          <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">To</label>
-          <input
-            type="date"
-            value={endDate}
-            max={maxDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
-          />
-        </div>
-      </div>
-    </div>
-  ), [startDate, endDate, maxDate, summaryPills]);
+      }
+    />
+  ), [endDate, maxDate, quickRange, report.length, startDate, topPerformer, totalJobs]);
 
   const headerAction = React.useMemo(() => (
     <Button

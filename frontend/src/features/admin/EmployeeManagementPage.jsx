@@ -32,6 +32,7 @@ import { IMAGE_BASE_URL } from "@/configs/env";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -82,6 +83,7 @@ const LevelBadge = ({ level, roles }) => {
 const EmployeeManagementPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPromoteForm, setShowPromoteForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -104,6 +106,7 @@ const EmployeeManagementPage = () => {
   const [roles, setRoles] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [, setSuccessMessage] = useState("");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
@@ -279,30 +282,20 @@ const EmployeeManagementPage = () => {
   // Toolbar: Stat Pills
   const toolbar = useMemo(
     () => (
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Users size={14} className="text-gray-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total</span>
-          <span className="text-sm font-black text-gray-900">{employees.length}</span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Shield size={14} className="text-red-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Owners</span>
-          <span className="text-sm font-black text-gray-900">{employees.filter((e) => e.emptype === "owner").length}</span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <CreditCard size={14} className="text-purple-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Cashiers</span>
-          <span className="text-sm font-black text-gray-900">{employees.filter((e) => e.emptype === "cashier").length}</span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Briefcase size={14} className="text-blue-500" />
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Staff</span>
-          <span className="text-sm font-black text-gray-900">{employees.filter((e) => e.emptype === "employee").length}</span>
-        </div>
-      </div>
+      <PageToolbar
+        stats={[
+          { icon: Users, label: "Total", value: employees.length, iconClassName: "text-gray-500" },
+          { icon: Shield, label: "Owners", value: employees.filter((e) => e.emptype === "owner").length, iconClassName: "text-red-500" },
+          { icon: CreditCard, label: "Cashiers", value: employees.filter((e) => e.emptype === "cashier").length, iconClassName: "text-purple-500" },
+          { icon: Briefcase, label: "Staff", value: employees.filter((e) => e.emptype === "employee").length, iconClassName: "text-blue-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search employees..."
+        searchWidthClass="sm:w-80"
+      />
     ),
-    [employees],
+    [employees, searchQuery],
   );
 
   useSetPageHeader(
@@ -419,11 +412,22 @@ const EmployeeManagementPage = () => {
             <>
               <DataTable
                 columns={columns}
-                data={employees}
+                data={employees.filter((employee) => {
+                  const query = searchQuery.trim().toLowerCase();
+                  if (!query) return true;
+
+                  return [
+                    employee.empname,
+                    employee.email,
+                    employee.emptel,
+                    employee.emptype,
+                    employee.empid,
+                  ].some((value) => String(value || "").toLowerCase().includes(query));
+                })}
                 keyField="empid"
                 emptyIcon={Users}
                 emptyTitle="No staff found"
-                emptySubtitle="Your employee directory is empty."
+                emptySubtitle={searchQuery ? "No staff match your search." : "Your employee directory is empty."}
               />
 
               {/* Employee Detail Modal */}
