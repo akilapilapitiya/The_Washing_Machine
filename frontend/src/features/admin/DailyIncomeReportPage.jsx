@@ -15,6 +15,7 @@ import * as reportService from "@/services/report.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import { format, startOfWeek, startOfMonth } from "date-fns";
 const DailyIncomeReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,24 @@ const DailyIncomeReportPage = () => {
       toast.error("Failed to load report data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const setQuickRange = (range) => {
+    const now = new Date();
+    const todayStr = format(now, "yyyy-MM-dd");
+    
+    if (range === "today") {
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (range === "week") {
+      const monday = format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+      setStartDate(monday);
+      setEndDate(todayStr);
+    } else if (range === "month") {
+      const firstDayOfMonth = format(startOfMonth(now), "yyyy-MM-dd");
+      setStartDate(firstDayOfMonth);
+      setEndDate(todayStr);
     }
   };
 
@@ -86,29 +105,60 @@ const DailyIncomeReportPage = () => {
 
   const formatCurrency = (val) => `Rs. ${val.toLocaleString()}`;
 
+  const maxDate = format(new Date(), "yyyy-MM-dd");
+
   useSetPageHeader(
     "Financial Reports",
     "Daily Income Report",
     "Track revenue and transaction volume over time.",
-    <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10">
-      <div className="flex flex-col">
-        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>From</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
-        />
+    <div className="flex flex-col md:flex-row items-end md:items-center gap-3">
+      <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200">
+        <button 
+          onClick={() => setQuickRange("today")}
+          className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+            startDate === endDate && startDate === maxDate 
+              ? "bg-white text-red-600 shadow-sm" 
+              : "text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          Today
+        </button>
+        <button 
+          onClick={() => setQuickRange("week")}
+          className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md text-gray-500 hover:text-gray-900 transition-all"
+        >
+          This Week
+        </button>
+        <button 
+          onClick={() => setQuickRange("month")}
+          className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md text-gray-500 hover:text-gray-900 transition-all"
+        >
+          This Month
+        </button>
       </div>
-      <div className="h-6 w-px bg-gray-200"></div>
-      <div className="flex flex-col">
-        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>To</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
-        />
+
+      <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10">
+        <div className="flex flex-col">
+          <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>From</label>
+          <input
+            type="date"
+            value={startDate}
+            max={maxDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
+          />
+        </div>
+        <div className="h-6 w-px bg-gray-200"></div>
+        <div className="flex flex-col">
+          <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>To</label>
+          <input
+            type="date"
+            value={endDate}
+            max={maxDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
+          />
+        </div>
       </div>
     </div>
   );
