@@ -16,13 +16,17 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const EmployeeIncidentPage = () => {
   const [bookings, setBookings] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [bookingSearchQuery, setBookingSearchQuery] = useState("");
+  const [incidentSearchQuery, setIncidentSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
   const [showReportModal, setShowReportModal] = useState(false);
 
   // Reporting State
@@ -57,9 +61,9 @@ const EmployeeIncidentPage = () => {
   const filteredBookings = bookings.filter(
     (b) =>
       b.bookingstatus !== "cancelled" &&
-      (b.cusname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.vehplate?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.bookingid.toString().includes(searchQuery)),
+      (b.cusname?.toLowerCase().includes(bookingSearchQuery.toLowerCase()) ||
+        b.vehplate?.toLowerCase().includes(bookingSearchQuery.toLowerCase()) ||
+        b.bookingid.toString().includes(bookingSearchQuery)),
   );
 
   const handleSubmit = async (e) => {
@@ -100,6 +104,25 @@ const EmployeeIncidentPage = () => {
     }
   };
 
+  const filteredIncidents = incidents.filter((incident) => {
+    const query = incidentSearchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        incident.customer_name,
+        incident.description,
+        incident.severity,
+        incident.status,
+        incident.booking_id,
+        incident.id,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(incident.created_at, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Button
@@ -111,11 +134,51 @@ const EmployeeIncidentPage = () => {
     </Button>
   ), []);
 
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: ShieldAlert, label: "Total", value: incidents.length, iconClassName: "text-red-500" },
+          {
+            icon: AlertCircle,
+            label: "Open",
+            value: incidents.filter((incident) => incident.status === "open").length,
+            iconClassName: "text-orange-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Resolved",
+            value: incidents.filter((incident) => incident.status === "resolved").length,
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: ShieldCheck,
+            label: "Critical",
+            value: incidents.filter((incident) => incident.severity === "critical").length,
+            iconClassName: "text-red-600",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={incidentSearchQuery}
+        onSearchChange={setIncidentSearchQuery}
+        searchPlaceholder="Search incident history..."
+      />
+    ),
+    [dateRange, incidentSearchQuery, incidents],
+  );
+
   useSetPageHeader(
     "Safety & Security",
     "Employee Incident Log",
     "Monitor reported issues and safety concerns regarding customer interactions.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading safety reports..." />;
@@ -224,8 +287,8 @@ const EmployeeIncidentPage = () => {
                       <Input
                         placeholder="Search by name or plate..."
                         className="pl-9 h-11 border-gray-200"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        value={bookingSearchQuery}
+                        onChange={(e) => setBookingSearchQuery(e.target.value)}
                       />
                     </div>
                   </div>
@@ -355,11 +418,11 @@ const EmployeeIncidentPage = () => {
         ) : (
           <DataTable
             columns={incidentColumns}
-            data={incidents}
+            data={filteredIncidents}
             keyField="id"
             emptyIcon={ShieldCheck}
             emptyTitle="Safety Clearance"
-            emptySubtitle="You haven't reported any safety incidents. Your working environment remains secure."
+            emptySubtitle={incidentSearchQuery ? "No incidents match your current filters." : "You haven't reported any safety incidents. Your working environment remains secure."}
           />
         )}
       </div>

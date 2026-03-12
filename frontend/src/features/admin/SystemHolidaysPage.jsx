@@ -19,6 +19,8 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const SystemHolidaysPage = () => {
   const [holidays, setHolidays] = useState([]);
@@ -27,6 +29,8 @@ const SystemHolidaysPage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const [formData, setFormData] = useState({
@@ -64,7 +68,7 @@ const SystemHolidaysPage = () => {
     }));
   };
 
-  const resetForm = () => {
+  const resetForm = React.useCallback(() => {
     setFormData({
       holidayname: "",
       holidaydate: "",
@@ -72,7 +76,7 @@ const SystemHolidaysPage = () => {
       description: "",
       is_recurring: false,
     });
-  };
+  }, []);
 
   const handleAddHoliday = async (e) => {
     e.preventDefault();
@@ -142,10 +146,10 @@ const SystemHolidaysPage = () => {
     setShowEditForm(true);
   };
 
-  const openAddForm = () => {
+  const openAddForm = React.useCallback(() => {
     resetForm();
     setShowAddForm(true);
-  };
+  }, [resetForm]);
 
   const getHolidayTypeColor = (type) => {
     switch (type) {
@@ -181,13 +185,70 @@ const SystemHolidaysPage = () => {
       <Plus size={18} />
       Add Holiday
     </Button>
-  ), []);
+  ), [openAddForm]);
+
+  const filteredHolidays = holidays.filter((holiday) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        holiday.holidayname,
+        holiday.holidaytype,
+        holiday.description,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(holiday.holidaydate, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Calendar, label: "Total", value: holidays.length, iconClassName: "text-red-500" },
+          {
+            icon: Tag,
+            label: "Public",
+            value: holidays.filter((holiday) => holiday.holidaytype === "public").length,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: Tag,
+            label: "Company",
+            value: holidays.filter((holiday) => holiday.holidaytype === "company").length,
+            iconClassName: "text-purple-500",
+          },
+          {
+            icon: Tag,
+            label: "Recurring",
+            value: holidays.filter((holiday) => holiday.is_recurring).length,
+            iconClassName: "text-gray-500",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+          { id: "upcoming", label: "Upcoming" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search holidays..."
+      />
+    ),
+    [dateRange, holidays, searchQuery],
+  );
 
   useSetPageHeader(
     "System Settings",
     "System Holidays",
     "Manage company-wide holidays and closures. Bookings are automatically blocked on these dates.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading holidays..." />;
@@ -266,11 +327,11 @@ const SystemHolidaysPage = () => {
       <div className="mx-auto w-full max-w-7xl space-y-8">
         <DataTable
           columns={columns}
-          data={holidays}
+          data={filteredHolidays}
           keyField="holidayid"
           emptyIcon={Calendar}
           emptyTitle="No holidays configured"
-          emptySubtitle="Add your first system holiday to block bookings on specific dates."
+          emptySubtitle={searchQuery ? "No holidays match your current filters." : "Add your first system holiday to block bookings on specific dates."}
           emptyAction={
             <Button
               onClick={openAddForm}

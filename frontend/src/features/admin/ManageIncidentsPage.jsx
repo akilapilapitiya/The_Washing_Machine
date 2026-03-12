@@ -10,11 +10,15 @@ import * as incidentService from "@/services/incident.service";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 import { toast } from "sonner";
 const ManageIncidentsPage = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     fetchIncidents();
@@ -68,10 +72,73 @@ const ManageIncidentsPage = () => {
     }
   };
 
+  const filteredIncidents = incidents.filter((incident) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        incident.employee_name,
+        incident.customer_name,
+        incident.description,
+        incident.severity,
+        incident.status,
+        incident.booking_id,
+        incident.id,
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(query),
+      );
+
+    const matchesDate = matchesQuickDateRange(incident.created_at, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: ShieldAlert, label: "Total", value: incidents.length, iconClassName: "text-red-500" },
+          {
+            icon: ShieldAlert,
+            label: "Open",
+            value: incidents.filter((incident) => incident.status === "open").length,
+            iconClassName: "text-orange-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Resolved",
+            value: incidents.filter((incident) => incident.status === "resolved").length,
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: XCircle,
+            label: "Dismissed",
+            value: incidents.filter((incident) => incident.status === "dismissed").length,
+            iconClassName: "text-gray-500",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search incidents..."
+      />
+    ),
+    [dateRange, incidents, searchQuery],
+  );
+
   useSetPageHeader(
     "Security & Safety",
     "Incident Reports",
     "Review and resolve staff-reported issues regarding customer interactions.",
+    null,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading incidents..." />;
@@ -175,11 +242,11 @@ const ManageIncidentsPage = () => {
     <div className="mx-auto w-full max-w-7xl space-y-8">
       <DataTable
         columns={columns}
-        data={incidents}
+        data={filteredIncidents}
         keyField="id"
         emptyIcon={CheckCircle}
         emptyTitle="All Quiet"
-        emptySubtitle="No active incidents reported. Operations are normal."
+        emptySubtitle={searchQuery ? "No incidents match your current filters." : "No active incidents reported. Operations are normal."}
       />
     </div>
   );

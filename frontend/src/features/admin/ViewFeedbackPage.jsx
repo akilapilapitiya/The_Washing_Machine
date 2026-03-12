@@ -9,11 +9,15 @@ import { getAllFeedbacks } from "@/services/feedback.service";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 import { toast } from "sonner";
 const ViewFeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -50,10 +54,66 @@ const ViewFeedbackPage = () => {
     );
   };
 
+  const filteredFeedbacks = feedbacks.filter((feedback) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        feedback.cusname,
+        feedback.assigned_employee,
+        feedback.feedbackdescription,
+        feedback.bookingid,
+        feedback.rating,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(feedback.created_at, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
+  const averageRating =
+    feedbacks.length > 0
+      ? (
+          feedbacks.reduce((sum, feedback) => sum + Number(feedback.rating || 0), 0) /
+          feedbacks.length
+        ).toFixed(1)
+      : "0.0";
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: MessageSquare, label: "Total", value: feedbacks.length, iconClassName: "text-gray-500" },
+          { icon: Star, label: "Avg Rating", value: averageRating, iconClassName: "text-amber-500" },
+          {
+            icon: Star,
+            label: "5 Stars",
+            value: feedbacks.filter((feedback) => Number(feedback.rating) === 5).length,
+            iconClassName: "text-yellow-500",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search feedback..."
+      />
+    ),
+    [averageRating, dateRange, feedbacks, searchQuery],
+  );
+
   useSetPageHeader(
     "Quality Assurance",
     "Customer Feedback",
     "Monitor customer satisfaction and review employee performance.",
+    null,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading feedback..." />;
@@ -118,11 +178,11 @@ const ViewFeedbackPage = () => {
     <div className="mx-auto w-full max-w-7xl space-y-8">
       <DataTable
         columns={columns}
-        data={feedbacks}
+        data={filteredFeedbacks}
         keyField="feedbackid"
         emptyIcon={MessageSquare}
         emptyTitle="No feedback found"
-        emptySubtitle="Customer reviews and ratings will appear here once they are submitted."
+        emptySubtitle={searchQuery ? "No feedback matches your current filters." : "Customer reviews and ratings will appear here once they are submitted."}
       />
     </div>
   );

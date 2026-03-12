@@ -20,12 +20,16 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { intervalMatchesQuickDateRange } from "@/utils/quickDateRange";
 const LeaveManagementPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   const [formData, setFormData] = useState({
     empid: "",
@@ -84,11 +88,81 @@ const LeaveManagementPage = () => {
     </Button>
   ), []);
 
+  const filteredLeaves = leaves.filter((leave) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [leave.empname, leave.leavereason].some((value) =>
+        String(value || "").toLowerCase().includes(query),
+      );
+
+    const matchesDate = intervalMatchesQuickDateRange(
+      leave.leavestartdate,
+      leave.leaveenddate,
+      dateRange,
+    );
+
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Briefcase, label: "Records", value: leaves.length, iconClassName: "text-gray-500" },
+          {
+            icon: CalendarIcon,
+            label: "Today",
+            value: leaves.filter((leave) =>
+              intervalMatchesQuickDateRange(
+                leave.leavestartdate,
+                leave.leaveenddate,
+                "today",
+              ),
+            ).length,
+            iconClassName: "text-red-500",
+          },
+          {
+            icon: CalendarIcon,
+            label: "This Month",
+            value: leaves.filter((leave) =>
+              intervalMatchesQuickDateRange(
+                leave.leavestartdate,
+                leave.leaveenddate,
+                "month",
+              ),
+            ).length,
+            iconClassName: "text-orange-500",
+          },
+          {
+            icon: User,
+            label: "Staff Affected",
+            value: new Set(leaves.map((leave) => leave.empid)).size,
+            iconClassName: "text-blue-500",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search leave records..."
+      />
+    ),
+    [dateRange, leaves, searchQuery],
+  );
+
   useSetPageHeader(
     "Human Resources",
     "Staff Attendance",
     "Manage operative availability and leave records.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading attendance records..." />;
@@ -249,11 +323,11 @@ const LeaveManagementPage = () => {
 
       <DataTable
         columns={columns}
-        data={leaves}
+        data={filteredLeaves}
         keyField="leaveid"
         emptyIcon={Briefcase}
         emptyTitle="No Active Leaves"
-        emptySubtitle="No staff members are currently on leave. Operations are running at full capacity."
+        emptySubtitle={searchQuery ? "No leave records match your current filters." : "No staff members are currently on leave. Operations are running at full capacity."}
       />
     </div>
   );

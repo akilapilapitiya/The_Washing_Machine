@@ -5,15 +5,18 @@ import {
   Calendar,
   CheckCircle,
   Briefcase,
+  Clock,
   RefreshCw,
   Loader2,
 } from "lucide-react";
 import { getBookings, updateBooking } from "@/services/booking.service";
 import { getAvailableEmployees } from "@/services/employee.service";
 import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const ReassignModal = ({ booking, onClose, onConfirm }) => {
   const [availableEmployees, setAvailableEmployees] = useState([]);
@@ -129,9 +132,11 @@ const BookingReviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
   const [searchParams] = useSearchParams();
 
-  const fetchBookings = async () => {
+  const fetchBookings = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await getBookings();
@@ -139,28 +144,31 @@ const BookingReviewPage = () => {
       const active = data.filter((b) =>
         ["pending", "inProgress"].includes(b.bookingstatus),
       );
-      
+
+      setBookings(active);
+
       const searchId = searchParams.get("search");
       if (searchId) {
-        const filtered = active.filter(b => String(b.bookingid) === searchId);
-        setBookings(filtered);
-        if (filtered.length === 1) {
-          setSelectedBooking(filtered[0]);
+        setSearchQuery(searchId);
+        const matchedBooking = active.find(
+          (booking) => String(booking.bookingid) === searchId,
+        );
+
+        if (matchedBooking) {
+          setSelectedBooking(matchedBooking);
           setShowReassignModal(true);
         }
-      } else {
-        setBookings(active);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [fetchBookings]);
 
   const openReassign = (booking) => {
     setSelectedBooking(booking);
@@ -193,13 +201,72 @@ const BookingReviewPage = () => {
     >
       <RefreshCw size={16} /> Refresh
     </Button>
-  ), []);
+  ), [fetchBookings]);
+
+  const filteredBookings = bookings.filter((booking) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        booking.bookingid,
+        booking.cusname,
+        booking.vehbrand,
+        booking.vehmodel,
+        booking.assigned_empname,
+        booking.preferred_empname,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Calendar, label: "Total", value: bookings.length, iconClassName: "text-gray-500" },
+          {
+            icon: Briefcase,
+            label: "Pending",
+            value: bookings.filter((booking) => booking.bookingstatus === "pending").length,
+            iconClassName: "text-amber-500",
+          },
+          {
+            icon: Clock,
+            label: "In Progress",
+            value: bookings.filter((booking) => booking.bookingstatus === "inProgress").length,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Unassigned",
+            value: bookings.filter((booking) => !booking.assigned_empname).length,
+            iconClassName: "text-green-500",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search bookings..."
+      />
+    ),
+    [bookings, dateRange, searchQuery],
+  );
 
   useSetPageHeader(
     "Booking Administration",
     "Booking Review",
     "Manage assignments and review customer preferences.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;
@@ -302,11 +369,11 @@ const BookingReviewPage = () => {
     <div className="mx-auto w-full max-w-7xl space-y-8">
       <DataTable
         columns={columns}
-        data={bookings}
+        data={filteredBookings}
         keyField="bookingid"
         emptyIcon={CheckCircle}
         emptyTitle="No active bookings to review."
-        emptySubtitle="Pending and in-progress bookings will appear here."
+        emptySubtitle={searchQuery ? "No bookings match your current filters." : "Pending and in-progress bookings will appear here."}
       />
 
       {showReassignModal && selectedBooking && (
