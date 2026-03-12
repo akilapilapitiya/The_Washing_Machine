@@ -8,6 +8,7 @@ export const PageHeaderProvider = ({ children }) => {
         title: "",
         subtitle: "",
         action: null,
+        toolbar: null,
     });
 
     return (
@@ -32,13 +33,13 @@ export const usePageHeader = () => {
  * @param {React.ReactNode} action - optional right-side node (e.g. a Button)
  */
 // eslint-disable-next-line react-refresh/only-export-components
-export const useSetPageHeader = (label, title, subtitle = "", action = null) => {
+export const useSetPageHeader = (label, title, subtitle = "", action = null, toolbar = null) => {
     const { setHeader } = usePageHeader();
 
     useEffect(() => {
-        setHeader({ label, title, subtitle, action });
+        setHeader({ label, title, subtitle, action, toolbar });
         // Clear on unmount so auth/booking pages show no bar
-        return () => setHeader({ label: "", title: "", subtitle: "", action: null });
+        return () => setHeader({ label: "", title: "", subtitle: "", action: null, toolbar: null });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [label, title, subtitle, action]);
+    }, [label, title, subtitle, action, toolbar]);
 };

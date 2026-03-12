@@ -2,8 +2,9 @@ import React from "react";
 import { usePageHeader } from "@/contexts/PageHeaderContext";
 
 /**
- * PageSubHeader — thin white bar below the Navbar.
- * Only renders when a page has set a title via useSetPageHeader().
+ * PageSubHeader — sticky white bar below the Navbar.
+ * Row 1: label / title / subtitle + optional action button.
+ * Row 2 (optional): toolbar — search, filters, tabs declared by the page.
  */
 const PageSubHeader = () => {
     const { header } = usePageHeader();
@@ -12,6 +13,7 @@ const PageSubHeader = () => {
 
     return (
         <div className="bg-white border-b border-gray-100 shadow-sm sticky top-[64px] z-30">
+            {/* Row 1 — Title bar */}
             <div className="container mx-auto px-4 py-3 max-w-7xl flex items-center justify-between gap-4">
                 {/* Left: label + title + subtitle */}
                 <div className="min-w-0">
@@ -30,11 +32,20 @@ const PageSubHeader = () => {
                     )}
                 </div>
 
-                {/* Right: action (e.g. Add Vehicle button) */}
+                {/* Right: action button */}
                 {header.action && (
                     <div className="flex-shrink-0">{header.action}</div>
                 )}
             </div>
+
+            {/* Row 2 — Toolbar (search / filters / tabs) */}
+            {header.toolbar && (
+                <div className="border-t border-gray-100 bg-gray-50/40">
+                    <div className="container mx-auto px-4 py-2.5 max-w-7xl">
+                        {header.toolbar}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
