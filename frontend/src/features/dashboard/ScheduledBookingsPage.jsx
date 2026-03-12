@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
   Clock,
-  MapPin,
-  Wrench,
-  User,
-  CheckCircle,
   XCircle,
   Loader2,
   Edit2,
   Trash2,
   AlertCircle,
+  Hash,
+  CheckCircle,
+  Clock3,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -20,42 +18,15 @@ import {
   updateBooking,
   deleteBooking,
 } from "@/services/booking.service";
-import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
-
-const StatusBadge = ({ status }) => {
-  const styles = {
-    pending: "bg-amber-50 text-amber-700 border-amber-100",
-    inProgress: "bg-blue-50 text-blue-700 border-blue-100",
-    completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    cancelled: "bg-gray-50 text-gray-700 border-gray-100",
-  };
-
-  const labels = {
-    pending: "Pending",
-    inProgress: "In Progress",
-    completed: "Completed",
-    paid: "Paid",
-    cancelled: "Cancelled",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${styles[status] || styles.pending}`}
-    >
-      {(status === "completed" || status === "paid") && (
-        <CheckCircle size={12} />
-      )}
-      {status === "cancelled" && <XCircle size={12} />}
-      {labels[status] || status}
-    </span>
-  );
-};
+import DataTable from "@/components/common/DataTable";
+import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const BookingCard = ({ booking, onManage }) => {
   // Format services list
@@ -324,6 +295,8 @@ const ScheduledBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     fetchBookings();
@@ -334,7 +307,7 @@ const ScheduledBookingsPage = () => {
       setLoading(true);
       const data = await getBookings();
       setBookings(data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load your bookings. Please try again.");
     } finally {
       setLoading(false);
@@ -371,6 +344,44 @@ const ScheduledBookingsPage = () => {
     (b) => b.bookingstatus === "pending" || b.bookingstatus === "inProgress",
   );
 
+  const filteredBookings = upcomingBookings.filter((booking) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [
+        booking.vehbrand,
+        booking.vehmodel,
+        booking.vehplate,
+        booking.services?.map((s) => s.servicename).join(" "),
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Clock3, label: "Upcoming", value: upcomingBookings.length, iconClassName: "text-orange-500" },
+          { icon: CheckCircle, label: "Scheduled", value: bookings.filter((b) => b.bookingstatus === "pending").length, iconClassName: "text-blue-500" },
+        ]}
+        filters={[
+          { id: "all", label: "All" },
+          { id: "today", label: "Today" },
+          { id: "week", label: "This Week" },
+          { id: "upcoming", label: "Upcoming" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by vehicle or service..."
+      />
+    ),
+    [dateRange, searchQuery, upcomingBookings.length, bookings],
+  );
+
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Link to="/dashboard/book">
@@ -385,139 +396,123 @@ const ScheduledBookingsPage = () => {
     "My Bookings",
     "Manage your upcoming service appointments.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;
 
+  const columns = [
+    {
+      key: "bookingid",
+      label: "Reference",
+      render: (row) => (
+        <div className="flex items-center gap-1.5 opacity-60">
+          <Hash size={12} />
+          <span className="font-mono text-xs font-bold">
+            {String(row.bookingid).padStart(4, "0")}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "vehicle",
+      label: "Vehicle",
+      render: (row) => {
+        const vehicleName = row.vehbrand
+          ? `${row.vehbrand} ${row.vehmodel}`
+          : `Vehicle ID: ${row.vehid}`;
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-gray-900 leading-tight">{vehicleName}</span>
+            <span className="text-[10px] font-mono text-gray-500 italic">{row.vehplate}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "datetime",
+      label: "Date & Time",
+      render: (row) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
+            <Calendar size={12} className="text-red-600" />
+            {formatDateShortSL(row.bookingdate)}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">
+            <Clock size={12} className="text-gray-400" />
+            {row.bookingstarttime} – {row.bookingendtime}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "services",
+      label: "Services",
+      render: (row) => (
+        <div className="flex flex-wrap gap-1 max-w-[200px]">
+          {row.services?.map((s, idx) => (
+            <span key={idx} className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase">
+              {s.servicename}
+            </span>
+          )) ?? <span className="text-[10px] text-gray-400 italic">—</span>}
+        </div>
+      ),
+    },
+    {
+      key: "totalprice",
+      label: "Amount",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => {
+        const total = row.totalprice || row.bookingtotalprice || 0;
+        return (
+          <span className="text-sm font-black text-gray-900">
+            {total > 0 ? `Rs. ${Number(total).toLocaleString()}` : "—"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "bookingstatus",
+      label: "Status",
+      render: (row) => <StatusBadge status={row.bookingstatus} />,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSelectedBooking(row)}
+          className="h-8 text-[11px] font-black uppercase text-gray-400 hover:text-red-600 hover:bg-red-50 p-2"
+        >
+          Manage
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <>
-      <div className="mx-auto w-full max-w-7xl space-y-6">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between border-b pb-4">
-            <h2 className="text-xl font-semibold">
-              Upcoming ({upcomingBookings.length})
-            </h2>
-          </div>
-
-          {upcomingBookings.length > 0 ? (
-            <Card className="border-gray-200 shadow-sm overflow-hidden bg-white">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                        Reference
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                        Vehicle
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                        Date & Time
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                        Services
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">
-                        Amount
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                        Status
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {upcomingBookings.map((booking) => {
-                      const vehicleName = booking.vehbrand
-                        ? `${booking.vehbrand} ${booking.vehmodel}`
-                        : `Vehicle ID: ${booking.vehid}`;
-                      const plate = booking.vehplate || "";
-                      const servicesList = booking.services
-                        ? booking.services.map((s) => s.servicename).join(", ")
-                        : "No services";
-                      const totalPrice = booking.totalprice || booking.bookingtotalprice || 0;
-
-                      return (
-                        <tr
-                          key={booking.bookingid}
-                          className="hover:bg-gray-50/50 transition-colors group"
-                        >
-                          <td className="px-6 py-4">
-                            <span className="font-mono text-xs font-bold text-gray-600">
-                              #{booking.bookingid}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-gray-900 leading-tight">
-                                {vehicleName}
-                              </span>
-                              <span className="text-[10px] font-mono text-gray-500 italic">
-                                {plate}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-                                <Calendar size={12} className="text-red-600" />
-                                {formatDateShortSL(booking.bookingdate)}
-                              </div>
-                              <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">
-                                <Clock size={12} className="text-gray-400" />
-                                {booking.bookingstarttime} - {booking.bookingendtime}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="text-xs text-gray-600 font-medium line-clamp-1 max-w-[200px]" title={servicesList}>
-                              {servicesList}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <span className={`text-sm font-black ${COLORS.text.brand}`}>
-                              Rs. {Number(totalPrice).toLocaleString()}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <StatusBadge status={booking.bookingstatus} />
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedBooking(booking)}
-                              className="h-8 text-[11px] font-black uppercase text-gray-400 hover:text-red-600 hover:bg-red-50 p-2"
-                            >
-                              Manage
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          ) : (
-            <Card className="border-dashed">
-              <CardContent className="text-center py-16">
-                <Calendar size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-xl font-bold mb-2">No upcoming bookings</h3>
-                <p className={`${COLORS.text.secondary} mb-6`}>
-                  You don't have any scheduled appointments at the moment.
-                </p>
-                <Link to="/dashboard/book">
-                  <Button className={COLORS.bg.brand}>
-                    Schedule Your First Wash
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+      <div className="mx-auto w-full max-w-7xl">
+        <DataTable
+          columns={columns}
+          data={filteredBookings}
+          keyField="bookingid"
+          emptyIcon={Calendar}
+          emptyTitle="No upcoming bookings"
+          emptySubtitle="You don't have any scheduled appointments at the moment."
+          emptyAction={
+            <Link to="/dashboard/book">
+              <Button className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-8 rounded-lg">
+                Schedule Your First Wash
+              </Button>
+            </Link>
+          }
+        />
       </div>
 
       <EditBookingModal

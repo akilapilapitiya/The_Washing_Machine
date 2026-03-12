@@ -15,13 +15,18 @@ import * as incidentService from "@/services/incident.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const EmployeeIncidentPage = () => {
   const [bookings, setBookings] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [bookingSearchQuery, setBookingSearchQuery] = useState("");
+  const [incidentSearchQuery, setIncidentSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
   const [showReportModal, setShowReportModal] = useState(false);
 
   // Reporting State
@@ -56,9 +61,9 @@ const EmployeeIncidentPage = () => {
   const filteredBookings = bookings.filter(
     (b) =>
       b.bookingstatus !== "cancelled" &&
-      (b.cusname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.vehplate?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.bookingid.toString().includes(searchQuery)),
+      (b.cusname?.toLowerCase().includes(bookingSearchQuery.toLowerCase()) ||
+        b.vehplate?.toLowerCase().includes(bookingSearchQuery.toLowerCase()) ||
+        b.bookingid.toString().includes(bookingSearchQuery)),
   );
 
   const handleSubmit = async (e) => {
@@ -99,6 +104,25 @@ const EmployeeIncidentPage = () => {
     }
   };
 
+  const filteredIncidents = incidents.filter((incident) => {
+    const query = incidentSearchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        incident.customer_name,
+        incident.description,
+        incident.severity,
+        incident.status,
+        incident.booking_id,
+        incident.id,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(incident.created_at, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Button
@@ -110,14 +134,122 @@ const EmployeeIncidentPage = () => {
     </Button>
   ), []);
 
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: ShieldAlert, label: "Total", value: incidents.length, iconClassName: "text-red-500" },
+          {
+            icon: AlertCircle,
+            label: "Open",
+            value: incidents.filter((incident) => incident.status === "open").length,
+            iconClassName: "text-orange-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Resolved",
+            value: incidents.filter((incident) => incident.status === "resolved").length,
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: ShieldCheck,
+            label: "Critical",
+            value: incidents.filter((incident) => incident.severity === "critical").length,
+            iconClassName: "text-red-600",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={incidentSearchQuery}
+        onSearchChange={setIncidentSearchQuery}
+        searchPlaceholder="Search incident history..."
+      />
+    ),
+    [dateRange, incidentSearchQuery, incidents],
+  );
+
   useSetPageHeader(
     "Safety & Security",
     "Employee Incident Log",
     "Monitor reported issues and safety concerns regarding customer interactions.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading safety reports..." />;
+
+  const incidentColumns = [
+    {
+      key: "id",
+      label: "ID",
+      render: (row) => (
+        <span className="font-mono font-bold text-gray-500 text-sm">#{row.id}</span>
+      ),
+    },
+    {
+      key: "severity",
+      label: "Severity",
+      render: (row) => (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
+            row.severity === "critical"
+              ? "bg-red-50 text-red-600 border-red-100"
+              : row.severity === "high"
+                ? "bg-orange-50 text-orange-600 border-orange-100"
+                : "bg-yellow-50 text-yellow-700 border-yellow-100"
+          }`}
+        >
+          {row.severity}
+        </span>
+      ),
+    },
+    {
+      key: "date",
+      label: "Date Reported",
+      render: (row) => (
+        <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+          <Calendar size={14} className="text-gray-400" />
+          {new Date(row.created_at).toLocaleDateString()}
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      label: "Description",
+      render: (row) => (
+        <p className="text-sm text-gray-600 line-clamp-1 max-w-[300px]" title={row.description}>
+          {row.description}
+        </p>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer/Booking",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900">{row.customer_name || "N/A"}</span>
+          {row.booking_id && (
+            <span className="text-xs text-blue-600 font-medium">Booking #{row.booking_id}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          {getStatusIcon(row.status)}
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">{row.status}</span>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -155,8 +287,8 @@ const EmployeeIncidentPage = () => {
                       <Input
                         placeholder="Search by name or plate..."
                         className="pl-9 h-11 border-gray-200"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        value={bookingSearchQuery}
+                        onChange={(e) => setBookingSearchQuery(e.target.value)}
                       />
                     </div>
                   </div>
@@ -272,93 +404,28 @@ const EmployeeIncidentPage = () => {
         </div>
       )}
 
-      {/* Incidents Table */}
-      <Card className="shadow-sm border-gray-200 overflow-hidden">
-        <CardHeader className="pb-4 border-b">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <FileText size={18} className="text-gray-400" />
-            Reported Incident History
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {tableLoading ? (
-            <div className="py-24 flex flex-col items-center justify-center text-gray-400">
-              <Loader2 className="animate-spin mb-4" size={32} />
-              <p className="text-sm font-medium">Synchronizing safety records...</p>
-            </div>
-          ) : incidents.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">ID</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Severity</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Date Reported</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Description</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Customer/Booking</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {incidents.map((incident) => (
-                    <tr key={incident.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-6 py-4">
-                        <span className="font-mono font-bold text-gray-500 text-sm">#{incident.id}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
-                          incident.severity === 'critical' ? 'bg-red-50 text-red-600 border-red-100' :
-                          incident.severity === 'high' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                          'bg-yellow-50 text-yellow-700 border-yellow-100'
-                        }`}>
-                          {incident.severity}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                          <Calendar size={14} className="text-gray-400" />
-                          {new Date(incident.created_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-gray-600 line-clamp-1 max-w-[300px]" title={incident.description}>
-                          {incident.description}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gray-900">{incident.customer_name || "N/A"}</span>
-                          {incident.booking_id && (
-                            <span className="text-xs text-blue-600 font-medium">Booking #{incident.booking_id}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(incident.status)}
-                          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">{incident.status}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="py-32 text-center space-y-4">
-              <div className="p-4 bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
-                <ShieldCheck size={40} className="text-green-500" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-bold text-xl text-gray-900">Safety Clearance</h3>
-                <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                  You haven't reported any safety incidents. Your working environment remains secure.
-                </p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <FileText size={18} className="text-gray-400" />
+          Reported Incident History
+        </div>
+
+        {tableLoading ? (
+          <div className="py-24 flex flex-col items-center justify-center text-gray-400">
+            <Loader2 className="animate-spin mb-4" size={32} />
+            <p className="text-sm font-medium">Synchronizing safety records...</p>
+          </div>
+        ) : (
+          <DataTable
+            columns={incidentColumns}
+            data={filteredIncidents}
+            keyField="id"
+            emptyIcon={ShieldCheck}
+            emptyTitle="Safety Clearance"
+            emptySubtitle={incidentSearchQuery ? "No incidents match your current filters." : "You haven't reported any safety incidents. Your working environment remains secure."}
+          />
+        )}
+      </div>
     </div>
   );
 };

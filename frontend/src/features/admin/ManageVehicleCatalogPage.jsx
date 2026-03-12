@@ -7,9 +7,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
+  X,
   Settings,
   Plus,
   Trash2,
@@ -21,23 +20,33 @@ import {
   Layers,
   ArrowRight,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import * as vehicleCatalogService from "@/services/vehicleCatalog.service";
 import { COLORS } from "@/lib/colors";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageVehicleCatalogPage = () => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newModel, setNewModel] = useState({ brand: "", model: "" });
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
-  // Creation state
-  const [newBrandName, setNewBrandName] = useState("");
+  
+  // Modal states
+  const [showAddBrandModal, setShowAddBrandModal] = useState(false);
+  const [showAddModelModal, setShowAddModelModal] = useState(false);
+  const [showViewModelsModal, setShowViewModelsModal] = useState(false);
+  
+  // Selection states
   const [selectedBrand, setSelectedBrand] = useState("");
+  const [newBrandName, setNewBrandName] = useState("");
   const [newModelName, setNewModelName] = useState("");
+  const [viewingBrand, setViewingBrand] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [submittingBrand, setSubmittingBrand] = useState(false);
   const [submittingModel, setSubmittingModel] = useState(false);
@@ -76,6 +85,7 @@ const ManageVehicleCatalogPage = () => {
       toast.success(`Brand "${newBrandName}" added to catalog`);
 
       setNewBrandName("");
+      setShowAddBrandModal(false);
       fetchModels();
     } catch (err) {
       console.error(err);
@@ -103,6 +113,7 @@ const ManageVehicleCatalogPage = () => {
       });
 
       setNewModelName("");
+      setShowAddModelModal(false);
       fetchModels();
     } catch (err) {
       console.error(err);
@@ -145,185 +156,337 @@ const ManageVehicleCatalogPage = () => {
 
   const sortedBrands = Object.keys(groupedCatalog).sort();
 
+  // Define columns for Brands Table
+  const columns = [
+    {
+      key: "brand",
+      label: "Brand Name",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold border border-red-100">
+            {row.brand.charAt(0).toUpperCase()}
+          </div>
+          <span className="font-bold text-gray-900">{row.brand}</span>
+        </div>
+      ),
+    },
+    {
+      key: "models_count",
+      label: "Models Registered",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <Car size={16} className="text-gray-400" />
+          <span className="font-medium text-gray-700">
+            {row.models.filter((m) => m.model).length}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setViewingBrand(row);
+              setShowViewModelsModal(true);
+            }}
+            className="hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <Settings size={14} className="mr-2" />
+            Manage Models
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const brandData = sortedBrands.map((brand) => ({
+    brand,
+    models: groupedCatalog[brand],
+  })).filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return (
+      item.brand.toLowerCase().includes(query) ||
+      item.models.some((model) => String(model.model || "").toLowerCase().includes(query))
+    );
+  });
+
   // Memoize action element for stable reference
   const headerAction = React.useMemo(() => (
-    <div className="flex items-center gap-4 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border shadow-sm">
-      <div className="flex items-center gap-2">
-        <Layers size={16} />
-        <span className="font-bold text-gray-900">
-          {sortedBrands.length}
-        </span>{" "}
-        Brands
-      </div>
-      <div className="h-4 w-px bg-gray-200"></div>
-      <div className="flex items-center gap-2">
-        <Car size={16} />
-        <span className="font-bold text-gray-900">
-          {models.filter((i) => i.model).length}
-        </span>{" "}
-        Models
-      </div>
+    <div className="flex items-center gap-3">
+      <Button
+        onClick={() => setShowAddBrandModal(true)}
+        variant="outline"
+        className="flex items-center gap-2"
+      >
+        <Plus size={18} />
+        Add Brand
+      </Button>
+      <Button
+        onClick={() => setShowAddModelModal(true)}
+        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+      >
+        <Plus size={18} />
+        Add Model
+      </Button>
     </div>
-  ), [sortedBrands.length, models.length]);
+  ), []);
+
+  const toolbar = React.useMemo(() => (
+    <PageToolbar
+      stats={[
+        { icon: Layers, label: "Brands", value: sortedBrands.length, iconClassName: "text-red-600" },
+        { icon: Car, label: "Models", value: models.filter((i) => i.model).length, iconClassName: "text-red-600" },
+      ]}
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+      searchPlaceholder="Search brands or models..."
+      searchWidthClass="sm:w-80"
+    />
+  ), [models, searchQuery, sortedBrands.length]);
 
   useSetPageHeader(
     "System Administration",
     "Vehicle Catalog",
     "Manage standardized vehicle data for customers to select from.",
     headerAction,
+    toolbar,
   );
 
+  if (loading) return <PageLoader message="Loading vehicle catalog..." />;
+
   return (
-    <div>
-      <div className="mx-auto w-full max-w-7xl space-y-8">
-        {/* Action Blocks (The 2 Blocks) */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Step 1: Add Brand */}
-          <Card className="border-l-4 border-l-gray-900 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <span className="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">
-                  1
-                </span>
-                Add New Brand
-              </CardTitle>
-              <CardDescription>
-                Start by registering a vehicle manufacturer.
+    <div className="space-y-6">
+      <DataTable
+        columns={columns}
+        data={brandData}
+        keyField="brand"
+        emptyIcon={Car}
+        emptyTitle="No brands found"
+        emptySubtitle={searchQuery ? "No brands match your search." : "Start by adding a vehicle brand to the catalog."}
+      />
+
+      {/* Add Brand Modal */}
+      {showAddBrandModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg shadow-2xl border-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 pb-4 bg-white/50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 bg-red-50 rounded-lg text-red-600">
+                    <Plus size={22} />
+                  </div>
+                  Add New Brand
+                </CardTitle>
+                <button
+                  onClick={() => setShowAddBrandModal(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <CardDescription className="mt-1.5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                Register a vehicle manufacturer in the system catalog.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddBrand} className="flex gap-3">
-                <Input
-                  placeholder="Brand Name (e.g. BMW)"
-                  value={newBrandName}
-                  onChange={(e) => setNewBrandName(e.target.value)}
-                  className="flex-1"
-                />
+            <form onSubmit={handleAddBrand}>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="brandName" className="text-sm font-semibold text-gray-700">Brand Name</Label>
+                    <Input
+                      id="brandName"
+                      placeholder="e.g. BMW, Toyota, Tesla"
+                      value={newBrandName}
+                      onChange={(e) => setNewBrandName(e.target.value)}
+                      className="h-11 border-gray-200 focus:ring-red-600"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddBrandModal(false)}
+                  className="h-11 px-6"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
-                  className="bg-gray-900 hover:bg-gray-800"
-                  disabled={submittingBrand}
+                  className="bg-red-600 hover:bg-red-700 h-11 px-6 text-white"
+                  disabled={submittingBrand || !newBrandName.trim()}
                 >
                   {submittingBrand ? (
-                    <Loader2 className="animate-spin" size={16} />
+                    <Loader2 className="animate-spin mr-2" size={16} />
                   ) : (
-                    <Plus size={16} />
+                    <Plus className="mr-2" size={16} />
                   )}
+                  Register Brand
                 </Button>
-              </form>
-            </CardContent>
+              </div>
+            </form>
           </Card>
+        </div>
+      )}
 
-          {/* Step 2: Add Model */}
-          <Card className="border-l-4 border-l-red-600 shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <span className="bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">
-                  2
-                </span>
-                Add Model
-              </CardTitle>
-              <CardDescription>
-                Select a brand and add specific models.
+      {/* Add Model Modal */}
+      {showAddModelModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg shadow-2xl border-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 pb-4 bg-white/50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 bg-red-50 rounded-lg text-red-600">
+                    <Plus size={22} />
+                  </div>
+                  Add New Model
+                </CardTitle>
+                <button
+                  onClick={() => setShowAddModelModal(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <CardDescription className="mt-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                Add a specific vehicle model to an existing brand.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={handleAddModel}
-                className="flex flex-col sm:flex-row gap-3"
-              >
-                <div className="w-full sm:w-1/3">
-                  <select
-                    className="w-full h-10 px-3 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                    value={selectedBrand}
-                    onChange={(e) => setSelectedBrand(e.target.value)}
-                  >
-                    <option value="">Select Brand</option>
-                    {sortedBrands.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
+            <form onSubmit={handleAddModel}>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700">Select Brand</Label>
+                    <select
+                      className="w-full h-11 px-3 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                      value={selectedBrand}
+                      onChange={(e) => setSelectedBrand(e.target.value)}
+                    >
+                      <option value="">Select a brand</option>
+                      {sortedBrands.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="modelName" className="text-sm font-semibold text-gray-700">Model Name</Label>
+                    <Input
+                      id="modelName"
+                      placeholder="e.g. X5, Corolla, Model 3"
+                      value={newModelName}
+                      onChange={(e) => setNewModelName(e.target.value)}
+                      className="h-11 border-gray-200 focus:ring-red-600"
+                    />
+                  </div>
                 </div>
-                <Input
-                  placeholder="Model (e.g. X5)"
-                  className="flex-1"
-                  value={newModelName}
-                  onChange={(e) => setNewModelName(e.target.value)}
-                />
+              </CardContent>
+              <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddModelModal(false)}
+                  className="h-11 px-6"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
-                  className="bg-red-600 hover:bg-red-700"
-                  disabled={submittingModel}
+                  className="bg-red-600 hover:bg-red-700 h-11 px-6 text-white"
+                  disabled={submittingModel || !selectedBrand || !newModelName.trim()}
                 >
                   {submittingModel ? (
-                    <Loader2 className="animate-spin" size={16} />
+                    <Loader2 className="animate-spin mr-2" size={16} />
                   ) : (
-                    "Add"
+                    "Add Model"
                   )}
                 </Button>
-              </form>
-            </CardContent>
+              </div>
+            </form>
           </Card>
         </div>
+      )}
 
-        {/* Catalog Display */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-gray-800">
-              Vehicle Inventory
-            </h3>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-24">
-              <Loader2 className="animate-spin text-red-600 h-10 w-10" />
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sortedBrands.map((brand) => (
-                <Card
-                  key={brand}
-                  className="group hover:shadow-md transition-shadow"
+      {/* View Models Modal */}
+      {showViewModelsModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-2xl shadow-2xl border-0 overflow-hidden">
+            <CardHeader className="border-b border-gray-100 pb-4 bg-white/50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 bg-red-50 rounded-lg text-red-600">
+                    <Car size={22} />
+                  </div>
+                  {viewingBrand?.brand} Models
+                </CardTitle>
+                <button
+                  onClick={() => setShowViewModelsModal(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
                 >
-                  <CardHeader className="bg-gray-50 border-b py-3 px-4 flex flex-row items-center justify-between space-y-0">
-                    <CardTitle className="text-base font-bold">
-                      {brand}
-                    </CardTitle>
-                    <span className="text-xs bg-white border px-2 py-0.5 rounded-full text-gray-500">
-                      {groupedCatalog[brand].filter((i) => i.model).length}
-                    </span>
-                  </CardHeader>
-                  <CardContent className="p-0 max-h-[200px] overflow-y-auto custom-scrollbar">
-                    <div className="divide-y">
-                      {groupedCatalog[brand]
-                        .filter((item) => item.model)
-                        .map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-3 text-sm hover:bg-gray-50"
-                          >
-                            <span className="text-gray-700 font-medium">
-                              {item.model}
-                            </span>
-                            <button
-                              onClick={() => handleRemoveModel(item.id)}
-                              className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                              title="Remove"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  <X size={20} />
+                </button>
+              </div>
+              <CardDescription className="mt-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                System registered models for {viewingBrand?.brand}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <DataTable
+                  columns={[
+                    {
+                      key: "model",
+                      label: "Model Name",
+                      render: (row) => <span className="font-semibold">{row.model}</span>,
+                    },
+                    {
+                      key: "actions",
+                      label: "Actions",
+                      className: "text-right",
+                      render: (row) => (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveModel(row.id)}
+                          className="text-gray-400 hover:text-red-600 h-8 w-8"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      ),
+                    },
+                  ]}
+                  data={viewingBrand?.models?.filter(m => m.model) || []}
+                  keyField="id"
+                  showSearch={false}
+                  emptyTitle="No models found"
+                  emptySubtitle={`No models have been registered for ${viewingBrand?.brand} yet.`}
+                />
+              </div>
+            </CardContent>
+            <div className="p-4 bg-gray-50 border-t border-gray-100">
+              <Button
+                variant="outline"
+                onClick={() => setShowViewModelsModal(false)}
+                className="w-full h-11"
+              >
+                Close
+              </Button>
             </div>
-          )}
+          </Card>
         </div>
-      </div>
+      )}
+
       <ConfirmDialog />
     </div>
   );

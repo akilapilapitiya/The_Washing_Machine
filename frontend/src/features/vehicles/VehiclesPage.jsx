@@ -12,22 +12,25 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as vehicleService from "@/services/vehicle.service";
 import * as catalogService from "@/services/vehicleCatalog.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form State
   const [newVehicle, setNewVehicle] = useState({
@@ -56,7 +59,6 @@ const VehiclesPage = () => {
     const initData = async () => {
       try {
         setLoading(true);
-        setError(null);
 
         const [vehRes, catRes] = await Promise.all([
           vehicleService.getVehicles(),
@@ -89,11 +91,40 @@ const VehiclesPage = () => {
     </Button>
   ), [loading]);
 
+  const filteredVehicles = vehicles.filter((vehicle) => {
+    const query = searchQuery.trim().toLowerCase();
+    return (
+      !query ||
+      [
+        vehicle.vehbrand,
+        vehicle.vehmodel,
+        vehicle.vehplate,
+        vehicle.vehcolor,
+      ].some((value) => String(value || "").toLowerCase().includes(query))
+    );
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Car, label: "Total", value: vehicles.length, iconClassName: "text-blue-500" },
+          { icon: Gauge, label: "Service Due", value: vehicles.filter((v) => v.next_service_mileage && v.next_service_mileage > 0).length, iconClassName: "text-red-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by brand, model, plate, or color..."
+      />
+    ),
+    [vehicles, searchQuery],
+  );
+
   useSetPageHeader(
     "Garage",
     "Manage your vehicles",
     "Add, view, and manage all your vehicles in one place.",
     headerAction,
+    toolbar,
   );
 
   // Derived state for dropdowns
@@ -704,111 +735,117 @@ const VehiclesPage = () => {
         )}
 
         {/* Vehicles Table */}
-        {!loading && vehicles.length > 0 ? (
-          <Card className="border-gray-200 shadow-sm overflow-hidden bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Registration
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Vehicle
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Specs
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Mileage
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Color
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Next Service
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {vehicles.map((vehicle) => (
-                    <tr
-                      key={vehicle.id}
-                      className="hover:bg-gray-50/50 transition-colors group"
-                    >
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                          {vehicle.vehplate}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gray-900 leading-tight">
-                            {vehicle.vehbrand}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {vehicle.vehmodel}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-bold text-gray-600 uppercase">
-                            {vehicle.manufacture_year || "N/A"} • {vehicle.fuel_type || "N/A"}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            {vehicle.transmission || "N/A"} • {vehicle.engine_capacity ? `${vehicle.engine_capacity}CC` : "N/A"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-700">
-                        {vehicle.vehmileage?.toLocaleString()} KM
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded-full border border-gray-200"
-                            style={{ backgroundColor: vehicle.vehcolor || "#fff" }}
-                          />
-                          <span className="text-[10px] font-mono text-gray-500 uppercase">
-                            {vehicle.vehcolor || "N/A"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                            vehicle.next_service_mileage === 0 || !vehicle.next_service_mileage
-                              ? "bg-blue-50 text-blue-600 border-blue-100"
-                              : "bg-red-50 text-red-600 border-red-100",
-                          )}
-                        >
-                          {vehicle.next_service_mileage === 0 || !vehicle.next_service_mileage
-                            ? "Pending Check"
-                            : `${vehicle.next_service_mileage.toLocaleString()} KM`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(vehicle)}
-                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        ) : null}
+        {!loading && (
+          <DataTable
+            columns={[
+              {
+                key: "vehplate",
+                label: "Registration",
+                render: (v) => (
+                  <span className="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {v.vehplate}
+                  </span>
+                ),
+              },
+              {
+                key: "vehbrand",
+                label: "Vehicle",
+                render: (v) => (
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-900 leading-tight">{v.vehbrand}</span>
+                    <span className="text-xs text-gray-500">{v.vehmodel}</span>
+                  </div>
+                ),
+              },
+              {
+                key: "specs",
+                label: "Specs",
+                render: (v) => (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-gray-600 uppercase">
+                      {v.manufacture_year || "N/A"} • {v.fuel_type || "N/A"}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      {v.transmission || "N/A"} • {v.engine_capacity ? `${v.engine_capacity}CC` : "N/A"}
+                    </span>
+                  </div>
+                ),
+              },
+              {
+                key: "vehmileage",
+                label: "Mileage",
+                render: (v) => (
+                  <span className="text-sm font-semibold text-gray-700">
+                    {v.vehmileage?.toLocaleString()} KM
+                  </span>
+                ),
+              },
+              {
+                key: "vehcolor",
+                label: "Color",
+                render: (v) => (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded-full border border-gray-200"
+                      style={{ backgroundColor: v.vehcolor || "#fff" }}
+                    />
+                    <span className="text-[10px] font-mono text-gray-500 uppercase">
+                      {v.vehcolor || "N/A"}
+                    </span>
+                  </div>
+                ),
+              },
+              {
+                key: "next_service_mileage",
+                label: "Next Service",
+                render: (v) => (
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                      v.next_service_mileage === 0 || !v.next_service_mileage
+                        ? "bg-blue-50 text-blue-600 border-blue-100"
+                        : "bg-red-50 text-red-600 border-red-100",
+                    )}
+                  >
+                    {v.next_service_mileage === 0 || !v.next_service_mileage
+                      ? "Pending Check"
+                      : `${v.next_service_mileage.toLocaleString()} KM`}
+                  </span>
+                ),
+              },
+              {
+                key: "actions",
+                label: "Actions",
+                headerClassName: "text-right",
+                className: "text-right",
+                render: (v) => (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteClick(v)}
+                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                ),
+              },
+            ]}
+            data={filteredVehicles}
+            keyField="id"
+            emptyIcon={Car}
+            emptyTitle="No Vehicles Found"
+            emptySubtitle="Add your first vehicle to start booking services."
+            emptyAction={
+              <Button
+                onClick={() => setShowAddForm(true)}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Plus size={18} className="mr-2" />
+                Add Vehicle
+              </Button>
+            }
+          />
+        )}
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && vehicleToDelete && (
@@ -852,31 +889,7 @@ const VehiclesPage = () => {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && vehicles.length === 0 && (
-          <Card className="border-2 border-dashed border-gray-200 bg-white">
-            <CardContent className="text-center py-16 space-y-6">
-              <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
-                <Car size={32} className="text-gray-300" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-gray-900">
-                  No Vehicles Found
-                </h3>
-                <p className="text-gray-500 max-w-sm mx-auto text-sm">
-                  Add your first vehicle to start booking services.
-                </p>
-              </div>
-              <Button
-                onClick={() => setShowAddForm(true)}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                <Plus size={18} className="mr-2" />
-                Add Vehicle
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+
       </div>
     
   );

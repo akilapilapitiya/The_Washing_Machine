@@ -153,13 +153,6 @@ const DashboardLayout = () => {
           </main>
         </div>
 
-        {/* Footer */}
-        <footer className="lg:ml-64 p-4 border-t border-gray-200 bg-white text-center">
-          <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} The Washing Machine. All rights
-            reserved.
-          </p>
-        </footer>
       </div>
     </PageHeaderProvider>
   );

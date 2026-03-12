@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Users,
@@ -11,7 +10,6 @@ import {
   Calendar,
   X,
   CheckCircle,
-  Search,
   Loader2,
   ShieldCheck,
   ShieldAlert,
@@ -25,8 +23,10 @@ import { getCustomers, updateCustomer } from "@/services/customer.service";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
-import { TableLoader } from "@/components/common/LoadingStates";
+import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageCustomersPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -93,241 +93,156 @@ const ManageCustomersPage = () => {
       customer.custel.includes(searchQuery),
   );
 
+  const toolbar = useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Users, label: "Total", value: customers.length, iconClassName: "text-gray-500" },
+          { icon: UserCheck, label: "Active", value: customers.filter((c) => c.is_active).length, iconClassName: "text-green-500" },
+          { icon: UserX, label: "Restricted", value: customers.filter((c) => !c.is_active).length, iconClassName: "text-gray-500" },
+          {
+            icon: Car,
+            label: "Bookings",
+            value: customers.reduce((acc, curr) => acc + (curr.totalbookings || 0), 0),
+            iconClassName: "text-purple-500",
+          },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search members..."
+        searchWidthClass="sm:w-80"
+      />
+    ),
+    [customers, searchQuery]
+  );
+
   useSetPageHeader(
     "Admin",
     "Customer Directory",
     "Manage accounts and platform access for your registered members.",
+    null,
+    toolbar
   );
+
+  const columns = [
+    {
+      key: "customer",
+      label: "Customer Identity",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          {row.profile_picture_url ? (
+            <img
+              src={`${IMAGE_BASE_URL}${row.profile_picture_url}`}
+              alt={row.first_name}
+              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs border-2 border-white shadow-sm">
+              {row.first_name?.[0]}
+              {row.last_name?.[0]}
+            </div>
+          )}
+          <div>
+            <p className="font-bold text-gray-900">
+              {row.first_name} {row.last_name}
+            </p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+              ID: #{row.cusid}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "contact",
+      label: "Contact Information",
+      render: (row) => (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2 text-xs font-semibold">
+            <Mail size={12} className="text-gray-400" />
+            <span>{row.cusemail}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+            <Phone size={12} className="text-gray-400" />
+            <span>{row.custel}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <div
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${row.is_active
+            ? "bg-green-50 text-green-700 border border-green-100"
+            : "bg-red-50 text-red-700 border border-red-100"
+            }`}
+        >
+          <div className={`w-1.5 h-1.5 rounded-full ${row.is_active ? "bg-green-600" : "bg-red-600"}`} />
+          {row.is_active ? "Active" : "Restricted"}
+        </div>
+      ),
+    },
+    {
+      key: "joined",
+      label: "Joined Date",
+      render: (row) => (
+        <span className="text-xs font-bold text-gray-500">
+          {new Date(row.created_at).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            onClick={() => {
+              setSelectedCustomer(row);
+              setExpandedId(row.cusid);
+            }}
+            variant="ghost"
+            className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
+          >
+            Details
+          </Button>
+          <button
+            onClick={() => handleToggleStatus(row)}
+            className={`p-2 rounded-lg transition-all ${row.is_active
+              ? "text-gray-400 hover:text-red-600 hover:bg-red-50"
+              : "text-green-600 hover:bg-green-50"
+              }`}
+            title={row.is_active ? "Restrict Access" : "Restore Access"}
+          >
+            {row.is_active ? <UserX size={16} /> : <UserCheck size={16} />}
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
       <div className="mx-auto w-full max-w-7xl space-y-6">
-        <div className="flex justify-end mb-2">
-          <div className="relative w-full sm:w-80">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <Input
-              type="text"
-              placeholder="Search customers..."
-              className="pl-10 h-10 rounded-lg border-gray-200 bg-white"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-red-50 rounded-xl text-red-600">
-                  <Users size={24} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Total Members
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {customers.length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-50 rounded-xl text-green-600">
-                  <UserCheck size={24} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Active
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {customers.filter((c) => c.is_active).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-xl text-gray-600">
-                  <UserX size={24} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Restricted
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {customers.filter((c) => !c.is_active).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
-                  <Car size={24} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Total Bookings
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {customers.reduce(
-                      (acc, curr) => acc + (curr.totalbookings || 0),
-                      0,
-                    )}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Customers Table */}
-        <Card className="overflow-hidden border-gray-200 shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                    Customer Identity
-                  </th>
-                  <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                    Contact Information
-                  </th>
-                  <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                    Joined Date
-                  </th>
-                  <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {loading ? (
-                  <TableLoader colSpan={5} message="Loading customer base..." />
-                ) : filteredCustomers.length > 0 ? (
-                  filteredCustomers.map((customer) => (
-                    <tr
-                      key={customer.cusid}
-                      className="hover:bg-gray-50/50 transition-colors group"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {customer.profile_picture_url ? (
-                            <img
-                              src={`${IMAGE_BASE_URL}${customer.profile_picture_url}`}
-                              alt={customer.first_name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs border-2 border-white shadow-sm">
-                              {customer.first_name?.[0]}
-                              {customer.last_name?.[0]}
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-bold text-gray-900">
-                              {customer.first_name} {customer.last_name}
-                            </p>
-                            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                              ID: #{customer.cusid}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2 text-xs font-semibold">
-                            <Mail size={12} className="text-gray-400" />
-                            <span>{customer.cusemail}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
-                            <Phone size={12} className="text-gray-400" />
-                            <span>{customer.custel}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${customer.is_active
-                            ? "bg-green-50 text-green-700 border border-green-100"
-                            : "bg-red-50 text-red-700 border border-red-100"
-                            }`}
-                        >
-                          <div
-                            className={`w-1.5 h-1.5 rounded-full ${customer.is_active ? "bg-green-600" : "bg-red-600"}`}
-                          />
-                          {customer.is_active ? "Active" : "Restricted"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-xs font-bold text-gray-500">
-                        {new Date(customer.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            onClick={() => {
-                              setSelectedCustomer(customer);
-                              setExpandedId(customer.cusid);
-                            }}
-                            variant="ghost"
-                            className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
-                          >
-                            Details
-                          </Button>
-                          <button
-                            onClick={() => handleToggleStatus(customer)}
-                            className={`p-2 rounded-lg transition-all ${customer.is_active
-                              ? "text-gray-400 hover:text-red-600 hover:bg-red-50"
-                              : "text-green-600 hover:bg-green-50"
-                              }`}
-                            title={
-                              customer.is_active
-                                ? "Restrict Account"
-                                : "Restore Account"
-                            }
-                          >
-                            {customer.is_active ? (
-                              <UserX size={16} />
-                            ) : (
-                              <UserCheck size={16} />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-24 text-center">
-                      <Users size={32} className="text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm font-semibold text-gray-500">
-                        No customers found
-                      </p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="space-y-4">
+          {loading ? (
+            <PageLoader message="Loading customer base..." />
+          ) : (
+            <DataTable
+              columns={columns}
+              data={filteredCustomers}
+              keyField="cusid"
+              emptyIcon={Users}
+              emptyTitle="No members found"
+              emptySubtitle={searchQuery ? "No members match your search." : "Your member directory is empty."}
+            />
+          )}
+        </div>
       </div >
 
       {/* Customer Detail Modal */}

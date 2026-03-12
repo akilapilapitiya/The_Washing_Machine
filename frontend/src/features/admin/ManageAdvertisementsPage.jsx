@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import advertisementService from "../../services/advertisement.service";
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,17 @@ import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const ManageAdvertisementsPage = () => {
-  const { user } = useAuth();
+  useAuth();
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const [formData, setFormData] = useState({
@@ -50,7 +53,7 @@ const ManageAdvertisementsPage = () => {
       setLoading(true);
       const response = await advertisementService.getAdminAds();
       setAds(response.data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch advertisements");
     } finally {
       setLoading(false);
@@ -141,7 +144,7 @@ const ManageAdvertisementsPage = () => {
         await advertisementService.deleteAd(id);
         toast.success("Advertisement deleted");
         fetchAds();
-      } catch (error) {
+      } catch {
         toast.error("Failed to delete advertisement");
       }
     }
@@ -187,14 +190,125 @@ const ManageAdvertisementsPage = () => {
     </Button>
   ), []);
 
+  // Prepare Toolbar (SubHeader row 2) stats
+  const toolbar = useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: BarChart3, label: "Total Ads", value: ads.length, iconClassName: "text-gray-500" },
+          { icon: CheckCircle, label: "Active", value: activeAds.length, iconClassName: "text-green-500" },
+          { icon: Clock, label: "Expired", value: expiredAds.length, iconClassName: "text-red-500" },
+          { icon: Clock, label: "Expiring Soon", value: expiringSoonAds.length, iconClassName: "text-amber-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search advertisements..."
+        searchWidthClass="sm:w-80"
+      />
+    ),
+    [activeAds.length, ads.length, expiredAds.length, expiringSoonAds.length, searchQuery]
+  );
+
   useSetPageHeader(
     "Content Management",
     "Advertisement Manager",
     "Manage promotional banners and client advertisements.",
     headerAction,
+    toolbar
   );
 
+  const columns = [
+    {
+      key: "preview",
+      label: "Preview",
+      render: (row) => (
+        <div className="w-20 h-12 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50 flex items-center justify-center">
+          {row.image_url ? (
+            <img
+              src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${row.image_url}`}
+              alt={row.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <ImageIcon size={16} className="text-gray-400" />
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "details",
+      label: "Ad Details",
+      render: (row) => <span className="font-bold text-gray-900">{row.title}</span>,
+    },
+    {
+      key: "client",
+      label: "Client Info",
+      render: (row) => (
+        <div className="space-y-0.5">
+          <p className="font-semibold text-gray-700">{row.client_name || "N/A"}</p>
+          <p className="text-xs text-gray-500">{row.client_contact || "N/A"}</p>
+        </div>
+      ),
+    },
+    {
+      key: "status_expiry",
+      label: "Status & Expiry",
+      render: (row) => {
+        const isExpired = row.expiry_date && new Date(row.expiry_date) < new Date();
+        return (
+          <div className="flex flex-col gap-1">
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border w-max ${
+                isExpired ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200"
+              }`}
+            >
+              {isExpired ? "Expired" : "Active"}
+            </span>
+            <p className="text-xs text-gray-500">
+              {row.expiry_date ? new Date(row.expiry_date).toLocaleDateString() : "No Expiry"}
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => openEditModal(row)}
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+            title="Edit Ad"
+          >
+            <Edit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(row.id)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            title="Delete Ad"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;
+
+  const filteredAds = ads.filter((ad) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    const status = ad.expiry_date && new Date(ad.expiry_date) < new Date() ? "expired" : "active";
+
+    return [ad.title, ad.client_name, ad.client_contact, status].some((value) =>
+      String(value || "").toLowerCase().includes(query),
+    );
+  });
 
   return (
     <div>
@@ -242,130 +356,25 @@ const ManageAdvertisementsPage = () => {
           </div>
         )}
 
-        {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-lg text-gray-600">
-                  <BarChart3 size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Ads</p>
-                  <p className="text-2xl font-bold text-gray-900">{ads.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-50 rounded-lg text-green-600">
-                  <CheckCircle size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Active</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeAds.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-red-50 rounded-lg text-red-600">
-                  <Clock size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Expired</p>
-                  <p className="text-2xl font-bold text-gray-900">{expiredAds.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {loading && ads.length > 0 ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={32} className="animate-spin text-red-600" />
           </div>
-        ) : ads.length > 0 ? (
-          <Card className="overflow-hidden border-gray-200 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Preview</th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Ad Details</th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Client Info</th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">Status & Expiry</th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
-                  {ads.map((ad) => {
-                    const isExpired = ad.expiry_date && new Date(ad.expiry_date) < new Date();
-                    return (
-                      <tr key={ad.id} className="hover:bg-gray-50/50 transition-colors group">
-                        <td className="px-6 py-4">
-                          <div className="w-20 h-12 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50 flex items-center justify-center">
-                            {ad.image_url ? (
-                              <img
-                                src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`}
-                                alt={ad.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <ImageIcon size={16} className="text-gray-400" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 font-bold text-gray-900">{ad.title}</td>
-                        <td className="px-6 py-4">
-                          <div className="space-y-0.5">
-                            <p className="font-semibold text-gray-700">{ad.client_name || "N/A"}</p>
-                            <p className="text-xs text-gray-500">{ad.client_contact || "N/A"}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-1">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border w-max ${isExpired ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200"}`}>
-                              {isExpired ? "Expired" : "Active"}
-                            </span>
-                            <p className="text-xs text-gray-500">
-                              {ad.expiry_date ? new Date(ad.expiry_date).toLocaleDateString() : "No Expiry"}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => openEditModal(ad)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all" title="Edit Ad">
-                              <Edit2 size={16} />
-                            </button>
-                            <button onClick={() => handleDelete(ad.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete Ad">
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
         ) : (
-          <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
-            <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
-              <ImageIcon size={32} className="text-gray-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">No advertisements yet</h3>
-            <p className="text-gray-500 mb-6 text-sm">Upload your first ad to show on the public home page.</p>
-            <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold">
-              <Plus size={16} className="mr-2" />
-              Create Advertisement
-            </Button>
-          </div>
+          <DataTable
+            columns={columns}
+            data={filteredAds}
+            keyField="id"
+            emptyIcon={ImageIcon}
+            emptyTitle="No advertisements yet"
+            emptySubtitle={searchQuery ? "No advertisements match your search." : "Upload your first ad to show on the public home page."}
+            emptyAction={
+              <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold mt-4">
+                <Plus size={16} className="mr-2" />
+                Create Advertisement
+              </Button>
+            }
+          />
         )}
       </div>
 

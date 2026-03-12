@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "react-router-dom";
-import { Input } from "@/components/ui/input";
 import {
   Calendar,
   CheckCircle,
-  User,
   Briefcase,
+  Clock,
   RefreshCw,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { getBookings, updateBooking } from "@/services/booking.service";
 import { getAvailableEmployees } from "@/services/employee.service";
-import { COLORS } from "@/lib/colors";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const ReassignModal = ({ booking, onClose, onConfirm }) => {
   const [availableEmployees, setAvailableEmployees] = useState([]);
@@ -133,9 +132,11 @@ const BookingReviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState("all");
   const [searchParams] = useSearchParams();
 
-  const fetchBookings = async () => {
+  const fetchBookings = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await getBookings();
@@ -143,28 +144,31 @@ const BookingReviewPage = () => {
       const active = data.filter((b) =>
         ["pending", "inProgress"].includes(b.bookingstatus),
       );
-      
+
+      setBookings(active);
+
       const searchId = searchParams.get("search");
       if (searchId) {
-        const filtered = active.filter(b => String(b.bookingid) === searchId);
-        setBookings(filtered);
-        if (filtered.length === 1) {
-          setSelectedBooking(filtered[0]);
+        setSearchQuery(searchId);
+        const matchedBooking = active.find(
+          (booking) => String(booking.bookingid) === searchId,
+        );
+
+        if (matchedBooking) {
+          setSelectedBooking(matchedBooking);
           setShowReassignModal(true);
         }
-      } else {
-        setBookings(active);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [fetchBookings]);
 
   const openReassign = (booking) => {
     setSelectedBooking(booking);
@@ -197,109 +201,189 @@ const BookingReviewPage = () => {
     >
       <RefreshCw size={16} /> Refresh
     </Button>
-  ), []);
+  ), [fetchBookings]);
+
+  const filteredBookings = bookings.filter((booking) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        booking.bookingid,
+        booking.cusname,
+        booking.vehbrand,
+        booking.vehmodel,
+        booking.assigned_empname,
+        booking.preferred_empname,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
+
+    return matchesSearch && matchesDate;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Calendar, label: "Total", value: bookings.length, iconClassName: "text-gray-500" },
+          {
+            icon: Briefcase,
+            label: "Pending",
+            value: bookings.filter((booking) => booking.bookingstatus === "pending").length,
+            iconClassName: "text-amber-500",
+          },
+          {
+            icon: Clock,
+            label: "In Progress",
+            value: bookings.filter((booking) => booking.bookingstatus === "inProgress").length,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Unassigned",
+            value: bookings.filter((booking) => !booking.assigned_empname).length,
+            iconClassName: "text-green-500",
+          },
+        ]}
+        filters={[
+          { id: "all", label: "All Time" },
+          { id: "today", label: "Today" },
+          { id: "month", label: "This Month" },
+        ]}
+        activeFilter={dateRange}
+        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search bookings..."
+      />
+    ),
+    [bookings, dateRange, searchQuery],
+  );
 
   useSetPageHeader(
     "Booking Administration",
     "Booking Review",
     "Manage assignments and review customer preferences.",
     headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;
 
-  return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">ID</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Customer & Vehicle</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Date & Time</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Preferences</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">Assigned</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {bookings.map((booking) => (
-                  <tr key={booking.bookingid} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-mono font-bold text-gray-500 text-sm">
-                          #{String(booking.bookingid).padStart(4, "0")}
-                        </span>
-                        <span className={`w-fit text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black border mt-1 ${
-                          booking.bookingstatus === "pending"
-                            ? "bg-amber-50 text-amber-600 border-amber-100"
-                            : "bg-blue-50 text-blue-600 border-blue-100"
-                        }`}>
-                          {booking.bookingstatus}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-sm">{booking.cusname}</span>
-                        <span className="text-xs text-gray-500 font-medium">
-                          {booking.vehbrand} {booking.vehmodel}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col text-sm text-gray-600 font-medium">
-                        <span>{new Date(booking.bookingdate).toLocaleDateString()}</span>
-                        <span className="text-xs text-gray-400 font-normal">{booking.bookingstarttime} - {booking.bookingendtime}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Preferred</span>
-                        <span className={`text-sm font-semibold ${booking.preferred_empname ? "text-gray-900" : "text-gray-300 italic"}`}>
-                          {booking.preferred_empname || "None"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                        {booking.assigned_empname || "Unassigned"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button
-                        onClick={() => openReassign(booking)}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-[10px] font-black uppercase border-gray-200 group-hover:border-blue-200 group-hover:text-blue-600 transition-colors"
-                      >
-                        <Briefcase size={12} className="mr-1.5" />
-                        Reassign
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {bookings.length === 0 && (
-            <div className="text-center py-20 bg-white">
-              <CheckCircle size={40} className="mx-auto text-gray-200 mb-3" />
-              <p className="text-gray-500 font-medium">No active bookings to review.</p>
-            </div>
-          )}
+  const columns = [
+    {
+      key: "bookingid",
+      label: "ID",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-mono font-bold text-gray-500 text-sm">
+            #{String(row.bookingid).padStart(4, "0")}
+          </span>
+          <span
+            className={`w-fit text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black border mt-1 ${
+              row.bookingstatus === "pending"
+                ? "bg-amber-50 text-amber-600 border-amber-100"
+                : "bg-blue-50 text-blue-600 border-blue-100"
+            }`}
+          >
+            {row.bookingstatus}
+          </span>
         </div>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer & Vehicle",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900 text-sm">{row.cusname}</span>
+          <span className="text-xs text-gray-500 font-medium">
+            {row.vehbrand} {row.vehmodel}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "schedule",
+      label: "Date & Time",
+      render: (row) => (
+        <div className="flex flex-col text-sm text-gray-600 font-medium">
+          <span className="flex items-center gap-1.5">
+            <Calendar size={12} className="text-gray-400" />
+            {new Date(row.bookingdate).toLocaleDateString()}
+          </span>
+          <span className="text-xs text-gray-400 font-normal">
+            {row.bookingstarttime} - {row.bookingendtime}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "preference",
+      label: "Preferences",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">
+            Preferred
+          </span>
+          <span
+            className={`text-sm font-semibold ${
+              row.preferred_empname ? "text-gray-900" : "text-gray-300 italic"
+            }`}
+          >
+            {row.preferred_empname || "None"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "assigned",
+      label: "Assigned",
+      render: (row) => (
+        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+          {row.assigned_empname || "Unassigned"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <Button
+          onClick={() => openReassign(row)}
+          variant="outline"
+          size="sm"
+          className="h-8 text-[10px] font-black uppercase border-gray-200 group-hover:border-blue-200 group-hover:text-blue-600 transition-colors"
+        >
+          <Briefcase size={12} className="mr-1.5" />
+          Reassign
+        </Button>
+      ),
+    },
+  ];
 
-        {showReassignModal && selectedBooking && (
-          <ReassignModal
-            booking={selectedBooking}
-            onClose={() => setShowReassignModal(false)}
-            onConfirm={handleReassignmentConfirm}
-          />
-        )}
-      </div>
-    
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      <DataTable
+        columns={columns}
+        data={filteredBookings}
+        keyField="bookingid"
+        emptyIcon={CheckCircle}
+        emptyTitle="No active bookings to review."
+        emptySubtitle={searchQuery ? "No bookings match your current filters." : "Pending and in-progress bookings will appear here."}
+      />
+
+      {showReassignModal && selectedBooking && (
+        <ReassignModal
+          booking={selectedBooking}
+          onClose={() => setShowReassignModal(false)}
+          onConfirm={handleReassignmentConfirm}
+        />
+      )}
+    </div>
   );
 };
 
