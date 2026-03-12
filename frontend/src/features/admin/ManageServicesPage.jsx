@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
 
 const ManageServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -297,6 +298,140 @@ const ManageServicesPage = () => {
     headerAction,
   );
 
+  const columns = [
+    {
+      key: "service",
+      label: "Service Details",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            {row.image_url ? (
+              <img
+                src={`${IMAGE_BASE_URL}${row.image_url}`}
+                alt={row.servicename}
+                className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center border border-gray-100 shadow-sm">
+                <Box size={20} />
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-bold text-gray-900">{row.servicename}</p>
+              {row.is_featured && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">
+                  FEATURED
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px] mt-0.5">
+              {row.short_description || row.servicedetails}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "category",
+      label: "Category & Type",
+      render: (row) => (
+        <div className="flex flex-col items-start gap-1.5">
+          {row.category && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200 uppercase">
+              {row.category}
+            </span>
+          )}
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+              row.servicetype === "package"
+                ? "bg-red-50 text-red-700 border-red-200"
+                : "bg-blue-50 text-blue-700 border-blue-200"
+            }`}
+          >
+            {row.servicetype === "package" ? (
+              <>
+                <Box size={10} /> PACKAGE
+              </>
+            ) : (
+              <>
+                <Layers size={10} /> ADD-ON
+              </>
+            )}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "price",
+      label: "Price & Offer",
+      render: (row) => {
+        if (row.has_offer) {
+          return (
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-red-600">
+                Rs. {parseFloat(row.offer_price).toLocaleString()}
+              </span>
+              <span className="text-xs text-gray-400 line-through">
+                Rs. {parseFloat(row.serviceprice).toLocaleString()}
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded mt-1 w-max">
+                <Tag size={10} /> OFFER
+              </span>
+            </div>
+          );
+        }
+        return (
+          <div className="flex flex-col">
+            {row.is_variable_price && (
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                Starts From
+              </span>
+            )}
+            <span className="text-sm font-bold text-gray-900">
+              Rs. {parseFloat(row.serviceprice).toLocaleString()}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      render: (row) => (
+        <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+          <Clock size={16} className="text-gray-400" />
+          {row.servicetime} hrs
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => openEditForm(row)}
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+            title="Edit Service"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDeleteService(row.serviceid)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            title="Delete Service"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -319,192 +454,32 @@ const ManageServicesPage = () => {
           </div>
         )}
 
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 size={32} className="animate-spin text-red-600" />
-          </div>
-        ) : services.length > 0 ? (
-          <div className="space-y-6">
-            <Card className="overflow-hidden border-gray-200 shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-100">
-                    <tr>
-                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                        Service Details
-                      </th>
-                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                        Category & Type
-                      </th>
-                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                        Price & Offer
-                      </th>
-                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                        Duration
-                      </th>
-                      <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
-                    {services
-                      .filter(
-                        (s) =>
-                          selectedCategory === "All" ||
-                          s.category === selectedCategory,
-                      )
-                      .map((service) => (
-                        <tr
-                          key={service.serviceid}
-                          className="hover:bg-gray-50/50 transition-colors group"
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative shrink-0">
-                                {service.image_url ? (
-                                  <img
-                                    src={`${IMAGE_BASE_URL}${service.image_url}`}
-                                    alt={service.servicename}
-                                    className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center border border-gray-100 shadow-sm">
-                                    <Box size={20} />
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-bold text-gray-900">
-                                    {service.servicename}
-                                  </p>
-                                  {service.is_featured && (
-                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                      FEATURED
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px] mt-0.5">
-                                  {service.short_description ||
-                                    service.servicedetails}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col items-start gap-1.5">
-                              {service.category && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200 uppercase">
-                                  {service.category}
-                                </span>
-                              )}
-                              <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${service.servicetype === "package"
-                                  ? "bg-red-50 text-red-700 border-red-200"
-                                  : "bg-blue-50 text-blue-700 border-blue-200"
-                                  }`}
-                              >
-                                {service.servicetype === "package" ? (
-                                  <>
-                                    <Box size={10} /> PACKAGE
-                                  </>
-                                ) : (
-                                  <>
-                                    <Layers size={10} /> ADD-ON
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {service.has_offer ? (
-                              <div className="flex flex-col">
-                                <span className="text-sm font-bold text-red-600">
-                                  Rs.{" "}
-                                  {parseFloat(
-                                    service.offer_price,
-                                  ).toLocaleString()}
-                                </span>
-                                <span className="text-xs text-gray-400 line-through">
-                                  Rs.{" "}
-                                  {parseFloat(
-                                    service.serviceprice,
-                                  ).toLocaleString()}
-                                </span>
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded mt-1 w-max">
-                                  <Tag size={10} /> OFFER
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col">
-                                {service.is_variable_price && (
-                                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-                                    Starts From
-                                  </span>
-                                )}
-                                <span className="text-sm font-bold text-gray-900">
-                                  Rs.{" "}
-                                  {parseFloat(
-                                    service.serviceprice,
-                                  ).toLocaleString()}
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-                              <Clock size={16} className="text-gray-400" />
-                              {service.servicetime} hrs
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => openEditForm(service)}
-                                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-                                title="Edit Service"
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteService(service.serviceid)
-                                }
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                title="Delete Service"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
-        ) : (
-          <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
-            <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
-              <Box size={32} className="text-gray-300" />
+        <div className="space-y-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 size={32} className="animate-spin text-red-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              No services yet
-            </h3>
-            <p className="text-gray-500 mb-6 text-sm">
-              Add your first service package to get started.
-            </p>
-            <Button
-              onClick={openAddForm}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              <Plus size={16} className="mr-2" />
-              Add Service
-            </Button>
-          </div>
-        )}
+          ) : (
+            <DataTable
+              columns={columns}
+              data={services.filter(
+                (s) =>
+                  selectedCategory === "All" ||
+                  s.category === selectedCategory,
+              )}
+              keyField="serviceid"
+              emptyIcon={Box}
+              emptyTitle="No services yet"
+              emptySubtitle="Add your first service package to get started."
+              emptyAction={
+                <Button onClick={openAddForm} className="bg-red-600 hover:bg-red-700 mt-4">
+                  <Plus size={16} className="mr-2" />
+                  Add Service
+                </Button>
+              }
+            />
+          )}
+        </div>
       </div>
 
       {/* Add/Edit Modal */}

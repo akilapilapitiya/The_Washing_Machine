@@ -103,7 +103,6 @@ const EmployeeManagementPage = () => {
   });
   const [roles, setRoles] = useState([]);
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
@@ -598,33 +597,23 @@ const EmployeeManagementPage = () => {
                                   <p className="text-xs font-bold text-gray-900 uppercase">
                                     {dep.name}
                                   </p>
-                                  {dep.is_emergency_contact && (
-                                    <HeartPulse
-                                      size={14}
-                                      className="text-red-500"
-                                    />
-                                  )}
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                                    {dep.relationship}
+                                  </span>
                                 </div>
-                                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                                  {dep.relationship} • {dep.contact_number}
+                                <p className="text-sm font-semibold text-gray-600">
+                                  {dep.contact_number}
                                 </p>
                               </div>
                             ))
                           ) : (
-                            <div className="p-6 rounded-2xl border-2 border-dashed border-gray-100 text-center space-y-2">
-                              <p className="text-xs font-bold text-gray-400 uppercase">
-                                No Emergency Records
-                              </p>
-                              <p className="text-[10px] text-gray-400 font-semibold px-4">
-                                This staff member has not registered any
-                                dependents.
-                              </p>
-                            </div>
+                            <p className="text-sm font-medium text-gray-400 italic">
+                              No emergency contacts provided.
+                            </p>
                           )}
                         </div>
                       </div>
                     </CardContent>
-
                     <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1 bg-white rounded border flex items-center gap-2">
                         <CheckCircle size={12} className="text-green-500" />{" "}
@@ -659,30 +648,29 @@ const EmployeeManagementPage = () => {
                   </Card>
                 </div>
               )}
-            </>
-          ) : (
-            <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
-              <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
-                <Users size={32} className="text-gray-300" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                No employees yet
-              </h3>
-              <p className="text-gray-500 mb-6 text-sm">
-                Add your first team member to get started.
-              </p>
-              <Button
-                onClick={() => setShowAddForm(true)}
-                className="bg-red-600 hover:bg-red-700 font-bold"
-              >
-                <Plus size={16} className="mr-2" />
-                Add Employee
-              </Button>
+                </>
+              ) : (
+                <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
+                  <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
+                    <Users size={32} className="text-gray-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    No employees yet
+                  </h3>
+                  <p className="text-gray-500 mb-6 text-sm">
+                    Add your first team member to get started.
+                  </p>
+                  <Button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-red-600 hover:bg-red-700 font-bold"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add Employee
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-
+          </div>
       {/* Add Employee Modal */}
       {
         showAddForm && (
