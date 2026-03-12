@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import {
   Trash2,
   HeartPulse,
   UserPlus,
+  Car,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -46,6 +48,7 @@ import {
   updateEmployeeProfilePicture,
   changePassword as employeeChangePassword,
 } from "@/services/employee.service";
+import { getVehicles } from "@/services/vehicle.service";
 import * as dependentService from "@/services/dependent.service";
 import {
   AlertDialog,
@@ -78,6 +81,7 @@ const ProfilePage = () => {
   });
 
   const [dependents, setDependents] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [showAddDependent, setShowAddDependent] = useState(false);
   const [isAddingDependent, setIsAddingDependent] = useState(false);
   const [newDependent, setNewDependent] = useState({
@@ -186,7 +190,26 @@ const ProfilePage = () => {
     fetchFreshData();
   }, [user?.id, userType]);
 
-  const fetchDependents = async () => {
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
+    !isEditing ? (
+      <Button
+        onClick={() => setIsEditing(true)}
+        className="bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-200 transition-all duration-300"
+      >
+        <Edit size={16} className="mr-2" /> Edit Profile
+      </Button>
+    ) : null
+  ), [isEditing]);
+
+  useSetPageHeader(
+    userType === "customer" ? "Customer Portal" : "Management Portal",
+    "Profile Settings",
+    "Manage your personal information and account preferences.",
+    headerAction,
+  );
+
+  const fetchDependentsAndVehicles = async () => {
     if (
       userType === "employee" ||
       userType === "cashier" ||
@@ -199,11 +222,18 @@ const ProfilePage = () => {
       } catch (error) {
         console.error("Failed to fetch dependents:", error);
       }
+    } else if (userType === "customer") {
+      try {
+        const data = await getVehicles();
+        setVehicles(data || []);
+      } catch (error) {
+        console.error("Failed to fetch vehicles:", error);
+      }
     }
   };
 
   useEffect(() => {
-    fetchDependents();
+    fetchDependentsAndVehicles();
   }, [user?.id, userType]);
 
   const handleAddDependent = async (e) => {
@@ -422,31 +452,6 @@ const ProfilePage = () => {
 
   return (
     <div className="space-y-8 py-4">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-red-600 mb-1">
-            {userType === "customer" ? "Customer Portal" : "Management Portal"}
-          </p>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Profile Settings
-          </h1>
-          <p className="text-gray-500 font-medium">
-            Manage your{" "}
-            {userType === "customer" ? "account" : "professional identity"} and
-            personal information.
-          </p>
-        </div>
-        {!isEditing && (
-          <Button
-            onClick={() => setIsEditing(true)}
-            className="bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-200 transition-all duration-300"
-          >
-            <Edit size={16} className="mr-2" /> Edit Profile
-          </Button>
-        )}
-      </div>
-
       <div className="grid gap-8 md:grid-cols-12 items-start">
         {/* Left Column: Profile Card & Quick Info */}
         <div className="md:col-span-4 space-y-6">
@@ -492,11 +497,6 @@ const ProfilePage = () => {
                   <span className="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-semibold uppercase tracking-wider rounded-full border border-red-100">
                     {userType}
                   </span>
-                  {user?.speciality && (
-                    <span className="px-3 py-1 bg-gray-900 text-white text-[10px] font-semibold uppercase tracking-wider rounded-full">
-                      {user.speciality}
-                    </span>
-                  )}
                 </div>
 
                 <div className="w-full mt-8 pt-6 border-t border-gray-100 space-y-4 text-left">
@@ -586,32 +586,7 @@ const ProfilePage = () => {
               </Card>
             )}
 
-          {/* Account Status Card (For Customers) */}
-          {userType === "customer" && (
-            <Card className="shadow-md border border-gray-100 rounded-xl overflow-hidden bg-white">
-              <CardHeader className="bg-gray-50/50 border-b border-gray-100 py-4">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-green-600" /> Account
-                  Trust
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-                    <ShieldCheck size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">
-                      Verified Member
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-medium">
-                      Since {new Date(user?.created_at).getFullYear()}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
         </div>
 
         {/* Right Column: Detailed Info & Forms */}
@@ -716,40 +691,48 @@ const ProfilePage = () => {
                   {userType === "customer" && (
                     <div className="md:col-span-2 space-y-4">
                       <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                        Service Territory
+                        Home Location
                       </Label>
-                      <div className="rounded-xl overflow-hidden border border-gray-100 h-[240px] bg-gray-100 shadow-inner">
-                        <iframe
-                          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.58290458633!2d79.786164!3d6.927079!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a70ad%3A0x2db30c0635313b24!2sColombo!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk"
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          allowFullScreen=""
-                          loading="lazy"
-                          className="grayscale opacity-60"
-                        ></iframe>
-                      </div>
-                    </div>
-                  )}
+                      {user?.latitude && user?.longitude ? (
+                        <div className="rounded-xl overflow-hidden border border-gray-100 h-[240px] shadow-inner mb-6">
+                          <iframe
+                            src={`https://maps.google.com/maps?q=${user.latitude},${user.longitude}&z=15&output=embed`}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
+                          ></iframe>
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-gray-200 h-[120px] mb-6 flex flex-col items-center justify-center gap-2 bg-gray-50 text-gray-400">
+                          <MapPin size={24} />
+                          <p className="text-sm font-medium">No home location saved</p>
+                          <p className="text-xs">Set your location during booking to save it here</p>
+                        </div>
+                      )}
 
-                  {userType !== "customer" && (
-                    <div className="md:col-span-2 space-y-3">
-                      <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                        Areas of Expertise
+                      <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mt-6 block">
+                        Registered Vehicles
                       </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {user?.speciality?.split(",").map((s, i) => (
-                          <span
-                            key={i}
-                            className="px-4 py-2 bg-gray-900 text-white text-[10px] font-semibold uppercase tracking-wider rounded-lg"
-                          >
-                            {s.trim()}
-                          </span>
-                        )) || (
-                            <span className="px-4 py-2 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase rounded-lg">
-                              General Services
-                            </span>
-                          )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {vehicles.length > 0 ? (
+                          vehicles.map((v, idx) => (
+                            <div key={idx} className="p-4 bg-gray-50/50 rounded-xl border border-gray-100 flex items-center gap-4">
+                              <div className="p-3 bg-white rounded-lg shadow-sm">
+                                <Car size={20} className="text-red-600" />
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900">{v.vehbrand} {v.vehmodel}</p>
+                                <p className="text-xs font-semibold uppercase text-gray-500 tracking-wider font-mono">{v.vehplate}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-1 md:col-span-2 rounded-xl border border-dashed border-gray-200 h-[80px] flex flex-col items-center justify-center bg-gray-50 text-gray-400">
+                            <p className="text-sm font-medium">No vehicles registered</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1031,7 +1014,7 @@ const ProfilePage = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteDependent(dep.depid)}
-                              className="text-gray-300 hover:text-red-600 rounded-lg h-9 w-9 p-0"
+                              className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-9 w-9 p-0 transition-all"
                             >
                               <Trash2 size={16} />
                             </Button>

@@ -171,10 +171,8 @@ const SystemHolidaysPage = () => {
     });
   };
 
-  useSetPageHeader(
-    "System Settings",
-    "System Holidays",
-    "Manage company-wide holidays and closures. Bookings are automatically blocked on these dates.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={openAddForm}
       className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
@@ -182,6 +180,13 @@ const SystemHolidaysPage = () => {
       <Plus size={18} />
       Add Holiday
     </Button>
+  ), []);
+
+  useSetPageHeader(
+    "System Settings",
+    "System Holidays",
+    "Manage company-wide holidays and closures. Bookings are automatically blocked on these dates.",
+    headerAction,
   );
 
   if (loading) return <PageLoader message="Loading holidays..." />;

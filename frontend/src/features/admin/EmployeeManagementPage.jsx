@@ -265,17 +265,22 @@ const EmployeeManagementPage = () => {
     setShowPromoteForm(true);
   };
 
-  useSetPageHeader(
-    "Staff",
-    "Team Management",
-    "Register new staff and manage roles.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
       className="bg-red-600 hover:bg-red-700 text-white font-medium h-10 px-4 rounded-lg"
     >
       <Plus size={16} className="mr-2" />
       Add Employee
-    </Button>,
+    </Button>
+  ), []);
+
+  useSetPageHeader(
+    "Staff",
+    "Team Management",
+    "Register new staff and manage roles.",
+    headerAction,
   );
 
   return (

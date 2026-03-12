@@ -5,6 +5,8 @@ import * as schedulerService from "@/services/scheduler.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 const LeaveCard = ({ leave }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -111,14 +113,27 @@ const MyLeavesPage = () => {
   if (loading) return <PageLoader message="Loading leave records..." />;
 
   return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        <div className="space-y-8">
-          {/* Upcoming Leaves */}
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <Tabs defaultValue="upcoming" className="w-full">
+        <div className="flex items-center justify-between mb-2">
+          <TabsList className="bg-gray-100/50 border border-gray-100 p-1">
+            <TabsTrigger 
+              value="upcoming" 
+              className="px-6 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm transition-all"
+            >
+              Upcoming
+            </TabsTrigger>
+            <TabsTrigger 
+              value="history"
+              className="px-6 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm transition-all"
+            >
+              History
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="upcoming" className="mt-6">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Calendar size={20} className="text-red-600" />
-              Upcoming & Active Leaves
-            </h2>
             {upcomingLeaves.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {upcomingLeaves.map((leave) => (
@@ -126,12 +141,14 @@ const MyLeavesPage = () => {
                 ))}
               </div>
             ) : (
-              <Card className="border-dashed border-2 py-12">
+              <Card className="border-dashed border-2 py-24 bg-transparent border-gray-200">
                 <CardContent className="text-center space-y-4">
-                  <Calendar size={48} className="mx-auto text-gray-200" />
+                  <div className="p-4 bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                    <Calendar size={40} className="text-gray-200" />
+                  </div>
                   <div className="space-y-1">
-                    <h3 className="text-lg font-bold">No Upcoming Leaves</h3>
-                    <p className="text-gray-500">
+                    <h3 className="text-xl font-bold text-gray-900">No Upcoming Leaves</h3>
+                    <p className="text-gray-500 text-sm">
                       You don't have any approved leaves scheduled.
                     </p>
                   </div>
@@ -139,13 +156,10 @@ const MyLeavesPage = () => {
               </Card>
             )}
           </div>
+        </TabsContent>
 
-          {/* Past Leaves */}
+        <TabsContent value="history" className="mt-6">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <FileText size={20} className="text-gray-600" />
-              Leave History
-            </h2>
             {pastLeaves.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {pastLeaves.map((leave) => (
@@ -153,12 +167,14 @@ const MyLeavesPage = () => {
                 ))}
               </div>
             ) : (
-              <Card className="border-dashed border-2 py-12">
+              <Card className="border-dashed border-2 py-24 bg-transparent border-gray-200">
                 <CardContent className="text-center space-y-4">
-                  <FileText size={48} className="mx-auto text-gray-200" />
+                  <div className="p-4 bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                    <FileText size={40} className="text-gray-200" />
+                  </div>
                   <div className="space-y-1">
-                    <h3 className="text-lg font-bold">No Leave History</h3>
-                    <p className="text-gray-500">
+                    <h3 className="text-xl font-bold text-gray-900">No Leave History</h3>
+                    <p className="text-gray-500 text-sm">
                       Your past leave records will appear here.
                     </p>
                   </div>
@@ -166,9 +182,9 @@ const MyLeavesPage = () => {
               </Card>
             )}
           </div>
-        </div>
-      </div>
-    
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

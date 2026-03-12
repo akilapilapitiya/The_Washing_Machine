@@ -77,10 +77,8 @@ const VehiclesPage = () => {
     initData();
   }, []);
 
-  useSetPageHeader(
-    "Garage",
-    "Manage your vehicles",
-    "Add, view, and manage all your vehicles in one place.",
+  // Memoize action button for stable reference in useSetPageHeader
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
       className="bg-red-600 hover:bg-red-700 text-white font-semibold"
@@ -88,7 +86,14 @@ const VehiclesPage = () => {
     >
       <Plus size={16} className="mr-2" />
       Add Vehicle
-    </Button>,
+    </Button>
+  ), [loading]);
+
+  useSetPageHeader(
+    "Garage",
+    "Manage your vehicles",
+    "Add, view, and manage all your vehicles in one place.",
+    headerAction,
   );
 
   // Derived state for dropdowns
@@ -698,140 +703,111 @@ const VehiclesPage = () => {
           </div>
         )}
 
-        {/* Vehicles Grid */}
+        {/* Vehicles Table */}
         {!loading && vehicles.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {vehicles.map((vehicle) => (
-              <Card
-                key={vehicle.id}
-                className="group relative border border-gray-200 hover:border-red-200 transition-all duration-200 shadow-sm hover:shadow-md overflow-hidden"
-              >
-                {/* Decorative Color Ribbon */}
-                {vehicle.vehcolor && (
-                  <div
-                    className="absolute top-0 right-0 w-12 h-12 pointer-events-none z-10"
-                    style={{
-                      background: `linear-gradient(225deg, ${vehicle.vehcolor} 50%, transparent 50%)`,
-                      opacity: 0.8,
-                    }}
-                  />
-                )}
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">
-                        Vehicle
-                      </p>
-                      <CardTitle className="text-lg font-bold">
-                        {vehicle.vehbrand} {vehicle.vehmodel}
-                      </CardTitle>
-                      <p className="text-xs font-mono font-medium text-gray-500 mt-1">
-                        {vehicle.vehplate}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteClick(vehicle)}
-                      className="text-gray-400 hover:text-red-600 transition-colors p-1"
-                      title="Remove vehicle"
+          <Card className="border-gray-200 shadow-sm overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Registration
+                    </th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Vehicle
+                    </th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Specs
+                    </th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Mileage
+                    </th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Color
+                    </th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Next Service
+                    </th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-gray-400 text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {vehicles.map((vehicle) => (
+                    <tr
+                      key={vehicle.id}
+                      className="hover:bg-gray-50/50 transition-colors group"
                     >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-2">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Brand</p>
-                      <p className="font-semibold text-gray-900">
-                        {vehicle.vehbrand}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Model</p>
-                      <p className="font-semibold text-gray-900">
-                        {vehicle.vehmodel}
-                      </p>
-                    </div>
-                    {vehicle.vehmileage != null && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Current Mileage</p>
-                        <p className="font-semibold text-gray-900">
-                          {vehicle.vehmileage.toLocaleString()} KM
-                        </p>
-                      </div>
-                    )}
-                    {vehicle.fuel_type && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Fuel Type</p>
-                        <p className="font-semibold text-gray-900">
-                          {vehicle.fuel_type}
-                        </p>
-                      </div>
-                    )}
-                    {vehicle.vehcolor && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Color</p>
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                          {vehicle.vehplate}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gray-900 leading-tight">
+                            {vehicle.vehbrand}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {vehicle.vehmodel}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-gray-600 uppercase">
+                            {vehicle.manufacture_year || "N/A"} • {vehicle.fuel_type || "N/A"}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {vehicle.transmission || "N/A"} • {vehicle.engine_capacity ? `${vehicle.engine_capacity}CC` : "N/A"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-700">
+                        {vehicle.vehmileage?.toLocaleString()} KM
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded-full border border-gray-200"
-                            style={{ backgroundColor: vehicle.vehcolor }}
+                            style={{ backgroundColor: vehicle.vehcolor || "#fff" }}
                           />
-                          <p className="font-semibold text-gray-900">
-                            {vehicle.vehcolor}
-                          </p>
+                          <span className="text-[10px] font-mono text-gray-500 uppercase">
+                            {vehicle.vehcolor || "N/A"}
+                          </span>
                         </div>
-                      </div>
-                    )}
-                    {vehicle.manufacture_year && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Year</p>
-                        <p className="font-semibold text-gray-900">
-                          {vehicle.manufacture_year}
-                        </p>
-                      </div>
-                    )}
-                    {vehicle.transmission && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Transmission</p>
-                        <p className="font-semibold text-gray-900">
-                          {vehicle.transmission}
-                        </p>
-                      </div>
-                    )}
-                    {vehicle.engine_capacity && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-gray-500">Engine</p>
-                        <p className="font-semibold text-gray-900">
-                          {vehicle.engine_capacity} CC
-                        </p>
-                      </div>
-                    )}
-                    <div className="col-span-2 mt-2 pt-2 border-t border-gray-100">
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-500">
-                          Next Service Due
-                        </p>
-                        <p
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
                           className={cn(
-                            "text-xs font-bold px-2 py-0.5 rounded-full",
-                            vehicle.next_service_mileage === 0 ||
-                              !vehicle.next_service_mileage
-                              ? "bg-blue-50 text-blue-600"
-                              : "bg-red-50 text-red-600",
+                            "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                            vehicle.next_service_mileage === 0 || !vehicle.next_service_mileage
+                              ? "bg-blue-50 text-blue-600 border-blue-100"
+                              : "bg-red-50 text-red-600 border-red-100",
                           )}
                         >
-                          {vehicle.next_service_mileage === 0 ||
-                            !vehicle.next_service_mileage
-                            ? "Pending Employee Check"
+                          {vehicle.next_service_mileage === 0 || !vehicle.next_service_mileage
+                            ? "Pending Check"
                             : `${vehicle.next_service_mileage.toLocaleString()} KM`}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(vehicle)}
+                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         ) : null}
 
         {/* Delete Confirmation Modal */}

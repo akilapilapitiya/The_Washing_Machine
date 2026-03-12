@@ -40,5 +40,5 @@ export const useSetPageHeader = (label, title, subtitle = "", action = null) => 
         // Clear on unmount so auth/booking pages show no bar
         return () => setHeader({ label: "", title: "", subtitle: "", action: null });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [label, title, subtitle]);
+    }, [label, title, subtitle, action]);
 };

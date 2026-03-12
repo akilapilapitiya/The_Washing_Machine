@@ -172,10 +172,8 @@ const ManageAdvertisementsPage = () => {
     return diffInDays >= 0 && diffInDays <= 3;
   });
 
-  useSetPageHeader(
-    "Content Management",
-    "Advertisement Manager",
-    "Manage promotional banners and client advertisements.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={() => {
         setEditingAd(null);
@@ -187,6 +185,13 @@ const ManageAdvertisementsPage = () => {
     >
       <Plus className="w-4 h-4 mr-2" /> Add New Ad
     </Button>
+  ), []);
+
+  useSetPageHeader(
+    "Content Management",
+    "Advertisement Manager",
+    "Manage promotional banners and client advertisements.",
+    headerAction,
   );
 
   if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;

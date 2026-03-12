@@ -145,10 +145,8 @@ const ManageVehicleCatalogPage = () => {
 
   const sortedBrands = Object.keys(groupedCatalog).sort();
 
-  useSetPageHeader(
-    "System Administration",
-    "Vehicle Catalog",
-    "Manage standardized vehicle data for customers to select from.",
+  // Memoize action element for stable reference
+  const headerAction = React.useMemo(() => (
     <div className="flex items-center gap-4 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border shadow-sm">
       <div className="flex items-center gap-2">
         <Layers size={16} />
@@ -166,6 +164,13 @@ const ManageVehicleCatalogPage = () => {
         Models
       </div>
     </div>
+  ), [sortedBrands.length, models.length]);
+
+  useSetPageHeader(
+    "System Administration",
+    "Vehicle Catalog",
+    "Manage standardized vehicle data for customers to select from.",
+    headerAction,
   );
 
   return (

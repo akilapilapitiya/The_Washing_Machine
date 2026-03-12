@@ -391,10 +391,8 @@ const DashboardPage = () => {
     .sort((a, b) => new Date(b.bookingdate) - new Date(a.bookingdate))
     .slice(0, 3);
 
-  useSetPageHeader(
-    "",
-    `Welcome back, ${user?.name?.split(" ")[0] || "there"}`,
-    "Here's what's happening with your account today.",
+  // Memoize action button for stable reference in useSetPageHeader
+  const headerAction = React.useMemo(() => (
     isCustomer ? (
       <Link to="/dashboard/book">
         <Button className={`${COLORS.bg.brand} ${COLORS.bg.brandHover} text-white px-6`}>
@@ -402,7 +400,14 @@ const DashboardPage = () => {
           New Booking
         </Button>
       </Link>
-    ) : null,
+    ) : null
+  ), [isCustomer]);
+
+  useSetPageHeader(
+    "",
+    `Welcome back, ${user?.name?.split(" ")[0] || "there"}`,
+    "Here's what's happening with your account today.",
+    headerAction,
   );
 
   return (
@@ -458,45 +463,58 @@ const DashboardPage = () => {
                     {[1, 2].map((i) => (
                       <div
                         key={i}
-                        className="h-20 bg-gray-50 animate-pulse rounded-lg border border-gray-100"
+                        className="h-12 bg-gray-50 animate-pulse rounded-lg border border-gray-100"
                       ></div>
                     ))}
                   </div>
                 ) : recentActivity.length > 0 ? (
-                  recentActivity.map((activity) => (
-                    <div
-                      key={activity.bookingid}
-                      className="flex items-start space-x-3 p-3 rounded-lg border border-gray-100 bg-white"
-                    >
-                      <div
-                        className={`p-2 rounded ${activity.bookingstatus === "completed"
-                          ? "bg-green-50 text-green-600"
-                          : activity.bookingstatus === "confirmed"
-                            ? "bg-blue-50 text-blue-600"
-                            : "bg-yellow-50 text-yellow-600"
-                          }`}
-                      >
-                        {activity.bookingstatus === "completed" ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : (
-                          <Calendar className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <p className="text-sm font-medium capitalize">
-                            {activity.bookingstatus} Service
-                          </p>
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-                            {activity.bookingstarttime}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Scheduled for {formatDateSL(activity.bookingdate)}
-                        </p>
-                      </div>
-                    </div>
-                  ))
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <tbody className="divide-y divide-gray-50">
+                        {recentActivity.map((activity) => (
+                          <tr
+                            key={activity.bookingid}
+                            className="hover:bg-gray-50/50 transition-colors group"
+                          >
+                            <td className="py-3 pr-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`p-2 rounded ${activity.bookingstatus === "completed"
+                                    ? "bg-green-50 text-green-600"
+                                    : activity.bookingstatus === "confirmed"
+                                      ? "bg-blue-50 text-blue-600"
+                                      : "bg-yellow-50 text-yellow-600"
+                                    }`}
+                                >
+                                  {activity.bookingstatus === "completed" ? (
+                                    <CheckCircle2 className="h-4 w-4" />
+                                  ) : (
+                                    <Calendar className="h-4 w-4" />
+                                  )}
+                                </div>
+                                <div className="flex flex-col">
+                                  <p className="text-sm font-bold capitalize text-gray-900 leading-tight">
+                                    {activity.bookingstatus} Service
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 font-medium">
+                                    #{activity.bookingid}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 hidden sm:table-cell text-[11px] font-semibold text-gray-500">
+                              {formatDateSL(activity.bookingdate)}
+                            </td>
+                            <td className="py-3 pl-4 text-right">
+                              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-gray-100 text-gray-600 whitespace-nowrap">
+                                {activity.bookingstarttime}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
                   <div className="text-center py-8 border border-dashed border-gray-200 rounded-lg">
                     <p className="text-sm text-gray-400">
