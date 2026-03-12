@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
 
 const SystemHolidaysPage = () => {
   const [holidays, setHolidays] = useState([]);
@@ -191,104 +192,86 @@ const SystemHolidaysPage = () => {
 
   if (loading) return <PageLoader message="Loading holidays..." />;
 
+  const columns = [
+    {
+      key: "date",
+      label: "Date",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <Calendar size={16} className="text-gray-400" />
+          <span className="font-medium text-gray-900">{formatDate(row.holidaydate)}</span>
+        </div>
+      ),
+    },
+    {
+      key: "holidayname",
+      label: "Holiday Name",
+      render: (row) => (
+        <span className="font-semibold text-gray-900">{row.holidayname}</span>
+      ),
+    },
+    {
+      key: "holidaytype",
+      label: "Type",
+      render: (row) => (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getHolidayTypeColor(
+            row.holidaytype,
+          )}`}
+        >
+          {row.holidaytype}
+        </span>
+      ),
+    },
+    {
+      key: "description",
+      label: "Description",
+      render: (row) => (
+        <span className="text-sm text-gray-600 line-clamp-1">
+          {row.description || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => openEditForm(row)}
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+            title="Edit Holiday"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() =>
+              handleDeleteHoliday(row.holidayid, row.holidayname)
+            }
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            title="Delete Holiday"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div>
       <ConfirmDialog />
       <div className="mx-auto w-full max-w-7xl space-y-8">
-        {holidays.length > 0 ? (
-          <Card className="overflow-hidden border-gray-200 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                      Date
-                    </th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                      Holiday Name
-                    </th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                      Type
-                    </th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                      Description
-                    </th>
-                    <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
-                  {holidays.map((holiday) => (
-                    <tr
-                      key={holiday.holidayid}
-                      className="hover:bg-gray-50/50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-gray-400" />
-                          <span className="font-medium text-gray-900">
-                            {formatDate(holiday.holidaydate)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-gray-900">
-                          {holiday.holidayname}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getHolidayTypeColor(holiday.holidaytype)}`}
-                        >
-                          {holiday.holidaytype}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600 line-clamp-1">
-                          {holiday.description || "—"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEditForm(holiday)}
-                            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-                            title="Edit Holiday"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteHoliday(
-                                holiday.holidayid,
-                                holiday.holidayname,
-                              )
-                            }
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                            title="Delete Holiday"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        ) : (
-          <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
-            <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
-              <Calendar size={32} className="text-gray-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              No holidays configured
-            </h3>
-            <p className="text-gray-500 mb-6 text-sm">
-              Add your first system holiday to block bookings on specific dates.
-            </p>
+        <DataTable
+          columns={columns}
+          data={holidays}
+          keyField="holidayid"
+          emptyIcon={Calendar}
+          emptyTitle="No holidays configured"
+          emptySubtitle="Add your first system holiday to block bookings on specific dates."
+          emptyAction={
             <Button
               onClick={openAddForm}
               className="bg-red-600 hover:bg-red-700"
@@ -296,8 +279,8 @@ const SystemHolidaysPage = () => {
               <Plus size={16} className="mr-2" />
               Add Holiday
             </Button>
-          </div>
-        )}
+          }
+        />
       </div>
 
       {/* Add/Edit Modal */}
