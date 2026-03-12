@@ -492,11 +492,6 @@ const ProfilePage = () => {
                   <span className="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-semibold uppercase tracking-wider rounded-full border border-red-100">
                     {userType}
                   </span>
-                  {user?.speciality && (
-                    <span className="px-3 py-1 bg-gray-900 text-white text-[10px] font-semibold uppercase tracking-wider rounded-full">
-                      {user.speciality}
-                    </span>
-                  )}
                 </div>
 
                 <div className="w-full mt-8 pt-6 border-t border-gray-100 space-y-4 text-left">
@@ -733,28 +728,6 @@ const ProfilePage = () => {
                             <p className="text-sm font-medium">No vehicles registered</p>
                           </div>
                         )}
-                      </div>
-                    </div>
-                  )}
-
-                  {userType !== "customer" && (
-                    <div className="md:col-span-2 space-y-3">
-                      <Label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                        Areas of Expertise
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {user?.speciality?.split(",").map((s, i) => (
-                          <span
-                            key={i}
-                            className="px-4 py-2 bg-gray-900 text-white text-[10px] font-semibold uppercase tracking-wider rounded-lg"
-                          >
-                            {s.trim()}
-                          </span>
-                        )) || (
-                            <span className="px-4 py-2 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase rounded-lg">
-                              General Services
-                            </span>
-                          )}
                       </div>
                     </div>
                   )}
@@ -1036,7 +1009,7 @@ const ProfilePage = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteDependent(dep.depid)}
-                              className="text-gray-300 hover:text-red-600 rounded-lg h-9 w-9 p-0"
+                              className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-9 w-9 p-0 transition-all"
                             >
                               <Trash2 size={16} />
                             </Button>
