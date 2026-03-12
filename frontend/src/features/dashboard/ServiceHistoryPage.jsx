@@ -73,7 +73,7 @@ const ServiceHistoryPage = () => {
         searchPlaceholder="Search by vehicle or service..."
       />
     ),
-    [dateRange, historyBookings, searchQuery],
+    [dateRange, historyBookings.length, searchQuery],
   );
 
   useSetPageHeader(

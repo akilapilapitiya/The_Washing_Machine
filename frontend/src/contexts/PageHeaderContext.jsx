@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 const PageHeaderContext = createContext(null);
+const EMPTY_HEADER = {
+    label: "",
+    title: "",
+    subtitle: "",
+    action: null,
+    toolbar: null,
+};
 
 export const PageHeaderProvider = ({ children }) => {
-    const [header, setHeader] = useState({
-        label: "",
-        title: "",
-        subtitle: "",
-        action: null,
-        toolbar: null,
-    });
+    const [header, setHeader] = useState(EMPTY_HEADER);
 
     return (
         <PageHeaderContext.Provider value={{ header, setHeader }}>
@@ -37,9 +38,33 @@ export const useSetPageHeader = (label, title, subtitle = "", action = null, too
     const { setHeader } = usePageHeader();
 
     useEffect(() => {
-        setHeader({ label, title, subtitle, action, toolbar });
-        // Clear on unmount so auth/booking pages show no bar
-        return () => setHeader({ label: "", title: "", subtitle: "", action: null, toolbar: null });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [label, title, subtitle, action, toolbar]);
+        setHeader((prev) => {
+            if (
+                prev.label === label
+                && prev.title === title
+                && prev.subtitle === subtitle
+                && prev.action === action
+                && prev.toolbar === toolbar
+            ) {
+                return prev;
+            }
+
+            return { label, title, subtitle, action, toolbar };
+        });
+    }, [label, title, subtitle, action, toolbar, setHeader]);
+
+    useEffect(() => () => {
+        setHeader((prev) => {
+            if (
+                prev.label === ""
+                && prev.title === ""
+                && prev.subtitle === ""
+                && prev.action === null
+                && prev.toolbar === null
+            ) {
+                return prev;
+            }
+            return EMPTY_HEADER;
+        });
+    }, [setHeader]);
 };

@@ -379,7 +379,7 @@ const ScheduledBookingsPage = () => {
         searchPlaceholder="Search by vehicle or service..."
       />
     ),
-    [dateRange, upcomingBookings, searchQuery, bookings],
+    [dateRange, searchQuery, upcomingBookings.length, bookings],
   );
 
   // Memoize action button for stable reference
