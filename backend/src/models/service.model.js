@@ -20,9 +20,6 @@ const createServiceTable = async (pool) => {
       offer_start_date TIMESTAMP,
       offer_end_date TIMESTAMP,
       servicetype VARCHAR(20) DEFAULT 'package',
-      has_offer BOOLEAN DEFAULT FALSE,
-      offer_price DECIMAL(10,2),
-      offer_description TEXT,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -53,6 +50,9 @@ const createServiceTable = async (pool) => {
       END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='service' AND column_name='is_variable_price') THEN
         ALTER TABLE service ADD COLUMN is_variable_price BOOLEAN DEFAULT FALSE;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='service' AND column_name='servicetype') THEN
+        ALTER TABLE service ADD COLUMN servicetype VARCHAR(20) DEFAULT 'package';
       END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='service' AND column_name='has_offer') THEN
         ALTER TABLE service ADD COLUMN has_offer BOOLEAN DEFAULT FALSE;
