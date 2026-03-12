@@ -29,7 +29,6 @@ const SystemHolidaysPage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("all");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
@@ -188,19 +187,8 @@ const SystemHolidaysPage = () => {
   ), [openAddForm]);
 
   const filteredHolidays = holidays.filter((holiday) => {
-    const query = searchQuery.trim().toLowerCase();
-
-    const matchesSearch =
-      !query ||
-      [
-        holiday.holidayname,
-        holiday.holidaytype,
-        holiday.description,
-      ].some((value) => String(value || "").toLowerCase().includes(query));
-
     const matchesDate = matchesQuickDateRange(holiday.holidaydate, dateRange);
-
-    return matchesSearch && matchesDate;
+    return matchesDate;
   });
 
   const toolbar = React.useMemo(
@@ -235,12 +223,9 @@ const SystemHolidaysPage = () => {
         ]}
         activeFilter={dateRange}
         onFilterChange={setDateRange}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Search holidays..."
       />
     ),
-    [dateRange, holidays, searchQuery],
+    [dateRange, holidays],
   );
 
   useSetPageHeader(
@@ -331,7 +316,7 @@ const SystemHolidaysPage = () => {
           keyField="holidayid"
           emptyIcon={Calendar}
           emptyTitle="No holidays configured"
-          emptySubtitle={searchQuery ? "No holidays match your current filters." : "Add your first system holiday to block bookings on specific dates."}
+          emptySubtitle="Add your first system holiday to block bookings on specific dates."
           emptyAction={
             <Button
               onClick={openAddForm}

@@ -28,7 +28,6 @@ const LeaveManagementPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("all");
 
   const [formData, setFormData] = useState({
@@ -89,21 +88,12 @@ const LeaveManagementPage = () => {
   ), []);
 
   const filteredLeaves = leaves.filter((leave) => {
-    const query = searchQuery.trim().toLowerCase();
-
-    const matchesSearch =
-      !query ||
-      [leave.empname, leave.leavereason].some((value) =>
-        String(value || "").toLowerCase().includes(query),
-      );
-
     const matchesDate = intervalMatchesQuickDateRange(
       leave.leavestartdate,
       leave.leaveenddate,
       dateRange,
     );
-
-    return matchesSearch && matchesDate;
+    return matchesDate;
   });
 
   const toolbar = React.useMemo(
@@ -149,12 +139,9 @@ const LeaveManagementPage = () => {
         ]}
         activeFilter={dateRange}
         onFilterChange={setDateRange}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Search leave records..."
       />
     ),
-    [dateRange, leaves, searchQuery],
+    [dateRange, leaves],
   );
 
   useSetPageHeader(
@@ -327,7 +314,7 @@ const LeaveManagementPage = () => {
         keyField="leaveid"
         emptyIcon={Briefcase}
         emptyTitle="No Active Leaves"
-        emptySubtitle={searchQuery ? "No leave records match your current filters." : "No staff members are currently on leave. Operations are running at full capacity."}
+        emptySubtitle="No staff members are currently on leave. Operations are running at full capacity."
       />
     </div>
   );
