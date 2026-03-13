@@ -195,7 +195,7 @@ const ProfilePage = () => {
     !isEditing ? (
       <Button
         onClick={() => setIsEditing(true)}
-        className="bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-200 transition-all duration-300"
+        className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm"
       >
         <Edit size={16} className="mr-2" /> Edit Profile
       </Button>

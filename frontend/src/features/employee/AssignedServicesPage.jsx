@@ -16,7 +16,7 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
-import PageToolbar from "@/components/common/PageToolbar";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 
 const AssignedServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -49,45 +49,30 @@ const AssignedServicesPage = () => {
     (s) => s.bookingstatus === "completed",
   );
 
+  const toolbarTabs = useMemo(
+    () => [
+      { id: "upcoming", label: `Upcoming (${pendingServices.length})` },
+      { id: "in-progress", label: `In Progress (${inProgressServices.length})` },
+      { id: "completed", label: `History (${completedServices.length})` },
+    ],
+    [pendingServices.length, inProgressServices.length, completedServices.length],
+  );
+
   // Toolbar: tab switcher lives in PageSubHeader's second row
   const toolbar = useMemo(
     () => (
-      <PageToolbar
-        leftSlot={
-          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab("upcoming")}
-              className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                activeTab === "upcoming" ? "bg-red-600 text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Upcoming ({pendingServices.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("in-progress")}
-              className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                activeTab === "in-progress" ? "bg-red-600 text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              In Progress ({inProgressServices.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("completed")}
-              className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                activeTab === "completed" ? "bg-red-600 text-white" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              History ({completedServices.length})
-            </button>
-          </div>
-        }
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabsAriaLabel="Assignment sections"
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search assignments..."
-        searchWidthClass="sm:w-72"
+        searchWidthClass="max-w-[280px]"
       />
     ),
-    [activeTab, completedServices.length, inProgressServices.length, pendingServices.length, searchQuery],
+    [activeTab, toolbarTabs, searchQuery],
   );
 
   useSetPageHeader(

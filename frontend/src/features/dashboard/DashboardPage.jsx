@@ -395,7 +395,7 @@ const DashboardPage = () => {
   const headerAction = React.useMemo(() => (
     isCustomer ? (
       <Link to="/dashboard/book">
-        <Button className={`${COLORS.bg.brand} ${COLORS.bg.brandHover} text-white px-6`}>
+        <Button className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm">
           <Plus className="h-4 w-4 mr-2" />
           New Booking
         </Button>

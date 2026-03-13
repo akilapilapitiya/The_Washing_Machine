@@ -32,7 +32,7 @@ import { IMAGE_BASE_URL } from "@/configs/env";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
-import PageToolbar from "@/components/common/PageToolbar";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -282,17 +282,41 @@ const EmployeeManagementPage = () => {
   // Toolbar: Stat Pills
   const toolbar = useMemo(
     () => (
-      <PageToolbar
-        stats={[
-          { icon: Users, label: "Total", value: employees.length, iconClassName: "text-gray-500" },
-          { icon: Shield, label: "Owners", value: employees.filter((e) => e.emptype === "owner").length, iconClassName: "text-red-500" },
-          { icon: CreditCard, label: "Cashiers", value: employees.filter((e) => e.emptype === "cashier").length, iconClassName: "text-purple-500" },
-          { icon: Briefcase, label: "Staff", value: employees.filter((e) => e.emptype === "employee").length, iconClassName: "text-blue-500" },
-        ]}
+      <BookingFlowToolbar
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search employees..."
-        searchWidthClass="sm:w-80"
+        searchWidthClass="max-w-[320px]"
+        meta={(
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Users size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">Total</span>
+              <span className="text-xs font-semibold text-gray-900">{employees.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Shield size={13} className="text-red-500" />
+              <span className="text-xs font-semibold text-gray-500">Owners</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {employees.filter((employee) => employee.emptype === "owner").length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CreditCard size={13} className="text-purple-500" />
+              <span className="text-xs font-semibold text-gray-500">Cashiers</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {employees.filter((employee) => employee.emptype === "cashier").length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Briefcase size={13} className="text-blue-500" />
+              <span className="text-xs font-semibold text-gray-500">Staff</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {employees.filter((employee) => employee.emptype === "employee").length}
+              </span>
+            </div>
+          </div>
+        )}
       />
     ),
     [employees, searchQuery],

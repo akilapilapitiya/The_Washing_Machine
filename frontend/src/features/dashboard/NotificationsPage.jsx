@@ -26,22 +26,28 @@ const NotificationsPage = () => {
   const { notifications, markAsRead, markAllAsRead, loading } = useNotification();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [readFilter, setReadFilter] = React.useState("all");
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const filteredNotifications = notifications.filter((notif) => {
-    if (readFilter === "unread") return !notif.is_read;
-    if (readFilter === "read") return notif.is_read;
-    return true; // all
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return [
+      notif.title,
+      notif.message,
+      notif.type,
+      notif.booking_id ? `booking ${notif.booking_id}` : "",
+      notif.is_read ? "read" : "unread",
+    ].some((value) => String(value || "").toLowerCase().includes(query));
   });
 
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Button
       variant="outline"
-      size="sm"
-      className="hidden sm:flex text-gray-500 hover:text-red-600 bg-white"
+      className="hidden sm:flex h-10 px-5 text-sm font-medium text-gray-600 hover:text-red-600 bg-white border-gray-300"
       onClick={markAllAsRead}
       disabled={unreadCount === 0}
     >
@@ -57,16 +63,12 @@ const NotificationsPage = () => {
           { icon: Bell, label: "Total", value: notifications.length, iconClassName: "text-blue-500" },
           { icon: AlertTriangle, label: "Unread", value: unreadCount, iconClassName: "text-red-500" },
         ]}
-        filters={[
-          { id: "all", label: "All" },
-          { id: "unread", label: "Unread" },
-          { id: "read", label: "Read" },
-        ]}
-        activeFilter={readFilter}
-        onFilterChange={setReadFilter}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search notifications..."
       />
     ),
-    [notifications.length, unreadCount, readFilter],
+    [notifications.length, unreadCount, searchQuery],
   );
 
   useSetPageHeader(

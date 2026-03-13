@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
-import PageToolbar from "@/components/common/PageToolbar";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 
 const MyLeavesPage = () => {
   const [leaves, setLeaves] = useState([]);
@@ -43,6 +43,14 @@ const MyLeavesPage = () => {
 
   const [activeTab, setActiveTab] = useState("upcoming");
 
+  const toolbarTabs = useMemo(
+    () => [
+      { id: "upcoming", label: `Upcoming (${upcomingLeaves.length})` },
+      { id: "history", label: `History (${pastLeaves.length})` },
+    ],
+    [upcomingLeaves.length, pastLeaves.length],
+  );
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -63,35 +71,33 @@ const MyLeavesPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <PageToolbar
-        leftSlot={
-          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab("upcoming")}
-              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              Upcoming ({upcomingLeaves.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "history" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              History ({pastLeaves.length})
-            </button>
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabsAriaLabel="Leave sections"
+        meta={(
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Calendar size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">Total</span>
+              <span className="text-xs font-semibold text-gray-900">{leaves.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CheckCircle size={13} className="text-green-500" />
+              <span className="text-xs font-semibold text-gray-500">Upcoming</span>
+              <span className="text-xs font-semibold text-gray-900">{upcomingLeaves.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <FileText size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">History</span>
+              <span className="text-xs font-semibold text-gray-900">{pastLeaves.length}</span>
+            </div>
           </div>
-        }
-        stats={[
-          { icon: Calendar, label: "Total", value: leaves.length, iconClassName: "text-gray-500" },
-          { icon: CheckCircle, label: "Upcoming", value: upcomingLeaves.length, iconClassName: "text-green-500" },
-          { icon: FileText, label: "History", value: pastLeaves.length, iconClassName: "text-gray-500" },
-        ]}
+        )}
       />
     ),
-    [activeTab, leaves.length, pastLeaves.length, upcomingLeaves.length]
+    [activeTab, toolbarTabs, leaves.length, pastLeaves.length, upcomingLeaves.length],
   );
 
   useSetPageHeader(

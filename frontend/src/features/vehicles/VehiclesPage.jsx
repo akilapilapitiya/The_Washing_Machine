@@ -83,7 +83,7 @@ const VehiclesPage = () => {
   const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
-      className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+      className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm"
       disabled={loading}
     >
       <Plus size={16} className="mr-2" />

@@ -26,7 +26,6 @@ import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import StatusBadge from "@/components/common/StatusBadge";
 import PageToolbar from "@/components/common/PageToolbar";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const BookingCard = ({ booking, onManage }) => {
   // Format services list
@@ -296,7 +295,6 @@ const ScheduledBookingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     fetchBookings();
@@ -355,8 +353,7 @@ const ScheduledBookingsPage = () => {
         booking.services?.map((s) => s.servicename).join(" "),
       ].some((value) => String(value || "").toLowerCase().includes(query));
 
-    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
-    return matchesSearch && matchesDate;
+    return matchesSearch;
   });
 
   const toolbar = React.useMemo(
@@ -366,26 +363,18 @@ const ScheduledBookingsPage = () => {
           { icon: Clock3, label: "Upcoming", value: upcomingBookings.length, iconClassName: "text-orange-500" },
           { icon: CheckCircle, label: "Scheduled", value: bookings.filter((b) => b.bookingstatus === "pending").length, iconClassName: "text-blue-500" },
         ]}
-        filters={[
-          { id: "all", label: "All" },
-          { id: "today", label: "Today" },
-          { id: "week", label: "This Week" },
-          { id: "upcoming", label: "Upcoming" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search by vehicle or service..."
       />
     ),
-    [dateRange, searchQuery, upcomingBookings.length, bookings],
+    [searchQuery, upcomingBookings.length, bookings],
   );
 
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Link to="/dashboard/book">
-      <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold">
+      <Button className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm">
         Book New Service
       </Button>
     </Link>
