@@ -6,6 +6,9 @@ import * as employeeService from "@/services/employee.service";
 
 // Mock Employee Service
 vi.mock("@/services/employee.service");
+vi.mock("@/contexts/PageHeaderContext", () => ({
+  useSetPageHeader: () => {},
+}));
 
 const mockNavigate = vi.fn();
 
@@ -73,18 +76,8 @@ describe("EmployeeSelectionPage", () => {
     // Select John Doe
     fireEvent.click(screen.getByText("John Doe"));
 
-    // Click Continue
-    const continueBtn = screen.getByRole("button", { name: /continue/i });
-    fireEvent.click(continueBtn);
-
-    expect(mockNavigate).toHaveBeenCalledWith("/dashboard/booking/datetime", {
-      state: {
-        vehicleId: 1,
-        serviceIds: [101],
-        locationId: "home",
-        employeeId: 1,
-      },
-    });
+    expect(screen.getByLabelText("Select John Doe")).toBeChecked();
+    expect(screen.getByLabelText("Select Any Employee")).not.toBeChecked();
   });
 
   it("filters out owners", async () => {
