@@ -8,7 +8,7 @@ import {
   Wrench,
   CheckCircle,
 } from "lucide-react";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +24,6 @@ const AllBookingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
   const { isOwner, isCashier } = useAuth();
 
   const fetchServices = React.useCallback(async () => {
@@ -58,29 +57,13 @@ const AllBookingsPage = () => {
   }, [fetchServices]);
 
   const filteredServices = services.filter((s) => {
-    // Search query filter
     const query = searchQuery.toLowerCase();
-    const matchesSearch = 
+    return (
       (s.cusname?.toLowerCase() || "").includes(query) ||
       (s.assigned_empname?.toLowerCase() || "").includes(query) ||
       (s.vehplate?.toLowerCase() || "").includes(query) ||
-      String(s.bookingid).includes(query);
-
-    // Date range filter
-    let matchesDate = true;
-    if (dateRange !== "all") {
-      const bDate = new Date(s.bookingdate);
-      const now = new Date();
-      if (dateRange === "today") {
-        matchesDate = isWithinInterval(bDate, { start: startOfDay(now), end: endOfDay(now) });
-      } else if (dateRange === "week") {
-        matchesDate = isWithinInterval(bDate, { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) });
-      } else if (dateRange === "month") {
-        matchesDate = isWithinInterval(bDate, { start: startOfMonth(now), end: endOfMonth(now) });
-      }
-    }
-
-    return matchesSearch && matchesDate;
+      String(s.bookingid).includes(query)
+    );
   });
 
   const pendingServices = filteredServices.filter(
@@ -126,21 +109,13 @@ const AllBookingsPage = () => {
             </button>
           </div>
         }
-        filters={[
-          { id: "all", label: "All Time" },
-          { id: "today", label: "Today" },
-          { id: "week", label: "This Week" },
-          { id: "month", label: "This Month" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search bookings..."
         searchWidthClass="sm:w-64"
       />
     ),
-    [activeTab, pendingServices.length, inProgressServices.length, completedServices.length, dateRange, searchQuery]
+    [activeTab, pendingServices.length, inProgressServices.length, completedServices.length, searchQuery]
   );
 
   useSetPageHeader(

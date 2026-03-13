@@ -184,7 +184,7 @@ const ManageAdvertisementsPage = () => {
         setErrors({});
         setIsModalOpen(true);
       }}
-      className="bg-red-600 hover:bg-red-700 text-white h-10 px-4 shadow-sm"
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
     >
       <Plus className="w-4 h-4 mr-2" /> Add New Ad
     </Button>

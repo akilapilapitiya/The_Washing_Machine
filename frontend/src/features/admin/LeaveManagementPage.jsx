@@ -80,7 +80,7 @@ const LeaveManagementPage = () => {
   const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
-      className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
     >
       <Plus size={16} className="mr-2" />
       Record Leave

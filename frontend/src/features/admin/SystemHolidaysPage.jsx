@@ -20,7 +20,6 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const SystemHolidaysPage = () => {
   const [holidays, setHolidays] = useState([]);
@@ -29,7 +28,7 @@ const SystemHolidaysPage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dateRange, setDateRange] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const [formData, setFormData] = useState({
@@ -179,7 +178,7 @@ const SystemHolidaysPage = () => {
   const headerAction = React.useMemo(() => (
     <Button
       onClick={openAddForm}
-      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
     >
       <Plus size={18} />
       Add Holiday
@@ -187,8 +186,16 @@ const SystemHolidaysPage = () => {
   ), [openAddForm]);
 
   const filteredHolidays = holidays.filter((holiday) => {
-    const matchesDate = matchesQuickDateRange(holiday.holidaydate, dateRange);
-    return matchesDate;
+    const query = searchQuery.trim().toLowerCase();
+    return (
+      !query ||
+      [
+        holiday.holidayname,
+        holiday.holidaytype,
+        holiday.description,
+        holiday.holidaydate,
+      ].some((value) => String(value || "").toLowerCase().includes(query))
+    );
   });
 
   const toolbar = React.useMemo(
@@ -215,17 +222,12 @@ const SystemHolidaysPage = () => {
             iconClassName: "text-gray-500",
           },
         ]}
-        filters={[
-          { id: "all", label: "All Time" },
-          { id: "today", label: "Today" },
-          { id: "month", label: "This Month" },
-          { id: "upcoming", label: "Upcoming" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search holidays..."
       />
     ),
-    [dateRange, holidays],
+    [holidays, searchQuery],
   );
 
   useSetPageHeader(

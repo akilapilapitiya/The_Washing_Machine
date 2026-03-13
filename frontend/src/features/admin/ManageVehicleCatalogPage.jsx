@@ -224,14 +224,14 @@ const ManageVehicleCatalogPage = () => {
       <Button
         onClick={() => setShowAddBrandModal(true)}
         variant="outline"
-        className="flex items-center gap-2"
+        className="h-10 px-4 flex items-center gap-2 border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
       >
         <Plus size={18} />
         Add Brand
       </Button>
       <Button
         onClick={() => setShowAddModelModal(true)}
-        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white"
+        className="h-10 px-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
       >
         <Plus size={18} />
         Add Model

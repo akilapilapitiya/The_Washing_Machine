@@ -17,7 +17,6 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const EmployeeIncidentPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -26,7 +25,6 @@ const EmployeeIncidentPage = () => {
   const [tableLoading, setTableLoading] = useState(true);
   const [bookingSearchQuery, setBookingSearchQuery] = useState("");
   const [incidentSearchQuery, setIncidentSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
   const [showReportModal, setShowReportModal] = useState(false);
 
   // Reporting State
@@ -118,16 +116,14 @@ const EmployeeIncidentPage = () => {
         incident.id,
       ].some((value) => String(value || "").toLowerCase().includes(query));
 
-    const matchesDate = matchesQuickDateRange(incident.created_at, dateRange);
-
-    return matchesSearch && matchesDate;
+    return matchesSearch;
   });
 
   // Memoize action button for stable reference
   const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowReportModal(true)}
-      className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
     >
       <Plus size={16} className="mr-2" />
       Report Incident
@@ -158,19 +154,12 @@ const EmployeeIncidentPage = () => {
             iconClassName: "text-red-600",
           },
         ]}
-        filters={[
-          { id: "all", label: "All Time" },
-          { id: "today", label: "Today" },
-          { id: "month", label: "This Month" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={incidentSearchQuery}
         onSearchChange={setIncidentSearchQuery}
         searchPlaceholder="Search incident history..."
       />
     ),
-    [dateRange, incidentSearchQuery, incidents],
+    [incidentSearchQuery, incidents],
   );
 
   useSetPageHeader(
@@ -422,7 +411,7 @@ const EmployeeIncidentPage = () => {
             keyField="id"
             emptyIcon={ShieldCheck}
             emptyTitle="Safety Clearance"
-            emptySubtitle={incidentSearchQuery ? "No incidents match your current filters." : "You haven't reported any safety incidents. Your working environment remains secure."}
+              emptySubtitle={incidentSearchQuery ? "No incidents match your search." : "You haven't reported any safety incidents. Your working environment remains secure."}
           />
         )}
       </div>

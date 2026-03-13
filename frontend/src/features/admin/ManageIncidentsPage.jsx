@@ -11,14 +11,12 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 import { toast } from "sonner";
 const ManageIncidentsPage = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     fetchIncidents();
@@ -89,9 +87,7 @@ const ManageIncidentsPage = () => {
         String(value || "").toLowerCase().includes(query),
       );
 
-    const matchesDate = matchesQuickDateRange(incident.created_at, dateRange);
-
-    return matchesSearch && matchesDate;
+    return matchesSearch;
   });
 
   const toolbar = React.useMemo(
@@ -118,19 +114,12 @@ const ManageIncidentsPage = () => {
             iconClassName: "text-gray-500",
           },
         ]}
-        filters={[
-          { id: "all", label: "All Time" },
-          { id: "today", label: "Today" },
-          { id: "month", label: "This Month" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search incidents..."
       />
     ),
-    [dateRange, incidents, searchQuery],
+    [incidents, searchQuery],
   );
 
   useSetPageHeader(
@@ -246,7 +235,7 @@ const ManageIncidentsPage = () => {
         keyField="id"
         emptyIcon={CheckCircle}
         emptyTitle="All Quiet"
-        emptySubtitle={searchQuery ? "No incidents match your current filters." : "No active incidents reported. Operations are normal."}
+        emptySubtitle={searchQuery ? "No incidents match your search." : "No active incidents reported. Operations are normal."}
       />
     </div>
   );
