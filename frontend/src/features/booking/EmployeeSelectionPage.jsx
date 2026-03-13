@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Users, Loader2, AlertCircle, ArrowRight, Search, X } from "lucide-react";
+import { Users, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
 const EmployeeSelectionPage = () => {
   const location = useLocation();
@@ -64,6 +67,10 @@ const EmployeeSelectionPage = () => {
     });
   }, [navigate, vehicleId, serviceIds, locationId, locationData, selectedEmployeeId]);
 
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   const tableData = useMemo(() => {
     const directoryRows = employees.map((employee) => ({
       ...employee,
@@ -96,42 +103,27 @@ const EmployeeSelectionPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <div className="flex items-center justify-between gap-3 w-full flex-wrap">
-        <div className="flex items-center gap-2 flex-1 min-w-fit">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Search employees..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-8 h-9 text-sm bg-white border-gray-200"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="h-3.5 w-3.5 text-gray-500" />
-              </button>
-            )}
-          </div>
+      <BookingFlowToolbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search employees..."
+        meta={(
           <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
             {employees.length} available
           </span>
-        </div>
-
-        <Button
-          onClick={handleContinue}
-          className="px-6 h-9 bg-red-600 hover:bg-red-700 text-white font-medium text-sm shadow-sm transition-all duration-200 flex-shrink-0 whitespace-nowrap"
-        >
-          <span>Next</span>
-          <ArrowRight size={14} className="ml-2" />
-        </Button>
-      </div>
+        )}
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton onClick={handleContinue}>
+              <span>Next</span>
+              <ArrowRight size={14} className="ml-2" />
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
     ),
-    [employees.length, handleContinue, searchQuery],
+    [employees.length, handleBack, handleContinue, searchQuery],
   );
 
   useSetPageHeader(

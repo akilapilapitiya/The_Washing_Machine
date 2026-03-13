@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Loader2,
@@ -11,6 +10,10 @@ import * as vehicleService from "@/services/vehicle.service";
 import * as bookingService from "@/services/booking.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
@@ -195,43 +198,39 @@ const BookingConfirmationPage = () => {
     { id: "services", label: "Services" },
   ];
 
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   const toolbar = useMemo(
     () => (
-      <div className="w-full flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-          {toolbarTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 h-8 rounded-md text-xs font-semibold transition-all ${
-                activeTab === tab.id
-                  ? "bg-white text-red-600 shadow-sm border border-gray-200"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabsAriaLabel="Confirmation sections"
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton
+              onClick={handleConfirm}
+              disabled={submitting}
+              className="group"
             >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <Button
-          onClick={handleConfirm}
-          disabled={submitting}
-          className="h-9 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 group disabled:opacity-50"
-        >
-          {submitting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              Confirm Booking
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </>
-          )}
-        </Button>
-      </div>
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  Confirm Booking
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </>
+              )}
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
     ),
-    [activeTab, handleConfirm, submitting],
+    [activeTab, handleBack, handleConfirm, submitting],
   );
 
   useSetPageHeader(

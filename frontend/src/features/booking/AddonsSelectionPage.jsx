@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Loader2,
   Layers,
-  Search,
-  X,
   ArrowRight,
   Zap,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
 const AddonsSelectionPage = () => {
   const location = useLocation();
@@ -95,81 +95,66 @@ const AddonsSelectionPage = () => {
     );
   };
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     const serviceIds = selectedPackageId
       ? [selectedPackageId, ...selectedAddonIds]
       : [...selectedAddonIds];
     navigate("/dashboard/booking/location", {
       state: { vehicleId, serviceIds },
     });
-  };
+  }, [navigate, selectedPackageId, selectedAddonIds, vehicleId]);
+
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
 
   // Toolbar with search and filters
   const searchToolbar = useMemo(
     () => (
-      <div className="flex items-center justify-between gap-3 w-full flex-wrap">
-        <div className="flex items-center gap-2 flex-1 min-w-fit">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Search add-ons..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-8 h-9 text-sm bg-white border-gray-200"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="h-3.5 w-3.5 text-gray-500" />
-              </button>
-            )}
-          </div>
-        </div>
+      <BookingFlowToolbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search add-ons..."
+        centerSlot={(
+          <>
+            <select
+              value={priceFilter}
+              onChange={(e) => setPriceFilter(e.target.value)}
+              className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-0"
+            >
+              <option value="all">All Prices</option>
+              <option value="5000">Up to Rs. 5,000</option>
+              <option value="10000">Up to Rs. 10,000</option>
+              <option value="20000">Up to Rs. 20,000</option>
+              <option value="50000">Up to Rs. 50,000</option>
+            </select>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Price filter */}
-          <select
-            value={priceFilter}
-            onChange={(e) => setPriceFilter(e.target.value)}
-            className="h-9 px-3 text-sm border border-gray-200 rounded-md bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-0"
-          >
-            <option value="all">All Prices</option>
-            <option value="5000">Up to Rs. 5,000</option>
-            <option value="10000">Up to Rs. 10,000</option>
-            <option value="20000">Up to Rs. 20,000</option>
-            <option value="50000">Up to Rs. 50,000</option>
-          </select>
-
-          {/* Offers filter */}
-          <button
-            onClick={() => setShowOffersOnly(!showOffersOnly)}
-            className={cn(
-              "h-9 px-3 text-sm font-medium rounded-md border transition-colors flex items-center gap-2",
-              showOffersOnly
-                ? "bg-red-100 border-red-300 text-red-700"
-                : "border-gray-200 text-gray-600 hover:border-gray-300"
-            )}
-          >
-            <Zap size={14} />
-            Offers
-          </button>
-
-          {/* Next button */}
-          <Button
-            onClick={handleContinue}
-            className="px-6 h-9 bg-red-600 hover:bg-red-700 text-white font-medium text-sm shadow-sm transition-all duration-200 flex-shrink-0 whitespace-nowrap"
-          >
-            <span>Next</span>
-            <ArrowRight size={14} className="ml-2" />
-          </Button>
-        </div>
-      </div>
+            <button
+              onClick={() => setShowOffersOnly(!showOffersOnly)}
+              className={cn(
+                "h-9 px-3 text-sm font-medium rounded-md border transition-colors flex items-center gap-2",
+                showOffersOnly
+                  ? "bg-red-100 border-red-300 text-red-700"
+                  : "border-gray-200 text-gray-600 hover:border-gray-300",
+              )}
+            >
+              <Zap size={14} />
+              Offers
+            </button>
+          </>
+        )}
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton onClick={handleContinue}>
+              <span>Next</span>
+              <ArrowRight size={14} className="ml-2" />
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
     ),
-    [searchQuery, priceFilter, showOffersOnly]
+    [searchQuery, priceFilter, showOffersOnly, handleBack, handleContinue]
   );
 
   useSetPageHeader(

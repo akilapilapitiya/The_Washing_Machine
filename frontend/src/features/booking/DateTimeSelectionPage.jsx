@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +8,10 @@ import * as holidayService from "@/services/systemHoliday.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import BookingAvailabilityCalendar from "@/components/common/BookingAvailabilityCalendar";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
 const toDateKey = (date) => {
   const year = date.getFullYear();
@@ -291,6 +294,10 @@ const DateTimeSelectionPage = () => {
     selectedTime,
   ]);
 
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   const isSlotAvailable = (slotValue) => {
     return availableSlots.includes(slotValue);
   };
@@ -322,17 +329,22 @@ const DateTimeSelectionPage = () => {
 
   const toolbar = useMemo(
     () => (
-      <div className="flex items-center justify-end gap-3 w-full flex-wrap">
-        <Button
-          onClick={handleContinue}
-          disabled={!selectedDate || !selectedTime || !!error}
-          className="px-8 h-9 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200"
-        >
-          Continue
-        </Button>
-      </div>
+      <BookingFlowToolbar
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={!selectedDate || !selectedTime || !!error}
+              className="px-8"
+            >
+              Continue
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
     ),
-    [handleContinue, selectedDate, selectedTime, error],
+    [handleBack, handleContinue, selectedDate, selectedTime, error],
   );
   useSetPageHeader(
     "BOOK SERVICE",

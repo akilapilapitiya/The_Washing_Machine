@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Home,
   Navigation,
@@ -8,7 +7,6 @@ import {
   Building2,
   ExternalLink,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
   APIProvider,
@@ -19,6 +17,10 @@ import LocationPicker from "@/components/common/LocationPicker";
 import { getPricingRules } from "@/services/settings.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
 const HQ_COORDS = { lat: 6.8485, lng: 79.9525 };
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -117,6 +119,10 @@ const LocationSelectionPage = () => {
     navigate("/dashboard/booking/employee", { state: { vehicleId, serviceIds, locationData } });
   }, [selectedOptionId, myHomeLocation, customMapLocation, travelCost, vehicleId, serviceIds, navigate]);
 
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   const selectedOptionLabel = useMemo(() => {
     if (selectedOptionId === "main-branch") return "Main Branch";
     if (selectedOptionId === "my-home") return "My Home";
@@ -150,44 +156,26 @@ const LocationSelectionPage = () => {
   // ── Toolbar: location options + continue ────────────────────────────────
   const toolbar = useMemo(() => {
     return (
-      <div className="flex items-center gap-2 w-full justify-between flex-wrap xl:flex-nowrap">
-        <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1 overflow-x-auto max-w-full">
-          {locationOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = selectedOptionId === option.id;
-
-            return (
-              <button
-                key={option.id}
-                type="button"
-                disabled={option.disabled}
-                onClick={() => !option.disabled && setSelectedOptionId(option.id)}
-                className={cn(
-                  "h-8 px-3 rounded-md text-xs font-medium transition-colors inline-flex items-center gap-1.5 whitespace-nowrap",
-                  isSelected
-                    ? "bg-red-600 text-white"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100",
-                  option.disabled && "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-500"
-                )}
-              >
-                <Icon size={13} />
-                <span>{option.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <Button
-          onClick={handleContinue}
-          disabled={!isContinueEnabled}
-          className="px-6 h-9 bg-red-600 hover:bg-red-700 text-white font-medium text-sm shadow-sm disabled:opacity-50 flex-shrink-0"
-        >
-          <span>Next</span>
-          <ArrowRight size={14} className="ml-2" />
-        </Button>
-      </div>
+      <BookingFlowToolbar
+        tabs={locationOptions}
+        activeTab={selectedOptionId}
+        onTabChange={setSelectedOptionId}
+        tabsAriaLabel="Location options"
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={!isContinueEnabled}
+            >
+              <span>Next</span>
+              <ArrowRight size={14} className="ml-2" />
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
     );
-  }, [locationOptions, selectedOptionId, handleContinue, isContinueEnabled]);
+  }, [locationOptions, selectedOptionId, handleBack, handleContinue, isContinueEnabled]);
 
   useSetPageHeader(
     "BOOK SERVICE",

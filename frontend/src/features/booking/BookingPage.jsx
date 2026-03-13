@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader2, Car, ArrowRight, Search, X, Plus } from "lucide-react";
+import { Loader2, Car, ArrowRight, Search, Plus } from "lucide-react";
 import * as vehicleService from "@/services/vehicle.service";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 import { toast } from "sonner";
 
 const BookingPage = () => {
@@ -48,11 +51,15 @@ const BookingPage = () => {
   }, [vehicles]);
 
   // Handle continue button click
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     navigate("/dashboard/booking/services", {
       state: { vehicleId: selectedVehicleId },
     });
-  };
+  }, [navigate, selectedVehicleId]);
+
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
 
   // Handle row selection click
   const handleRowClick = (vehicle) => {
@@ -72,42 +79,34 @@ const BookingPage = () => {
   ), []);
 
   // Search toolbar component with Continue button
-  const searchToolbar = useMemo(() => (
-    <div className="flex items-center justify-between gap-3 w-full">
-      <div className="flex items-center gap-3 flex-1">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          <Input
-            type="text"
-            placeholder="Search vehicles..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-8 h-9 text-sm bg-white border-gray-200"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
-              aria-label="Clear search"
+  const searchToolbar = useMemo(
+    () => (
+      <BookingFlowToolbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search vehicles..."
+        meta={(
+          <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+            {tableData.length} vehicle{tableData.length !== 1 ? "s" : ""}
+          </span>
+        )}
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={!selectedVehicleId}
+              className="px-8"
             >
-              <X className="h-3.5 w-3.5 text-gray-500" />
-            </button>
-          )}
-        </div>
-        <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
-          {tableData.length} vehicle{tableData.length !== 1 ? 's' : ''}
-        </span>
-      </div>
-      <Button
-        onClick={handleContinue}
-        disabled={!selectedVehicleId}
-        className="px-8 h-9 bg-red-600 hover:bg-red-700 text-white font-medium text-sm shadow-sm transition-all duration-200 disabled:opacity-50 flex-shrink-0"
-      >
-        <span>Continue</span>
-        <ArrowRight size={14} className="ml-2" />
-      </Button>
-    </div>
-  ), [searchQuery, tableData.length, selectedVehicleId]);
+              <span>Continue</span>
+              <ArrowRight size={14} className="ml-2" />
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
+    ),
+    [searchQuery, tableData.length, handleBack, handleContinue, selectedVehicleId],
+  );
 
   useSetPageHeader(
     "BOOK SERVICE",
