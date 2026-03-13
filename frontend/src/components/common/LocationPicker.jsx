@@ -55,7 +55,7 @@ const MapEvents = ({ onMapClick }) => {
   return null;
 };
 
-const LocationPicker = ({ onLocationSelect, initialLocation }) => {
+const LocationPicker = ({ onLocationSelect, initialLocation, mapHeight = "h-[400px]" }) => {
   const [selectedLocation, setSelectedLocation] = useState(
     initialLocation || DEFAULT_CENTER,
   );
@@ -139,7 +139,7 @@ const LocationPicker = ({ onLocationSelect, initialLocation }) => {
 
   return (
     <div className="space-y-4">
-      <div className="h-[400px] w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative">
+      <div className={`${mapHeight} w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative`}>
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
           <Map
             defaultCenter={selectedLocation}
