@@ -1,31 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Calendar,
-  Clock,
-  MapPin,
-  User,
-  Car,
-  Wrench,
-  CheckCircle,
   Loader2,
-  AlertCircle,
   ArrowRight,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import * as vehicleService from "@/services/vehicle.service";
 import * as bookingService from "@/services/booking.service";
-import { COLORS } from "@/lib/colors";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import BookingStepBar from "@/components/common/BookingStepBar";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [data, setData] = useState({
@@ -69,10 +59,10 @@ const BookingConfirmationPage = () => {
     fetchData();
   }, [vehicleId, serviceIds, navigate]);
 
-  const serviceTotal = data.services.reduce(
-    (sum, s) => sum + parseFloat(s.serviceprice),
-    0,
-  );
+  const serviceTotal = data.services.reduce((sum, service) => {
+    const amount = service.has_offer ? service.offer_price : service.serviceprice;
+    return sum + parseFloat(amount || 0);
+  }, 0);
 
   // We will assume backend calculates travel cost, but for frontend display we might need it.
   // For now, let's keep it simple and just show "Calculated at checkout" or similar if we haven't fetched it.
@@ -81,7 +71,7 @@ const BookingConfirmationPage = () => {
   // We can show "Base Price" and "Travel Fee" separately later.
   const totalPrice = serviceTotal + (locationData?.travelCost || 0);
 
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
     try {
       setSubmitting(true);
 
@@ -112,12 +102,20 @@ const BookingConfirmationPage = () => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [
+    setSubmitting,
+    vehicleId,
+    serviceIds,
+    date,
+    time,
+    locationData,
+    employeeId,
+    navigate,
+  ]);
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -126,21 +124,120 @@ const BookingConfirmationPage = () => {
   };
 
   const formatTime = (timeString) => {
-    if (!timeString) return "";
+    if (!timeString) return "-";
     const [hour] = timeString.split(":");
-    const hourNum = parseInt(hour);
+    const hourNum = parseInt(hour, 10);
     return hourNum < 12
       ? `${hourNum}:00 AM`
       : hourNum === 12
-        ? `12:00 PM`
+        ? "12:00 PM"
         : `${hourNum - 12}:00 PM`;
   };
 
-  const toolbar = useMemo(() => <BookingStepBar currentStep={5} />, []);
+  const formatEndTime = (timeString) => {
+    if (!timeString) return "-";
+    const [hour, minute] = timeString.split(":").map(Number);
+    const start = new Date(2000, 0, 1, hour, minute || 0, 0);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    return end.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const locationSummary =
+    locationData?.type === "home"
+      ? `Home / On-Site Visit${locationData?.distance ? ` • ~${locationData.distance.toFixed(1)} km from HQ` : ""}`
+      : "Main Branch Service Center";
+
+  const employeeSummary =
+    employeeId === "any" || employeeId === null || employeeId === undefined
+      ? "Any available employee"
+      : `Employee #${employeeId}`;
+
+  const vehicleSummary =
+    data.vehicle?.vehbrand && data.vehicle?.vehmodel
+      ? `${data.vehicle.vehbrand} ${data.vehicle.vehmodel}${
+        data.vehicle?.vehplate ? ` • ${data.vehicle.vehplate}` : ""
+      }`
+      : "Vehicle details unavailable";
+
+  const goToVehicle = useCallback(() => {
+    navigate("/dashboard/book");
+  }, [navigate]);
+
+  const goToServices = useCallback(() => {
+    navigate("/dashboard/booking/services", {
+      state: { vehicleId },
+    });
+  }, [navigate, vehicleId]);
+
+  const goToLocation = useCallback(() => {
+    navigate("/dashboard/booking/location", {
+      state: { vehicleId, serviceIds },
+    });
+  }, [navigate, vehicleId, serviceIds]);
+
+  const goToEmployee = useCallback(() => {
+    navigate("/dashboard/booking/employee", {
+      state: { vehicleId, serviceIds, locationData },
+    });
+  }, [navigate, vehicleId, serviceIds, locationData]);
+
+  const goToDateTime = useCallback(() => {
+    navigate("/dashboard/booking/datetime", {
+      state: { vehicleId, serviceIds, locationData, employeeId },
+    });
+  }, [navigate, vehicleId, serviceIds, locationData, employeeId]);
+
+  const toolbarTabs = [
+    { id: "overview", label: "Overview" },
+    { id: "services", label: "Services" },
+  ];
+
+  const toolbar = useMemo(
+    () => (
+      <div className="w-full flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          {toolbarTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 h-8 rounded-md text-xs font-semibold transition-all ${
+                activeTab === tab.id
+                  ? "bg-white text-red-600 shadow-sm border border-gray-200"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <Button
+          onClick={handleConfirm}
+          disabled={submitting}
+          className="h-9 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 group disabled:opacity-50"
+        >
+          {submitting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              Confirm Booking
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </>
+          )}
+        </Button>
+      </div>
+    ),
+    [activeTab, handleConfirm, submitting],
+  );
+
   useSetPageHeader(
     "BOOK SERVICE",
     "Review & Confirm",
-    "Please review your service details before we dispatch our expert team.",
+    "Validate the booking details and confirm your appointment.",
     null,
     toolbar
   );
@@ -154,196 +251,170 @@ const BookingConfirmationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
-        <div className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2">
-          {/* Left Column: Details */}
-          <div className="space-y-4">
-            {/* Vehicle Details */}
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-2 pt-5 px-5">
-                <CardTitle className="flex items-center gap-3 text-sm font-medium text-gray-500">
-                  <Car size={18} className="text-red-600" />
-                  Target Vehicle
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 pt-0">
-                <div className="space-y-1">
-                  <p className="font-bold text-lg text-gray-900">
-                    {data.vehicle?.vehbrand} {data.vehicle?.vehmodel}
-                  </p>
-                  <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded inline-block">
-                    {data.vehicle?.vehplate}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <Card className="border border-gray-200 shadow-sm overflow-hidden">
+          <CardContent className="p-0">
+            <div className="p-6 space-y-6">
+              {activeTab === "overview" && (
+                <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-600 w-52">Field</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Detail</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600 w-28">Change</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Vehicle</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{vehicleSummary}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={goToVehicle}
+                            className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                          >
+                            Change
+                          </button>
+                        </td>
+                      </tr>
 
-            {/* Appointment */}
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-2 pt-5 px-5">
-                <CardTitle className="flex items-center gap-3 text-sm font-medium text-gray-500">
-                  <Calendar size={18} className="text-red-600" />
-                  Schedule
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 pt-0 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100">
-                    <Calendar size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500">Date</p>
-                    <span className="font-medium text-gray-900 text-sm">
-                      {formatDate(date)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 border border-gray-100">
-                    <Clock size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500">Time</p>
-                    <span className="font-medium text-gray-900 text-sm">
-                      {formatTime(time)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Date</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{formatDate(date)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={goToDateTime}
+                            className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                          >
+                            Change
+                          </button>
+                        </td>
+                      </tr>
 
-            {/* Location */}
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-2 pt-5 px-5">
-                <CardTitle className="flex items-center gap-3 text-sm font-medium text-gray-500">
-                  <MapPin size={18} className="text-red-600" />
-                  Location
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 pt-0">
-                <p className="font-bold text-gray-900 text-sm mb-0.5">
-                  {locationData?.type === "home"
-                    ? "Home/On-Site Visit"
-                    : "Main Branch Service Center"}
-                </p>
-                <div className="text-gray-500 text-sm">
-                  {locationData?.type === "home" ? (
-                    <div className="flex flex-col gap-1">
-                      <span>
-                        Coordinates: {locationData.lat?.toFixed(4)},{" "}
-                        {locationData.lng?.toFixed(4)}
-                      </span>
-                      <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full w-fit">
-                        ~{locationData.distance?.toFixed(1)} km from HQ
-                      </span>
-                    </div>
-                  ) : (
-                    "488, High level Road, Pannipitiya, Colombo, Sri Lanka"
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Start Time</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{formatTime(time)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={goToDateTime}
+                            className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                          >
+                            Change
+                          </button>
+                        </td>
+                      </tr>
 
-          {/* Right Column: Services & Summary */}
-          <div className="space-y-6">
-            <Card className="border border-gray-200 shadow-md bg-white overflow-hidden">
-              <div className="bg-gray-50 p-5 border-b border-gray-200">
-                <h3 className="text-sm font-bold text-gray-900">
-                  Order Summary
-                </h3>
-              </div>
-              <CardContent className="p-5 space-y-5">
-                <div className="space-y-3">
-                  {data.services.map((service) => (
-                    <div
-                      key={service.serviceid}
-                      className="flex justify-between items-start"
-                    >
-                      <div className="flex gap-3">
-                        <div className="h-4 w-4 rounded-full bg-red-100 flex items-center justify-center mt-0.5 flex-shrink-0">
-                          <div className="h-1.5 w-1.5 rounded-full bg-red-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm text-gray-900 leading-tight">
-                            {service.servicename}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Professional Detail
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-gray-700 font-medium text-sm">
-                        Rs. {parseFloat(service.serviceprice).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">End Time</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{formatEndTime(time)}</td>
+                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                      </tr>
 
-                <div className="pt-5 border-t border-dashed border-gray-200 space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span className="font-medium text-gray-900">
-                      Rs. {serviceTotal.toLocaleString()}
-                    </span>
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Location</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{locationSummary}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={goToLocation}
+                            className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                          >
+                            Change
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Assigned Employee</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{employeeSummary}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={goToEmployee}
+                            className="text-[11px] font-semibold text-red-600 hover:text-red-700"
+                          >
+                            Change
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Price Total</td>
+                        <td className="px-4 py-3 text-gray-900 font-semibold">Rs. {serviceTotal.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                      </tr>
+
+                      <tr className="border-b border-gray-200">
+                        <td className="px-4 py-3 font-semibold text-gray-600">Travel Cost</td>
+                        <td className="px-4 py-3 text-gray-900 font-semibold">
+                          Rs. {(locationData?.travelCost || 0).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                      </tr>
+
+                      <tr className="bg-red-50">
+                        <td className="px-4 py-3 font-bold text-gray-900">Grand Total</td>
+                        <td className="px-4 py-3 font-bold text-red-600 text-base">Rs. {totalPrice.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {activeTab === "services" && (
+                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Service</th>
+                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
+                          <th className="px-4 py-3 text-right font-semibold text-gray-600">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-200 bg-gray-50">
+                          <td className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-500" colSpan={3}>
+                            <div className="flex items-center justify-between gap-2">
+                              <span>Selected Services</span>
+                              <button
+                                type="button"
+                                onClick={goToServices}
+                                className="text-[11px] font-semibold text-red-600 hover:text-red-700 normal-case tracking-normal"
+                              >
+                                Change Services
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {data.services.map((service) => {
+                          const amount = parseFloat(
+                            service.has_offer ? service.offer_price : service.serviceprice,
+                          );
+
+                          return (
+                            <tr key={service.serviceid} className="border-b border-gray-100 last:border-b-0">
+                              <td className="px-4 py-3 text-gray-900 font-medium">{service.servicename}</td>
+                              <td className="px-4 py-3 text-gray-500 capitalize">{service.servicetype || "package"}</td>
+                              <td className="px-4 py-3 text-right text-gray-900 font-semibold">
+                                Rs. {amount.toLocaleString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
+              )}
 
-                  {locationData?.travelCost > 0 && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500">Travel Fee</span>
-                      <span className="font-medium text-gray-900">
-                        Rs. {locationData.travelCost.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500">Service Fee</span>
-                    <span className="font-medium text-green-600">Included</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
-                    <span className="text-base font-bold text-gray-900">
-                      Total Price
-                    </span>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-red-600">
-                        Rs. {totalPrice.toLocaleString()}
-                      </p>
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        Pay after service
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2 space-y-3">
-                  <Button
-                    onClick={handleConfirm}
-                    disabled={submitting}
-                    className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 group disabled:opacity-50"
-                  >
-                    {submitting ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        Confirm Booking
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate(-1)}
-                    className="w-full h-11 text-gray-500 hover:text-gray-900"
-                  >
-                    Go Back & Edit
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
