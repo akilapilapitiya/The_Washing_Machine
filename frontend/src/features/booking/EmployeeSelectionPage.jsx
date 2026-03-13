@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
+import * as bookingService from "@/services/booking.service";
 import { toast } from "sonner";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import BookingFlowToolbar, {
@@ -19,6 +20,7 @@ const EmployeeSelectionPage = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("any");
+  const [resolvingEmployee, setResolvingEmployee] = useState(false);
 
   const { vehicleId, serviceIds, locationId, locationData } =
     location.state || {};
@@ -55,17 +57,91 @@ const EmployeeSelectionPage = () => {
     fetchBookingData();
   }, [vehicleId, navigate]);
 
-  const handleContinue = useCallback(() => {
-    navigate("/dashboard/booking/datetime", {
-      state: {
+  const selectedEmployeeName = useMemo(() => {
+    if (selectedEmployeeId === "any") {
+      return "Any available employee";
+    }
+
+    const selectedEmployee = employees.find(
+      (employee) => employee.empid === selectedEmployeeId,
+    );
+
+    if (!selectedEmployee) return null;
+    return (
+      selectedEmployee.empname ||
+      `${selectedEmployee.first_name || ""} ${selectedEmployee.last_name || ""}`.trim() ||
+      null
+    );
+  }, [employees, selectedEmployeeId]);
+
+  const handleContinue = useCallback(async () => {
+    if (selectedEmployeeId !== "any") {
+      navigate("/dashboard/booking/datetime", {
+        state: {
+          vehicleId,
+          serviceIds,
+          locationId,
+          locationData,
+          employeeId: selectedEmployeeId,
+          employeeName: selectedEmployeeName,
+        },
+      });
+      return;
+    }
+
+    if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
+      toast.error("Select at least one service before assigning an employee.");
+      return;
+    }
+
+    try {
+      setResolvingEmployee(true);
+
+      const assignment = await bookingService.resolveBookingEmployee({
         vehicleId,
-        serviceIds,
-        locationId,
-        locationData,
-        employeeId: selectedEmployeeId,
-      },
-    });
-  }, [navigate, vehicleId, serviceIds, locationId, locationData, selectedEmployeeId]);
+        services: serviceIds,
+        locationType: locationData?.type || "branch",
+      });
+
+      const resolvedEmployeeId = assignment?.employeeId;
+      if (!resolvedEmployeeId) {
+        toast.error("Unable to assign an employee right now.");
+        return;
+      }
+
+      toast.success(
+        `Assigned ${assignment?.employee?.name || `Employee #${resolvedEmployeeId}`}`,
+      );
+
+      navigate("/dashboard/booking/datetime", {
+        state: {
+          vehicleId,
+          serviceIds,
+          locationId,
+          locationData,
+          employeeId: resolvedEmployeeId,
+          employeeName: assignment?.employee?.name || null,
+          autoAssignedEmployee: assignment?.employee || null,
+        },
+      });
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to auto-assign employee.",
+      );
+    } finally {
+      setResolvingEmployee(false);
+    }
+  }, [
+    selectedEmployeeId,
+    selectedEmployeeName,
+    serviceIds,
+    vehicleId,
+    locationId,
+    locationData,
+    navigate,
+  ]);
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -115,15 +191,27 @@ const EmployeeSelectionPage = () => {
         rightSlot={(
           <>
             <BookingToolbarBackButton onClick={handleBack} />
-            <BookingToolbarActionButton onClick={handleContinue}>
-              <span>Next</span>
-              <ArrowRight size={14} className="ml-2" />
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={resolvingEmployee}
+            >
+              {resolvingEmployee ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <span>Next</span>
+                  <ArrowRight size={14} className="ml-2" />
+                </>
+              )}
             </BookingToolbarActionButton>
           </>
         )}
       />
     ),
-    [employees.length, handleBack, handleContinue, searchQuery],
+    [employees.length, handleBack, handleContinue, searchQuery, resolvingEmployee],
   );
 
   useSetPageHeader(

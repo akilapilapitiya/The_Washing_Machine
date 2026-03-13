@@ -1,6 +1,22 @@
 import Joi from "joi";
 
 export const bookingValidator = {
+  resolveEmployee: Joi.object({
+    vehicleId: Joi.number().integer().required().messages({
+      "number.base": "Vehicle ID must be a number",
+      "any.required": "Vehicle ID is required",
+    }),
+    services: Joi.array()
+      .items(Joi.number().integer())
+      .min(1)
+      .required()
+      .messages({
+        "array.min": "At least one service must be selected",
+        "any.required": "Services are required",
+      }),
+    locationType: Joi.string().valid("branch", "home").default("branch"),
+  }),
+
   createBooking: Joi.object({
     status: Joi.string()
       .valid("pending", "inProgress", "completed", "paid")

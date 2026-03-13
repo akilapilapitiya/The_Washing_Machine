@@ -53,8 +53,27 @@ const DateTimeSelectionPage = () => {
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [error, setError] = useState(null);
 
-  const { vehicleId, serviceIds, locationId, locationData, employeeId } =
+  const { vehicleId, serviceIds, locationId, locationData, employeeId, employeeName } =
     location.state || {};
+
+  useEffect(() => {
+    if (!vehicleId) {
+      navigate("/dashboard/book");
+      return;
+    }
+
+    if (!employeeId || employeeId === "any") {
+      toast.error("An assigned employee is required before selecting date and time.");
+      navigate("/dashboard/booking/employee", {
+        state: {
+          vehicleId,
+          serviceIds,
+          locationId,
+          locationData,
+        },
+      });
+    }
+  }, [vehicleId, employeeId, navigate, serviceIds, locationId, locationData]);
 
   const tomorrow = useMemo(() => {
     const date = new Date();
@@ -279,6 +298,7 @@ const DateTimeSelectionPage = () => {
         locationId,
         locationData,
         employeeId,
+        employeeName,
         date: selectedDate,
         time: selectedTime,
       },
@@ -290,6 +310,7 @@ const DateTimeSelectionPage = () => {
     locationId,
     locationData,
     employeeId,
+    employeeName,
     selectedDate,
     selectedTime,
   ]);

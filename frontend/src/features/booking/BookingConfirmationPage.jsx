@@ -26,7 +26,7 @@ const BookingConfirmationPage = () => {
     services: [],
   });
 
-  const { vehicleId, serviceIds, locationData, employeeId, date, time } =
+  const { vehicleId, serviceIds, locationData, employeeId, employeeName, date, time } =
     location.state || {}; // locationData now holds { id, type, lat, lng, distance }
 
   useEffect(() => {
@@ -154,9 +154,10 @@ const BookingConfirmationPage = () => {
       : "Main Branch Service Center";
 
   const employeeSummary =
-    employeeId === "any" || employeeId === null || employeeId === undefined
+    employeeName ||
+    (employeeId === "any" || employeeId === null || employeeId === undefined
       ? "Any available employee"
-      : `Employee #${employeeId}`;
+      : `Employee #${employeeId}`);
 
   const vehicleSummary =
     data.vehicle?.vehbrand && data.vehicle?.vehmodel
@@ -189,9 +190,9 @@ const BookingConfirmationPage = () => {
 
   const goToDateTime = useCallback(() => {
     navigate("/dashboard/booking/datetime", {
-      state: { vehicleId, serviceIds, locationData, employeeId },
+      state: { vehicleId, serviceIds, locationData, employeeId, employeeName },
     });
-  }, [navigate, vehicleId, serviceIds, locationData, employeeId]);
+  }, [navigate, vehicleId, serviceIds, locationData, employeeId, employeeName]);
 
   const toolbarTabs = [
     { id: "overview", label: "Overview" },
