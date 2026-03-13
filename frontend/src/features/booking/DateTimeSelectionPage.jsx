@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Calendar, Clock, Loader2, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as schedulerService from "@/services/scheduler.service";
 import * as holidayService from "@/services/systemHoliday.service";
 import { toast } from "sonner";
-import BookingStepBar from "@/components/common/BookingStepBar";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingAvailabilityCalendar from "@/components/common/BookingAvailabilityCalendar";
+
+const toDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 // Generate time slots between 9 AM and 4 PM
 const generateTimeSlots = () => {
   const slots = [];
@@ -37,16 +42,96 @@ const DateTimeSelectionPage = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [blockedDates, setBlockedDates] = useState([]);
   const [holidays, setHolidays] = useState([]);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const seed = new Date();
+    seed.setDate(seed.getDate() + 1);
+    return new Date(seed.getFullYear(), seed.getMonth(), 1);
+  });
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [error, setError] = useState(null);
 
   const { vehicleId, serviceIds, locationId, locationData, employeeId } =
     location.state || {};
 
-  // Get tomorrow's date in YYYY-MM-DD format for min date (no same-day bookings)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  const tomorrow = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 1);
+    return date;
+  }, []);
+  const minDate = useMemo(() => toDateKey(tomorrow), [tomorrow]);
+  const minMonthStart = useMemo(
+    () => new Date(tomorrow.getFullYear(), tomorrow.getMonth(), 1),
+    [tomorrow],
+  );
+
+  const holidayLookup = useMemo(
+    () => new Map(holidays.map((holiday) => [holiday.date, holiday.name])),
+    [holidays],
+  );
+
+  const blockedLookup = useMemo(() => new Set(blockedDates), [blockedDates]);
+
+  const monthLabel = useMemo(
+    () =>
+      calendarMonth.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      }),
+    [calendarMonth],
+  );
+
+  const isPrevMonthDisabled = useMemo(
+    () =>
+      calendarMonth.getFullYear() === minMonthStart.getFullYear() &&
+      calendarMonth.getMonth() === minMonthStart.getMonth(),
+    [calendarMonth, minMonthStart],
+  );
+
+  const calendarDays = useMemo(() => {
+    const firstDateOfMonth = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth(),
+      1,
+    );
+    const firstWeekDay = firstDateOfMonth.getDay();
+    const daysInMonth = new Date(
+      calendarMonth.getFullYear(),
+      calendarMonth.getMonth() + 1,
+      0,
+    ).getDate();
+
+    const cells = [];
+    for (let i = 0; i < firstWeekDay; i += 1) {
+      cells.push(null);
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = new Date(
+        calendarMonth.getFullYear(),
+        calendarMonth.getMonth(),
+        day,
+      );
+      const dateKey = toDateKey(date);
+      const holidayName = holidayLookup.get(dateKey) || "";
+      const isHoliday = Boolean(holidayName);
+      const isBlocked = blockedLookup.has(dateKey);
+      const isBeforeMinDate = dateKey < minDate;
+      const isDisabled = isHoliday || isBlocked || isBeforeMinDate;
+
+      cells.push({
+        day,
+        dateKey,
+        isHoliday,
+        holidayName,
+        isBlocked,
+        isDisabled,
+        isSelected: selectedDate === dateKey,
+      });
+    }
+
+    return cells;
+  }, [calendarMonth, holidayLookup, blockedLookup, minDate, selectedDate]);
 
   useEffect(() => {
     fetchHolidays();
@@ -162,12 +247,27 @@ const DateTimeSelectionPage = () => {
     }
   };
 
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
+  const handleDateChange = (nextDate) => {
+    setSelectedDate(nextDate);
     setSelectedTime(null); // Reset time when date changes
   };
 
-  const handleContinue = () => {
+  const handlePrevMonth = () => {
+    if (isPrevMonthDisabled) return;
+    setCalendarMonth(
+      (prevMonth) =>
+        new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1),
+    );
+  };
+
+  const handleNextMonth = () => {
+    setCalendarMonth(
+      (prevMonth) =>
+        new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1),
+    );
+  };
+
+  const handleContinue = useCallback(() => {
     // Navigate to confirmation/summary page
     navigate("/dashboard/booking/confirmation", {
       state: {
@@ -180,13 +280,60 @@ const DateTimeSelectionPage = () => {
         time: selectedTime,
       },
     });
-  };
+  }, [
+    navigate,
+    vehicleId,
+    serviceIds,
+    locationId,
+    locationData,
+    employeeId,
+    selectedDate,
+    selectedTime,
+  ]);
 
   const isSlotAvailable = (slotValue) => {
     return availableSlots.includes(slotValue);
   };
 
-  const toolbar = useMemo(() => <BookingStepBar currentStep={4} />, []);
+  const appointmentOverview = useMemo(() => {
+    if (!selectedDate || !selectedTime) return null;
+
+    const [startHour, startMinute] = selectedTime.split(":").map(Number);
+    const start = new Date(2000, 0, 1, startHour, startMinute, 0);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    return {
+      date: new Date(`${selectedDate}T00:00:00`).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }),
+      startTime: start.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      endTime: end.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    };
+  }, [selectedDate, selectedTime]);
+
+  const toolbar = useMemo(
+    () => (
+      <div className="flex items-center justify-end gap-3 w-full flex-wrap">
+        <Button
+          onClick={handleContinue}
+          disabled={!selectedDate || !selectedTime || !!error}
+          className="px-8 h-9 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200"
+        >
+          Continue
+        </Button>
+      </div>
+    ),
+    [handleContinue, selectedDate, selectedTime, error],
+  );
   useSetPageHeader(
     "BOOK SERVICE",
     "Select Date & Time",
@@ -197,147 +344,117 @@ const DateTimeSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
-        <div className="max-w-4xl space-y-6">
-          {/* Date Selection */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="pb-4 pt-6 px-6">
-              <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                <Calendar size={20} className="text-red-600" />
-                Select Date
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="space-y-3">
-                <Label
-                  htmlFor="date"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Appointment Date
-                </Label>
-                <div className="relative max-w-xs">
-                  <Input
-                    id="date"
-                    type="date"
-                    min={minDate}
-                    value={selectedDate}
-                    onChange={handleDateChange}
-                    className={cn(
-                      "pl-4 h-11 border focus:border-red-600 focus:ring-0 rounded-lg text-sm",
-                      error
-                        ? "border-red-200 bg-red-50 focus:border-red-400"
-                        : "border-gray-300 bg-white",
-                    )}
-                  />
-                </div>
-                {holidays.length > 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs font-semibold text-blue-900 mb-1.5">
-                      Upcoming Holidays
-                    </p>
-                    <div className="space-y-1">
-                      {holidays.slice(0, 3).map((holiday) => (
-                        <div
-                          key={holiday.date}
-                          className="text-xs text-blue-700 flex items-center gap-2"
-                        >
-                          <Calendar size={12} className="text-blue-500" />
-                          <span className="font-medium">{holiday.name}</span>
-                          <span className="text-blue-600">
-                            (
-                            {(() => {
-                              const [year, month, day] =
-                                holiday.date.split("-");
-                              const date = new Date(year, month - 1, day);
-                              return date.toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                              });
-                            })()}
-                            )
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <Card className="border border-gray-200 shadow-sm overflow-hidden">
+          <CardContent className="p-5 md:p-6">
+            <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] items-start">
+              <div>
+                <BookingAvailabilityCalendar
+                  monthLabel={monthLabel}
+                  calendarDays={calendarDays}
+                  isPrevMonthDisabled={isPrevMonthDisabled}
+                  onPrevMonth={handlePrevMonth}
+                  onNextMonth={handleNextMonth}
+                  onDateSelect={handleDateChange}
+                  selectedDate={selectedDate}
+                />
+              </div>
+
+              <div className="space-y-4">
+                {loadingAvailability && selectedDate && !error && (
+                  <div className="flex items-center gap-2 text-red-600 text-sm font-medium">
+                    <Loader2 className="animate-spin h-4 w-4" />
+                    Loading slots...
                   </div>
+                )}
+
+                {!selectedDate && (
+                  <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-600">
+                    Pick a day from the calendar to view time slots.
+                  </div>
+                )}
+
+                {error && (
+                  <div className="flex items-start gap-2 text-red-700 bg-red-50 p-4 rounded-lg border border-red-100">
+                    <AlertCircle size={16} className="mt-0.5" />
+                    <p className="text-sm font-medium">{error}</p>
+                  </div>
+                )}
+
+                {selectedDate && !error && (
+                  <>
+                    {appointmentOverview && (
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                          Appointment Overview
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                              Date
+                            </p>
+                            <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                              {appointmentOverview.date}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                              Start
+                            </p>
+                            <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                              {appointmentOverview.startTime}
+                            </p>
+                          </div>
+                          <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                              End
+                            </p>
+                            <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                              {appointmentOverview.endTime}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      {timeSlots.map((slot) => {
+                        const available = isSlotAvailable(slot.value);
+                        return (
+                          <button
+                            key={slot.value}
+                            type="button"
+                            onClick={() => available && setSelectedTime(slot.value)}
+                            disabled={!available || loadingAvailability}
+                            className={cn(
+                              "px-2 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 active:scale-95",
+                              selectedTime === slot.value
+                                ? "border-red-600 bg-red-600 text-white shadow-sm"
+                                : !available
+                                  ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
+                                  : "border-gray-200 bg-white text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-600",
+                            )}
+                          >
+                            {slot.display}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {!loadingAvailability && availableSlots.length === 0 && (
+                      <div className="flex items-start gap-2 text-red-700 bg-red-50 p-4 rounded-lg border border-red-100">
+                        <AlertCircle size={16} className="mt-0.5" />
+                        <p className="text-sm font-medium">
+                          No matching slots available for this operative on the selected date.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Time Selection */}
-          {selectedDate && !error && (
-            <Card className="border border-gray-200 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <CardHeader className="pb-4 pt-6 px-6">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold text-gray-900">
-                    <Clock size={20} className="text-red-600" />
-                    Select Time
-                  </CardTitle>
-                  {loadingAvailability && (
-                    <div className="flex items-center gap-2 text-red-600">
-                      <Loader2 className="animate-spin h-4 w-4" />
-                      <span className="text-sm font-medium">
-                        Loading slots...
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="px-6 pb-6 pt-2">
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                  {timeSlots.map((slot) => {
-                    const available = isSlotAvailable(slot.value);
-                    return (
-                      <button
-                        key={slot.value}
-                        type="button"
-                        onClick={() => available && setSelectedTime(slot.value)}
-                        disabled={!available || loadingAvailability}
-                        className={cn(
-                          "px-2 py-3 rounded-lg border text-sm font-medium transition-all duration-200 active:scale-95",
-                          selectedTime === slot.value
-                            ? "border-red-600 bg-red-600 text-white shadow-md ring-1 ring-red-600"
-                            : !available
-                              ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
-                              : "border-gray-200 bg-white text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow-sm",
-                        )}
-                      >
-                        {slot.display}
-                      </button>
-                    );
-                  })}
-                </div>
-                {!loadingAvailability && availableSlots.length === 0 && (
-                  <div className="flex items-center gap-2 text-red-600 mt-6 bg-red-50 p-4 rounded-lg border border-red-100">
-                    <AlertCircle size={16} />
-                    <p className="text-sm font-medium">
-                      No matching slots available for this operative on the
-                      selected date.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center justify-end pt-6 border-t border-gray-100 bg-gray-50 sticky bottom-0 z-10 p-4 -mx-4 md:static md:p-0 md:bg-transparent md:border-t-0">
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="px-6 h-11 border-gray-300 font-medium hover:bg-white hover:text-red-600 flex-1 md:flex-none"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={handleContinue}
-            disabled={!selectedDate || !selectedTime || !!error}
-            className="px-8 h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 flex-1 md:flex-none"
-          >
-            Continue
-          </Button>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
