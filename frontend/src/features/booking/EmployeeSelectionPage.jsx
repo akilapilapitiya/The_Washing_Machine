@@ -136,8 +136,8 @@ const EmployeeSelectionPage = () => {
 
   useSetPageHeader(
     "BOOK SERVICE",
-    "Select Preferred Employee",
-    "Choose a specific employee or let us assign the best available.",
+    "Select Employee",
+    "Choose a preferred employee or let us assign the best available.",
     null,
     toolbar
   );
@@ -177,8 +177,8 @@ const EmployeeSelectionPage = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left w-8"></th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Employee</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Role</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Employee</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Role</th>
                     </tr>
                   </thead>
                   <tbody>

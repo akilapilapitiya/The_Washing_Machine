@@ -237,7 +237,7 @@ const BookingConfirmationPage = () => {
   useSetPageHeader(
     "BOOK SERVICE",
     "Review & Confirm",
-    "Validate the booking details and confirm your appointment.",
+    "Review your booking details and confirm your appointment.",
     null,
     toolbar
   );

@@ -337,7 +337,7 @@ const DateTimeSelectionPage = () => {
   useSetPageHeader(
     "BOOK SERVICE",
     "Select Date & Time",
-    "Choose your preferred appointment date and time.",
+    "Choose your appointment date and time.",
     null,
     toolbar
   );

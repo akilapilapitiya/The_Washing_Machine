@@ -171,8 +171,8 @@ const ServiceSelectionPage = () => {
 
   useSetPageHeader(
     "BOOK SERVICE",
-    "Select Main Package",
-    "Choose a main service package for your vehicle.",
+    "Select Service Package",
+    "Choose the main service package for your booking.",
     null,
     searchToolbar
   );
@@ -251,10 +251,10 @@ const ServiceSelectionPage = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left w-8"></th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Service</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Duration</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
-                    <th className="px-4 py-3 text-right font-semibold text-gray-700">Price</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Service</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Duration</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                    <th className="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
                   </tr>
                 </thead>
                 <tbody>

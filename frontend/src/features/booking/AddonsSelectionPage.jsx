@@ -174,8 +174,8 @@ const AddonsSelectionPage = () => {
 
   useSetPageHeader(
     "BOOK SERVICE",
-    "Select Add-ons (Optional)",
-    "Enhance your service with optional add-ons.",
+    "Select Add-ons",
+    "Enhance your booking with optional add-on services.",
     null,
     searchToolbar
   );
@@ -255,10 +255,10 @@ const AddonsSelectionPage = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left w-8"></th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Add-on</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Duration</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
-                      <th className="px-4 py-3 text-right font-semibold text-gray-700">Price</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Add-on</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Duration</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
                     </tr>
                   </thead>
                   <tbody>

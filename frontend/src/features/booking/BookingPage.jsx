@@ -111,8 +111,8 @@ const BookingPage = () => {
 
   useSetPageHeader(
     "BOOK SERVICE",
-    "Select a vehicle",
-    "Choose one of your registered vehicles to continue the booking.",
+    "Select Vehicle",
+    "Choose one of your registered vehicles to continue.",
     headerAction,
     searchToolbar
   );

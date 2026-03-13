@@ -168,8 +168,8 @@ const LocationSelectionPage = () => {
 
   useSetPageHeader(
     "BOOK SERVICE",
-    "Select Location",
-    "Choose where you'd like the service to take place.",
+    "Select Service Location",
+    "Choose where you would like the service to take place.",
     null,
     toolbar
   );
