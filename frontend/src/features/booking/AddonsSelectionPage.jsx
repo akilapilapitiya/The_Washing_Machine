@@ -95,14 +95,31 @@ const AddonsSelectionPage = () => {
     );
   };
 
+  const isMainServiceSelected = Boolean(selectedPackageId);
+  const canProceedFromAddons =
+    isMainServiceSelected || selectedAddonIds.length > 0;
+
   const handleContinue = useCallback(() => {
+    if (!canProceedFromAddons) {
+      toast.error(
+        "Select at least one add-on when no main service is selected.",
+      );
+      return;
+    }
+
     const serviceIds = selectedPackageId
       ? [selectedPackageId, ...selectedAddonIds]
       : [...selectedAddonIds];
     navigate("/dashboard/booking/location", {
       state: { vehicleId, serviceIds },
     });
-  }, [navigate, selectedPackageId, selectedAddonIds, vehicleId]);
+  }, [
+    canProceedFromAddons,
+    navigate,
+    selectedPackageId,
+    selectedAddonIds,
+    vehicleId,
+  ]);
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -115,6 +132,13 @@ const AddonsSelectionPage = () => {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search add-ons..."
+        meta={
+          !isMainServiceSelected && !canProceedFromAddons ? (
+            <span className="text-xs font-medium text-red-600 whitespace-nowrap">
+              Select at least 1 add-on to continue
+            </span>
+          ) : null
+        }
         centerSlot={(
           <>
             <select
@@ -146,7 +170,10 @@ const AddonsSelectionPage = () => {
         rightSlot={(
           <>
             <BookingToolbarBackButton onClick={handleBack} />
-            <BookingToolbarActionButton onClick={handleContinue}>
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={!canProceedFromAddons}
+            >
               <span>Next</span>
               <ArrowRight size={14} className="ml-2" />
             </BookingToolbarActionButton>
@@ -154,7 +181,15 @@ const AddonsSelectionPage = () => {
         )}
       />
     ),
-    [searchQuery, priceFilter, showOffersOnly, handleBack, handleContinue]
+    [
+      searchQuery,
+      priceFilter,
+      showOffersOnly,
+      isMainServiceSelected,
+      canProceedFromAddons,
+      handleBack,
+      handleContinue,
+    ]
   );
 
   useSetPageHeader(

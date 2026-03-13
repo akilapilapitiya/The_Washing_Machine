@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ export const BookingToolbarBackButton = React.forwardRef(
         className,
       )}
     >
+      <ArrowLeft size={14} className="mr-1.5" />
       {children}
     </Button>
   ),
