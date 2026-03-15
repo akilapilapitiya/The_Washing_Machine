@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { otpTemplate } from "../templates/email.templates.js";
+import { otpTemplate, welcomeTemplate } from "../templates/email.templates.js";
 import { NODE_ENV } from "../configs/env.js";
 
 // Create transporter
@@ -45,9 +45,8 @@ export const sendOtpEmail = async (to, otp) => {
   const html = otpTemplate(otp);
   const transport = await createTransporter();
 
-  // Resolve logo path relative to current working directory (backend root)
-  // Assuming code is running from backend/app.js or similar root
-  const logoPath = "./src/templates/logo.svg";
+  // Resolve logo path relative to current working directory
+  const logoPath = "./src/templates/logo.jpg";
 
   try {
     await transport.sendMail({
@@ -57,7 +56,7 @@ export const sendOtpEmail = async (to, otp) => {
       html,
       attachments: [
         {
-          filename: "logo.svg",
+          filename: "logo.jpg",
           path: logoPath,
           cid: "logo@washingmachine", // same cid value as in the html img src
         },
@@ -68,5 +67,33 @@ export const sendOtpEmail = async (to, otp) => {
   } catch (error) {
     console.error(`❌ Failed to send OTP email to ${to}`);
     // console.error(error); // Uncomment for debugging
+  }
+};
+
+export const sendWelcomeEmail = async (to, password, loginUrl) => {
+  const html = welcomeTemplate(password, loginUrl);
+  const transport = await createTransporter();
+
+  // Resolve logo path relative to current working directory
+  const logoPath = "./src/templates/logo.jpg";
+
+  try {
+    await transport.sendMail({
+      from: '"The Washing Machine" <no-reply@washingmachine.com>',
+      to,
+      subject: "Welcome to The Washing Machine - Action Required",
+      html,
+      attachments: [
+        {
+          filename: "logo.jpg",
+          path: logoPath,
+          cid: "logo@washingmachine",
+        },
+      ],
+    });
+
+    console.log(`✅ Welcome Email sent to ${to}`);
+  } catch (error) {
+    console.error(`❌ Failed to send Welcome email to ${to}`);
   }
 };

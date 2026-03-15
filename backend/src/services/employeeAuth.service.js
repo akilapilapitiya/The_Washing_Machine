@@ -14,6 +14,7 @@ import {
   verifyOTP,
   logOTPToConsole,
 } from "../utils/otp.util.js";
+import { addEmailJob } from "../queue/email.queue.js";
 import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
@@ -82,6 +83,20 @@ export const signUp = async ({
     role: result.rows[0].rolename,
   };
   const token = generateToken(employee.empid, "employee", employee.emptype);
+
+  // Send the professional welcome email with their un-hashed password
+  try {
+    await addEmailJob({
+      type: "welcome",
+      to: email,
+      data: { 
+        password: password, 
+        loginUrl: "https://washingmachine.truegate.live/employee-login" 
+      },
+    });
+  } catch (error) {
+    console.error("Failed to queue welcome email:", error);
+  }
 
   return { employee, token };
 };
