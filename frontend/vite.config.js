@@ -17,26 +17,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            // Group core libraries together to ensure stable initialization order
-            if (
-              id.includes("react") ||
-              id.includes("react-dom") ||
-              id.includes("react-router") ||
-              id.includes("@radix-ui") ||
-              id.includes("lucide-react") ||
-              id.includes("axios")
-            ) {
-              return "vendor-core";
-            }
-            // Keep heavy Google Maps SDK isolated
-            if (id.includes("@vis.gl") || id.includes("@googlemaps")) {
-              return "vendor-maps";
-            }
-            return "vendor-utils";
-          }
-        },
+        // Removed custom manualChunks to prevent initialization order issues in production
       },
     },
     chunkSizeWarningLimit: 600,
