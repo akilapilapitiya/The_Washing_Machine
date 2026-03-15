@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../configs/env.js";
@@ -30,15 +31,15 @@ export const initSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.user.id} (${socket.user.role})`);
+    logger.info(`User connected: ${socket.user.id} (${socket.user.role})`);
 
     // Join room based on user ID for private notifications
     const room = `user-${socket.user.id}`;
     socket.join(room);
-    console.log(`Socket ${socket.id} joined room ${room}`);
+    logger.info(`Socket ${socket.id} joined room ${room}`);
 
     socket.on("disconnect", () => {
-      console.log("Client disconnected:", socket.id);
+      logger.info("Client disconnected:", socket.id);
     });
   });
 

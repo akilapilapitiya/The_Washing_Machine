@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS, OTP_EXPIRES_IN_MINUTES } from "../configs/env.js";
@@ -95,7 +96,7 @@ export const signUp = async ({
       },
     });
   } catch (error) {
-    console.error("Failed to queue welcome email:", error);
+    logger.error("Failed to queue welcome email:", error);
   }
 
   return { employee, token };

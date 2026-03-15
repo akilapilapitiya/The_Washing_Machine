@@ -143,7 +143,7 @@ const ServicesSection = ({ id }) => {
               key={index}
               className="relative group overflow-hidden rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
-              <img
+              <img loading="lazy"
                 src={img}
                 alt={`Premium Service ${index + 1}`}
                 className="w-full h-auto block"

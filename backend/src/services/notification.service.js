@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import { getIO } from "../socket/index.js";
 
@@ -23,7 +24,7 @@ export const createNotificationService = async ({
     const io = getIO();
     io.to(`user-${recipientId}`).emit("notification", notification);
   } catch (err) {
-    console.error("Socket emit failed:", err.message);
+    logger.error("Socket emit failed:", err.message);
   }
 
   // Real-time delivery (Telegram)
@@ -34,7 +35,7 @@ export const createNotificationService = async ({
     recipientRole === "cashier"
   ) {
     try {
-      console.log(`[DEBUG] Attempting Telegram delivery for ${recipientRole} (ID: ${recipientId})`);
+      logger.info(`[DEBUG] Attempting Telegram delivery for ${recipientRole} (ID: ${recipientId})`);
       const empResult = await pool.query(
         `SELECT telegram_chat_id, first_name FROM employee WHERE empid = $1`,
         [recipientId],
@@ -44,17 +45,17 @@ export const createNotificationService = async ({
       const chatId = employee?.telegram_chat_id;
 
       if (chatId) {
-        console.log(`[DEBUG] Found ChatID: ${chatId} for ${employee.first_name}. Sending message...`);
+        logger.info(`[DEBUG] Found ChatID: ${chatId} for ${employee.first_name}. Sending message...`);
         import("../modules/chat/telegram.service.js").then(
           ({ sendMessage }) => {
             sendMessage(chatId, `🔔 *${title}*\n${message}`);
           },
         );
       } else {
-        console.log(`[DEBUG] No Telegram ChatID found for employee ID: ${recipientId}`);
+        logger.info(`[DEBUG] No Telegram ChatID found for employee ID: ${recipientId}`);
       }
     } catch (err) {
-      console.error("[DEBUG] Telegram notification failed:", err.message);
+      logger.error("[DEBUG] Telegram notification failed:", err.message);
     }
   }
 

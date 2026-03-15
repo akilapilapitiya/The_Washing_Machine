@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
@@ -34,11 +35,11 @@ export const verifyOTP = async (otp, hash) => {
  * @param {string} otp - Generated OTP
  */
 export const logOTPToConsole = (email, otp) => {
-  console.log("\n" + "=".repeat(50));
-  console.log("🔐 PASSWORD RESET OTP");
-  console.log("=".repeat(50));
-  console.log(`Email: ${email}`);
-  console.log(`OTP: ${otp}`);
-  console.log(`Generated at: ${new Date().toLocaleString()}`);
-  console.log("=".repeat(50) + "\n");
+  logger.info("\n" + "=".repeat(50));
+  logger.info("🔐 PASSWORD RESET OTP");
+  logger.info("=".repeat(50));
+  logger.info(`Email: ${email}`);
+  logger.info(`OTP: ${otp}`);
+  logger.info(`Generated at: ${new Date().toLocaleString()}`);
+  logger.info("=".repeat(50) + "\n");
 };

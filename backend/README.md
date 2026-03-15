@@ -18,12 +18,13 @@ The server exposes 21 route modules, manages 22 database tables initialised at b
 6. [API Reference](#api-reference)
 7. [Middleware Stack](#middleware-stack)
 8. [Background Job Processing](#background-job-processing)
-9. [Real-Time Communication](#real-time-communication)
-10. [External Integrations](#external-integrations)
-11. [Configuration](#configuration)
-12. [Running the Server](#running-the-server)
-13. [Database Management](#database-management)
-14. [Testing](#testing)
+9. [Edge Caching](#edge-caching)
+10. [Real-Time Communication](#real-time-communication)
+11. [External Integrations](#external-integrations)
+12. [Configuration](#configuration)
+13. [Running the Server](#running-the-server)
+14. [Database Management](#database-management)
+15. [Testing](#testing)
 
 ---
 
@@ -35,7 +36,9 @@ HTTP Request
     ├── CORS
     ├── Helmet (security headers)
     ├── Compression
-    ├── Rate Limiter (auth routes)
+    ├── Pino Logging (telemetry)
+    ├── Rate Limiter (global + auth)
+    ├── Redis Edge Cache (GET interceptor)
     ├── Body Parser / Cookie Parser
     │
     ├── Route Layer  (/api/*)
@@ -82,6 +85,8 @@ The application follows a strict layered pattern:
 | Compression | compression | ^1.8.1 |
 | HTTP client | axios | ^1.13.4 |
 | API docs | swagger-ui-express + yamljs | ^5.0.1 / ^0.3.0 |
+| Logging | Pino + pino-http | ^9.6.0 / ^10.4.0 |
+| Process Management | PM2 | ^5.4.3 |
 | Testing | Jest + Supertest | ^29.7.0 / ^7.0.0 |
 | Dev server | nodemon | ^3.1.11 |
 
@@ -259,7 +264,9 @@ Middleware is applied globally or per-route in the following order:
 | CORS | `cors.middleware.js` | Dynamic origin allowlist; production uses `CORS_ORIGIN` env var |
 | Helmet | `helmet.middleware.js` | Sets 15+ security response headers |
 | Compression | `compression.middleware.js` | gzip response compression |
-| Rate Limiter | `rateLimit.middleware.js` | `authLimiter` (5 req/15 min) on auth routes; `generalLimiter` available |
+| Pino Http | `app.js` | Automated request/response JSON logging |
+| Rate Limiter | `rateLimit.middleware.js` | `authLimiter` (5 req/15 min) on auth routes; `generalLimiter` (global protection) |
+| Redis Cache | `cache.middleware.js` | Edge caching for public GET routes (Service/Ads/Catalog) |
 | Body Parser | `bodyParser.middleware.js` | Handles malformed JSON gracefully |
 | Cookie Parser | (express built-in) | Parses `jwt` cookie |
 | Auth | `auth.middleware.js` | JWT decode + DB existence verification |
@@ -291,7 +298,17 @@ Request Handler
 - Worker retries on failure (BullMQ default backoff)
 - Worker events (`completed`, `failed`) are logged
 
-Email jobs are created in the password reset and notification flows. The queue connection uses the same Redis instance as the Telegram bot state store.
+Email jobs are created in the password reset and notification flows. The queue connection uses the same Redis instance as the Edge Cache and Telegram bot.
+
+---
+
+## Edge Caching
+
+The backend implements high-performance **Edge Caching** at the Express route level using Redis RAM storage.
+
+- **Mechanism**: `cache.middleware.js` intercepts `GET` requests, checks for a matching key (`cache:<url>`), and serves the JSON directly if present.
+- **Auto-Population**: On a cache miss, the middleware intercepts `res.json` and saves the successful database response to Redis with a 1-hour TTL.
+- **Invalidation**: Admin controllers (`service`, `advertisement`, `catalog`) use `clearCacheByPattern` to instantly purge relevant cache keys when data is created, updated, or deleted.
 
 ---
 
@@ -367,6 +384,8 @@ All configuration is loaded from environment variables via `src/configs/env.js`.
 | `RATE_LIMIT_AUTH_MAX` | Auth endpoint cap (default: 5) |
 | `OTP_EXPIRES_IN_MINUTES` | OTP validity window (default: 10) |
 | `REDIS_PASSWORD` | Redis auth password |
+| `LOG_LEVEL` | Pino log level (`info` / `debug` / `error`) |
+| `ENABLE_REDIS_CACHE` | (Future toggle) |
 
 ---
 
@@ -386,14 +405,14 @@ The database schema is initialised automatically on first start (`initModels(poo
 
 ### Production
 
-The server is containerised. In production it runs as the `washing_machine_backend` container, receiving its configuration from `.env.prod` passed via Docker Compose `env_file`. The API is accessible externally through the Nginx reverse proxy at `/api`.
+The server is containerised and optimized for high availability. In production, it runs as the `washing_machine_backend` container using **PM2 Cluster Mode** to spawn multiple worker processes. Configuration is managed via `.env.prod`.
 
 ```bash
 # Build image
-docker build -t backend:latest .
+docker build -t backend:latest ./backend
 
-# Run standalone (normally handled by docker-compose.prod.yml)
-docker run --env-file .env.prod -p 5500:5500 backend:latest
+# Run in cluster mode (standard for docker-compose.prod.yml)
+# CMD ["pm2-runtime", "app.js", "-i", "max"]
 ```
 
 ### Available Scripts

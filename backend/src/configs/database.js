@@ -1,3 +1,4 @@
+import logger from './logger.js';
 import pkg from "pg";
 import { DB_USER, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT } from "./env.js";
 
@@ -12,11 +13,11 @@ const pool = new Pool({
 });
 
 pool.on("connect", () => {
-  console.log("Connection Pool Established with Database");
+  logger.info("Connection Pool Established with Database");
 });
 
 pool.on("error", (err) => {
-  console.error("Unexpected error on idle database client", err);
+  logger.error("Unexpected error on idle database client", err);
 });
 
 export default pool;

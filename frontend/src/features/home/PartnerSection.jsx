@@ -49,7 +49,7 @@ const PartnerSection = ({ id }) => {
               key={index}
               className="flex items-center justify-center p-6 bg-white rounded-lg border border-gray-200 hover:border-red-400 hover:shadow-lg transition-all duration-300 group"
             >
-              <img
+              <img loading="lazy"
                 src={partner.logo}
                 alt={partner.name}
                 className="max-h-20 max-w-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"

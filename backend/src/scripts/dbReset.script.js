@@ -1,10 +1,11 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import initModels from "../models/index.js";
 
 // Reset database: drop all tables and recreate schema
 // Use for local development only. This will DELETE ALL DATA.
 export async function resetDatabase(client = pool) {
-  console.log(
+  logger.info(
     "[RESET] Starting database reset: DROP AND RECREATE ALL TABLES...",
   );
 
@@ -13,7 +14,7 @@ export async function resetDatabase(client = pool) {
     await conn.query("BEGIN");
 
     // Drop all tables in reverse order of dependencies
-    console.log("[RESET] Dropping existing tables...");
+    logger.info("[RESET] Dropping existing tables...");
     await conn.query(`
       DROP TABLE IF EXISTS servicesbooked CASCADE;
       DROP TABLE IF EXISTS payment CASCADE;
@@ -40,10 +41,10 @@ export async function resetDatabase(client = pool) {
     `);
 
     await conn.query("COMMIT");
-    console.log("[RESET] All tables dropped successfully.");
+    logger.info("[RESET] All tables dropped successfully.");
   } catch (err) {
     await conn.query("ROLLBACK");
-    console.error("[RESET] Drop tables failed:", err);
+    logger.error("[RESET] Drop tables failed:", err);
     throw err;
   } finally {
     conn.release();
@@ -51,13 +52,13 @@ export async function resetDatabase(client = pool) {
 
   // Recreate all tables using models
   try {
-    console.log("[RESET] Recreating tables from models...");
+    logger.info("[RESET] Recreating tables from models...");
     await initModels(client);
-    console.log(
+    logger.info(
       "[RESET] Database reset completed successfully. Schema recreated.",
     );
   } catch (err) {
-    console.error("[RESET] Schema recreation failed:", err);
+    logger.error("[RESET] Schema recreation failed:", err);
     throw err;
   }
 }
