@@ -15,6 +15,9 @@ import * as reportService from "@/services/report.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import { format } from "date-fns";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 const EmployeePerformanceReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,27 +31,29 @@ const EmployeePerformanceReportPage = () => {
   );
   const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
 
-  useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate]);
-
-  const fetchReport = async () => {
+  const fetchReport = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await reportService.getEmployeePerformanceReport(
         startDate,
         endDate,
       );
-      setReport(data || []);
+      // Filter to show only employees (exclude owner and cashier)
+      const filteredData = (data || []).filter(item => item.emptype === "employee");
+      setReport(filteredData);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load report data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
 
-  const handleDownload = () => {
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
+
+  const handleDownload = React.useCallback(() => {
     if (!report.length) return;
 
     // Convert to CSV
@@ -77,13 +82,9 @@ const EmployeePerformanceReportPage = () => {
     a.download = `employee-performance-${startDate}-to-${endDate}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-  };
+  }, [report, startDate, endDate]);
 
   // Calculate stats
-  const totalRevenue = report.reduce(
-    (sum, r) => sum + parseFloat(r.total_revenue || 0),
-    0,
-  );
   const totalJobs = report.reduce(
     (sum, r) => sum + parseInt(r.completed_jobs || 0),
     0,
@@ -97,204 +98,162 @@ const EmployeePerformanceReportPage = () => {
 
   const formatCurrency = (val) => `Rs. ${parseFloat(val).toLocaleString()}`;
 
+  const maxDate = format(new Date(), "yyyy-MM-dd");
+
+  const toolbar = React.useMemo(() => (
+    <PageToolbar
+      stats={[
+        { icon: TrendingUp, label: "MVP", value: topPerformer ? topPerformer.empname : "N/A", iconClassName: "text-yellow-500" },
+        { icon: Briefcase, label: "Total Jobs", value: totalJobs, iconClassName: "text-blue-500" },
+        { icon: Users, label: "Staff", value: report.length, iconClassName: "text-gray-500" },
+      ]}
+      rightSlot={
+        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">From</label>
+            <input
+              type="date"
+              value={startDate}
+              max={maxDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+            />
+          </div>
+          <div className="h-6 w-px bg-gray-200 shrink-0"></div>
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">To</label>
+            <input
+              type="date"
+              value={endDate}
+              max={maxDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+            />
+          </div>
+        </div>
+      }
+    />
+  ), [endDate, maxDate, report.length, startDate, topPerformer, totalJobs]);
+
+  const headerAction = React.useMemo(() => (
+    <Button
+      variant="outline"
+      onClick={handleDownload}
+      disabled={report.length === 0}
+      className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+    >
+      <Download size={16} className="mr-2" />
+      Export CSV
+    </Button>
+  ), [report.length, handleDownload]);
+
   useSetPageHeader(
     "Financial Reports",
     "Employee Performance",
     "Track staff productivity and revenue generation.",
-    <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10">
-      <div className="flex flex-col">
-        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>From</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
-        />
-      </div>
-      <div className="h-6 w-px bg-gray-200"></div>
-      <div className="flex flex-col">
-        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>To</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
-        />
-      </div>
-    </div>
+    headerAction,
+    toolbar,
   );
 
+  const columns = [
+    {
+      key: "employee",
+      label: "Employee",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900">{row.empname}</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">{row.emptype}</span>
+        </div>
+      ),
+    },
+    {
+      key: "jobs",
+      label: "Workload",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900">{row.completed_jobs}</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Jobs Completed</span>
+        </div>
+      ),
+    },
+    {
+      key: "revenue",
+      label: "Value Generated",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-black text-green-700">{formatCurrency(row.total_revenue)}</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+            Avg. Rs. {(parseFloat(row.total_revenue) / parseInt(row.completed_jobs)).toFixed(0)} / job
+          </span>
+        </div>
+      ),
+    },
+  ];
+
   return (
-          <div className="mx-auto w-full max-w-7xl space-y-4">
-        <div className="flex justify-end mb-4">
-          {/* Mobile view calendar button */}
-          <Button
-            onClick={fetchReport}
-            size="sm"
-            className="md:hidden bg-gray-900 hover:bg-gray-800"
-          >
-            <Calendar size={14} className="mr-2" /> View Date Range
-          </Button>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">
-                    Top Performer
-                  </p>
-                  <h3
-                    className="text-xl font-bold text-gray-900 mt-1 truncate max-w-[150px]"
-                    title={topPerformer?.empname}
-                  >
-                    {topPerformer ? topPerformer.empname : "N/A"}
-                  </h3>
-                  {topPerformer && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatCurrency(topPerformer.total_revenue)} generated
-                    </p>
-                  )}
-                </div>
-                <div className="h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600">
-                  <TrendingUp />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">
-                    Total Jobs
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                    {totalJobs}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">across all staff</p>
-                </div>
-                <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                  <Briefcase />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex items-center justify-center bg-gray-50 border-dashed shadow-none">
-            <CardContent className="p-0">
-              <Button
-                variant="outline"
-                onClick={handleDownload}
-                disabled={report.length === 0}
-                className="gap-2 border-gray-300"
-              >
-                <Download size={16} />
-                Download CSV Report
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Chart Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Leaders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="h-64 flex items-center justify-center">
-                <Loader2 className="animate-spin text-gray-400" size={32} />
-              </div>
-            ) : report.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-gray-400">
-                No data for selected period
-              </div>
-            ) : (
-              <div className="h-64 flex items-end justify-between gap-4 pt-8 pb-2 px-2 overflow-x-auto">
-                {report.slice(0, 10).map((item) => {
-                  const heightPercent =
-                    (parseFloat(item.total_revenue || 0) / maxRevenue) * 100;
-                  return (
-                    <div
-                      key={item.empid}
-                      className="flex flex-col items-center justify-end w-full min-w-[60px] group relative h-full"
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-10">
-                        {item.empname}: {formatCurrency(item.total_revenue)}
-                      </div>
-
-                      {/* Bar */}
-                      <div
-                        className="w-full bg-blue-100 group-hover:bg-blue-600 transition-colors rounded-t-sm"
-                        style={{ height: `${heightPercent}%` }}
-                      ></div>
-
-                      {/* Label */}
-                      <div className="mt-2 text-[10px] text-gray-500 transform -rotate-45 origin-top-left translate-y-4 whitespace-nowrap overflow-hidden text-ellipsis w-full">
-                        {item.empname.split(" ")[0]}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Detailed Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Detailed Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
-                  <tr>
-                    <th className="px-4 py-3">Employee</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">Role</th>
-                    <th className="px-4 py-3 text-right">Completed Jobs</th>
-                    <th className="px-4 py-3 text-right">Total Revenue</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {report.map((item) => (
-                    <tr key={item.empid} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {item.empname}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 capitalize hidden sm:table-cell">
-                        {item.emptype}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {item.completed_jobs}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-gray-900">
-                        {formatCurrency(item.total_revenue)}
-                      </td>
-                    </tr>
-                  ))}
-                  {/* Totals Row */}
-                  {!loading && report.length > 0 && (
-                    <tr className="bg-gray-50 font-bold">
-                      <td className="px-4 py-3">TOTAL</td>
-                      <td className="px-4 py-3 hidden sm:table-cell"></td>
-                      <td className="px-4 py-3 text-right">{totalJobs}</td>
-                      <td className="px-4 py-3 text-right text-green-700">
-                        {formatCurrency(totalRevenue)}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+    <div className="mx-auto w-full max-w-7xl space-y-6 pb-20">
+      {/* Chart Section */}
+      <Card className="border-gray-200 shadow-sm overflow-hidden">
+        <CardHeader className="bg-gray-50/50 border-b border-gray-100 py-4">
+          <CardTitle className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+            <BarChart3 size={16} className="text-blue-600" />
+            Revenue Leadership
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="h-64 flex items-center justify-center py-12">
+              <Loader2 className="animate-spin text-red-600" size={32} />
             </div>
-          </CardContent>
-        </Card>
+          ) : report.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-gray-400 py-12">
+              <Users size={32} className="mb-2 opacity-20" />
+              <p className="text-sm font-medium">No performance data available</p>
+            </div>
+          ) : (
+            <div className="h-72 flex items-end justify-between gap-2 pt-12 pb-6 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-gray-50/50 to-white">
+              {report.slice(0, 10).map((item) => {
+                const heightPercent =
+                  (parseFloat(item.total_revenue || 0) / maxRevenue) * 100;
+                return (
+                  <div
+                    key={item.empid}
+                    className="flex flex-col items-center justify-end w-full min-w-[60px] group relative h-full"
+                  >
+                    <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100 pointer-events-none whitespace-nowrap z-10 shadow-xl">
+                      {item.empname}: {formatCurrency(item.total_revenue)}
+                    </div>
+                    <div
+                      className="w-full max-w-16 bg-blue-100 group-hover:bg-blue-600 transition-all rounded-t-sm"
+                      style={{ height: `${Math.max(heightPercent, 2)}%` }}
+                    ></div>
+                    <div className="mt-3 text-[9px] font-black text-gray-400 uppercase tracking-tighter truncate w-full text-center">
+                      {item.empname.split(" ")[0]}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Detailed Table */}
+      <div className="space-y-4">
+        {loading ? (
+          <PageLoader message="Analyzing performance metrics..." />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={report}
+            keyField="empid"
+            emptyIcon={Briefcase}
+            emptyTitle="No data found"
+            emptySubtitle="No staff activities recorded for this period."
+          />
+        )}
       </div>
-    
+    </div>
   );
 };
 

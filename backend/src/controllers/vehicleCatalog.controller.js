@@ -1,6 +1,7 @@
 import pool from "../configs/database.js";
 import { successResponse } from "../utils/response.util.js";
 import { ValidationError, ConflictError } from "../utils/errors.util.js";
+import { clearCacheByPattern } from "../configs/redis.js";
 
 export const getCatalog = async (req, res, next) => {
   try {
@@ -26,6 +27,7 @@ export const addToCatalog = async (req, res, next) => {
         "INSERT INTO vehicle_catalog (brand, model) VALUES ($1, $2) RETURNING *",
         [brand, model],
       );
+      await clearCacheByPattern("cache:/api/vehicle-catalog*");
       successResponse(res, 201, "Vehicle added to catalog", result.rows[0]);
     } catch (dbError) {
       if (dbError.code === "23505") {
@@ -45,6 +47,7 @@ export const removeFromCatalog = async (req, res, next) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM vehicle_catalog WHERE id = $1", [id]);
+    await clearCacheByPattern("cache:/api/vehicle-catalog*");
     successResponse(res, 200, "Vehicle removed from catalog");
   } catch (error) {
     next(error);

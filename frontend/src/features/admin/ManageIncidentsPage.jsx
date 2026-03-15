@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ShieldAlert,
-  Loader2,
   CheckCircle,
   XCircle,
   Clock,
-  User,
-  AlertTriangle,
-  FileText,
 } from "lucide-react";
 import * as incidentService from "@/services/incident.service";
-import { COLORS } from "@/lib/colors";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 import { toast } from "sonner";
 const ManageIncidentsPage = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchIncidents();
@@ -73,129 +70,174 @@ const ManageIncidentsPage = () => {
     }
   };
 
+  const filteredIncidents = incidents.filter((incident) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        incident.employee_name,
+        incident.customer_name,
+        incident.description,
+        incident.severity,
+        incident.status,
+        incident.booking_id,
+        incident.id,
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(query),
+      );
+
+    return matchesSearch;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: ShieldAlert, label: "Total", value: incidents.length, iconClassName: "text-red-500" },
+          {
+            icon: ShieldAlert,
+            label: "Open",
+            value: incidents.filter((incident) => incident.status === "open").length,
+            iconClassName: "text-orange-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Resolved",
+            value: incidents.filter((incident) => incident.status === "resolved").length,
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: XCircle,
+            label: "Dismissed",
+            value: incidents.filter((incident) => incident.status === "dismissed").length,
+            iconClassName: "text-gray-500",
+          },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search incidents..."
+      />
+    ),
+    [incidents, searchQuery],
+  );
+
   useSetPageHeader(
     "Security & Safety",
     "Incident Reports",
     "Review and resolve staff-reported issues regarding customer interactions.",
+    null,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading incidents..." />;
 
-  return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        {incidents.length > 0 ? (
-          <div className="grid gap-6">
-            {incidents.map((incident) => (
-              <Card
-                key={incident.id}
-                className={`border-l-4 ${incident.status === "open" ? "border-l-red-500" : "border-l-gray-300"}`}
-              >
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row gap-6 justify-between">
-                    <div className="space-y-4 flex-1">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide ${getSeverityColor(incident.severity)}`}
-                        >
-                          {incident.severity}
-                        </span>
-                        <span className="text-xs text-gray-500 font-mono">
-                          ID: #{incident.id}
-                        </span>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <Clock size={12} />
-                          {new Date(incident.created_at).toLocaleString()}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">
-                          {incident.description}
-                        </h3>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-2">
-                          <div className="flex items-center gap-1">
-                            <User size={14} />
-                            <span className="font-semibold">
-                              Reporter:
-                            </span>{" "}
-                            {incident.employee_name || "Unknown"}
-                          </div>
-                          {incident.customer_name && (
-                            <div className="flex items-center gap-1">
-                              <AlertTriangle
-                                size={14}
-                                className="text-orange-500"
-                              />
-                              <span className="font-semibold">Customer:</span>{" "}
-                              {incident.customer_name}
-                            </div>
-                          )}
-                          {incident.booking_id && (
-                            <div className="flex items-center gap-1 text-blue-600">
-                              <FileText size={14} />
-                              <span>Booking #{incident.booking_id}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col md:items-end gap-3 min-w-[200px] border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-bold text-gray-700 uppercase">
-                          Status
-                        </span>
-                        {getStatusIcon(incident.status)}
-                        <span className="text-sm capitalize font-medium">
-                          {incident.status}
-                        </span>
-                      </div>
-
-                      {incident.status !== "resolved" &&
-                        incident.status !== "dismissed" && (
-                          <div className="flex gap-2 w-full md:w-auto">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 hover:bg-gray-100 text-gray-600"
-                              onClick={() =>
-                                handleStatusUpdate(incident.id, "dismissed")
-                              }
-                            >
-                              Dismiss
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() =>
-                                handleStatusUpdate(incident.id, "resolved")
-                              }
-                            >
-                              Resolve
-                            </Button>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+  const columns = [
+    {
+      key: "id",
+      label: "ID",
+      render: (row) => (
+        <span className="font-mono font-bold text-gray-500 text-sm">#{row.id}</span>
+      ),
+    },
+    {
+      key: "severity",
+      label: "Severity",
+      render: (row) => (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${getSeverityColor(
+            row.severity,
+          )}`}
+        >
+          {row.severity}
+        </span>
+      ),
+    },
+    {
+      key: "reporter",
+      label: "Reporter & Date",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-gray-900 font-bold text-sm">{row.employee_name || "Unknown"}</span>
+          <span className="text-xs text-gray-400 font-normal">
+            {new Date(row.created_at).toLocaleString()}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      label: "Description",
+      render: (row) => (
+        <p className="text-sm text-gray-700 font-medium line-clamp-1 max-w-[250px]" title={row.description}>
+          {row.description}
+        </p>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer / Booking",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900">{row.customer_name || "N/A"}</span>
+          {row.booking_id && (
+            <span className="text-xs text-blue-600 font-medium">Booking #{row.booking_id}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          {getStatusIcon(row.status)}
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">{row.status}</span>
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        row.status === "open" ? (
+          <div className="flex justify-end gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-[10px] font-black uppercase border-gray-200"
+              onClick={() => handleStatusUpdate(row.id, "dismissed")}
+            >
+              Dismiss
+            </Button>
+            <Button
+              size="sm"
+              className="h-8 text-[10px] font-black uppercase bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => handleStatusUpdate(row.id, "resolved")}
+            >
+              Resolve
+            </Button>
           </div>
         ) : (
-          <Card className="border-dashed py-16 bg-transparent">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="p-4 bg-green-50 rounded-full">
-                <CheckCircle size={48} className="text-green-500" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">All Quiet</h3>
-              <p className="text-gray-500">
-                No active incidents reported. Operations are normal.
-              </p>
-            </div>
-          </Card>
-        )}
-      </div>
-    
+          <span className="text-xs text-gray-300">—</span>
+        )
+      ),
+    },
+  ];
+
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      <DataTable
+        columns={columns}
+        data={filteredIncidents}
+        keyField="id"
+        emptyIcon={CheckCircle}
+        emptyTitle="All Quiet"
+        emptySubtitle={searchQuery ? "No incidents match your search." : "No active incidents reported. Operations are normal."}
+      />
+    </div>
   );
 };
 

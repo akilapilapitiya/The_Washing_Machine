@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getBookings } from "@/services/booking.service";
 import { getAllPayments, createPayment } from "@/services/payment.service";
 import * as chargesService from "@/services/charges.service";
@@ -21,36 +20,16 @@ import {
 } from "lucide-react";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import { format } from "date-fns";
+import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const paymentMethods = [
   { value: "cash", label: "Cash" },
   { value: "card", label: "Credit/Debit Card" },
   { value: "online", label: "Online Payment" },
 ];
-
-const StatusBadge = ({ status }) => {
-  const styles = {
-    pending: "bg-amber-50 text-amber-700 border-amber-100",
-    inProgress: "bg-blue-50 text-blue-700 border-blue-100",
-    completed: "bg-purple-50 text-purple-700 border-purple-100",
-    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  };
-
-  const labels = {
-    pending: "Pending",
-    inProgress: "In Progress",
-    completed: "Completed",
-    paid: "Paid",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status]}`}
-    >
-      {labels[status] || status}
-    </span>
-  );
-};
 
 const ExtraItem = ({ extra, readOnly, onUpdatePrice }) => {
   const [price, setPrice] = useState(extra.price || "");
@@ -128,244 +107,54 @@ const ExtraItem = ({ extra, readOnly, onUpdatePrice }) => {
   );
 };
 
-const PaymentCard = ({ item, onRecordPayment, isPayment, onRefresh }) => {
-  // item is either a booking (pending payment) or a payment object (completed)
-  const bookingId = isPayment ? item.bookingid : item.bookingid;
-  const status = isPayment ? "paid" : item.bookingstatus;
-  const brand = item.vehbrand || "Vehicle";
-  const model = item.vehmodel || "";
-  const plate = item.vehplate || "";
-  const customerName = item.cusname || "Customer";
-
-  // Calculate total amount
-  // If isPayment, use recorded payment amount.
-  // If pending, calculate base + extras.
-  const services = item.services || [];
-  const extras = item.extras || [];
-
-  // Calculate extras total from items that have a valid price
-  const extrasTotal = extras.reduce(
-    (sum, e) => sum + (Number(e.price) || 0),
-    0,
-  );
-
-  // Base total from booking record (services + travel cost)
-  // Assuming item.totalprice is the database stored total.
-  const baseTotal = Number(item.totalprice || item.total_price || 0);
-
-  // For display:
-  // If paid, show what was paid.
-  // If pending, show projected total (Base + Extras).
-  const displayTotal = isPayment
-    ? Number(item.paymentamount)
-    : baseTotal + extrasTotal;
-
-  const date = isPayment ? item.paymentdate : item.bookingdate;
-
-  return (
-    <Card className="flex flex-col h-full bg-white shadow-sm border-gray-200">
-      <CardHeader className="pb-3 border-b border-gray-50">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg font-bold text-gray-900">
-              BK-{bookingId.toString().padStart(4, "0")}
-            </CardTitle>
-            <p className="text-sm text-gray-500 font-medium">
-              {brand} {model} <span className="text-gray-300">|</span> {plate}
-            </p>
-          </div>
-          <StatusBadge status={status} />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 flex-1 flex flex-col pt-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-2 rounded-md">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-0.5">
-              Customer
-            </p>
-            <p
-              className="text-sm font-semibold text-gray-900 truncate"
-              title={customerName}
-            >
-              {customerName}
-            </p>
-          </div>
-          <div className="bg-gray-50 p-2 rounded-md">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-0.5">
-              Date
-            </p>
-            <p className="text-sm font-semibold text-gray-900">
-              {new Date(date).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex-1 space-y-4">
-          {/* Services List */}
-          <div>
-            <p className="text-xs text-gray-500 uppercase font-semibold mb-2 flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-gray-400"></span>
-              Services
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {services.map((s, idx) => (
-                <span
-                  key={idx}
-                  className="bg-blue-50 text-blue-700 text-[11px] px-2 py-1 rounded font-medium border border-blue-100"
-                >
-                  {typeof s === "string" ? s : s.serviceName || s.servicename}
-                </span>
-              ))}
-              {services.length === 0 && (
-                <span className="text-xs text-gray-400 italic">
-                  No services listed
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Extras List */}
-          {extras.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-2 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-orange-400"></span>
-                Extra Items
-              </p>
-              <div className="space-y-1.5">
-                {extras.map((extra) => (
-                  <ExtraItem
-                    key={extra.id}
-                    extra={extra}
-                    readOnly={isPayment}
-                    onUpdatePrice={async (price) => {
-                      await chargesService.updateItemPrice(extra.id, price);
-                      toast.success("Price updated");
-                      if (onRefresh) onRefresh();
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-gray-50 rounded-lg p-4 mt-auto border border-gray-100">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              {isPayment ? "Amount Paid" : "Total Due"}
-            </span>
-            <span className="text-xl font-bold text-gray-900">
-              Rs.{displayTotal.toFixed(2)}
-            </span>
-          </div>
-          {!isPayment && extrasTotal > 0 && (
-            <div className="text-right">
-              <p className="text-[10px] text-gray-500 font-medium">
-                Includes Rs.{extrasTotal.toFixed(2)} extra charges
-              </p>
-            </div>
-          )}
-        </div>
-
-        {isPayment && item.paymenttype && (
-          <div>
-            <p className="text-xs text-gray-500 uppercase font-semibold mb-1">
-              Payment Method
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <p className="text-sm font-medium capitalize text-gray-900">
-                {item.paymenttype}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {isPayment && (
-          <div className="pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-2 border-dashed h-9 text-xs"
-              onClick={() => printReceipt(item)}
-            >
-              <Download size={14} /> Print Receipt
-            </Button>
-          </div>
-        )}
-
-        {!isPayment && (
-          <Button
-            onClick={() => onRecordPayment(item)}
-            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold h-10 transition-all"
-          >
-            <Plus size={16} />
-            Record Payment
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
 const PaymentManagementPage = () => {
+  const [loading, setLoading] = useState(true);
   const [pendingBookings, setPendingBookings] = useState([]);
   const [completedPayments, setCompletedPayments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [paymentData, setPaymentData] = useState({
     paymentamount: "",
-    paymenttype: "",
-    paymentdate: new Date().toISOString().split("T")[0],
+    paymenttype: "cash",
+    paymentdate: format(new Date(), "yyyy-MM-dd"),
+    bookingid: "",
   });
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      toast.dismiss();
-      const [bookingsData, paymentsData] = await Promise.all([
-        getBookings(),
-        getAllPayments(),
-      ]);
-
-      // Filter bookings that are completed but not yet paid
-      // We know they aren't paid because there's no payment record joined or status is 'completed'
-      const pending = bookingsData.filter(
-        (b) => b.bookingstatus === "completed",
-      );
-      setPendingBookings(pending);
-      setCompletedPayments(paymentsData);
-    } catch (err) {
-      console.error("Error fetching payment data:", err);
-      toast.error(
-        "Failed to load payment information. Please check your connection.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [activeTab, setActiveTab] = useState("pending");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [bookings, payments] = await Promise.all([
+        getBookings(),
+        getAllPayments(),
+      ]);
+      setPendingBookings(bookings.filter((b) => b.bookingstatus === "finished"));
+      setCompletedPayments(payments);
+    } catch {
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRecordPayment = (booking) => {
-    setSelectedBooking(booking);
     const extrasTotal = (booking.extras || []).reduce(
       (sum, e) => sum + (Number(e.price) || 0),
       0,
     );
-    const baseTotal = Number(booking.totalprice || booking.total_price || 0);
+    const base = Number(booking.totalprice || booking.total_price || 0);
 
+    setSelectedBooking(booking);
     setPaymentData({
-      paymentamount: (baseTotal + extrasTotal).toFixed(2),
+      paymentamount: (base + extrasTotal).toFixed(2),
       paymenttype: "cash",
-      paymentdate: new Date().toISOString().split("T")[0],
+      paymentdate: format(new Date(), "yyyy-MM-dd"),
+      bookingid: booking.bookingid,
     });
   };
 
@@ -376,114 +165,186 @@ const PaymentManagementPage = () => {
 
   const handleSubmitPayment = async (e) => {
     e.preventDefault();
-
-    if (!paymentData.paymentamount || !paymentData.paymenttype) {
-      return;
-    }
-
     try {
       setSubmitting(true);
-      await createPayment({
-        bookingid: selectedBooking.bookingid,
-        paymentamount: parseFloat(paymentData.paymentamount),
-        paymenttype: paymentData.paymenttype,
-        paymentdate: paymentData.paymentdate,
-      });
-
+      await createPayment(paymentData);
+      toast.success("Payment recorded successfully");
       setSelectedBooking(null);
-      toast.success("Operation completed successfully");
-      // Refresh data
-      await fetchData();
+      fetchData();
     } catch (err) {
-      console.error("Error recording payment:", err);
-      toast.error("Failed to record payment", {
-        description: "Please try again later",
-      });
+      toast.error(err.message || "Failed to record payment");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const toolbar = useMemo(
+    () => (
+      <PageToolbar
+        leftSlot={
+          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "pending" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Pending ({pendingBookings.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Completed ({completedPayments.length})
+            </button>
+          </div>
+        }
+        stats={[
+          { icon: DollarSign, label: "Pending", value: pendingBookings.length, iconClassName: "text-red-500" },
+          { icon: CheckCircle, label: "Completed", value: completedPayments.length, iconClassName: "text-green-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder={activeTab === "completed" ? "Search payments..." : "Search bookings..."}
+        searchWidthClass="sm:w-72"
+      />
+    ),
+    [activeTab, completedPayments.length, pendingBookings.length, searchQuery]
+  );
+
   useSetPageHeader(
     "Payment Management",
     "Review Payments",
     "Manage and record customer payments for completed services.",
+    null,
+    toolbar
   );
 
   if (loading) return <PageLoader message="Loading payment information..." />;
 
+  const isPaymentView = activeTab === "completed";
+
+  const columns = [
+    {
+      key: "id",
+      label: "ID",
+      render: (row) => (
+        <span className="font-mono font-bold text-gray-500 text-sm">
+          #{String(isPaymentView ? row.paymentid : row.bookingid).padStart(4, "0")}
+        </span>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer & Vehicle",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900 text-sm">{row.cusname || "Unregistered"}</span>
+          <span className="text-xs text-gray-500 font-medium mt-0.5">
+            {row.vehbrand} {row.vehmodel} • {row.vehplate}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "date",
+      label: "Date",
+      render: (row) => (
+        <span className="text-sm font-medium text-gray-600">
+          {row[isPaymentView ? "paymentdate" : "bookingdate"] 
+            ? format(new Date(row[isPaymentView ? "paymentdate" : "bookingdate"]), "MMM d, yyyy") 
+            : "N/A"}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      render: (row) => {
+        const extrasTotal = (row.extras || []).reduce((sum, e) => sum + (Number(e.price) || 0), 0);
+        const baseTotal = Number(row.totalprice || row.total_price || 0);
+        const displayTotal = isPaymentView ? Number(row.paymentamount) : baseTotal + extrasTotal;
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-gray-900">Rs.{displayTotal.toFixed(2)}</span>
+            {!isPaymentView && extrasTotal > 0 && (
+              <span className="text-[10px] text-orange-600 font-medium">Incl. Rs.{extrasTotal.toFixed(2)} extras</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => <StatusBadge status={isPaymentView ? "paid" : row.bookingstatus} />,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => {
+        return (
+          <div className="flex justify-end gap-2">
+            {isPaymentView ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200"
+                onClick={() => printReceipt(row)}
+              >
+                <Download size={14} className="mr-1" /> Receipt
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleRecordPayment(row)}
+                className="h-8 px-3 text-[10px] font-black uppercase bg-red-600 hover:bg-red-700 text-white"
+              >
+                Record Payment
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const getActiveData = () => {
+    const source = isPaymentView ? completedPayments : pendingBookings;
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return source;
+
+    return source.filter((row) =>
+      [
+        row.paymentid,
+        row.bookingid,
+        row.cusname,
+        row.vehbrand,
+        row.vehmodel,
+        row.vehplate,
+        row.paymenttype,
+      ].some((value) => String(value || "").toLowerCase().includes(query)),
+    );
+  };
+
+  const emptyProps = isPaymentView
+    ? { icon: DollarSign, title: "No completed payments", subtitle: "Recorded payments will appear here." }
+    : { icon: CheckCircle, title: "No pending payments", subtitle: "No completed bookings are awaiting payment." };
+
   return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="pending" className="font-bold">
-              Pending ({pendingBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="font-bold">
-              Completed ({completedPayments.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pending" className="space-y-4">
-            {pendingBookings.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pendingBookings.map((booking) => (
-                  <PaymentCard
-                    key={booking.bookingid}
-                    item={booking}
-                    onRecordPayment={handleRecordPayment}
-                    isPayment={false}
-                    onRefresh={fetchData}
-                  />
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <CheckCircle
-                    size={48}
-                    className="mx-auto text-gray-400 mb-4"
-                  />
-                  <h3 className="text-lg font-semibold mb-2">
-                    No pending payments
-                  </h3>
-                  <p className="text-gray-600">
-                    No completed bookings are awaiting payment.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="completed" className="space-y-4">
-            {completedPayments.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {completedPayments.map((payment) => (
-                  <PaymentCard
-                    key={payment.paymentid}
-                    item={payment}
-                    isPayment={true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <DollarSign
-                    size={48}
-                    className="mx-auto text-gray-400 mb-4"
-                  />
-                  <h3 className="text-lg font-semibold mb-2">
-                    No completed payments
-                  </h3>
-                  <p className="text-gray-600">
-                    Recorded payments will appear here.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      <DataTable
+        columns={columns}
+        data={getActiveData()}
+        keyField={isPaymentView ? "paymentid" : "bookingid"}
+        emptyIcon={emptyProps.icon}
+        emptyTitle={emptyProps.title}
+        emptySubtitle={searchQuery ? "No records match your search." : emptyProps.subtitle}
+      />
 
         {/* Payment Recording Modal */}
         {selectedBooking && (
@@ -712,8 +573,7 @@ const PaymentManagementPage = () => {
             </Card>
           </div>
         )}
-      </div>
-    
+    </div>
   );
 };
 

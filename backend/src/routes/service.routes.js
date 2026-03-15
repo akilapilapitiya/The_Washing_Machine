@@ -12,11 +12,13 @@ import { serviceValidator } from "../validators/index.js";
 import { uploadServiceImage } from "../middleware/upload.middleware.js";
 import { parseServiceFormData } from "../middleware/transform.middleware.js";
 
+import { cacheMiddleware } from "../middleware/cache.middleware.js";
+
 const serviceRouter = Router();
 
 // GET services (public - no auth required)
-serviceRouter.get("/", getAllServices);
-serviceRouter.get("/:serviceid", getService);
+serviceRouter.get("/", cacheMiddleware(3600), getAllServices);
+serviceRouter.get("/:serviceid", cacheMiddleware(3600), getService);
 
 // POST, PUT, DELETE - only managers and owners can manage services
 serviceRouter.use(authMiddleware, restrictTo("manager", "owner"));

@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   BarChart3,
   Download,
   Calendar,
   Loader2,
   TrendingUp,
-  DollarSign
+  DollarSign,
 } from "lucide-react";
 import * as reportService from "@/services/report.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import { format } from "date-fns";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 const DailyIncomeReportPage = () => {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +29,7 @@ const DailyIncomeReportPage = () => {
   );
   const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
 
-  useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate]);
-
-  const fetchReport = async () => {
+  const fetchReport = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await reportService.getDailyIncomeReport(startDate, endDate);
@@ -43,9 +40,13 @@ const DailyIncomeReportPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
 
-  const handleDownload = () => {
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
+
+  const handleDownload = React.useCallback(() => {
     if (!report.length) return;
 
     // Convert to CSV
@@ -68,7 +69,7 @@ const DailyIncomeReportPage = () => {
     a.download = `income-report-${startDate}-to-${endDate}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-  };
+  }, [report, startDate, endDate]);
 
   // Calculate stats
   const totalRevenue = report.reduce(
@@ -86,200 +87,161 @@ const DailyIncomeReportPage = () => {
 
   const formatCurrency = (val) => `Rs. ${val.toLocaleString()}`;
 
+  const maxDate = format(new Date(), "yyyy-MM-dd");
+
+  const toolbar = React.useMemo(() => (
+    <PageToolbar
+      stats={[
+        { icon: DollarSign, label: "Revenue", value: formatCurrency(totalRevenue), iconClassName: "text-green-500" },
+        { icon: TrendingUp, label: "Transactions", value: totalTx, iconClassName: "text-blue-500" },
+      ]}
+      rightSlot={
+        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">From</label>
+            <input
+              type="date"
+              value={startDate}
+              max={maxDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+            />
+          </div>
+          <div className="h-6 w-px bg-gray-200 shrink-0"></div>
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">To</label>
+            <input
+              type="date"
+              value={endDate}
+              max={maxDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+            />
+          </div>
+        </div>
+      }
+    />
+  ), [endDate, maxDate, startDate, totalRevenue, totalTx]);
+
+  const headerAction = React.useMemo(() => (
+    <Button
+      variant="outline"
+      onClick={handleDownload}
+      disabled={report.length === 0}
+      className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+    >
+      <Download size={16} className="mr-2" />
+      Export CSV
+    </Button>
+  ), [report.length, handleDownload]);
+
   useSetPageHeader(
     "Financial Reports",
     "Daily Income Report",
     "Track revenue and transaction volume over time.",
-    <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10">
-      <div className="flex flex-col">
-        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>From</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
-        />
-      </div>
-      <div className="h-6 w-px bg-gray-200"></div>
-      <div className="flex flex-col">
-        <label className="text-[10px] text-gray-400 px-2 font-medium uppercase tracking-wider mb-0.5" style={{ lineHeight: 1 }}>To</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="text-xs font-medium bg-transparent px-2 focus:outline-none h-4"
-        />
-      </div>
-    </div>
+    headerAction,
+    toolbar,
   );
 
+  const columns = [
+    {
+      key: "date",
+      label: "Reporting Date",
+      render: (row) => (
+        <div className="flex items-center gap-2 font-bold text-gray-900">
+          <Calendar size={14} className="text-gray-400" />
+          {row.date}
+        </div>
+      ),
+    },
+    {
+      key: "transactions",
+      label: "Volume",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900">{row.transaction_count}</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Transactions</span>
+        </div>
+      ),
+    },
+    {
+      key: "income",
+      label: "Revenue Generated",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-black text-green-700">{formatCurrency(row.total_income)}</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+            Avg. Rs. {(parseFloat(row.total_income) / parseInt(row.transaction_count)).toFixed(0)} / tx
+          </span>
+        </div>
+      ),
+    },
+  ];
+
   return (
-          <div className="mx-auto w-full max-w-7xl space-y-4">
-        <div className="flex justify-end mb-4">
-          {/* Mobile view calendar button */}
-          <Button
-            onClick={fetchReport}
-            size="sm"
-            className="md:hidden bg-gray-900 hover:bg-gray-800"
-          >
-            <Calendar size={14} className="mr-2" /> View Date Range
-          </Button>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">
-                    Total Revenue
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                    {formatCurrency(totalRevenue)}
-                  </h3>
-                </div>
-                <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                  <DollarSign />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">
-                    Transactions
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                    {totalTx}
-                  </h3>
-                </div>
-                <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                  <TrendingUp />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="flex items-center justify-center bg-gray-50 border-dashed shadow-none">
-            <CardContent className="p-0">
-              <Button
-                variant="outline"
-                onClick={handleDownload}
-                disabled={report.length === 0}
-                className="gap-2 border-gray-300"
-              >
-                <Download size={16} />
-                Download CSV Report
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Chart Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Income Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="h-64 flex items-center justify-center">
-                <Loader2 className="animate-spin text-gray-400" size={32} />
-              </div>
-            ) : report.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-gray-400">
-                No data for selected period
-              </div>
-            ) : (
-              <div className="h-64 flex items-end justify-between gap-2 pt-8 pb-2 px-2 overflow-x-auto">
-                {report.map((item) => {
-                  const heightPercent =
-                    (parseFloat(item.total_income) / maxIncome) * 100;
-                  return (
-                    <div
-                      key={item.date}
-                      className="flex flex-col items-center justify-end w-full min-w-[40px] group relative h-full"
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-10">
-                        {item.date}: {formatCurrency(item.total_income)}
-                      </div>
-
-                      {/* Bar */}
-                      <div
-                        className="w-full bg-red-100 group-hover:bg-red-600 transition-colors rounded-t-sm"
-                        style={{ height: `${heightPercent}%` }}
-                      ></div>
-
-                      {/* Label */}
-                      <div className="mt-2 text-[10px] text-gray-500 transform -rotate-45 origin-top-left translate-y-4 whitespace-nowrap">
-                        {item.date.slice(5)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Detailed Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Detailed Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-500 uppercase font-medium">
-                  <tr>
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3 text-right">Transactions</th>
-                    <th className="px-4 py-3 text-right">Income</th>
-                    <th className="px-4 py-3 text-right hidden sm:table-cell">
-                      Avg. Ticket
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {report.map((item) => (
-                    <tr key={item.date} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {item.date}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {item.transaction_count}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-gray-900">
-                        {formatCurrency(item.total_income)}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-500 hidden sm:table-cell">
-                        {formatCurrency(
-                          parseFloat(item.total_income) /
-                          parseInt(item.transaction_count),
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {/* Totals Row */}
-                  {!loading && report.length > 0 && (
-                    <tr className="bg-gray-50 font-bold">
-                      <td className="px-4 py-3">TOTAL</td>
-                      <td className="px-4 py-3 text-right">{totalTx}</td>
-                      <td className="px-4 py-3 text-right text-green-700">
-                        {formatCurrency(totalRevenue)}
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell"></td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+    <div className="mx-auto w-full max-w-7xl space-y-6 pb-20">
+      {/* Chart Section */}
+      <Card className="border-gray-200 shadow-sm overflow-hidden">
+        <CardHeader className="bg-gray-50/50 border-b border-gray-100 py-4">
+          <CardTitle className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+            <BarChart3 size={16} className="text-red-600" />
+            Revenue Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="h-64 flex items-center justify-center py-12">
+              <Loader2 className="animate-spin text-red-600" size={32} />
             </div>
-          </CardContent>
-        </Card>
+          ) : report.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-gray-400 py-12">
+              <Calendar size={32} className="mb-2 opacity-20" />
+              <p className="text-sm font-medium">No data available for this range</p>
+            </div>
+          ) : (
+            <div className="h-72 flex items-end justify-between gap-1 pt-12 pb-6 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-gray-50/50 to-white">
+              {report.map((item) => {
+                const heightPercent =
+                  (parseFloat(item.total_income) / maxIncome) * 100;
+                return (
+                  <div
+                    key={item.date}
+                    className="flex flex-col items-center justify-end w-full min-w-[32px] group relative h-full"
+                  >
+                    <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100 pointer-events-none whitespace-nowrap z-10 shadow-xl">
+                      {item.date}: {formatCurrency(item.total_income)}
+                    </div>
+                    <div
+                      className="w-full max-w-[12px] bg-red-100 group-hover:bg-red-600 transition-all rounded-t-sm"
+                      style={{ height: `${Math.max(heightPercent, 2)}%` }}
+                    ></div>
+                    <div className="mt-3 text-[9px] font-black text-gray-400 uppercase tracking-tighter transform -rotate-45 origin-top-left whitespace-nowrap opacity-60">
+                      {item.date.slice(5)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Detailed Table */}
+      <div className="space-y-4">
+        {loading ? (
+          <PageLoader message="Generating breakdown..." />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={report}
+            keyField="date"
+            emptyIcon={Calendar}
+            emptyTitle="No transactions"
+            emptySubtitle="There is no financial data for the selected date range."
+          />
+        )}
       </div>
-    
+    </div>
   );
 };
 

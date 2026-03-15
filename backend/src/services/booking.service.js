@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import {
   assertAtLeastOneField,
@@ -12,6 +13,49 @@ import {
 import * as scheduleService from "./schedule.service.js";
 import { createNotificationService } from "./notification.service.js";
 import { checkDateIsHoliday } from "./systemHoliday.service.js";
+import { resolveAutoAssignedEmployee } from "../logics/employeeAssignment.logic.js";
+
+export const resolveBookingEmployeeService = async ({
+  customerId,
+  userRole,
+  vehicleId,
+  services,
+  locationType = "branch",
+}) => {
+  assertRequiredFields(
+    { customerId, vehicleId, services },
+    ["customerId", "vehicleId", "services"],
+  );
+
+  if (!Array.isArray(services) || services.length === 0) {
+    throw new ValidationError("At least one service is required.");
+  }
+
+  const client = await pool.connect();
+
+  try {
+    const vehicleCheck = await client.query(
+      "SELECT id, cusid FROM vehicle WHERE id = $1",
+      [vehicleId],
+    );
+
+    if (vehicleCheck.rowCount === 0) {
+      throw new NotFoundError("Vehicle not found");
+    }
+
+    if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
+      throw new ForbiddenError("You can only book with your own vehicles");
+    }
+
+    return await resolveAutoAssignedEmployee({
+      client,
+      serviceIds: services,
+      locationType,
+    });
+  } finally {
+    client.release();
+  }
+};
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();
@@ -621,7 +665,7 @@ export const updateBookingService = async (
       if (check.rowCount === 0) throw new NotFoundError("Employee not found");
 
       const empName = check.rows[0].empname;
-      console.log(
+      logger.info(
         `[DEBUG] Reassigning Booking ${bookingId} from ${current.current_empid} to ${employeeId}`,
       );
       finalEmpId = employeeId;
@@ -646,7 +690,7 @@ export const updateBookingService = async (
 
       // Notification to Previous Employee (if exists and not system account)
       if (current.current_empid && current.current_empid !== 1) {
-        console.log(
+        logger.info(
           `[DEBUG] Sending Job Removed Notification to Previous EmpID: ${current.current_empid}`,
         );
         const prevMsg = [
@@ -698,7 +742,7 @@ export const updateBookingService = async (
         `*Time:* ${newStartTime}`,
       ].join("\n");
 
-      console.log(
+      logger.info(
         `[DEBUG] Sending Reassignment Notification to EmpID: ${finalEmpId}`,
       );
 

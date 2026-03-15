@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import createBookingTable from "./booking.model.js";
 import createCustomerTable from "./customer.model.js";
 import createEmployeeTable from "./employee.model.js";
@@ -23,7 +24,7 @@ import createAdvertisementTable from "./advertisement.model.js";
 
 const initModels = async (pool) => {
   try {
-    console.log("Initializing database tables...");
+    logger.info("Initializing database tables...");
 
     // Create all tables
     await createCustomerTable(pool);
@@ -49,10 +50,10 @@ const initModels = async (pool) => {
     await createSystemHolidayTable(pool);
     await createAdvertisementTable(pool);
 
-    console.log("✓ All database tables created successfully");
+    logger.info("✓ All database tables created successfully");
   } catch (error) {
-    console.error("✗ Model initialization failed:", error.message);
-    console.error("Full error:", error);
+    logger.error("✗ Model initialization failed:", error.message);
+    logger.error("Full error:", error);
     throw error; // Re-throw to see full stack trace
   }
 };

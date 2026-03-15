@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 const createAdvertisementTable = async (pool) => {
   const query = `
     CREATE TABLE IF NOT EXISTS advertisement (
@@ -14,9 +15,9 @@ const createAdvertisementTable = async (pool) => {
   `;
   try {
     await pool.query(query);
-    console.log("✓ Advertisement table ensured");
+    logger.info("✓ Advertisement table ensured");
   } catch (err) {
-    console.error("Error creating advertisement table:", err.message);
+    logger.error("Error creating advertisement table:", err.message);
     throw err;
   }
 };

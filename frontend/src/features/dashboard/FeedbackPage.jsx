@@ -1,46 +1,52 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MessageSquare,
-  Calendar,
-  Car,
   Send,
   CheckCircle,
   Star,
   Loader2,
-  History,
-  ClipboardList,
+  X,
+  Hash,
 } from "lucide-react";
 import { getBookings } from "@/services/booking.service";
 import { submitFeedback, getMyFeedbacks } from "@/services/feedback.service";
-import { COLORS } from "@/lib/colors";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
+
+const renderStars = (count, size = 12) => (
+  <div className="flex gap-0.5">
+    {[...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        size={size}
+        className={i < count ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
+      />
+    ))}
+  </div>
+);
 
 const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [completedBookings, setCompletedBookings] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState(5);
-
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchInitialData = async () => {
     try {
@@ -49,42 +55,72 @@ const FeedbackPage = () => {
         getBookings(),
         getMyFeedbacks(),
       ]);
-
-      // Filter for completed/paid bookings that don't have feedback yet
       const feedbackBookingIds = new Set(feedbacksData.map((f) => f.bookingid));
       const eligibleBookings = bookingsData.filter(
         (b) =>
           (b.bookingstatus === "completed" || b.bookingstatus === "paid") &&
           !feedbackBookingIds.has(b.bookingid),
       );
-
       setCompletedBookings(eligibleBookings);
       setFeedbacks(feedbacksData);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load feedback records. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const filteredFeedbacks = feedbacks.filter((feedback) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      [feedback.vehbrand, feedback.vehmodel, feedback.feedbackdescription].some((value) =>
+        String(value || "").toLowerCase().includes(query),
+      );
+
+    return matchesSearch;
+  });
+
+  const avgRating = feedbacks.length > 0
+    ? (feedbacks.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) / feedbacks.length).toFixed(1)
+    : 0;
+  const fiveStarCount = feedbacks.filter((f) => Number(f.rating) === 5).length;
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: MessageSquare, label: "Total Reviews", value: feedbacks.length, iconClassName: "text-blue-500" },
+          { icon: Star, label: "Avg Rating", value: `${avgRating}/5`, iconClassName: "text-yellow-500" },
+          { icon: Hash, label: "5-Star", value: fiveStarCount, iconClassName: "text-green-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by vehicle or feedback..."
+      />
+    ),
+    [feedbacks, avgRating, fiveStarCount, searchQuery],
+  );
+
   const handleSubmitFeedback = async (e) => {
     e.preventDefault();
     if (!selectedBookingId || !feedbackText.trim()) return;
-
     try {
       setSubmitting(true);
       await submitFeedback({
         bookingId: parseInt(selectedBookingId),
         description: feedbackText,
-        rating: rating,
+        rating,
       });
-
       toast.success("Thank you! Your feedback has been recorded.");
       setFeedbackText("");
       setSelectedBookingId("");
       setRating(5);
-
-      // Refresh data to update "Previous Feedback" list
+      setIsModalOpen(false);
       await fetchInitialData();
     } catch (err) {
       toast.error(err.message || "Failed to submit feedback.");
@@ -93,217 +129,240 @@ const FeedbackPage = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return formatDateShortSL(dateString);
-  };
-
-  const renderStars = (count, size = 16) => {
-    return (
-      <div className="flex gap-0.5">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            size={size}
-            className={
-              i < count ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
-            }
-          />
-        ))}
-      </div>
-    );
-  };
+  const headerAction = useMemo(
+    () => (
+      <Button
+        onClick={() => setIsModalOpen(true)}
+        className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm flex items-center gap-2"
+      >
+        <MessageSquare size={16} />
+        Add Feedback
+      </Button>
+    ),
+    [],
+  );
 
   useSetPageHeader(
-    "",
-    "Your Feedback",
-    "Tell us about your service experience.",
+    "Customer Care",
+    "Service Feedback",
+    "Monitor your reviews and share your latest service experience.",
+    headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading feedback records..." />;
 
+  const columns = [
+    {
+      key: "feedbackid",
+      label: "ID",
+      render: (row) => (
+        <div className="flex items-center gap-1.5 opacity-60">
+          <Hash size={12} />
+          <span className="font-mono text-xs font-bold text-gray-600">
+            {String(row.bookingid).padStart(4, "0")}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "vehicle",
+      label: "Vehicle Details",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-gray-900 leading-tight">
+            {row.vehbrand} {row.vehmodel}
+          </span>
+          <span className="text-[10px] font-mono text-gray-500 italic">
+            {row.vehplate}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "bookingdate",
+      label: "Service Date",
+      render: (row) => (
+        <span className="text-sm font-bold text-gray-700">
+          {formatDateShortSL(row.bookingdate)}
+        </span>
+      ),
+    },
+    {
+      key: "rating",
+      label: "Rating",
+      render: (row) => (
+        <div className="flex flex-col gap-1">
+          {renderStars(row.rating || 5)}
+          <span className="text-[9px] font-black uppercase text-gray-400">
+            {row.rating}/5 Score
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "feedbackdescription",
+      label: "Your Satisfaction",
+      render: (row) => (
+        <p
+          className="text-xs text-gray-600 italic line-clamp-2 max-w-[300px]"
+          title={row.feedbackdescription}
+        >
+          "{row.feedbackdescription}"
+        </p>
+      ),
+    },
+  ];
+
   return (
-          <div className="mx-auto w-full max-w-5xl space-y-8">
-
-        <Tabs defaultValue="submit" className="space-y-8">
-          <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
-            <TabsTrigger
-              value="submit"
-              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-            >
-              <ClipboardList size={16} className="mr-2" />
-              New Review
-            </TabsTrigger>
-            <TabsTrigger
-              value="previous"
-              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-            >
-              <History size={16} className="mr-2" />
-              History ({feedbacks.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent
-            value="submit"
-            className="animate-in fade-in duration-300"
+    <div className="mx-auto w-full max-w-7xl">
+      <DataTable
+        columns={columns}
+        data={filteredFeedbacks}
+        keyField="feedbackid"
+        emptyIcon={MessageSquare}
+        emptyTitle="No feedback history"
+        emptySubtitle="Once you review your services, they will be listed here."
+        emptyAction={
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-8 rounded-lg"
           >
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="border-b border-gray-100 bg-gray-50/50 pb-4">
-                <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900">
-                  How was your service?
+            Share Your First Review
+          </Button>
+        }
+      />
+
+      {/* Feedback Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg shadow-2xl border-0 overflow-hidden bg-white">
+            <CardHeader className="border-b border-gray-100 pb-4 bg-white">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-black flex items-center gap-3">
+                  <div className="p-2 bg-red-50 text-red-600 rounded-lg">
+                    <MessageSquare size={20} />
+                  </div>
+                  Submit Feedback
                 </CardTitle>
-                <CardDescription className="text-sm text-gray-500">
-                  Select a recent service to rate your experience.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {completedBookings.length > 0 ? (
-                  <form onSubmit={handleSubmitFeedback} className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="booking"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          Select Service
-                        </Label>
-                        <select
-                          id="booking"
-                          value={selectedBookingId}
-                          onChange={(e) => setSelectedBookingId(e.target.value)}
-                          className="w-full h-11 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600 bg-white transition-all text-sm"
-                          required
-                        >
-                          <option value="">Select a service...</option>
-                          {completedBookings.map((b) => (
-                            <option key={b.bookingid} value={b.bookingid}>
-                              {formatDate(b.bookingdate)} —{" "}
-                              {b.services
-                                ?.map((s) => s.serviceName)
-                                .join(", ") || "Vehicle Service"}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="feedback"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          Your Experience
-                        </Label>
-                        <textarea
-                          id="feedback"
-                          value={feedbackText}
-                          onChange={(e) => setFeedbackText(e.target.value)}
-                          placeholder="What stood out during your visit?"
-                          rows={4}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600 resize-none transition-all placeholder:text-gray-400 text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                      <Button
-                        type="submit"
-                        disabled={submitting}
-                        className="bg-red-600 hover:bg-red-700 h-11 px-6 rounded-lg font-medium text-white shadow-sm flex items-center gap-2"
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {completedBookings.length > 0 ? (
+                <form onSubmit={handleSubmitFeedback} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="booking" className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Select Recent Service
+                      </Label>
+                      <select
+                        id="booking"
+                        value={selectedBookingId}
+                        onChange={(e) => setSelectedBookingId(e.target.value)}
+                        className="w-full h-11 px-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-sm font-bold"
+                        required
                       >
-                        {submitting ? (
-                          <Loader2 className="animate-spin" size={18} />
-                        ) : (
-                          <Send size={16} />
-                        )}
-                        Submit Review
-                      </Button>
+                        <option value="">Choose a service to review...</option>
+                        {completedBookings.map((b) => (
+                          <option key={b.bookingid} value={b.bookingid}>
+                            {formatDateShortSL(b.bookingdate)} — {b.vehbrand} {b.vehmodel}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  </form>
-                ) : (
-                  <div className="text-center py-12 space-y-3">
-                    <div className="p-3 bg-gray-50 rounded-full w-max mx-auto border border-gray-100">
-                      <CheckCircle size={32} className="text-gray-300" />
+
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Service Rating
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setRating(s)}
+                            className="p-1 transition-transform hover:scale-110"
+                          >
+                            <Star
+                              size={28}
+                              className={s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
+                            />
+                          </button>
+                        ))}
+                        <span className="ml-2 text-sm font-black text-gray-900">{rating}/5</span>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <h3 className="text-base font-semibold text-gray-900">
-                        All caught up!
-                      </h3>
-                      <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                        You've reviewed all your completed services.
-                      </p>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="feedback" className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                        Your Comments
+                      </Label>
+                      <textarea
+                        id="feedback"
+                        value={feedbackText}
+                        onChange={(e) => setFeedbackText(e.target.value)}
+                        placeholder="Tell us what you liked or what we can improve..."
+                        rows={4}
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm font-medium"
+                        required
+                      />
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent
-            value="previous"
-            className="animate-in fade-in duration-300"
-          >
-            {feedbacks.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                {feedbacks.map((f) => (
-                  <Card
-                    key={f.feedbackid}
-                    className="hover:shadow-md transition-all border-gray-200 flex flex-col overflow-hidden"
-                  >
-                    <CardHeader className="pb-3 pt-5 px-5 bg-white border-b border-gray-100">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-base font-bold text-gray-900">
-                            {f.vehbrand} {f.vehmodel}
-                          </CardTitle>
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            {f.vehplate}
-                          </p>
-                        </div>
-                        <div className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                          {formatDate(f.bookingdate)}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-5 flex-1 space-y-4">
-                      <div className="relative pl-3 border-l-2 border-gray-200">
-                        <p className="text-sm text-gray-700 italic">
-                          "{f.feedbackdescription}"
-                        </p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Services
-                        </p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {f.services?.join(", ") || "General Service"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed py-16 bg-transparent border-gray-200">
-                <CardContent className="flex flex-col items-center justify-center space-y-3 text-center">
-                  <div className="p-3 bg-gray-50 rounded-full border border-gray-100">
-                    <History size={32} className="text-gray-300" />
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsModalOpen(false)}
+                      className="flex-1 h-11 font-bold"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-[2] h-11 bg-red-600 hover:bg-red-700 font-black uppercase tracking-widest text-white shadow-md shadow-red-900/10"
+                    >
+                      {submitting ? (
+                        <Loader2 className="animate-spin mr-2" size={18} />
+                      ) : (
+                        <Send size={16} className="mr-2" />
+                      )}
+                      Submit Review
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="text-center py-8 space-y-4">
+                  <div className="p-4 bg-green-50 rounded-full w-max mx-auto">
+                    <CheckCircle size={40} className="text-green-500" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-gray-900">
-                      No history available
-                    </h3>
-                    <p className="text-gray-500 text-sm">
-                      Your past reviews will appear here.
+                    <h3 className="text-lg font-black text-gray-900">All Reviews Completed</h3>
+                    <p className="text-gray-500 text-sm max-w-[280px] mx-auto">
+                      You've already rated all your recent services. Check back after your next visit!
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    
+                  <Button
+                    onClick={() => setIsModalOpen(false)}
+                    variant="outline"
+                    className="w-full h-11 mt-4 font-bold"
+                  >
+                    Got it
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -1,9 +1,10 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS } from "../configs/env.js";
 
 async function addOwner() {
-  console.log("Creating initial owner account...");
+  logger.info("Creating initial owner account...");
 
   const ownerData = {
     first_name: "Ridma",
@@ -35,9 +36,9 @@ async function addOwner() {
     );
 
     if (existing.rowCount > 0) {
-      console.log(" Owner account already exists!");
-      console.log(`Email: ${ownerData.email}`);
-      console.log("No action taken.");
+      logger.info(" Owner account already exists!");
+      logger.info(`Email: ${ownerData.email}`);
+      logger.info("No action taken.");
       return;
     }
 
@@ -86,17 +87,17 @@ async function addOwner() {
       ],
     );
 
-    console.log("\n Owner account and dependent created successfully!");
-    console.log("=====================================");
-    console.log(`ID: ${owner.empid}`);
-    console.log(`Name: ${owner.first_name} ${owner.last_name}`);
-    console.log(`Email: ${owner.email}`);
-    console.log(`Type: ${owner.emptype}`);
-    console.log(`Password: ${ownerData.password}`);
-    console.log("=====================================\n");
-    console.log("Use these credentials to sign in and create other employees.");
+    logger.info("\n Owner account and dependent created successfully!");
+    logger.info("=====================================");
+    logger.info(`ID: ${owner.empid}`);
+    logger.info(`Name: ${owner.first_name} ${owner.last_name}`);
+    logger.info(`Email: ${owner.email}`);
+    logger.info(`Type: ${owner.emptype}`);
+    logger.info(`Password: ${ownerData.password}`);
+    logger.info("=====================================\n");
+    logger.info("Use these credentials to sign in and create other employees.");
   } catch (err) {
-    console.error(" Failed to create owner account:", err.message);
+    logger.error(" Failed to create owner account:", err.message);
     throw err;
   }
 }

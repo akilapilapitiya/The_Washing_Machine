@@ -13,9 +13,9 @@ export const getDailyIncomeReportService = async (startDate, endDate) => {
       COUNT(*) as transaction_count, 
       SUM(paymentamount) as total_income
     FROM payment
-    WHERE paymentdate >= $1::date AND paymentdate <= $2::date
-    GROUP BY paymentdate
-    ORDER BY paymentdate ASC
+    WHERE paymentdate::date >= $1::date AND paymentdate::date <= $2::date
+    GROUP BY 1
+    ORDER BY 1 ASC
     `,
     [startDate, endDate],
   );
@@ -44,10 +44,13 @@ export const getEmployeePerformanceReportService = async (
     LEFT JOIN employeeassigned ea ON e.empid = ea.empid
     LEFT JOIN booking b ON ea.bookingid = b.bookingid 
       AND b.bookingstatus IN ('completed', 'paid')
-      AND b.bookingdate >= $1::date 
-      AND b.bookingdate <= $2::date
+      AND (
+        (b.bookingdate::date >= $1::date AND b.bookingdate::date <= $2::date)
+        OR 
+        (b.updated_at::date >= $1::date AND b.updated_at::date <= $2::date AND b.bookingstatus IN ('completed', 'paid'))
+      )
     WHERE e.emptype != 'customer'
-    GROUP BY e.empid
+    GROUP BY e.empid, e.first_name, e.last_name, e.emptype
     ORDER BY total_revenue DESC
     `,
     [startDate, endDate],

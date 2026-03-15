@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS, OTP_EXPIRES_IN_MINUTES } from "../configs/env.js";
@@ -151,7 +152,7 @@ export const requestPasswordReset = async (email) => {
       data: { otp },
     });
   } catch (error) {
-    console.error("Failed to queue OTP email job:", error);
+    logger.error("Failed to queue OTP email job:", error);
   }
 
   return {

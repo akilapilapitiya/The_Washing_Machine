@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import { ForbiddenError, NotFoundError } from "../utils/errors.util.js";
 
@@ -29,7 +30,7 @@ export const getPricingRules = async (req, res, next) => {
 // PUT /api/settings/pricing
 export const updatePricingRules = async (req, res, next) => {
   try {
-    console.log("Update Pricing Body:", req.body);
+    logger.info("Update Pricing Body:", req.body);
     const { base_km, base_fee, additional_rate, buffer_minutes } = req.body;
 
     // Basic Validation

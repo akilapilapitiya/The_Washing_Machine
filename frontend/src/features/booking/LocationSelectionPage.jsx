@@ -1,262 +1,383 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Home, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  Home,
+  Navigation,
+  ArrowRight,
+  Loader2,
+  Building2,
+  ExternalLink,
+} from "lucide-react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+} from "@vis.gl/react-google-maps";
 import LocationPicker from "@/components/common/LocationPicker";
 import { getPricingRules } from "@/services/settings.service";
-import { toast } from "sonner";
-import BookingStepBar from "@/components/common/BookingStepBar";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
-const locations = [
-  {
-    id: "main-branch",
-    title: "The Washing Machine - Main Branch",
-    type: "branch",
-    address: "488, High level Road, Pannipitiya, Colombo, Sri Lanka",
-    lat: 6.8485,
-    lng: 79.9525,
-    icon: MapPin,
-    description:
-      "Visit our main service center with full facilities and expert staff.",
-  },
-  {
-    id: "home-visit",
-    title: "Home Visit",
-    type: "home",
-    address: "We come to you",
-    icon: Home,
-    description:
-      "Our team will visit your location for convenient on-site service.",
-  },
-];
+const HQ_COORDS = { lat: 6.8485, lng: 79.9525 };
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+const haversineKm = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 const LocationSelectionPage = () => {
-  const location = useLocation();
+  const routerLocation = useLocation();
   const navigate = useNavigate();
-  const [selectedLocationId, setSelectedLocationId] = useState(null);
-  const [mapLocation, setMapLocation] = useState(null);
-  const [pricingRules, setPricingRules] = useState(null);
-  const [loadingRules, setLoadingRules] = useState(true);
+  const { user } = useAuth();
 
-  const { vehicleId, serviceIds } = location.state || {};
+  const [selectedOptionId, setSelectedOptionId] = useState("main-branch");
+  const [customMapLocation, setCustomMapLocation] = useState(null);
+  const [myHomeLocation, setMyHomeLocation] = useState(null);
+  const [myHomeCalculating, setMyHomeCalculating] = useState(false);
+  const [pricingRules, setPricingRules] = useState(null);
+
+  const { vehicleId, serviceIds } = routerLocation.state || {};
+
+  const customerLat = user?.latitude != null ? parseFloat(user.latitude) : null;
+  const customerLng = user?.longitude != null ? parseFloat(user.longitude) : null;
+  const hasHomeLocation = customerLat !== null && customerLng !== null;
 
   useEffect(() => {
-    fetchPricing();
+    getPricingRules().then(setPricingRules).catch(() => {});
   }, []);
 
-  const fetchPricing = async () => {
+  const calculateCost = useCallback(
+    (distance) => {
+      if (!pricingRules || !distance) return 0;
+      const { base_km, base_fee, additional_rate } = pricingRules;
+      return distance <= base_km
+        ? base_fee
+        : base_fee + (distance - base_km) * additional_rate;
+    },
+    [pricingRules]
+  );
+
+  const calculateMyHomeDistance = useCallback(async () => {
+    if (!hasHomeLocation) return;
+    setMyHomeCalculating(true);
     try {
-      const rules = await getPricingRules();
-      setPricingRules(rules);
-    } catch (error) {
-      console.error("Failed to fetch pricing rules:", error);
-      // Fallback or just don't show estimated cost
+      const dist = haversineKm(HQ_COORDS.lat, HQ_COORDS.lng, customerLat, customerLng);
+      setMyHomeLocation({
+        lat: customerLat,
+        lng: customerLng,
+        distance: dist,
+        duration: Math.ceil(dist * 2),
+        isEstimate: true,
+      });
     } finally {
-      setLoadingRules(false);
+      setMyHomeCalculating(false);
     }
-  };
+  }, [hasHomeLocation, customerLat, customerLng]);
 
-  const calculateCost = (distance) => {
-    if (!pricingRules || !distance) return 0;
-    const { base_km, base_fee, additional_rate } = pricingRules;
+  useEffect(() => {
+    if (selectedOptionId === "my-home" && hasHomeLocation && !myHomeLocation) {
+      calculateMyHomeDistance();
+    }
+  }, [selectedOptionId, hasHomeLocation, myHomeLocation, calculateMyHomeDistance]);
 
-    if (distance <= base_km) return base_fee;
-    return base_fee + (distance - base_km) * additional_rate;
-  };
+  const travelCost = useMemo(() => {
+    if (selectedOptionId === "my-home" && myHomeLocation)
+      return calculateCost(myHomeLocation.distance);
+    if (selectedOptionId === "custom" && customMapLocation)
+      return calculateCost(customMapLocation.distance);
+    return 0;
+  }, [selectedOptionId, myHomeLocation, customMapLocation, calculateCost]);
 
-  const travelCost = mapLocation?.distance
-    ? calculateCost(mapLocation.distance)
-    : 0;
+  const isContinueEnabled = useMemo(() => {
+    if (selectedOptionId === "main-branch") return true;
+    if (selectedOptionId === "my-home") return hasHomeLocation && !!myHomeLocation;
+    if (selectedOptionId === "custom") return !!customMapLocation;
+    return false;
+  }, [selectedOptionId, hasHomeLocation, myHomeLocation, customMapLocation]);
 
-  const handleContinue = () => {
-    // Navigate to employee selection with all booking data
-    // If home-visit, pass the mapLocation (lat, lng, distance) AND travelCost
-    const locationData =
-      selectedLocationId === "home-visit"
-        ? {
-          id: "home-visit",
-          type: "home",
-          ...mapLocation, // { lat, lng, distance }
-          travelCost, // Pass calculated cost
-        }
-        : {
-          id: "main-branch",
-          type: "branch",
-          lat: null,
-          lng: null,
-          distance: 0,
-          travelCost: 0,
+  const handleContinue = useCallback(() => {
+    let locationData;
+    if (selectedOptionId === "main-branch") {
+      locationData = { id: "main-branch", type: "branch", lat: null, lng: null, distance: 0, travelCost: 0 };
+    } else if (selectedOptionId === "my-home") {
+      locationData = { id: "my-home", type: "home", ...myHomeLocation, travelCost };
+    } else {
+      locationData = { id: "custom", type: "home", ...customMapLocation, travelCost };
+    }
+    navigate("/dashboard/booking/employee", { state: { vehicleId, serviceIds, locationData } });
+  }, [selectedOptionId, myHomeLocation, customMapLocation, travelCost, vehicleId, serviceIds, navigate]);
+
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  const selectedOptionLabel = useMemo(() => {
+    if (selectedOptionId === "main-branch") return "Main Branch";
+    if (selectedOptionId === "my-home") return "My Home";
+    return "Custom Location";
+  }, [selectedOptionId]);
+
+  const locationOptions = useMemo(
+    () => [
+      {
+        id: "main-branch",
+        label: "Main Branch",
+        icon: Building2,
+        disabled: false,
+      },
+      {
+        id: "my-home",
+        label: "My Home",
+        icon: Home,
+        disabled: !hasHomeLocation,
+      },
+      {
+        id: "custom",
+        label: "Custom Location",
+        icon: Navigation,
+        disabled: false,
+      },
+    ],
+    [hasHomeLocation]
+  );
+
+  // ── Toolbar: location options + continue ────────────────────────────────
+  const toolbar = useMemo(() => {
+    return (
+      <BookingFlowToolbar
+        tabs={locationOptions}
+        activeTab={selectedOptionId}
+        onTabChange={setSelectedOptionId}
+        tabsAriaLabel="Location options"
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={!isContinueEnabled}
+            >
+              <span>Next</span>
+              <ArrowRight size={14} className="ml-2" />
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
+    );
+  }, [locationOptions, selectedOptionId, handleBack, handleContinue, isContinueEnabled]);
+
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select Service Location",
+    "Choose where you would like the service to take place.",
+    null,
+    toolbar
+  );
+
+  // ── Map state ────────────────────────────────────────────────────────────
+  const mapCenter =
+    selectedOptionId === "my-home" && hasHomeLocation
+      ? { lat: customerLat, lng: customerLng }
+      : HQ_COORDS;
+
+  const selectedLocationDetails = useMemo(() => {
+    if (selectedOptionId === "main-branch") {
+      return {
+        type: "Main Branch Service Center",
+        coordinates: "6.8485, 79.9525",
+        distance: "0.0 km",
+        duration: "—",
+        fee: "Rs. 0.00",
+        note: "No travel fee — you visit the branch.",
+      };
+    }
+
+    if (selectedOptionId === "my-home") {
+      if (!hasHomeLocation) {
+        return {
+          type: "My Home",
+          coordinates: "Not configured",
+          distance: "—",
+          duration: "—",
+          fee: "—",
+          note: "Home coordinates not found. Update your profile location.",
         };
+      }
 
-    navigate("/dashboard/booking/employee", {
-      state: { vehicleId, serviceIds, locationData },
-    });
-  };
+      if (myHomeCalculating || !myHomeLocation) {
+        return {
+          type: "My Home",
+          coordinates: `${customerLat?.toFixed(6)}, ${customerLng?.toFixed(6)}`,
+          distance: "Calculating...",
+          duration: "Calculating...",
+          fee: "Calculating...",
+          note: "Calculating route and travel estimate.",
+        };
+      }
 
-  const handleLocationSelect = (location) => {
-    setMapLocation(location);
-  };
+      return {
+        type: "My Home",
+        coordinates: `${customerLat?.toFixed(6)}, ${customerLng?.toFixed(6)}`,
+        distance: `${myHomeLocation.distance.toFixed(1)} km${myHomeLocation.isEstimate ? " (est.)" : ""}`,
+        duration: `${myHomeLocation.duration} min`,
+        fee: `Rs. ${travelCost.toFixed(2)}`,
+        note: "Estimated based on your saved home location.",
+      };
+    }
+
+    if (!customMapLocation) {
+      return {
+        type: "Custom Location",
+        coordinates: "Not selected",
+        distance: "—",
+        duration: "—",
+        fee: "—",
+        note: "Drop a pin on the map to select a custom location.",
+      };
+    }
+
+    return {
+      type: "Custom Location",
+      coordinates: `${customMapLocation.lat?.toFixed(6)}, ${customMapLocation.lng?.toFixed(6)}`,
+      distance: `${customMapLocation.distance?.toFixed(1)} km`,
+      duration: customMapLocation.duration ? `${customMapLocation.duration} min` : "—",
+      fee: `Rs. ${travelCost.toFixed(2)}`,
+      note: customMapLocation.address || "Custom map location selected.",
+    };
+  }, [
+    selectedOptionId,
+    hasHomeLocation,
+    myHomeCalculating,
+    myHomeLocation,
+    customMapLocation,
+    travelCost,
+    customerLat,
+    customerLng,
+  ]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={2} />
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Location
-          </h1>
-          <p className="text-gray-600">
-            Choose where you'd like to receive your service.
-          </p>
-        </div>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.45fr] gap-4 items-start">
 
-        <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
-          {locations.map((loc) => {
-            const Icon = loc.icon;
-            const isSelected = selectedLocationId === loc.id;
-
-            return (
-              <div key={loc.id} className="w-full">
-                <button
-                  type="button"
-                  onClick={() => setSelectedLocationId(loc.id)}
-                  className="w-full text-left transition-all duration-200 focus:outline-none"
-                  aria-pressed={isSelected}
-                >
-                  <Card
-                    className={cn(
-                      "h-full border transition-all duration-200 relative overflow-hidden active:scale-[0.98]",
-                      isSelected
-                        ? "border-red-600 shadow-md bg-red-50/10 ring-1 ring-red-600"
-                        : "border-gray-200 hover:border-red-300 hover:shadow-md bg-white shadow-sm",
-                    )}
+          <div>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
+                <p className="text-sm font-bold text-gray-900">Location Details</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr className="border-b border-gray-100">
+                      <td className="px-4 py-2.5 font-semibold text-gray-600 w-32">Type</td>
+                      <td className="px-4 py-2.5 text-gray-900">{selectedLocationDetails.type}</td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">Coordinates</td>
+                      <td className="px-4 py-2.5 text-gray-900 font-mono text-xs">{selectedLocationDetails.coordinates}</td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">Distance</td>
+                      <td className="px-4 py-2.5 text-gray-900">{selectedLocationDetails.distance}</td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">Travel Time</td>
+                      <td className="px-4 py-2.5 text-gray-900">{selectedLocationDetails.duration}</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">Est. Travel Fee</td>
+                      <td className="px-4 py-2.5 text-red-600 font-semibold">{selectedLocationDetails.fee}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-600">
+                {selectedLocationDetails.note}
+                {selectedOptionId === "my-home" && !hasHomeLocation && (
+                  <Link
+                    to="/dashboard/profile"
+                    className="inline-flex items-center gap-1.5 ml-2 text-red-600 hover:text-red-700 font-medium"
                   >
-                    <CardHeader className="pb-3 pt-6 px-6">
-                      <CardTitle className="flex items-start gap-4">
-                        <span
-                          className={cn(
-                            "flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full transition-colors",
-                            isSelected
-                              ? "bg-red-600 text-white"
-                              : "bg-red-50 text-red-600",
-                          )}
-                        >
-                          <Icon size={20} />
-                        </span>
-                        <div className="flex-1 space-y-1">
-                          <div
-                            className={cn(
-                              "text-lg font-bold transition-colors",
-                              isSelected ? "text-red-700" : "text-gray-900",
-                            )}
-                          >
-                            {loc.title}
-                          </div>
-                          <div className="text-sm font-medium text-gray-500">
-                            {loc.address}
-                          </div>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-6 pb-6 pt-0 pl-[5.5rem]">
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        {loc.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </button>
-
-                {/* Render Map if this is Home Visit and selected */}
-                {loc.id === "home-visit" && isSelected && (
-                  <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Card className="border-red-100 shadow-inner bg-red-50/30">
-                      <CardContent className="p-4">
-                        <div className="space-y-2 mb-3">
-                          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                            <MapPin size={16} className="text-red-600" />
-                            Pinpoint your location
-                          </h4>
-                          <p className="text-xs text-gray-500">
-                            Tap on the map to set your precise location for the
-                            service team.
-                          </p>
-                        </div>
-                        {loadingRules ? (
-                          <div className="flex justify-center p-4">
-                            <Loader2 className="animate-spin h-6 w-6 text-red-600" />
-                          </div>
-                        ) : (
-                          <>
-                            <LocationPicker
-                              onLocationSelect={handleLocationSelect}
-                            />
-
-                            {mapLocation && mapLocation.distance && (
-                              <div className="mt-4 p-3 bg-white rounded-lg border border-red-100 shadow-sm space-y-2">
-                                <div className="flex justify-between items-center text-sm">
-                                  <span className="text-gray-600 font-medium">
-                                    Travel Distance:
-                                  </span>
-                                  <span className="font-bold text-gray-900">
-                                    {mapLocation.distance.toFixed(1)} km
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                  <span className="text-gray-600 font-medium">
-                                    Est. Travel Time:
-                                  </span>
-                                  <span className="font-bold text-gray-900">
-                                    {mapLocation.duration} mins
-                                  </span>
-                                </div>
-
-                                <div className="border-t border-gray-100 pt-2 flex justify-between items-center">
-                                  <span className="text-gray-700 font-semibold">
-                                    Est. Travel Fee:
-                                  </span>
-                                  <span className="font-bold text-red-600 text-base">
-                                    Rs. {travelCost.toFixed(2)}
-                                  </span>
-                                </div>
-
-                                {mapLocation.address && (
-                                  <div className="mt-2 text-xs text-gray-500 border-t pt-2 border-gray-100">
-                                    {mapLocation.address}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                    <ExternalLink size={12} /> Update profile location
+                  </Link>
                 )}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          </div>
 
-        <div className="flex flex-wrap gap-3 items-center justify-end pt-6 border-t border-gray-100 bg-gray-50 sticky bottom-0 z-10 p-4 -mx-4 md:static md:p-0 md:bg-transparent md:border-t-0">
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="px-6 h-11 border-gray-300 font-medium hover:bg-white hover:text-red-600 flex-1 md:flex-none"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={handleContinue}
-            disabled={
-              !selectedLocationId ||
-              (selectedLocationId === "home-visit" && !mapLocation)
-            }
-            className="px-8 h-11 bg-red-600 hover:bg-red-700 text-white font-medium shadow-sm transition-all duration-200 disabled:opacity-50 flex-1 md:flex-none"
-          >
-            Continue
-          </Button>
+          <div className="min-h-0">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <p className="text-sm font-bold text-gray-900">Map Preview</p>
+                <span className="text-xs font-medium text-gray-500">{selectedOptionLabel}</span>
+              </div>
+              {selectedOptionId === "custom" ? (
+                <LocationPicker
+                  onLocationSelect={setCustomMapLocation}
+                  mapHeight="h-[460px] xl:h-[500px]"
+                />
+              ) : (
+                <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                  <div className="h-[460px] xl:h-[500px] relative">
+                    <Map
+                      key={selectedOptionId}
+                      defaultCenter={mapCenter}
+                      defaultZoom={selectedOptionId === "my-home" && hasHomeLocation ? 12 : 15}
+                      mapId="DEMO_MAP_ID"
+                      clickableIcons={false}
+                      gestureHandling="cooperative"
+                      className="w-full h-full"
+                    >
+                      {/* HQ marker */}
+                      <AdvancedMarker position={HQ_COORDS} title="The Washing Machine — Main Branch">
+                        <div className="relative flex flex-col items-center">
+                          <div className="bg-red-600 text-white px-2.5 py-1.5 rounded-lg shadow-lg border-2 border-white flex items-center gap-1.5">
+                            <Building2 size={13} fill="currentColor" />
+                            <span className="text-xs font-bold whitespace-nowrap">The Washing Machine</span>
+                          </div>
+                          <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-red-600 -mt-px" />
+                        </div>
+                      </AdvancedMarker>
+
+                      {/* Home marker */}
+                      {selectedOptionId === "my-home" && hasHomeLocation && (
+                        <AdvancedMarker position={{ lat: customerLat, lng: customerLng }} title="Your Home">
+                          <div className="relative flex flex-col items-center">
+                            <div className="bg-blue-600 text-white px-2.5 py-1.5 rounded-lg shadow-lg border-2 border-white flex items-center gap-1.5">
+                              <Home size={13} fill="currentColor" />
+                              <span className="text-xs font-bold">Your Home</span>
+                            </div>
+                            <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-blue-600 -mt-px" />
+                          </div>
+                        </AdvancedMarker>
+                      )}
+                    </Map>
+
+                    {/* Calculating overlay for my-home */}
+                    {selectedOptionId === "my-home" && myHomeCalculating && (
+                      <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
+                        <div className="bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+                          <Loader2 className="animate-spin text-red-600 h-5 w-5" />
+                          <span className="text-sm font-medium text-gray-700">Calculating route…</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </APIProvider>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import {
   requestCustomerPasswordReset,
   resetCustomerPassword,
@@ -33,7 +33,10 @@ const ForgotPasswordPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const handleUserTypeSelect = (type) => {
     setUserType(type);
@@ -43,6 +46,14 @@ const ForgotPasswordPage = () => {
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setErrors({});
+    if (!email) {
+      setErrors({email: "Email is required"});
+      return;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrors({email: "Please enter a valid email address"});
+      return;
+    }
     setLoading(true);
 
     try {
@@ -72,27 +83,33 @@ const ForgotPasswordPage = () => {
 
   const handleOtpSubmit = (e) => {
     e.preventDefault();
+    setErrors({});
     if (otp.length === 6) {
       setStep(3);
     } else {
-      setError("Please enter a valid 6-digit OTP");
+      setErrors({otp: "Please enter a valid 6-digit OTP"});
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    const newErrors = {};
 
-    // Validate password
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
+    if (!password) {
+      newErrors.password = "New password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Confirm password is required";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
 
@@ -207,16 +224,22 @@ const ForgotPasswordPage = () => {
             {step === 1 && (
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email" className="flex items-center gap-1">Email Address <span className="text-red-500">*</span></Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); if(errors.email) setErrors({...errors, email: ""}) }}
                     disabled={loading}
-                    required
+                    className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <AlertCircle size={14} />
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
                 <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                   <p className="text-sm text-gray-600">
@@ -234,17 +257,23 @@ const ForgotPasswordPage = () => {
             {step === 2 && (
               <form onSubmit={handleOtpSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="otp">One-Time Password (OTP)</Label>
+                  <Label htmlFor="otp" className="flex items-center gap-1">One-Time Password (OTP) <span className="text-red-500">*</span></Label>
                   <Input
                     id="otp"
                     type="text"
                     placeholder="000000"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "")); if(errors.otp) setErrors({...errors, otp: ""}); }}
                     maxLength="6"
                     disabled={loading}
-                    required
+                    className={errors.otp ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
+                  {errors.otp && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <AlertCircle size={14} />
+                      {errors.otp}
+                    </p>
+                  )}
                 </div>
                 <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                   <p className="text-sm text-gray-600">
@@ -263,44 +292,78 @@ const ForgotPasswordPage = () => {
             {step === 3 && (
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                    required
-                  />
+                  <Label htmlFor="new-password" className="flex items-center gap-1">New Password <span className="text-red-500">*</span></Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors({...errors, password: ""}); }}
+                      disabled={loading}
+                      className={`pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <AlertCircle size={14} />
+                      {errors.password}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={loading}
-                    required
-                  />
-                </div>
-
-                {password &&
-                  confirmPassword &&
-                  password !== confirmPassword && (
-                    <p className="text-sm text-red-600">
+                  <Label htmlFor="confirm-password" className="flex items-center gap-1">Confirm Password <span className="text-red-500">*</span></Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); if(errors.confirmPassword) setErrors({...errors, confirmPassword: ""}); }}
+                      disabled={loading}
+                      className={`pr-10 ${
+                            confirmPassword && password !== confirmPassword 
+                              ? "border-red-500 focus-visible:ring-red-500" 
+                              : confirmPassword && password === confirmPassword
+                              ? "border-green-500 focus-visible:ring-green-500"
+                              : errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
+                          }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <AlertCircle size={14} />
                       Passwords do not match
                     </p>
                   )}
-
-                {password && password.length < 8 && (
-                  <p className="text-sm text-orange-600">
-                    Password must be at least 8 characters
-                  </p>
-                )}
+                  {confirmPassword && password === confirmPassword && (
+                    <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
+                      <CheckCircle size={14} />
+                      Passwords match
+                    </p>
+                  )}
+                  {errors.confirmPassword && (!confirmPassword) && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <AlertCircle size={14} />
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
 
                 <Button
                   type="submit"

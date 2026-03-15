@@ -1,10 +1,11 @@
+import logger from '../configs/logger.js';
 const errorHandling = (err, req, res, next) => {
   let status = 500;
   let message = "Internal Server Error";
   let errors = null;
 
   // Log full error for debugging
-  console.error(`[${new Date().toISOString()}] Error:`, err);
+  logger.error(`[${new Date().toISOString()}] Error:`, err);
 
   // Custom application errors with explicit status codes
   if (err.statusCode) {

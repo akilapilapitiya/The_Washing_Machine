@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import axios from "axios";
 import { ValidationError } from "../utils/errors.util.js";
 
@@ -59,7 +60,7 @@ export const getTravelDetails = async (
         distanceKm = element.distance.value / 1000; // meters to km
         durationMins = Math.ceil(element.duration.value / 60); // seconds to mins
       } else {
-        console.warn("Google Maps API returned non-OK status:", data);
+        logger.warn("Google Maps API returned non-OK status:", data);
         // Fallback to Haversine
         distanceKm = calculateHaversineDistance(
           HQ_LAT,
@@ -71,12 +72,12 @@ export const getTravelDetails = async (
       }
     } else {
       // Fallback if no API key
-      console.warn("GOOGLE_MAPS_API_KEY not found, using Haversine.");
+      logger.warn("GOOGLE_MAPS_API_KEY not found, using Haversine.");
       distanceKm = calculateHaversineDistance(HQ_LAT, HQ_LNG, destLat, destLng);
       durationMins = Math.ceil(distanceKm * 2);
     }
   } catch (err) {
-    console.error("Error calculating travel details:", err.message);
+    logger.error("Error calculating travel details:", err.message);
     // Fallback on error
     distanceKm = calculateHaversineDistance(HQ_LAT, HQ_LNG, destLat, destLng);
     durationMins = Math.ceil(distanceKm * 2);

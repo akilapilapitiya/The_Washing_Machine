@@ -20,10 +20,10 @@ services:
   backend:
     image: ${CI_REGISTRY_IMAGE}/backend:latest
     container_name: washing_machine_backend
-    ports:
-      - "5500:5500"
     env_file:
       - .env.prod
+    volumes:
+      - backend_uploads:/app/uploads
     depends_on:
       - db
       - redis
@@ -40,6 +40,7 @@ services:
     volumes:
       - certbot_certs:/etc/letsencrypt
       - certbot_www:/var/www/certbot
+      - backend_uploads:/usr/share/nginx/html/uploads:ro
     networks:
       - wm-network
     restart: unless-stopped
@@ -61,5 +62,6 @@ networks:
 
 volumes:
   postgres_data:
+  backend_uploads:
   certbot_certs:
   certbot_www:

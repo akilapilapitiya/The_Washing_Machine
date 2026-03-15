@@ -1,138 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Calendar,
   Clock,
-  MapPin,
   Car,
   Wrench,
-  User,
   ChevronRight,
-  Loader2,
-  AlertCircle,
+  Hash,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { formatDateShortSL } from "@/lib/dateFormat";
 import { toast } from "sonner";
-
-const StatusBadge = ({ status }) => {
-  const styles = {
-    pending: "bg-gray-100 text-gray-800 border-gray-300",
-    inProgress: "bg-red-50 text-red-700 border-red-200",
-    completed: "bg-green-100 text-green-800 border-green-300",
-  };
-
-  const labels = {
-    pending: "Scheduled",
-    inProgress: "In Progress",
-    completed: "Completed",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[status] || styles.pending}`}
-    >
-      {labels[status] || status}
-    </span>
-  );
-};
-
-const ServiceCard = ({ service }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return formatDateShortSL(dateString);
-  };
-
-  return (
-    <Link to={`/dashboard/employee/service/${service.bookingid}`}>
-      <Card className="transition hover:shadow-md hover:border-red-200 cursor-pointer h-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <CardTitle className="text-lg font-bold">
-                  {service.vehbrand} {service.vehmodel}
-                </CardTitle>
-                <StatusBadge status={service.bookingstatus} />
-              </div>
-              <p className="text-xs font-mono text-gray-500">
-                ID: {service.bookingid}
-              </p>
-            </div>
-            <ChevronRight size={20} className="text-gray-400 mt-1" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-0">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User size={14} className="flex-shrink-0" />
-              <span className="font-medium text-gray-900">
-                {service.cusname || "Unknown Customer"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Car size={14} className="flex-shrink-0" />
-              <span className="font-mono text-gray-900">
-                {service.vehplate}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar size={14} className="flex-shrink-0" />
-              <span>{formatDate(service.bookingdate)}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Clock size={14} className="flex-shrink-0" />
-              <span>
-                {service.bookingstarttime} - {service.bookingendtime}
-              </span>
-            </div>
-          </div>
-          <div className="pt-2 border-t">
-            <div className="flex items-start gap-2 text-sm">
-              <Wrench size={14} className="text-gray-400 mt-1 flex-shrink-0" />
-              <div className="flex flex-wrap gap-1">
-                {service.services && service.services.length > 0 ? (
-                  service.services.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-gray-100 px-2 py-0.5 rounded text-[10px] text-gray-700"
-                    >
-                      {s.serviceName}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-gray-400">No services listed</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-};
+import { PageLoader } from "@/components/common/LoadingStates";
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import StatusBadge from "@/components/common/StatusBadge";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 
 const AssignedServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    const fetchAssignedServices = async () => {
+      try {
+        const data = await bookingService.getBookings();
+        setServices(data || []);
+      } catch (err) {
+        console.error("Failed to fetch assigned services:", err);
+        toast.error("Failed to synchronize task queue. Please re-authenticate.");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchAssignedServices();
   }, []);
-
-  const fetchAssignedServices = async () => {
-    try {
-      const data = await bookingService.getBookings();
-      setServices(data || []);
-    } catch (err) {
-      console.error("Failed to fetch assigned services:", err);
-      toast.error("Failed to synchronize task queue. Please re-authenticate.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const pendingServices = services.filter(
     (s) => s.bookingstatus === "pending" || s.bookingstatus === "scheduled",
@@ -144,117 +49,184 @@ const AssignedServicesPage = () => {
     (s) => s.bookingstatus === "completed",
   );
 
-  return (
-          <div className="container mx-auto px-4 py-12 space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
-            Employee Portal
-          </p>
-          <h1 className="text-3xl font-bold">Assigned Services</h1>
-          <p className="text-gray-600">
-            View and manage your assigned detailing missions.
-          </p>
+  const toolbarTabs = useMemo(
+    () => [
+      { id: "upcoming", label: `Upcoming (${pendingServices.length})` },
+      { id: "in-progress", label: `In Progress (${inProgressServices.length})` },
+      { id: "completed", label: `History (${completedServices.length})` },
+    ],
+    [pendingServices.length, inProgressServices.length, completedServices.length],
+  );
+
+  // Toolbar: tab switcher lives in PageSubHeader's second row
+  const toolbar = useMemo(
+    () => (
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabsAriaLabel="Assignment sections"
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search assignments..."
+        searchWidthClass="max-w-[280px]"
+      />
+    ),
+    [activeTab, toolbarTabs, searchQuery],
+  );
+
+  useSetPageHeader(
+    "Employee Portal",
+    "Assigned Services",
+    "View and manage your assigned detailing missions.",
+    null,
+    toolbar,
+  );
+
+  const columns = [
+    {
+      key: "bookingid",
+      label: "ID",
+      render: (row) => (
+        <div className="flex items-center gap-1.5 opacity-60">
+          <Hash size={12} />
+          <span className="font-mono text-xs font-bold">
+            {String(row.bookingid).padStart(4, "0")}
+          </span>
         </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 size={32} className="animate-spin text-red-600" />
-            <p className="text-gray-500 font-medium italic">
-              Loading assignment logs...
-            </p>
+      ),
+    },
+    {
+      key: "customer_vehicle",
+      label: "Customer & Vehicle",
+      render: (row) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-bold text-gray-900">
+            {row.cusname || "Unknown Customer"}
+          </span>
+          <span className="text-xs text-gray-500 font-medium">
+            {row.vehbrand} {row.vehmodel}
+          </span>
+          <span className="text-[10px] font-mono text-gray-400">
+            {row.vehplate}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "datetime",
+      label: "Date & Time",
+      render: (row) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
+            <Calendar size={12} className="text-red-600" />
+            {formatDateShortSL(row.bookingdate)}
           </div>
-        ) : (
-          <Tabs defaultValue="upcoming" className="space-y-6">
-            <TabsList className="bg-white border p-1 rounded-xl">
-              <TabsTrigger
-                value="upcoming"
-                className="px-6 rounded-lg data-[state=active]:bg-red-600 data-[state=active]:text-white"
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+            <Clock size={12} />
+            {row.bookingstarttime} – {row.bookingendtime}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "services",
+      label: "Services",
+      render: (row) => (
+        <div className="flex flex-wrap gap-1 max-w-[220px]">
+          {row.services && row.services.length > 0 ? (
+            row.services.map((s, idx) => (
+              <span
+                key={idx}
+                className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase"
               >
-                Upcoming ({pendingServices.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="in-progress"
-                className="px-6 rounded-lg data-[state=active]:bg-red-600 data-[state=active]:text-white"
-              >
-                In Progress ({inProgressServices.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="completed"
-                className="px-6 rounded-lg data-[state=active]:bg-red-600 data-[state=active]:text-white"
-              >
-                History ({completedServices.length})
-              </TabsTrigger>
-            </TabsList>
+                {s.serviceName || s.servicename}
+              </span>
+            ))
+          ) : (
+            <span className="text-[10px] text-gray-400 italic">—</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "bookingstatus",
+      label: "Status",
+      render: (row) => <StatusBadge status={row.bookingstatus} />,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <Link to={`/dashboard/employee/service/${row.bookingid}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-[11px] font-black uppercase text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 gap-1"
+          >
+            Open
+            <ChevronRight size={14} />
+          </Button>
+        </Link>
+      ),
+    },
+  ];
 
-            <TabsContent value="upcoming" className="space-y-4">
-              {pendingServices.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {pendingServices.map((service) => (
-                    <ServiceCard key={service.bookingid} service={service} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 py-20">
-                  <CardContent className="text-center space-y-4">
-                    <Calendar size={48} className="mx-auto text-gray-200" />
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-bold">Queue Empty</h3>
-                      <p className="text-gray-500">
-                        No scheduled missions assigned to you yet.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
+  if (loading) return <PageLoader message="Loading assignment logs..." />;
 
-            <TabsContent value="in-progress" className="space-y-4">
-              {inProgressServices.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {inProgressServices.map((service) => (
-                    <ServiceCard key={service.bookingid} service={service} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 py-20">
-                  <CardContent className="text-center space-y-4">
-                    <Wrench size={48} className="mx-auto text-gray-200" />
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-bold">No Active Jobs</h3>
-                      <p className="text-gray-500">
-                        Initialize a mission from the upcoming queue.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
+  const currentData =
+    activeTab === "upcoming"
+      ? pendingServices
+      : activeTab === "in-progress"
+        ? inProgressServices
+        : completedServices;
 
-            <TabsContent value="completed" className="space-y-4">
-              {completedServices.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {completedServices.map((service) => (
-                    <ServiceCard key={service.bookingid} service={service} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 py-20">
-                  <CardContent className="text-center space-y-4">
-                    <Calendar size={48} className="mx-auto text-gray-200" />
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-bold">No History</h3>
-                      <p className="text-gray-500">
-                        Completed missions will be archived here.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-          </Tabs>
-        )}
-      </div>
-    
+  const visibleData = currentData.filter((row) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return [
+      row.bookingid,
+      row.cusname,
+      row.vehbrand,
+      row.vehmodel,
+      row.vehplate,
+    ].some((value) => String(value || "").toLowerCase().includes(query));
+  });
+
+  const emptyConfigs = {
+    upcoming: {
+      icon: Calendar,
+      title: "Queue Empty",
+      subtitle: "No scheduled missions assigned to you yet.",
+    },
+    "in-progress": {
+      icon: Wrench,
+      title: "No Active Jobs",
+      subtitle: "Initialize a mission from the upcoming queue.",
+    },
+    completed: {
+      icon: Car,
+      title: "No History",
+      subtitle: "Completed missions will be archived here.",
+    },
+  };
+
+  const empty = emptyConfigs[activeTab];
+
+  return (
+    <div className="mx-auto w-full max-w-7xl">
+      <DataTable
+        columns={columns}
+        data={visibleData}
+        keyField="bookingid"
+        emptyIcon={empty.icon}
+        emptyTitle={empty.title}
+        emptySubtitle={searchQuery ? "No assignments match your search." : empty.subtitle}
+      />
+    </div>
   );
 };
 

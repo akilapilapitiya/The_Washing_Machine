@@ -9,6 +9,7 @@ import {
   Briefcase,
   Trash2,
   Plus,
+  X,
   Loader2,
   CheckCircle,
   FileText,
@@ -18,11 +19,16 @@ import * as employeeService from "@/services/employee.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
+import { intervalMatchesQuickDateRange } from "@/utils/quickDateRange";
 const LeaveManagementPage = () => {
   const [leaves, setLeaves] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [dateRange, setDateRange] = useState("all");
 
   const [formData, setFormData] = useState({
     empid: "",
@@ -44,7 +50,7 @@ const LeaveManagementPage = () => {
       ]);
       setLeaves(leavesData || []);
       setEmployees(empsData.filter((e) => e.emptype !== "owner") || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to synchronize attendance registry.");
     } finally {
       setLoading(false);
@@ -59,7 +65,7 @@ const LeaveManagementPage = () => {
       toast.success("Leave recorded successfully.");
       setFormData({ empid: "", startDate: "", endDate: "", reason: "" });
       fetchData();
-      setTimeout(() => setSuccess(null), 3000);
+      setShowAddForm(false);
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
@@ -70,38 +76,173 @@ const LeaveManagementPage = () => {
     }
   };
 
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
+    <Button
+      onClick={() => setShowAddForm(true)}
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+    >
+      <Plus size={16} className="mr-2" />
+      Record Leave
+    </Button>
+  ), []);
+
+  const filteredLeaves = leaves.filter((leave) => {
+    const matchesDate = intervalMatchesQuickDateRange(
+      leave.leavestartdate,
+      leave.leaveenddate,
+      dateRange,
+    );
+    return matchesDate;
+  });
+
+  const toolbarTabs = React.useMemo(
+    () => [
+      { id: "all", label: "All" },
+      { id: "today", label: "Today" },
+      { id: "month", label: "This Month" },
+    ],
+    [],
+  );
+
+  const toolbar = React.useMemo(
+    () => (
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={dateRange}
+        onTabChange={setDateRange}
+        tabsAriaLabel="Leave date filters"
+        meta={(
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Briefcase size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">Records</span>
+              <span className="text-xs font-semibold text-gray-900">{leaves.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CalendarIcon size={13} className="text-red-500" />
+              <span className="text-xs font-semibold text-gray-500">Today</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {leaves.filter((leave) =>
+                  intervalMatchesQuickDateRange(
+                    leave.leavestartdate,
+                    leave.leaveenddate,
+                    "today",
+                  ),
+                ).length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CalendarIcon size={13} className="text-orange-500" />
+              <span className="text-xs font-semibold text-gray-500">This Month</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {leaves.filter((leave) =>
+                  intervalMatchesQuickDateRange(
+                    leave.leavestartdate,
+                    leave.leaveenddate,
+                    "month",
+                  ),
+                ).length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <User size={13} className="text-blue-500" />
+              <span className="text-xs font-semibold text-gray-500">Staff Affected</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {new Set(leaves.map((leave) => leave.empid)).size}
+              </span>
+            </div>
+          </div>
+        )}
+      />
+    ),
+    [dateRange, leaves, toolbarTabs],
+  );
+
   useSetPageHeader(
     "Human Resources",
     "Staff Attendance",
     "Manage operative availability and leave records.",
+    headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading attendance records..." />;
 
-  return (
-          <div className="mx-auto w-full max-w-7xl space-y-6">
+  const columns = [
+    {
+      key: "employee",
+      label: "Employee",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+            <User size={18} />
+          </div>
+          <span className="font-medium text-gray-900">{row.empname}</span>
+        </div>
+      ),
+    },
+    {
+      key: "period",
+      label: "Leave Period",
+      render: (row) => (
+        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+          <CalendarIcon size={12} className="text-red-500" />
+          <span>{new Date(row.leavestartdate).toLocaleDateString()}</span>
+          <span>→</span>
+          <span>{new Date(row.leaveenddate).toLocaleDateString()}</span>
+        </div>
+      ),
+    },
+    {
+      key: "reason",
+      label: "Reason",
+      render: (row) => (
+        <p className="text-sm text-gray-700 line-clamp-1">{row.leavereason}</p>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: () => (
+        <div className="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-medium w-fit">
+          On Leave
+        </div>
+      ),
+    },
+  ];
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Create Leave Form */}
-          <Card className="lg:col-span-1 shadow-sm h-fit">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Plus size={18} />
-                Record Time Off
-              </CardTitle>
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      {/* Create Leave Form Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md shadow-xl">
+            <CardHeader className="bg-white border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <Plus size={20} />
+                  Record Time Off
+                </CardTitle>
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <form onSubmit={handleCreateLeave} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>
-                    Employee
-                  </Label>
+                  <Label>Employee</Label>
                   <select
                     className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={formData.empid}
                     onChange={(e) =>
                       setFormData({ ...formData, empid: e.target.value })
                     }
+                    required
                   >
                     <option value="" disabled>
                       Select Staff Member
@@ -116,9 +257,7 @@ const LeaveManagementPage = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>
-                      Start Date
-                    </Label>
+                    <Label>Start Date</Label>
                     <Input
                       type="date"
                       className="border-gray-200"
@@ -130,9 +269,7 @@ const LeaveManagementPage = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>
-                      End Date
-                    </Label>
+                    <Label>End Date</Label>
                     <Input
                       type="date"
                       className="border-gray-200"
@@ -146,9 +283,7 @@ const LeaveManagementPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>
-                    Reason
-                  </Label>
+                  <Label>Reason</Label>
                   <Input
                     placeholder="Reason for absence..."
                     className="border-gray-200"
@@ -160,93 +295,43 @@ const LeaveManagementPage = () => {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {submitting ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    "Record Leave"
-                  )}
-                </Button>
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowAddForm(false)}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {submitting ? (
+                      <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                      "Record Leave"
+                    )}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
-
-          {/* Leaves List */}
-          <Card className="lg:col-span-2 shadow-sm border-gray-100">
-            <CardHeader className="pb-4 border-b">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText size={18} className="text-gray-400" />
-                Active Leave Records
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {leaves.length > 0 ? (
-                <div className="divide-y divide-gray-100">
-                  {leaves.map((leave) => (
-                    <div
-                      key={leave.leaveid}
-                      className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                          <User size={20} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {leave.empname}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                            <CalendarIcon size={12} className="text-red-500" />
-                            <span>
-                              {new Date(
-                                leave.leavestartdate,
-                              ).toLocaleDateString()}
-                            </span>
-                            <span>→</span>
-                            <span>
-                              {new Date(
-                                leave.leaveenddate,
-                              ).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right flex items-center gap-6">
-                        <div className="hidden sm:block text-left">
-                          <p className="text-xs font-medium text-gray-500 mb-1">
-                            Reason
-                          </p>
-                          <p className="text-sm text-gray-700">
-                            {leave.leavereason}
-                          </p>
-                        </div>
-                        <div className="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-medium">
-                          On Leave
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-12 text-center space-y-3">
-                  <Briefcase size={48} className="mx-auto text-gray-200" />
-                  <h3 className="font-medium text-lg text-gray-900">
-                    No Active Leaves
-                  </h3>
-                  <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                    No staff members are currently on leave. Good to go!
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
-      </div>
-    
+      )}
+
+      <DataTable
+        columns={columns}
+        data={filteredLeaves}
+        keyField="leaveid"
+        emptyIcon={Briefcase}
+        emptyTitle="No Active Leaves"
+        emptySubtitle="No staff members are currently on leave. Operations are running at full capacity."
+      />
+    </div>
   );
 };
 

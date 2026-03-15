@@ -1,175 +1,121 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
   Clock,
-  Car,
-  User,
-  ChevronRight,
-  Loader2,
   Briefcase,
   Wrench,
   CheckCircle,
 } from "lucide-react";
+import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
-
+import DataTable from "@/components/common/DataTable";
+import StatusBadge from "@/components/common/StatusBadge";
+import PageToolbar from "@/components/common/PageToolbar";
 import { toast } from "sonner";
-const StatusBadge = ({ status }) => {
-  const styles = {
-    pending: "bg-amber-50 text-amber-700 border-amber-200",
-    scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-    inProgress: "bg-purple-50 text-purple-700 border-purple-200",
-    completed: "bg-green-50 text-green-700 border-green-200",
-    paid: "bg-green-50 text-green-700 border-green-200",
-  };
-
-  const labels = {
-    pending: "Pending",
-    scheduled: "Scheduled",
-    inProgress: "In Progress",
-    completed: "Completed",
-    paid: "Paid",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${styles[status] || styles.pending}`}
-    >
-      {labels[status] || status}
-    </span>
-  );
-};
-
-const ServiceCard = ({ service }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  return (
-    <Link to={`/dashboard/employee/service/${service.bookingid}`}>
-      <Card className="hover:shadow-md transition-all border-gray-200 h-full group relative overflow-hidden">
-        {/* Decorative Color Ribbon */}
-        {service.vehcolor && (
-          <div
-            className="absolute top-0 right-0 w-10 h-10 pointer-events-none z-10"
-            style={{
-              background: `linear-gradient(225deg, ${service.vehcolor} 50%, transparent 50%)`,
-              opacity: 0.8,
-            }}
-          />
-        )}
-        <CardHeader className="pb-3 border-b border-gray-100 bg-white pt-5 px-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-base font-bold text-gray-900 group-hover:text-red-600 transition-colors">
-                {service.vehbrand} {service.vehmodel}
-              </CardTitle>
-              <p className="text-sm text-gray-500 font-medium mt-1">
-                {service.vehplate}
-              </p>
-            </div>
-            <StatusBadge status={service.bookingstatus} />
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4 px-5 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <User size={14} className="text-gray-400" />
-              <span className="font-medium text-gray-700">
-                {service.cusname || "Unregistered Customer"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar size={14} className="text-gray-400" />
-              <span className="text-gray-600">
-                {formatDate(service.bookingdate)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock size={14} className="text-gray-400" />
-              <span className="text-gray-600">
-                {service.bookingstarttime} - {service.bookingendtime}
-              </span>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-dashed border-gray-100">
-            <div className="space-y-3">
-              <div className="flex items-start gap-2">
-                <Wrench size={14} className="text-gray-400 mt-0.5" />
-                <div className="flex flex-wrap gap-1.5">
-                  {service.services && service.services.length > 0 ? (
-                    service.services.map((s, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-gray-50 px-2 py-0.5 rounded text-[11px] font-medium text-gray-600 border border-gray-100"
-                      >
-                        {s.serviceName}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 text-xs">
-                      Standard Service
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {service.assigned_empname && (
-                <div className="flex items-center gap-2 text-xs font-medium text-gray-600 bg-gray-50 p-2 rounded-lg">
-                  <Briefcase size={12} className="text-gray-400" />
-                  <span>Assigned: {service.assigned_empname}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-};
 
 const AllBookingsPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
   const { isOwner, isCashier } = useAuth();
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
-
-  const fetchServices = async () => {
+  const fetchServices = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await bookingService.getBookings();
-      setServices(data || []);
+      const searchId = searchParams.get("search");
+
+      if (searchId) {
+        const foundBooking = data.find(b => String(b.bookingid) === searchId);
+        if (foundBooking) {
+          setServices([foundBooking]); // Show only the targeted booking
+          setSearchQuery(searchId); // Pre-fill search query with the ID
+        } else {
+          setServices([]); // No booking found for the ID
+          toast.info(`No booking found with ID: ${searchId}`);
+        }
+      } else {
+        setServices(data || []);
+      }
     } catch (err) {
       console.error("Failed to fetch services:", err);
       toast.error("Unable to load bookings.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
-  const pendingServices = services.filter(
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+
+  const filteredServices = services.filter((s) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      (s.cusname?.toLowerCase() || "").includes(query) ||
+      (s.assigned_empname?.toLowerCase() || "").includes(query) ||
+      (s.vehplate?.toLowerCase() || "").includes(query) ||
+      String(s.bookingid).includes(query)
+    );
+  });
+
+  const pendingServices = filteredServices.filter(
     (s) => s.bookingstatus === "pending" || s.bookingstatus === "scheduled",
   );
-  const inProgressServices = services.filter(
+  const inProgressServices = filteredServices.filter(
     (s) => s.bookingstatus === "inProgress",
   );
-  const completedServices = services.filter(
+  const completedServices = filteredServices.filter(
     (s) => s.bookingstatus === "completed" || s.bookingstatus === "paid",
+  );
+
+  const [activeTab, setActiveTab] = useState("upcoming");
+
+  const toolbar = useMemo(
+    () => (
+      <PageToolbar
+        leftSlot={
+          <div className="flex items-center gap-1 bg-gray-100/50 border border-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab("upcoming")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Upcoming ({pendingServices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("in-progress")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "in-progress" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Active ({inProgressServices.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
+                activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Completed ({completedServices.length})
+            </button>
+          </div>
+        }
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search bookings..."
+        searchWidthClass="sm:w-64"
+      />
+    ),
+    [activeTab, pendingServices.length, inProgressServices.length, completedServices.length, searchQuery]
   );
 
   useSetPageHeader(
@@ -177,103 +123,144 @@ const AllBookingsPage = () => {
     isOwner || isCashier ? "Service Queue" : "My Assignments",
     isOwner || isCashier
       ? "Manage all bookings, view status, and assign tasks."
-      : "View your upcoming and active service tasks."
+      : "View your upcoming and active service tasks.",
+    null,
+    toolbar
   );
+
+  const columns = [
+    {
+      key: "id",
+      label: "ID",
+      render: (row) => (
+        <span className="font-mono font-bold text-gray-500 text-sm">
+          #{String(row.bookingid).padStart(4, "0")}
+        </span>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer & Vehicle",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900 text-sm">{row.cusname || "Unregistered"}</span>
+          <span className="text-xs text-gray-500 font-medium mt-0.5">
+            {row.vehbrand} {row.vehmodel} • {row.vehplate}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "datetime",
+      label: "Date & Time",
+      render: (row) => (
+        <div className="flex flex-col text-sm font-medium text-gray-600">
+          <span>{row.bookingdate ? format(new Date(row.bookingdate), "MMM d, yyyy") : "N/A"}</span>
+          <span className="text-xs text-gray-400 mt-0.5">
+            {row.bookingstarttime} - {row.bookingendtime}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "employee",
+      label: "Employee",
+      render: (row) => (
+        <span className="text-sm font-semibold text-gray-700">
+          {row.assigned_empname || <span className="text-gray-300 italic font-normal">Unassigned</span>}
+        </span>
+      ),
+    },
+    {
+      key: "services",
+      label: "Services",
+      render: (row) => (
+        <div className="flex flex-wrap gap-1 max-w-[200px]">
+          {row.services && row.services.length > 0 ? (
+            row.services.map((svc, idx) => (
+              <span
+                key={idx}
+                className="bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded font-bold border border-blue-100 uppercase whitespace-nowrap"
+              >
+                {svc.serviceName || svc.servicename}
+              </span>
+            ))
+          ) : (
+            <span className="text-[10px] text-gray-400 font-semibold">Standard</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => <StatusBadge status={row.bookingstatus} />,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => {
+        const showActions = isOwner || isCashier;
+        return (
+          <div className="flex justify-end gap-2">
+            {showActions && (row.bookingstatus === "pending" || row.bookingstatus === "scheduled") && (
+              <Link to={`/dashboard/admin/bookings?search=${row.bookingid}`}>
+                <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200">
+                  Reassign
+                </Button>
+              </Link>
+            )}
+            {showActions && row.bookingstatus === "completed" && (
+              <Link to={`/dashboard/employee/payments?bookingId=${row.bookingid}`}>
+                <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-black uppercase border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200">
+                  Pay
+                </Button>
+              </Link>
+            )}
+            <Link to={`/dashboard/employee/service/${row.bookingid}`}>
+              <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200">
+                View
+              </Button>
+            </Link>
+          </div>
+        );
+      },
+    },
+  ];
 
   if (loading) return <PageLoader message="Loading bookings..." />;
 
+  const getActiveData = () => {
+    switch (activeTab) {
+      case "in-progress": return inProgressServices;
+      case "completed": return completedServices;
+      default: return pendingServices;
+    }
+  };
+
+  const getEmptyProps = () => {
+    switch (activeTab) {
+      case "in-progress": return { icon: Wrench, title: "No active jobs", subtitle: "There are no services currently in progress." };
+      case "completed": return { icon: CheckCircle, title: "No completed services", subtitle: "Completed service records will appear here." };
+      default: return { icon: Calendar, title: "No upcoming bookings", subtitle: "Check back later for new assignments." };
+    }
+  };
+
+  const emptyProps = getEmptyProps();
+
   return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        <Tabs defaultValue="upcoming" className="space-y-8">
-          <TabsList className="bg-white border p-1 rounded-lg shadow-sm">
-            <TabsTrigger
-              value="upcoming"
-              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-            >
-              Upcoming ({pendingServices.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="in-progress"
-              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-            >
-              Active ({inProgressServices.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="completed"
-              className="rounded-md data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all font-medium text-sm px-4 py-2"
-            >
-              Completed ({completedServices.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent
-            value="upcoming"
-            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {pendingServices.length > 0 ? (
-              pendingServices.map((service) => (
-                <ServiceCard key={service.bookingid} service={service} />
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                <Calendar size={32} className="mx-auto text-gray-300 mb-2" />
-                <h3 className="font-semibold text-gray-900">
-                  No upcoming bookings
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  Checks back later for new assignments.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent
-            value="in-progress"
-            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {inProgressServices.length > 0 ? (
-              inProgressServices.map((service) => (
-                <ServiceCard key={service.bookingid} service={service} />
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                <Wrench size={32} className="mx-auto text-gray-300 mb-2" />
-                <h3 className="font-semibold text-gray-900">
-                  No active jobs
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  There are no services currently in progress.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent
-            value="completed"
-            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {completedServices.length > 0 ? (
-              completedServices.map((service) => (
-                <ServiceCard key={service.bookingid} service={service} />
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                <CheckCircle
-                  size={32}
-                  className="mx-auto text-gray-300 mb-2"
-                />
-                <h3 className="font-semibold text-gray-900">
-                  No completed services
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  Completed service records will appear here.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <DataTable
+        columns={columns}
+        data={getActiveData()}
+        keyField="bookingid"
+        emptyIcon={emptyProps.icon}
+        emptyTitle={emptyProps.title}
+        emptySubtitle={searchQuery ? "No bookings match your search." : emptyProps.subtitle}
+      />
+    </div>
   );
 };
 

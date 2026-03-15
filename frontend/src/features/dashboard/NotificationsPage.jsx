@@ -12,33 +12,71 @@ import {
   Calendar,
   CreditCard,
   ShieldAlert,
+  Hash,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
-import { Button } from "@/components/ui/button"; // Assuming Button component is from shadcn/ui
+import { Button } from "@/components/ui/button";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 
 const NotificationsPage = () => {
   const { notifications, markAsRead, markAllAsRead, loading } = useNotification();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  useSetPageHeader(
-    "Updates",
-    "Notifications",
-    "Stay tuned with your latest bookings and system alerts.",
+  const filteredNotifications = notifications.filter((notif) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return [
+      notif.title,
+      notif.message,
+      notif.type,
+      notif.booking_id ? `booking ${notif.booking_id}` : "",
+      notif.is_read ? "read" : "unread",
+    ].some((value) => String(value || "").toLowerCase().includes(query));
+  });
+
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       variant="outline"
-      size="sm"
-      className="hidden sm:flex text-gray-500 hover:text-red-600 bg-white"
+      className="hidden sm:flex h-10 px-5 text-sm font-medium text-gray-600 hover:text-red-600 bg-white border-gray-300"
       onClick={markAllAsRead}
       disabled={unreadCount === 0}
     >
       <CheckCircle size={14} className="mr-2" />
       Mark all read
-    </Button>,
+    </Button>
+  ), [unreadCount, markAllAsRead]);
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Bell, label: "Total", value: notifications.length, iconClassName: "text-blue-500" },
+          { icon: AlertTriangle, label: "Unread", value: unreadCount, iconClassName: "text-red-500" },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search notifications..."
+      />
+    ),
+    [notifications.length, unreadCount, searchQuery],
+  );
+
+  useSetPageHeader(
+    "Updates",
+    "Notifications",
+    "Stay tuned with your latest bookings and system alerts.",
+    headerAction,
+    toolbar,
   );
 
   const handleNotificationClick = async (notification) => {
@@ -88,80 +126,90 @@ const NotificationsPage = () => {
     }
   };
 
-  if (loading) return <PageLoader message="Loading notifications..." />;
-
-  return (
-          <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {notifications.length === 0 ? (
-            <div className="p-12 text-center flex flex-col items-center justify-center">
-              <div className="h-16 w-16 text-gray-200 mb-4 bg-gray-50 rounded-full flex items-center justify-center">
-                <Bell size={32} />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900">
-                No notifications yet
-              </h3>
-              <p className="text-gray-500 mt-1 max-w-sm mx-auto">
-                We'll notify you when there are updates to your bookings,
-                payments, or other important events.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer group ${!notification.is_read ? "bg-red-50/20" : ""
-                    }`}
-                >
-                  <div className="flex gap-4">
-                    <div
-                      className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center ${getBgColor(notification.type)}`}
-                    >
-                      {getIcon(notification.type)}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="space-y-1">
-                          <p
-                            className={`text-base text-gray-900 ${!notification.is_read ? "font-semibold" : "font-medium"}`}
-                          >
-                            {notification.title}
-                          </p>
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {notification.message}
-                          </p>
-                        </div>
-                        <span className="text-xs text-gray-400 whitespace-nowrap font-medium flex-shrink-0">
-                          {formatDistanceToNow(
-                            new Date(notification.created_at),
-                            { addSuffix: true },
-                          )}
-                        </span>
-                      </div>
-
-                      {/* Action Hint */}
-                      {notification.booking_id && (
-                        <div className="mt-3 flex items-center text-xs font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                          View details &rarr;
-                        </div>
-                      )}
-                    </div>
-
-                    {!notification.is_read && (
-                      <div className="flex-shrink-0 self-center">
-                        <div className="h-2.5 w-2.5 rounded-full bg-red-500 ring-4 ring-white shadow-sm"></div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+  const columns = [
+    {
+      key: "type",
+      label: "Type",
+      render: (row) => (
+        <div className="flex items-center justify-center w-10">
+          <div
+            className={`h-8 w-8 rounded-full flex items-center justify-center ${getBgColor(
+              row.type,
+            )}`}
+          >
+            {getIcon(row.type)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "details",
+      label: "Details",
+      render: (row) => (
+        <div className="flex flex-col max-w-lg cursor-pointer" onClick={() => handleNotificationClick(row)}>
+          <span
+            className={`text-sm text-gray-900 ${
+              !row.is_read ? "font-bold" : "font-medium"
+            }`}
+          >
+            {row.title}
+          </span>
+          <span className="text-xs text-gray-500 truncate leading-relaxed">
+            {row.message}
+          </span>
+          {row.booking_id && (
+            <div className="mt-1 flex items-center text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+              Booking #{String(row.booking_id).padStart(4, "0")} <ChevronRight size={10} className="ml-0.5" />
             </div>
           )}
         </div>
-      </div>
+      ),
+    },
+    {
+      key: "time",
+      label: "Time",
+      render: (row) => (
+        <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
+          {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex justify-end gap-2 pr-2">
+          {!row.is_read ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 uppercase tracking-wide border border-red-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"></span>
+              New
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 uppercase tracking-wide border border-gray-200">
+              <Check size={10} />
+              Read
+            </span>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  if (loading) return <PageLoader message="Loading notifications..." />;
+
+  return (
+    <div className="mx-auto w-full max-w-7xl">
+      <DataTable
+        columns={columns}
+        data={filteredNotifications}
+        keyField="id"
+        emptyIcon={Bell}
+        emptyTitle="No notifications yet"
+        emptySubtitle="We'll notify you when there are updates to your bookings, payments, or other important events."
+      />
+    </div>
     
   );
 };

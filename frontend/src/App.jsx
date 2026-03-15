@@ -1,4 +1,5 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -8,48 +9,49 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
 import AuthLayout from "./components/layout/AuthLayout";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import Booking from "./pages/Booking";
-import Vehicles from "./pages/Vehicles";
-import Services from "./pages/Services";
-import Signup from "./pages/Signup";
-import CustomerLogin from "./pages/CustomerLogin";
-import EmployeeLogin from "./pages/EmployeeLogin";
-import ForgotPassword from "./pages/ForgotPassword";
-import NotFound from "./pages/NotFound";
-import ServiceSelectionPage from "./features/booking/ServiceSelectionPage";
-import LocationSelectionPage from "./features/booking/LocationSelectionPage";
-import EmployeeSelectionPage from "./features/booking/EmployeeSelectionPage";
-import DateTimeSelectionPage from "./features/booking/DateTimeSelectionPage";
-import BookingConfirmationPage from "./features/booking/BookingConfirmationPage";
-import ScheduledBookingsPage from "./features/dashboard/ScheduledBookingsPage";
-import ServiceHistoryPage from "./features/dashboard/ServiceHistoryPage";
-import PaymentHistoryPage from "./features/dashboard/PaymentHistoryPage";
-import Feedback from "./pages/Feedback";
-import ChangePasswordPage from "./features/auth/ChangePasswordPage";
-import AllBookingsPage from "./features/admin/AllBookingsPage";
-import ServiceDetailsPage from "./features/employee/ServiceDetailsPage";
-import PaymentManagementPage from "./features/employee/PaymentManagementPage";
-import EmployeeManagementPage from "./features/admin/EmployeeManagementPage";
-import ManageServicesPage from "./features/admin/ManageServicesPage";
-import ManageCustomersPage from "./features/admin/ManageCustomersPage";
-import ViewFeedbackPage from "./features/admin/ViewFeedbackPage";
-import LeaveManagementPage from "./features/admin/LeaveManagementPage";
-import MyLeavesPage from "./features/employee/MyLeavesPage";
-import ManageVehicleCatalogPage from "./features/admin/ManageVehicleCatalogPage";
-import ManageIncidentsPage from "./features/admin/ManageIncidentsPage";
-import DailyIncomeReportPage from "./features/admin/DailyIncomeReportPage";
-import EmployeePerformanceReportPage from "./features/admin/EmployeePerformanceReportPage";
-import BookingReviewPage from "./features/admin/BookingReviewPage";
-import EmployeeIncidentPage from "./features/employee/EmployeeIncidentPage";
-import ManageAdvertisementsPage from "./features/admin/ManageAdvertisementsPage";
-import ProfilePage from "./features/dashboard/ProfilePage";
-import BannedPage from "./pages/BannedPage";
+const Home = lazy(() => import("./pages/Home"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Booking = lazy(() => import("./pages/Booking"));
+const Vehicles = lazy(() => import("./pages/Vehicles"));
+const Services = lazy(() => import("./pages/Services"));
+const Signup = lazy(() => import("./pages/Signup"));
+const CustomerLogin = lazy(() => import("./pages/CustomerLogin"));
+const EmployeeLogin = lazy(() => import("./pages/EmployeeLogin"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ServiceSelectionPage = lazy(() => import("./features/booking/ServiceSelectionPage"));
+const AddonsSelectionPage = lazy(() => import("./features/booking/AddonsSelectionPage"));
+const LocationSelectionPage = lazy(() => import("./features/booking/LocationSelectionPage"));
+const EmployeeSelectionPage = lazy(() => import("./features/booking/EmployeeSelectionPage"));
+const DateTimeSelectionPage = lazy(() => import("./features/booking/DateTimeSelectionPage"));
+const BookingConfirmationPage = lazy(() => import("./features/booking/BookingConfirmationPage"));
+const ScheduledBookingsPage = lazy(() => import("./features/dashboard/ScheduledBookingsPage"));
+const ServiceHistoryPage = lazy(() => import("./features/dashboard/ServiceHistoryPage"));
+const PaymentHistoryPage = lazy(() => import("./features/dashboard/PaymentHistoryPage"));
+const Feedback = lazy(() => import("./pages/Feedback"));
+const ChangePasswordPage = lazy(() => import("./features/auth/ChangePasswordPage"));
+const AllBookingsPage = lazy(() => import("./features/admin/AllBookingsPage"));
+const ServiceDetailsPage = lazy(() => import("./features/employee/ServiceDetailsPage"));
+const PaymentManagementPage = lazy(() => import("./features/employee/PaymentManagementPage"));
+const EmployeeManagementPage = lazy(() => import("./features/admin/EmployeeManagementPage"));
+const ManageServicesPage = lazy(() => import("./features/admin/ManageServicesPage"));
+const ManageCustomersPage = lazy(() => import("./features/admin/ManageCustomersPage"));
+const ViewFeedbackPage = lazy(() => import("./features/admin/ViewFeedbackPage"));
+const LeaveManagementPage = lazy(() => import("./features/admin/LeaveManagementPage"));
+const MyLeavesPage = lazy(() => import("./features/employee/MyLeavesPage"));
+const ManageVehicleCatalogPage = lazy(() => import("./features/admin/ManageVehicleCatalogPage"));
+const ManageIncidentsPage = lazy(() => import("./features/admin/ManageIncidentsPage"));
+const DailyIncomeReportPage = lazy(() => import("./features/admin/DailyIncomeReportPage"));
+const EmployeePerformanceReportPage = lazy(() => import("./features/admin/EmployeePerformanceReportPage"));
+const BookingReviewPage = lazy(() => import("./features/admin/BookingReviewPage"));
+const EmployeeIncidentPage = lazy(() => import("./features/employee/EmployeeIncidentPage"));
+const ManageAdvertisementsPage = lazy(() => import("./features/admin/ManageAdvertisementsPage"));
+const ProfilePage = lazy(() => import("./features/dashboard/ProfilePage"));
+const BannedPage = lazy(() => import("./pages/BannedPage"));
 import DashboardLayout from "./components/layout/DashboardLayout";
-import NotificationsPage from "./features/dashboard/NotificationsPage";
-import OwnerPricingPage from "./features/dashboard/OwnerPricingPage";
-import SystemHolidaysPage from "./features/admin/SystemHolidaysPage";
+const NotificationsPage = lazy(() => import("./features/dashboard/NotificationsPage"));
+const OwnerPricingPage = lazy(() => import("./features/dashboard/OwnerPricingPage"));
+const SystemHolidaysPage = lazy(() => import("./features/admin/SystemHolidaysPage"));
 
 const App = () => {
   return (
@@ -57,7 +59,8 @@ const App = () => {
       <NotificationProvider>
         <ScrollToTop />
         <Toaster position="top-right" richColors expand={true} />
-        <Routes>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-gray-50"><Loader2 className="h-10 w-10 animate-spin text-red-600" /></div>}>
+          <Routes>
           {/* Public Routes with Navbar - MainLayout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
@@ -163,6 +166,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <ServiceSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="booking/addons"
+              element={
+                <ProtectedRoute>
+                  <AddonsSelectionPage />
                 </ProtectedRoute>
               }
             />
@@ -354,6 +365,7 @@ const App = () => {
             />
           </Route>
         </Routes>
+          </Suspense>
       </NotificationProvider>
     </AuthProvider>
   );

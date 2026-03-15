@@ -8,6 +8,8 @@ import compressionConfig from "./src/middleware/compression.middleware.js";
 import corsMiddleware from "./src/middleware/cors.middleware.js";
 import errorHandling from "./src/middleware/error.middleware.js";
 import helmetConfig from "./src/middleware/helmet.middleware.js";
+import pinoHttp from "pino-http";
+import logger from "./src/configs/logger.js";
 import {
   authLimiter,
   generalLimiter,
@@ -42,6 +44,9 @@ const createApp = () => {
   // CORS Middleware
   app.use(corsMiddleware);
 
+  // Request Logging
+  app.use(pinoHttp({ logger }));
+
   // Security Headers Middleware
   app.use(helmetConfig);
 
@@ -49,7 +54,7 @@ const createApp = () => {
   app.use(compressionConfig);
 
   // Rate Limiting
-  // app.use(generalLimiter);
+  app.use(generalLimiter);
 
   // Core Middleware
   app.use(express.json({ limit: "10mb", strict: false }));
@@ -114,7 +119,7 @@ if (process.env.NODE_ENV !== "test") {
   await initModels(pool);
 
   server.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    logger.info(`Server is running on http://localhost:${PORT}`);
   });
 }
 

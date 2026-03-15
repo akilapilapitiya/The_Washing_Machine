@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,8 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { IMAGE_BASE_URL } from "@/configs/env";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import DataTable from "@/components/common/DataTable";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 // Initial fallback if roles haven't loaded yet
 const initialRoleOptions = [
   { value: "owner", label: "Owner" },
@@ -81,6 +83,7 @@ const LevelBadge = ({ level, roles }) => {
 const EmployeeManagementPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPromoteForm, setShowPromoteForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -102,8 +105,8 @@ const EmployeeManagementPage = () => {
   });
   const [roles, setRoles] = useState([]);
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [, setSuccessMessage] = useState("");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
@@ -265,209 +268,191 @@ const EmployeeManagementPage = () => {
     setShowPromoteForm(true);
   };
 
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
+    <Button
+      onClick={() => setShowAddForm(true)}
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+    >
+      <Plus size={16} className="mr-2" />
+      Add Employee
+    </Button>
+  ), []);
+
+  // Toolbar: Stat Pills
+  const toolbar = useMemo(
+    () => (
+      <BookingFlowToolbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search employees..."
+        searchWidthClass="max-w-[320px]"
+        meta={(
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Users size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">Total</span>
+              <span className="text-xs font-semibold text-gray-900">{employees.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Shield size={13} className="text-red-500" />
+              <span className="text-xs font-semibold text-gray-500">Owners</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {employees.filter((employee) => employee.emptype === "owner").length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CreditCard size={13} className="text-purple-500" />
+              <span className="text-xs font-semibold text-gray-500">Cashiers</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {employees.filter((employee) => employee.emptype === "cashier").length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Briefcase size={13} className="text-blue-500" />
+              <span className="text-xs font-semibold text-gray-500">Staff</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {employees.filter((employee) => employee.emptype === "employee").length}
+              </span>
+            </div>
+          </div>
+        )}
+      />
+    ),
+    [employees, searchQuery],
+  );
+
   useSetPageHeader(
     "Staff",
     "Team Management",
     "Register new staff and manage roles.",
-    <Button
-      onClick={() => setShowAddForm(true)}
-      className="bg-red-600 hover:bg-red-700 text-white font-medium h-10 px-4 rounded-lg"
-    >
-      <Plus size={16} className="mr-2" />
-      Add Employee
-    </Button>,
+    headerAction,
+    toolbar,
   );
+
+  const columns = [
+    {
+      key: "employee",
+      label: "Employee & ID",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            {row.profile_picture_url ? (
+              <img loading="lazy"
+                src={`${IMAGE_BASE_URL}${row.profile_picture_url}`}
+                alt={row.empname}
+                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold border-2 border-white shadow-sm text-xs">
+                {row.first_name?.[0]}
+                {row.last_name?.[0]}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="font-bold text-gray-900">{row.empname}</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+              ID: #{row.empid}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "contact",
+      label: "Contact Details",
+      render: (row) => (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2 text-xs font-semibold">
+            <Mail size={12} className="text-gray-400" />
+            <span>{row.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+            <Phone size={12} className="text-gray-400" />
+            <span>{row.emptel}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "rank",
+      label: "Rank & Role",
+      render: (row) => <LevelBadge level={row.emptype} roles={roles} />,
+    },
+    {
+      key: "joined",
+      label: "Joined Date",
+      render: (row) => (
+        <span className="text-xs font-bold text-gray-500">
+          {new Date(row.created_at).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            onClick={() => {
+              setSelectedEmployee(row);
+              setExpandedId(row.empid);
+            }}
+            variant="ghost"
+            className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
+          >
+            More Info
+          </Button>
+          <button
+            onClick={() => openPromoteForm(row)}
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+            title="Update Role"
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={() => handleDeleteEmployee(row.empid)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            title="Terminate"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
       <div className="mx-auto w-full max-w-7xl space-y-6">
-
-        {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-lg text-gray-600">
-                  <Users size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Staff
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-red-50 rounded-lg text-red-600">
-                  <Shield size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Owners</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.filter((e) => e.emptype === "owner").length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-50 rounded-lg text-purple-600">
-                  <CreditCard size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Cashiers</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.filter((e) => e.emptype === "cashier").length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
-                  <Briefcase size={24} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Staff</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {employees.filter((e) => e.emptype === "employee").length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Employees Table/Cards */}
+        {/* Employees Table */}
         <div className="space-y-4">
           {loading ? (
             <PageLoader message="Loading directory..." />
           ) : employees.length > 0 ? (
             <>
-              <Card className="overflow-hidden border-gray-200 shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                      <tr>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Employee & ID
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Contact Details
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Rank & Role
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-                          Joined Date
-                        </th>
-                        <th className="px-6 py-4 font-bold text-gray-900 uppercase tracking-wider text-[10px] text-right">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white text-gray-600">
-                      {employees.map((employee) => (
-                        <tr
-                          key={employee.empid}
-                          className="hover:bg-gray-50/50 transition-colors group"
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative shrink-0">
-                                {employee.profile_picture_url ? (
-                                  <img
-                                    src={`${IMAGE_BASE_URL}${employee.profile_picture_url}`}
-                                    alt={employee.empname}
-                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold border-2 border-white shadow-sm text-xs">
-                                    {employee.first_name?.[0]}
-                                    {employee.last_name?.[0]}
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-bold text-gray-900">
-                                  {employee.empname}
-                                </p>
-                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
-                                  ID: #{employee.empid}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2 text-xs font-semibold">
-                                <Mail size={12} className="text-gray-400" />
-                                <span>{employee.email}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
-                                <Phone size={12} className="text-gray-400" />
-                                <span>{employee.emptel}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <LevelBadge
-                              level={employee.emptype}
-                              roles={roles}
-                            />
-                          </td>
-                          <td className="px-6 py-4 text-xs font-bold text-gray-500">
-                            {new Date(employee.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                onClick={() => {
-                                  setSelectedEmployee(employee);
-                                  setExpandedId(employee.empid);
-                                }}
-                                variant="ghost"
-                                className="h-8 px-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-50 hover:text-red-700 bg-red-50/30 rounded-lg"
-                              >
-                                More Info
-                              </Button>
-                              <button
-                                onClick={() => openPromoteForm(employee)}
-                                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-                                title="Update Role"
-                              >
-                                <Edit size={16} />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteEmployee(employee.empid)
-                                }
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                title="Terminate"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
+              <DataTable
+                columns={columns}
+                data={employees.filter((employee) => {
+                  const query = searchQuery.trim().toLowerCase();
+                  if (!query) return true;
+
+                  return [
+                    employee.empname,
+                    employee.email,
+                    employee.emptel,
+                    employee.emptype,
+                    employee.empid,
+                  ].some((value) => String(value || "").toLowerCase().includes(query));
+                })}
+                keyField="empid"
+                emptyIcon={Users}
+                emptyTitle="No staff found"
+                emptySubtitle={searchQuery ? "No staff match your search." : "Your employee directory is empty."}
+              />
 
               {/* Employee Detail Modal */}
               {expandedId && selectedEmployee && (
@@ -478,7 +463,7 @@ const EmployeeManagementPage = () => {
                       <div className="flex gap-6 items-center">
                         <div className="relative shrink-0">
                           {selectedEmployee.profile_picture_url ? (
-                            <img
+                            <img loading="lazy"
                               src={`${IMAGE_BASE_URL}${selectedEmployee.profile_picture_url}`}
                               alt={selectedEmployee.empname}
                               className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
@@ -640,33 +625,23 @@ const EmployeeManagementPage = () => {
                                   <p className="text-xs font-bold text-gray-900 uppercase">
                                     {dep.name}
                                   </p>
-                                  {dep.is_emergency_contact && (
-                                    <HeartPulse
-                                      size={14}
-                                      className="text-red-500"
-                                    />
-                                  )}
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                                    {dep.relationship}
+                                  </span>
                                 </div>
-                                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                                  {dep.relationship} • {dep.contact_number}
+                                <p className="text-sm font-semibold text-gray-600">
+                                  {dep.contact_number}
                                 </p>
                               </div>
                             ))
                           ) : (
-                            <div className="p-6 rounded-2xl border-2 border-dashed border-gray-100 text-center space-y-2">
-                              <p className="text-xs font-bold text-gray-400 uppercase">
-                                No Emergency Records
-                              </p>
-                              <p className="text-[10px] text-gray-400 font-semibold px-4">
-                                This staff member has not registered any
-                                dependents.
-                              </p>
-                            </div>
+                            <p className="text-sm font-medium text-gray-400 italic">
+                              No emergency contacts provided.
+                            </p>
                           )}
                         </div>
                       </div>
                     </CardContent>
-
                     <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 py-1 bg-white rounded border flex items-center gap-2">
                         <CheckCircle size={12} className="text-green-500" />{" "}
@@ -701,30 +676,29 @@ const EmployeeManagementPage = () => {
                   </Card>
                 </div>
               )}
-            </>
-          ) : (
-            <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
-              <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
-                <Users size={32} className="text-gray-300" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                No employees yet
-              </h3>
-              <p className="text-gray-500 mb-6 text-sm">
-                Add your first team member to get started.
-              </p>
-              <Button
-                onClick={() => setShowAddForm(true)}
-                className="bg-red-600 hover:bg-red-700 font-bold"
-              >
-                <Plus size={16} className="mr-2" />
-                Add Employee
-              </Button>
+                </>
+              ) : (
+                <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-xl bg-white shadow-sm">
+                  <div className="p-4 bg-gray-50 rounded-full w-max mx-auto mb-4">
+                    <Users size={32} className="text-gray-300" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    No employees yet
+                  </h3>
+                  <p className="text-gray-500 mb-6 text-sm">
+                    Add your first team member to get started.
+                  </p>
+                  <Button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-red-600 hover:bg-red-700 font-bold"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add Employee
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-
+          </div>
       {/* Add Employee Modal */}
       {
         showAddForm && (

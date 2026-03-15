@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 
 // Cache for settings (simple in-memory cache for now)
@@ -42,7 +43,7 @@ export const calculateTravelCost = async (distanceKm) => {
       rules = JSON.parse(rulesJson);
     }
   } catch (error) {
-    console.warn("Failed to parse pricing rules, using defaults", error);
+    logger.warn("Failed to parse pricing rules, using defaults", error);
   }
 
   const { base_km, base_fee, additional_rate } = rules;

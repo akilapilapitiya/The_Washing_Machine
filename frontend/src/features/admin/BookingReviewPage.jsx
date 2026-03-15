@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
   CheckCircle,
-  User,
   Briefcase,
+  Clock,
   RefreshCw,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { getBookings, updateBooking } from "@/services/booking.service";
 import { getAvailableEmployees } from "@/services/employee.service";
-import { COLORS } from "@/lib/colors";
+import DataTable from "@/components/common/DataTable";
+import PageToolbar from "@/components/common/PageToolbar";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -132,8 +131,10 @@ const BookingReviewPage = () => {
   const [loading, setLoading] = useState(true);
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
 
-  const fetchBookings = async () => {
+  const fetchBookings = React.useCallback(async () => {
     try {
       setLoading(true);
       const data = await getBookings();
@@ -141,17 +142,31 @@ const BookingReviewPage = () => {
       const active = data.filter((b) =>
         ["pending", "inProgress"].includes(b.bookingstatus),
       );
+
       setBookings(active);
+
+      const searchId = searchParams.get("search");
+      if (searchId) {
+        setSearchQuery(searchId);
+        const matchedBooking = active.find(
+          (booking) => String(booking.bookingid) === searchId,
+        );
+
+        if (matchedBooking) {
+          setSelectedBooking(matchedBooking);
+          setShowReassignModal(true);
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [fetchBookings]);
 
   const openReassign = (booking) => {
     setSelectedBooking(booking);
@@ -174,107 +189,190 @@ const BookingReviewPage = () => {
     }
   };
 
-  useSetPageHeader(
-    "Booking Administration",
-    "Booking Review",
-    "Manage assignments and review customer preferences.",
+  // Memoize action button for stable reference
+  const headerAction = React.useMemo(() => (
     <Button
       onClick={fetchBookings}
       variant="outline"
       size="sm"
-      className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm"
+      className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide"
     >
       <RefreshCw size={16} /> Refresh
     </Button>
+  ), [fetchBookings]);
+
+  const filteredBookings = bookings.filter((booking) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      [
+        booking.bookingid,
+        booking.cusname,
+        booking.vehbrand,
+        booking.vehmodel,
+        booking.assigned_empname,
+        booking.preferred_empname,
+      ].some((value) => String(value || "").toLowerCase().includes(query));
+
+    return matchesSearch;
+  });
+
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          { icon: Calendar, label: "Total", value: bookings.length, iconClassName: "text-gray-500" },
+          {
+            icon: Briefcase,
+            label: "Pending",
+            value: bookings.filter((booking) => booking.bookingstatus === "pending").length,
+            iconClassName: "text-amber-500",
+          },
+          {
+            icon: Clock,
+            label: "In Progress",
+            value: bookings.filter((booking) => booking.bookingstatus === "inProgress").length,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Unassigned",
+            value: bookings.filter((booking) => !booking.assigned_empname).length,
+            iconClassName: "text-green-500",
+          },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search bookings..."
+      />
+    ),
+    [bookings, searchQuery],
+  );
+
+  useSetPageHeader(
+    "Booking Administration",
+    "Booking Review",
+    "Manage assignments and review customer preferences.",
+    headerAction,
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading bookings..." />;
 
-  return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        <div className="grid gap-4">
-          {bookings.map((booking) => (
-            <Card
-              key={booking.bookingid}
-              className="hover:shadow-md transition-shadow"
-            >
-              <CardContent className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg">
-                      BK-{String(booking.bookingid).padStart(4, "0")}
-                    </span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border ${booking.bookingstatus === "pending"
-                        ? "bg-amber-50 text-amber-700 border-amber-100"
-                        : "bg-blue-50 text-blue-700 border-blue-100"
-                        }`}
-                    >
-                      {booking.bookingstatus}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Calendar size={14} />
-                    {new Date(
-                      booking.bookingdate,
-                    ).toLocaleDateString()} • {booking.bookingstarttime} -{" "}
-                    {booking.bookingendtime}
-                  </p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {booking.vehbrand} {booking.vehmodel}{" "}
-                    <span className="text-gray-400">|</span> {booking.cusname}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-6 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
-                  <div className="text-center">
-                    <p className="text-[10px] text-gray-400 uppercase font-bold">
-                      Preference
-                    </p>
-                    <p
-                      className={`text-sm font-semibold ${booking.preferred_empname ? "text-gray-900" : "text-gray-400 italic"}`}
-                    >
-                      {booking.preferred_empname || "Any"}
-                    </p>
-                  </div>
-                  <div className="w-px h-8 bg-gray-200"></div>
-                  <div className="text-center">
-                    <p className="text-[10px] text-gray-400 uppercase font-bold">
-                      Assigned
-                    </p>
-                    <p className="text-sm font-semibold text-blue-700">
-                      {booking.assigned_empname || "Unassigned"}
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => openReassign(booking)}
-                  variant="outline"
-                  className="border-gray-300 hover:border-gray-400"
-                >
-                  <Briefcase size={16} className="mr-2" />
-                  Reassign
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-          {bookings.length === 0 && (
-            <p className="text-center text-gray-500 py-10">
-              No active bookings to review.
-            </p>
-          )}
+  const columns = [
+    {
+      key: "bookingid",
+      label: "ID",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-mono font-bold text-gray-500 text-sm">
+            #{String(row.bookingid).padStart(4, "0")}
+          </span>
+          <span
+            className={`w-fit text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black border mt-1 ${
+              row.bookingstatus === "pending"
+                ? "bg-amber-50 text-amber-600 border-amber-100"
+                : "bg-blue-50 text-blue-600 border-blue-100"
+            }`}
+          >
+            {row.bookingstatus}
+          </span>
         </div>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer & Vehicle",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900 text-sm">{row.cusname}</span>
+          <span className="text-xs text-gray-500 font-medium">
+            {row.vehbrand} {row.vehmodel}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "schedule",
+      label: "Date & Time",
+      render: (row) => (
+        <div className="flex flex-col text-sm text-gray-600 font-medium">
+          <span className="flex items-center gap-1.5">
+            <Calendar size={12} className="text-gray-400" />
+            {new Date(row.bookingdate).toLocaleDateString()}
+          </span>
+          <span className="text-xs text-gray-400 font-normal">
+            {row.bookingstarttime} - {row.bookingendtime}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "preference",
+      label: "Preferences",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">
+            Preferred
+          </span>
+          <span
+            className={`text-sm font-semibold ${
+              row.preferred_empname ? "text-gray-900" : "text-gray-300 italic"
+            }`}
+          >
+            {row.preferred_empname || "None"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "assigned",
+      label: "Assigned",
+      render: (row) => (
+        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+          {row.assigned_empname || "Unassigned"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      render: (row) => (
+        <Button
+          onClick={() => openReassign(row)}
+          variant="outline"
+          size="sm"
+          className="h-8 text-[10px] font-black uppercase border-gray-200 group-hover:border-blue-200 group-hover:text-blue-600 transition-colors"
+        >
+          <Briefcase size={12} className="mr-1.5" />
+          Reassign
+        </Button>
+      ),
+    },
+  ];
 
-        {showReassignModal && selectedBooking && (
-          <ReassignModal
-            booking={selectedBooking}
-            onClose={() => setShowReassignModal(false)}
-            onConfirm={handleReassignmentConfirm}
-          />
-        )}
-      </div>
-    
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      <DataTable
+        columns={columns}
+        data={filteredBookings}
+        keyField="bookingid"
+        emptyIcon={CheckCircle}
+        emptyTitle="No active bookings to review."
+        emptySubtitle={searchQuery ? "No bookings match your search." : "Pending and in-progress bookings will appear here."}
+      />
+
+      {showReassignModal && selectedBooking && (
+        <ReassignModal
+          booking={selectedBooking}
+          onClose={() => setShowReassignModal(false)}
+          onConfirm={handleReassignmentConfirm}
+        />
+      )}
+    </div>
   );
 };
 

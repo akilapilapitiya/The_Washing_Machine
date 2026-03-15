@@ -18,4 +18,4 @@ jobs:
       - name: Mirror to GitLab
         run: |
           git remote add gitlab https://${{ secrets.GITLAB_USERNAME }}:${{ secrets.GITLAB_TOKEN }}@gitlab.com/akilapilapitiya/The_Washing_Machine.git
-          git push --force gitlab main
+          git push --force gitlab HEAD:${{ github.head_ref || github.ref_name }}

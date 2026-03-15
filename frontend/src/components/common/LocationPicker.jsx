@@ -3,7 +3,6 @@ import {
   APIProvider,
   Map,
   AdvancedMarker,
-  Pin,
   useMap,
 } from "@vis.gl/react-google-maps";
 import { Loader2, MapPin } from "lucide-react";
@@ -55,7 +54,7 @@ const MapEvents = ({ onMapClick }) => {
   return null;
 };
 
-const LocationPicker = ({ onLocationSelect, initialLocation }) => {
+const LocationPicker = ({ onLocationSelect, initialLocation, mapHeight = "h-[400px]" }) => {
   const [selectedLocation, setSelectedLocation] = useState(
     initialLocation || DEFAULT_CENTER,
   );
@@ -139,7 +138,7 @@ const LocationPicker = ({ onLocationSelect, initialLocation }) => {
 
   return (
     <div className="space-y-4">
-      <div className="h-[400px] w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative">
+      <div className={`${mapHeight} w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative`}>
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
           <Map
             defaultCenter={selectedLocation}
@@ -159,11 +158,9 @@ const LocationPicker = ({ onLocationSelect, initialLocation }) => {
 
             {/* Selected Location Marker */}
             <AdvancedMarker position={selectedLocation}>
-              <Pin
-                background={"#DC2626"}
-                glyphColor={"#fff"}
-                borderColor={"#991B1B"}
-              />
+              <div className="bg-red-600 text-white p-2 rounded-full shadow-lg border-2 border-red-800 flex items-center justify-center">
+                <MapPin size={20} fill="currentColor" />
+              </div>
             </AdvancedMarker>
           </Map>
         </APIProvider>

@@ -1,73 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, FileText, Loader2, CheckCircle } from "lucide-react";
 import * as schedulerService from "@/services/scheduler.service";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
-const LeaveCard = ({ leave }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const calculateDuration = (startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return diffDays;
-  };
-
-  const duration = calculateDuration(leave.leavestartdate, leave.leaveenddate);
-
-  return (
-    <Card className="transition hover:shadow-md hover:border-red-200 h-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <CardTitle className="text-lg font-bold">
-                {formatDate(leave.leavestartdate)} -{" "}
-                {formatDate(leave.leaveenddate)}
-              </CardTitle>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-green-100 text-green-800 border-green-300">
-                <CheckCircle size={12} className="mr-1" />
-                Approved
-              </span>
-            </div>
-            <p className="text-xs text-gray-500">
-              {duration} {duration === 1 ? "day" : "days"}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-0">
-        <div className="space-y-2">
-          <div className="flex items-start gap-2 text-sm">
-            <FileText size={14} className="text-gray-400 mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-500 mb-1">Reason</p>
-              <p className="text-gray-900">{leave.leavereason}</p>
-            </div>
-          </div>
-        </div>
-        <div className="pt-2 border-t">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Clock size={12} />
-            <span>Requested on {formatDate(leave.created_at)}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+import DataTable from "@/components/common/DataTable";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 
 const MyLeavesPage = () => {
   const [leaves, setLeaves] = useState([]);
@@ -102,73 +41,141 @@ const MyLeavesPage = () => {
     (leave) => new Date(leave.leaveenddate) < today,
   );
 
+  const [activeTab, setActiveTab] = useState("upcoming");
+
+  const toolbarTabs = useMemo(
+    () => [
+      { id: "upcoming", label: `Upcoming (${upcomingLeaves.length})` },
+      { id: "history", label: `History (${pastLeaves.length})` },
+    ],
+    [upcomingLeaves.length, pastLeaves.length],
+  );
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const calculateDuration = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  const toolbar = useMemo(
+    () => (
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabsAriaLabel="Leave sections"
+        meta={(
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Calendar size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">Total</span>
+              <span className="text-xs font-semibold text-gray-900">{leaves.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CheckCircle size={13} className="text-green-500" />
+              <span className="text-xs font-semibold text-gray-500">Upcoming</span>
+              <span className="text-xs font-semibold text-gray-900">{upcomingLeaves.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <FileText size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">History</span>
+              <span className="text-xs font-semibold text-gray-900">{pastLeaves.length}</span>
+            </div>
+          </div>
+        )}
+      />
+    ),
+    [activeTab, toolbarTabs, leaves.length, pastLeaves.length, upcomingLeaves.length],
+  );
+
   useSetPageHeader(
     "Employee Portal",
     "My Leaves",
     "View your approved leave requests and time off.",
+    null,
+    toolbar
   );
+
+  const columns = [
+    {
+      key: "date_range",
+      label: "Leave Period",
+      render: (row) => (
+        <div>
+          <p className="font-bold text-gray-900">
+            {formatDate(row.leavestartdate)} - {formatDate(row.leaveenddate)}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {calculateDuration(row.leavestartdate, row.leaveenddate)}{" "}
+            {calculateDuration(row.leavestartdate, row.leaveenddate) === 1 ? "day" : "days"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "reason",
+      label: "Reason",
+      render: (row) => (
+        <div className="flex items-start gap-2 text-sm max-w-sm">
+          <FileText size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+          <span className="text-gray-700">{row.leavereason}</span>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: () => (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold border bg-green-50 text-green-700 border-green-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5" />
+          Approved
+        </span>
+      ),
+    },
+    {
+      key: "requested_on",
+      label: "Requested On",
+      className: "white-space-nowrap",
+      render: (row) => (
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+          <Clock size={12} className="text-gray-400" />
+          {formatDate(row.created_at)}
+        </div>
+      ),
+    },
+  ];
 
   if (loading) return <PageLoader message="Loading leave records..." />;
 
-  return (
-          <div className="mx-auto w-full max-w-7xl space-y-8">
-        <div className="space-y-8">
-          {/* Upcoming Leaves */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Calendar size={20} className="text-red-600" />
-              Upcoming & Active Leaves
-            </h2>
-            {upcomingLeaves.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {upcomingLeaves.map((leave) => (
-                  <LeaveCard key={leave.leaveid} leave={leave} />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed border-2 py-12">
-                <CardContent className="text-center space-y-4">
-                  <Calendar size={48} className="mx-auto text-gray-200" />
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold">No Upcoming Leaves</h3>
-                    <p className="text-gray-500">
-                      You don't have any approved leaves scheduled.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+  const displayLeaves = activeTab === "upcoming" ? upcomingLeaves : pastLeaves;
 
-          {/* Past Leaves */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <FileText size={20} className="text-gray-600" />
-              Leave History
-            </h2>
-            {pastLeaves.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pastLeaves.map((leave) => (
-                  <LeaveCard key={leave.leaveid} leave={leave} />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed border-2 py-12">
-                <CardContent className="text-center space-y-4">
-                  <FileText size={48} className="mx-auto text-gray-200" />
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold">No Leave History</h3>
-                    <p className="text-gray-500">
-                      Your past leave records will appear here.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-    
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <DataTable
+        columns={columns}
+        data={displayLeaves}
+        keyField="leaveid"
+        emptyIcon={activeTab === "upcoming" ? Calendar : FileText}
+        emptyTitle={activeTab === "upcoming" ? "No Upcoming Leaves" : "No Leave History"}
+        emptySubtitle={
+          activeTab === "upcoming"
+            ? "You don't have any approved leaves scheduled."
+            : "Your past leave records will appear here."
+        }
+      />
+    </div>
   );
 };
 

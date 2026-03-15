@@ -41,6 +41,27 @@ export const createBooking = async (bookingData) => {
 };
 
 /**
+ * Resolve and lock an auto-assigned employee before date/time selection
+ */
+export const resolveBookingEmployee = async ({
+  vehicleId,
+  services,
+  locationType = "branch",
+}) => {
+  try {
+    const response = await api.post("/booking/resolve-employee", {
+      vehicleId,
+      services,
+      locationType,
+    });
+    return response.data?.data?.assignment;
+  } catch (error) {
+    console.error("Error resolving booking employee:", error);
+    throw error;
+  }
+};
+
+/**
  * Update an existing booking
  */
 export const updateBooking = async (id, updates) => {
