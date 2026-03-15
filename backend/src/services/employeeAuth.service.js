@@ -278,6 +278,7 @@ export const getEmployeeById = async (empid) => {
            e.first_name || ' ' || e.last_name AS empname,
            e.name_with_initials, e.address_number, e.address_line1, e.address_line2, 
            e.dob, e.speciality, e.profile_picture_url, e.created_at, e.updated_at,
+           e.telegram_chat_id IS NOT NULL AS has_telegram,
            (SELECT json_agg(d.*) FROM employee_dependent d WHERE d.empid = e.empid) as dependents
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
