@@ -33,15 +33,15 @@ Each subdirectory contains its own `README.md` with detailed documentation:
 User (Browser)
     │
     ▼
-Nginx (port 80 / 443)              ← React SPA + Let's Encrypt SSL
+Nginx (HTTP/2 + Gzip)              ← React SPA + Let's Encrypt SSL
     │
-    ├── /                          → Serves compiled React bundle
-    └── /api/*                     → Proxies to backend:5500
+    ├── /                          → Serves optimized React (Vite Chunking)
+    └── /api/*                     → Proxies to backend (PM2 Cluster Mode)
                                             │
                                    ┌────────┼────────┐
                                    │                 │
                                PostgreSQL          Redis
-                               (data store)   (cache + queue broker)
+                               (data store)   (Edge Cache + queue broker)
                                                      │
                                                  BullMQ Worker
                                                  (email dispatch)
@@ -53,7 +53,7 @@ Nginx (port 80 / 443)              ← React SPA + Let's Encrypt SSL
                                              (employee notifications)
 ```
 
-All services run as Docker containers on a single Azure B1s VM. The Nginx frontend container acts as both the static asset server and the reverse proxy for the API — no ports other than 80 and 443 are exposed publicly.
+All services run as Docker containers on a single Azure Virtual Machine. The Nginx frontend container serves static assets with high parallelism and proxies /api requests to a Node.js cluster managed by PM2. API performance is accelerated by an integrated Redis Edge Caching layer.
 
 ---
 
@@ -68,6 +68,9 @@ All services run as Docker containers on a single Azure B1s VM. The Nginx fronte
 | Database | PostgreSQL 15 (pg pool, raw SQL) |
 | Cache / Queue | Redis 7 + ioredis + BullMQ |
 | Auth | JWT + bcryptjs |
+| Logging | Pino + pino-http (JSON streaming) |
+| Process Management | PM2 (Cluster mode) |
+| Performance | Redis Edge Caching |
 | Validation | Joi |
 | File uploads | Multer |
 | Email | Nodemailer (SMTP) |
@@ -86,6 +89,7 @@ All services run as Docker containers on a single Azure B1s VM. The Nginx fronte
 | UI Primitives | Radix UI |
 | HTTP | Axios |
 | Forms | React Hook Form |
+| Performance | React.lazy() + Vite manualChunks |
 | Maps | @vis.gl/react-google-maps |
 | Real-time | Socket.io client |
 | Testing | Vitest + React Testing Library |
@@ -249,6 +253,6 @@ Proprietary software. All rights reserved.
 
 ---
 
-**Version:** 1.5.0
-**Last Updated:** March 9, 2026
+**Version:** 1.6.0
+**Last Updated:** March 15, 2026
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
