@@ -1,4 +1,5 @@
 import * as adService from "../services/advertisement.service.js";
+import { clearCacheByPattern } from "../configs/redis.js";
 
 export const getAdvertisements = async (req, res, next) => {
   try {
@@ -25,6 +26,7 @@ export const createAdvertisement = async (req, res, next) => {
       adData.image_url = `/uploads/ads/${req.file.filename}`;
     }
     const ad = await adService.createAdvertisementService(adData);
+    await clearCacheByPattern("cache:/api/advertisement*");
     res.status(201).json({ success: true, data: ad });
   } catch (error) {
     next(error);
@@ -39,6 +41,7 @@ export const updateAdvertisement = async (req, res, next) => {
       adData.image_url = `/uploads/ads/${req.file.filename}`;
     }
     const ad = await adService.updateAdvertisementService(id, adData);
+    await clearCacheByPattern("cache:/api/advertisement*");
     res.json({ success: true, data: ad });
   } catch (error) {
     next(error);
@@ -49,6 +52,7 @@ export const deleteAdvertisement = async (req, res, next) => {
   try {
     const { id } = req.params;
     await adService.deleteAdvertisementService(id);
+    await clearCacheByPattern("cache:/api/advertisement*");
     res.json({ success: true, message: "Advertisement deleted successfully" });
   } catch (error) {
     next(error);

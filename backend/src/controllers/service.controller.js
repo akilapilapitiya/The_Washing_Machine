@@ -6,6 +6,7 @@ import {
   deleteServiceService,
 } from "../services/service.service.js";
 import { successResponse } from "../utils/response.util.js";
+import { clearCacheByPattern } from "../configs/redis.js";
 
 export const createService = async (req, res, next) => {
   try {
@@ -58,6 +59,7 @@ export const createService = async (req, res, next) => {
       servicetype,
     });
 
+    await clearCacheByPattern("cache:/api/service*");
     successResponse(res, 201, "Service created successfully", { service });
   } catch (error) {
     next(error);
@@ -109,6 +111,7 @@ export const updateService = async (req, res, next) => {
 
     const service = await updateServiceService(serviceid, updates);
 
+    await clearCacheByPattern("cache:/api/service*");
     successResponse(res, 200, "Service updated successfully", { service });
   } catch (error) {
     next(error);
@@ -121,6 +124,7 @@ export const deleteService = async (req, res, next) => {
 
     await deleteServiceService(serviceid);
 
+    await clearCacheByPattern("cache:/api/service*");
     successResponse(res, 200, "Service deleted successfully");
   } catch (error) {
     next(error);
