@@ -10,14 +10,12 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 import { toast } from "sonner";
 const ViewFeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -67,9 +65,7 @@ const ViewFeedbackPage = () => {
         feedback.rating,
       ].some((value) => String(value || "").toLowerCase().includes(query));
 
-    const matchesDate = matchesQuickDateRange(feedback.created_at, dateRange);
-
-    return matchesSearch && matchesDate;
+    return matchesSearch;
   });
 
   const averageRating =
@@ -93,19 +89,12 @@ const ViewFeedbackPage = () => {
             iconClassName: "text-yellow-500",
           },
         ]}
-        filters={[
-          { id: "all", label: "All Time" },
-          { id: "today", label: "Today" },
-          { id: "month", label: "This Month" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search feedback..."
       />
     ),
-    [averageRating, dateRange, feedbacks, searchQuery],
+    [averageRating, feedbacks, searchQuery],
   );
 
   useSetPageHeader(
@@ -182,7 +171,7 @@ const ViewFeedbackPage = () => {
         keyField="feedbackid"
         emptyIcon={MessageSquare}
         emptyTitle="No feedback found"
-        emptySubtitle={searchQuery ? "No feedback matches your current filters." : "Customer reviews and ratings will appear here once they are submitted."}
+        emptySubtitle={searchQuery ? "No feedback matches your search." : "Customer reviews and ratings will appear here once they are submitted."}
       />
     </div>
   );

@@ -9,13 +9,11 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const PaymentHistoryPage = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -40,8 +38,7 @@ const PaymentHistoryPage = () => {
         String(value || "").toLowerCase().includes(query),
       );
 
-    const matchesDate = matchesQuickDateRange(payment.paymentdate, dateRange);
-    return matchesSearch && matchesDate;
+    return matchesSearch;
   });
 
   const totalAmount = payments.reduce((sum, p) => sum + (Number(p.paymentamount) || 0), 0);
@@ -53,20 +50,12 @@ const PaymentHistoryPage = () => {
           { icon: Wallet, label: "Total Paid", value: `Rs. ${totalAmount.toLocaleString()}`, iconClassName: "text-green-500" },
           { icon: Hash, label: "Transactions", value: payments.length, iconClassName: "text-blue-500" },
         ]}
-        filters={[
-          { id: "all", label: "All" },
-          { id: "month", label: "This Month" },
-          { id: "week", label: "Last 3 Months" },
-          { id: "today", label: "This Year" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search by payment method or amount..."
       />
     ),
-    [dateRange, payments, searchQuery, totalAmount],
+    [payments, searchQuery, totalAmount],
   );
 
   useSetPageHeader(

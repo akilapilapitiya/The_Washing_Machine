@@ -1,29 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { IMAGE_BASE_URL } from "@/configs/env";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Users, Loader2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Users, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as employeeService from "@/services/employee.service";
-import * as vehicleService from "@/services/vehicle.service";
+import * as bookingService from "@/services/booking.service";
 import { toast } from "sonner";
-import BookingStepBar from "@/components/common/BookingStepBar";
-const roleLabels = {
-  junior: "Frontline Detailer",
-  mid: "Service Specialist",
-  senior: "Senior Technician",
-  lead: "Floor Manager",
-  master: "Master Detailer",
-};
-
-const experienceLabels = {
-  junior: "Entry-level specialist with keen attention to detail.",
-  mid: "5+ years experience in precision vehicle care.",
-  senior: "8+ years experience in advanced surface correction.",
-  lead: "10+ years experience, overseeing operational excellence.",
-  master: "12+ years experience. The pinnacle of automotive detailing.",
-};
+import { useSetPageHeader } from "@/contexts/PageHeaderContext";
+import BookingFlowToolbar, {
+  BookingToolbarBackButton,
+  BookingToolbarActionButton,
+} from "@/components/common/BookingFlowToolbar";
 
 const EmployeeSelectionPage = () => {
   const location = useLocation();
@@ -31,22 +18,24 @@ const EmployeeSelectionPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("any");
+  const [resolvingEmployee, setResolvingEmployee] = useState(false);
 
   const { vehicleId, serviceIds, locationId, locationData } =
     location.state || {};
 
   useEffect(() => {
+    if (!vehicleId) {
+      navigate("/dashboard/book");
+      return;
+    }
+
     const fetchBookingData = async () => {
       try {
         setLoading(true);
-        const [employeesData, vehicleData] = await Promise.all([
-          employeeService.getEmployees(),
-          vehicleId
-            ? vehicleService.getVehicle(vehicleId)
-            : Promise.resolve(null),
-        ]);
+        setError(null);
+        const employeesData = await employeeService.getEmployees();
 
         // Filter out non-service staff as per user request
         const filtered = employeesData.filter(
@@ -56,9 +45,9 @@ const EmployeeSelectionPage = () => {
             emp.emptype !== "manager",
         );
         setEmployees(filtered);
-        setSelectedVehicle(vehicleData);
       } catch (err) {
         console.error("Failed to fetch booking data:", err);
+        setError("Failed to load booking data. Please try again.");
         toast.error("Failed to load booking data. Please try again.");
       } finally {
         setLoading(false);
@@ -66,61 +55,176 @@ const EmployeeSelectionPage = () => {
     };
 
     fetchBookingData();
-  }, [vehicleId]);
+  }, [vehicleId, navigate]);
 
-  const handleContinue = () => {
-    // Navigate to datetime selection with all booking data
-    navigate("/dashboard/booking/datetime", {
-      state: {
+  const selectedEmployeeName = useMemo(() => {
+    if (selectedEmployeeId === "any") {
+      return "Any available employee";
+    }
+
+    const selectedEmployee = employees.find(
+      (employee) => employee.empid === selectedEmployeeId,
+    );
+
+    if (!selectedEmployee) return null;
+    return (
+      selectedEmployee.empname ||
+      `${selectedEmployee.first_name || ""} ${selectedEmployee.last_name || ""}`.trim() ||
+      null
+    );
+  }, [employees, selectedEmployeeId]);
+
+  const handleContinue = useCallback(async () => {
+    if (selectedEmployeeId !== "any") {
+      navigate("/dashboard/booking/datetime", {
+        state: {
+          vehicleId,
+          serviceIds,
+          locationId,
+          locationData,
+          employeeId: selectedEmployeeId,
+          employeeName: selectedEmployeeName,
+        },
+      });
+      return;
+    }
+
+    if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
+      toast.error("Select at least one service before assigning an employee.");
+      return;
+    }
+
+    try {
+      setResolvingEmployee(true);
+
+      const assignment = await bookingService.resolveBookingEmployee({
         vehicleId,
-        serviceIds,
-        locationId,
-        locationData,
-        employeeId: selectedEmployeeId,
+        services: serviceIds,
+        locationType: locationData?.type || "branch",
+      });
+
+      const resolvedEmployeeId = assignment?.employeeId;
+      if (!resolvedEmployeeId) {
+        toast.error("Unable to assign an employee right now.");
+        return;
+      }
+
+      toast.success(
+        `Assigned ${assignment?.employee?.name || `Employee #${resolvedEmployeeId}`}`,
+      );
+
+      navigate("/dashboard/booking/datetime", {
+        state: {
+          vehicleId,
+          serviceIds,
+          locationId,
+          locationData,
+          employeeId: resolvedEmployeeId,
+          employeeName: assignment?.employee?.name || null,
+          autoAssignedEmployee: assignment?.employee || null,
+        },
+      });
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to auto-assign employee.",
+      );
+    } finally {
+      setResolvingEmployee(false);
+    }
+  }, [
+    selectedEmployeeId,
+    selectedEmployeeName,
+    serviceIds,
+    vehicleId,
+    locationId,
+    locationData,
+    navigate,
+  ]);
+
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  const tableData = useMemo(() => {
+    const directoryRows = employees.map((employee) => ({
+      ...employee,
+      roleLabel: employee.speciality || employee.emptype || "-",
+      isAutoAssign: false,
+    }));
+
+    return [
+      {
+        empid: "any",
+        empname: "Any Employee",
+        emptype: "auto_assign",
+        roleLabel: "Auto-assign",
+        isAutoAssign: true,
       },
-    });
-  };
+      ...directoryRows,
+    ];
+  }, [employees]);
+
+  const filteredRows = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return tableData;
+
+    return tableData.filter((row) =>
+      [row.empname, row.roleLabel, row.emptype].some(
+        (value) => String(value || "").toLowerCase().includes(query),
+      ),
+    );
+  }, [searchQuery, tableData]);
+
+  const toolbar = useMemo(
+    () => (
+      <BookingFlowToolbar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search employees..."
+        meta={(
+          <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+            {employees.length} available
+          </span>
+        )}
+        rightSlot={(
+          <>
+            <BookingToolbarBackButton onClick={handleBack} />
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={resolvingEmployee}
+            >
+              {resolvingEmployee ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Assigning...
+                </>
+              ) : (
+                <>
+                  <span>Next</span>
+                  <ArrowRight size={14} className="ml-2" />
+                </>
+              )}
+            </BookingToolbarActionButton>
+          </>
+        )}
+      />
+    ),
+    [employees.length, handleBack, handleContinue, searchQuery, resolvingEmployee],
+  );
+
+  useSetPageHeader(
+    "BOOK SERVICE",
+    "Select Employee",
+    "Choose a preferred employee or let us assign the best available.",
+    null,
+    toolbar
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
-        <BookingStepBar currentStep={3} />
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Select Preferred Employee
-          </h1>
-          <p className="text-gray-600">
-            Choose a specific employee or let us assign the best available.
-          </p>
-        </div>
-
-        {/* Selected Vehicle Summary */}
-        {selectedVehicle && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                Vehicle:
-              </span>
-              <div className="flex items-center gap-3">
-                <p className="text-base font-bold text-gray-900">
-                  {selectedVehicle.vehbrand} {selectedVehicle.vehmodel}
-                </p>
-                <span className="text-xs font-mono font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                  {selectedVehicle.vehplate}
-                </span>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 h-8"
-              onClick={() => navigate("/dashboard/book")}
-            >
-              Change
-            </Button>
-          </div>
-        )}
-
+      <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
             <Loader2 className="h-10 w-10 animate-spin text-red-600 mb-4" />
@@ -145,150 +249,67 @@ const EmployeeSelectionPage = () => {
               Retry Mission
             </Button>
           </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Auto-assign Option */}
-            <button
-              onClick={() => setSelectedEmployeeId("any")}
-              className="group text-left transition-all duration-300"
-              aria-pressed={selectedEmployeeId === "any"}
-            >
-              <Card
-                className={cn(
-                  "h-full border-2 transition-all duration-300",
-                  selectedEmployeeId === "any"
-                    ? "border-red-600 shadow-md ring-1 ring-red-600"
-                    : "border-transparent hover:border-red-200 bg-white shadow-sm",
-                )}
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-start gap-4 text-lg">
-                    <span
-                      className={cn(
-                        "flex-shrink-0 flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors shadow-sm",
-                        selectedEmployeeId === "any"
-                          ? "bg-red-600"
-                          : "bg-gray-900 group-hover:bg-red-600",
-                      )}
-                    >
-                      <Users size={24} />
-                    </span>
-                    <div className="flex-1">
-                      <div
-                        className={cn(
-                          "font-bold transition-colors",
-                          selectedEmployeeId === "any"
-                            ? "text-red-600"
-                            : "text-gray-900",
-                        )}
-                      >
-                        Any Employee
-                      </div>
-                      <div className="text-sm font-medium text-gray-500 mt-1 uppercase tracking-tight">
-                        Auto-assign
-                      </div>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    We will assign the best available operative for your
-                    vehicle.
-                  </p>
-                </CardContent>
-              </Card>
-            </button>
+        ) : filteredRows.length > 0 ? (
+          <Card className="border-gray-200 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left w-8"></th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Employee</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRows.map((row) => {
+                      const isSelected = selectedEmployeeId === row.empid;
 
-            {/* Real Employees */}
-            {employees.map((employee) => (
-              <button
-                key={employee.empid}
-                type="button"
-                onClick={() => setSelectedEmployeeId(employee.empid)}
-                className="group text-left transition-all duration-300"
-                aria-pressed={selectedEmployeeId === employee.empid}
-              >
-                <Card
-                  className={cn(
-                    "h-full border-2 transition-all duration-300",
-                    selectedEmployeeId === employee.empid
-                      ? "border-red-600 shadow-md ring-1 ring-red-600"
-                      : "border-transparent hover:border-red-200 bg-white shadow-sm",
-                  )}
-                >
-                  <CardHeader>
-                    <CardTitle className="flex items-start gap-4 text-lg">
-                      <div className="relative shrink-0">
-                        {employee.profile_picture_url ? (
-                          <img
-                            src={`${IMAGE_BASE_URL}${employee.profile_picture_url}`}
-                            alt={employee.empname}
-                            className={cn(
-                              "h-14 w-14 rounded-full object-cover border-2 shadow-sm",
-                              selectedEmployeeId === employee.empid
-                                ? "border-red-600"
-                                : "border-gray-200",
-                            )}
-                          />
-                        ) : (
-                          <span
-                            className={cn(
-                              "flex h-14 w-14 items-center justify-center rounded-full text-white transition-colors shadow-sm",
-                              selectedEmployeeId === employee.empid
-                                ? "bg-red-600"
-                                : "bg-gray-900 group-hover:bg-red-600",
-                            )}
-                          >
-                            <User size={24} />
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div
-                          className={cn(
-                            "font-bold transition-colors",
-                            selectedEmployeeId === employee.empid
-                              ? "text-red-600"
-                              : "text-gray-900",
-                          )}
+                      return (
+                        <tr
+                          key={row.empid}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => setSelectedEmployeeId(row.empid)}
                         >
-                          {employee.empname}
-                        </div>
-                        <div className="text-sm font-medium text-gray-500 mt-1 uppercase tracking-tight">
-                          {employee.speciality ||
-                            roleLabels[employee.emptype] ||
-                            "Service Operative"}
-                        </div>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {experienceLabels[employee.emptype] ||
-                        "Highly trained operative dedicated to premium service."}
-                    </p>
-                  </CardContent>
-                </Card>
-              </button>
-            ))}
-          </div>
+                          <td className="px-4 py-3 w-8">
+                            <input
+                              type="radio"
+                              checked={isSelected}
+                              onChange={() => setSelectedEmployeeId(row.empid)}
+                              className="w-4 h-4 text-red-600 cursor-pointer accent-red-600"
+                              aria-label={`Select ${row.empname}`}
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-semibold text-gray-900">{row.empname}</span>
+                              {row.empid !== "any" && (
+                                <span className="text-[11px] text-gray-400">ID: {row.empid}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-block bg-gray-100 text-gray-700 text-xs font-semibold px-2 py-1 rounded uppercase">
+                              {String(row.roleLabel || "-")}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-dashed border-2 border-gray-200">
+            <CardContent className="py-12 text-center">
+              <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">No employees match your search.</p>
+            </CardContent>
+          </Card>
         )}
 
-        <div className="flex flex-wrap gap-4 items-center pt-8 border-t border-gray-200">
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="px-8 h-14 border-2 font-bold uppercase tracking-wide hover:bg-gray-100"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={handleContinue}
-            className="px-10 h-11 bg-red-600 hover:bg-red-700 text-white font-bold tracking-wide transition-all duration-200"
-          >
-            Continue
-          </Button>
-        </div>
       </div>
     </div>
   );

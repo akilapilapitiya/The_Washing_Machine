@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Loader2,
-  Box,
+  Layers,
   ArrowRight,
   Zap,
 } from "lucide-react";
@@ -17,18 +16,18 @@ import BookingFlowToolbar, {
   BookingToolbarActionButton,
 } from "@/components/common/BookingFlowToolbar";
 
-const ServiceSelectionPage = () => {
+const AddonsSelectionPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [services, setServices] = useState([]);
-  // "addons-only" is a frontend-only sentinel meaning no main package needed
-  const [selectedPackageId, setSelectedPackageId] = useState("addons-only");
+  const [selectedAddonIds, setSelectedAddonIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");
   const [showOffersOnly, setShowOffersOnly] = useState(false);
 
   const vehicleId = location.state?.vehicleId;
+  const selectedPackageId = location.state?.selectedPackageId; // null means add-ons only mode
 
   useEffect(() => {
     if (!vehicleId) {
@@ -51,16 +50,16 @@ const ServiceSelectionPage = () => {
     };
 
     fetchData();
-  }, [vehicleId, navigate]);
+  }, [vehicleId, selectedPackageId, navigate]);
 
-  const packages = useMemo(
-    () => services.filter((s) => !s.servicetype || s.servicetype === "package"),
+  const addons = useMemo(
+    () => services.filter((s) => s.servicetype === "addon"),
     [services]
   );
 
   // Filter by search and price
-  const filteredPackages = useMemo(() => {
-    let filtered = packages;
+  const filteredAddons = useMemo(() => {
+    let filtered = addons;
 
     // Search filter
     if (searchQuery.trim()) {
@@ -86,21 +85,41 @@ const ServiceSelectionPage = () => {
     }
 
     return filtered;
-  }, [packages, searchQuery, priceFilter, showOffersOnly]);
+  }, [addons, searchQuery, priceFilter, showOffersOnly]);
 
-  const handleSelectPackage = (packageId) => {
-    setSelectedPackageId(selectedPackageId === packageId ? "addons-only" : packageId);
+  const handleSelectAddon = (addonId) => {
+    setSelectedAddonIds((prev) =>
+      prev.includes(addonId)
+        ? prev.filter((id) => id !== addonId)
+        : [...prev, addonId]
+    );
   };
 
+  const isMainServiceSelected = Boolean(selectedPackageId);
+  const canProceedFromAddons =
+    isMainServiceSelected || selectedAddonIds.length > 0;
+
   const handleContinue = useCallback(() => {
-    navigate("/dashboard/booking/addons", {
-      state: {
-        vehicleId,
-        // Pass null if add-ons only so downstream knows no main package
-        selectedPackageId: selectedPackageId === "addons-only" ? null : selectedPackageId,
-      },
+    if (!canProceedFromAddons) {
+      toast.error(
+        "Select at least one add-on when no main service is selected.",
+      );
+      return;
+    }
+
+    const serviceIds = selectedPackageId
+      ? [selectedPackageId, ...selectedAddonIds]
+      : [...selectedAddonIds];
+    navigate("/dashboard/booking/location", {
+      state: { vehicleId, serviceIds },
     });
-  }, [navigate, vehicleId, selectedPackageId]);
+  }, [
+    canProceedFromAddons,
+    navigate,
+    selectedPackageId,
+    selectedAddonIds,
+    vehicleId,
+  ]);
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -112,7 +131,14 @@ const ServiceSelectionPage = () => {
       <BookingFlowToolbar
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="Search services..."
+        searchPlaceholder="Search add-ons..."
+        meta={
+          !isMainServiceSelected && !canProceedFromAddons ? (
+            <span className="text-xs font-medium text-red-600 whitespace-nowrap">
+              Select at least 1 add-on to continue
+            </span>
+          ) : null
+        }
         centerSlot={(
           <>
             <select
@@ -144,7 +170,10 @@ const ServiceSelectionPage = () => {
         rightSlot={(
           <>
             <BookingToolbarBackButton onClick={handleBack} />
-            <BookingToolbarActionButton onClick={handleContinue}>
+            <BookingToolbarActionButton
+              onClick={handleContinue}
+              disabled={!canProceedFromAddons}
+            >
               <span>Next</span>
               <ArrowRight size={14} className="ml-2" />
             </BookingToolbarActionButton>
@@ -152,13 +181,21 @@ const ServiceSelectionPage = () => {
         )}
       />
     ),
-    [searchQuery, priceFilter, showOffersOnly, handleBack, handleContinue]
+    [
+      searchQuery,
+      priceFilter,
+      showOffersOnly,
+      isMainServiceSelected,
+      canProceedFromAddons,
+      handleBack,
+      handleContinue,
+    ]
   );
 
   useSetPageHeader(
     "BOOK SERVICE",
-    "Select Service Package",
-    "Choose the main service package for your booking.",
+    "Select Add-ons",
+    "Enhance your booking with optional add-on services.",
     null,
     searchToolbar
   );
@@ -168,13 +205,13 @@ const ServiceSelectionPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-red-600" />
-          <p className="text-gray-600">Loading available services...</p>
+          <p className="text-gray-600">Loading available add-ons...</p>
         </div>
       </div>
     );
   }
 
-  const ServiceRow = ({ service, isSelected, onSelect }) => {
+  const AddonRow = ({ service, isSelected, onSelect }) => {
     const price = service.has_offer ? service.offer_price : service.serviceprice;
     const displayPrice = parseFloat(price).toLocaleString();
     const originalPrice = service.has_offer
@@ -185,10 +222,10 @@ const ServiceSelectionPage = () => {
       <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
         <td className="px-4 py-3 w-8">
           <input
-            type="radio"
+            type="checkbox"
             checked={isSelected}
             onChange={() => onSelect(service.serviceid)}
-            className="w-4 h-4 text-red-600 cursor-pointer accent-red-600"
+            className="w-4 h-4 text-red-600 cursor-pointer accent-red-600 rounded"
           />
         </td>
         <td className="px-4 py-3">
@@ -206,7 +243,7 @@ const ServiceSelectionPage = () => {
         </td>
         <td className="px-4 py-3">
           {service.has_offer && (
-            <span className="inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded mb-1 block">
+            <span className="inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">
               OFFER
             </span>
           )}
@@ -230,65 +267,49 @@ const ServiceSelectionPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Card className="border-gray-200 shadow-sm overflow-hidden">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left w-8"></th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Service</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Duration</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                    <th className="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Add-ons Only option — always visible, not affected by filters */}
-                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 w-8">
-                      <input
-                        type="radio"
-                        checked={selectedPackageId === "addons-only"}
-                        onChange={() => setSelectedPackageId("addons-only")}
-                        className="w-4 h-4 text-red-600 cursor-pointer accent-red-600"
-                      />
-                    </td>
-                    <td className="px-4 py-3" colSpan={3}>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-semibold text-gray-900">Add-ons Only</span>
-                        <span className="text-xs text-gray-500">Skip the main package — proceed with add-ons only</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="text-xs font-medium text-gray-400">—</span>
-                    </td>
-                  </tr>
-
-                  {filteredPackages.map((service) => (
-                    <ServiceRow
-                      key={service.serviceid}
-                      service={service}
-                      isSelected={selectedPackageId === service.serviceid}
-                      onSelect={handleSelectPackage}
-                    />
-                  ))}
-
-                  {filteredPackages.length === 0 && packages.length > 0 && (
+        {filteredAddons.length > 0 ? (
+          <Card className="border-gray-200 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">
-                        No packages match your filters.
-                      </td>
+                      <th className="px-4 py-3 text-left w-8"></th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Add-on</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Duration</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  </thead>
+                  <tbody>
+                    {filteredAddons.map((service) => (
+                      <AddonRow
+                        key={service.serviceid}
+                        service={service}
+                        isSelected={selectedAddonIds.includes(service.serviceid)}
+                        onSelect={handleSelectAddon}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-dashed border-2 border-gray-200">
+            <CardContent className="py-12 text-center">
+              <Layers className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">
+                {addons.length === 0
+                  ? "No add-ons available."
+                  : "No add-ons match your filters."}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 };
 
-export default ServiceSelectionPage;
+export default AddonsSelectionPage;

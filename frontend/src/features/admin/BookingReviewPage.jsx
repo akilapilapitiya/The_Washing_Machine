@@ -16,7 +16,6 @@ import PageToolbar from "@/components/common/PageToolbar";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
-import { matchesQuickDateRange } from "@/utils/quickDateRange";
 
 const ReassignModal = ({ booking, onClose, onConfirm }) => {
   const [availableEmployees, setAvailableEmployees] = useState([]);
@@ -133,7 +132,6 @@ const BookingReviewPage = () => {
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("all");
   const [searchParams] = useSearchParams();
 
   const fetchBookings = React.useCallback(async () => {
@@ -197,7 +195,7 @@ const BookingReviewPage = () => {
       onClick={fetchBookings}
       variant="outline"
       size="sm"
-      className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm"
+      className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide"
     >
       <RefreshCw size={16} /> Refresh
     </Button>
@@ -217,9 +215,7 @@ const BookingReviewPage = () => {
         booking.preferred_empname,
       ].some((value) => String(value || "").toLowerCase().includes(query));
 
-    const matchesDate = matchesQuickDateRange(booking.bookingdate, dateRange);
-
-    return matchesSearch && matchesDate;
+    return matchesSearch;
   });
 
   const toolbar = React.useMemo(
@@ -246,19 +242,12 @@ const BookingReviewPage = () => {
             iconClassName: "text-green-500",
           },
         ]}
-        filters={[
-          { id: "all", label: "All Time" },
-          { id: "today", label: "Today" },
-          { id: "month", label: "This Month" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search bookings..."
       />
     ),
-    [bookings, dateRange, searchQuery],
+    [bookings, searchQuery],
   );
 
   useSetPageHeader(
@@ -373,7 +362,7 @@ const BookingReviewPage = () => {
         keyField="bookingid"
         emptyIcon={CheckCircle}
         emptyTitle="No active bookings to review."
-        emptySubtitle={searchQuery ? "No bookings match your current filters." : "Pending and in-progress bookings will appear here."}
+        emptySubtitle={searchQuery ? "No bookings match your search." : "Pending and in-progress bookings will appear here."}
       />
 
       {showReassignModal && selectedBooking && (

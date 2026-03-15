@@ -35,7 +35,6 @@ const ManageServicesPage = () => {
   const today = new Date().toISOString().split("T")[0];
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [formData, setFormData] = useState({
@@ -77,11 +76,6 @@ const ManageServicesPage = () => {
       setLoading(false);
     }
   };
-
-  const uniqueCategories = React.useMemo(() => [
-    "All",
-    ...new Set(services.map((s) => s.category).filter(Boolean)),
-  ], [services]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -286,7 +280,7 @@ const ManageServicesPage = () => {
   const headerAction = React.useMemo(() => (
     <Button
       onClick={openAddForm}
-      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white h-10 px-4 rounded-lg shadow-sm"
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
     >
       <Plus size={18} />
       Add Service
@@ -300,15 +294,12 @@ const ManageServicesPage = () => {
         { icon: Tag, label: "Offers", value: services.filter((service) => service.has_offer).length, iconClassName: "text-red-500" },
         { icon: Layers, label: "Featured", value: services.filter((service) => service.is_featured).length, iconClassName: "text-yellow-500" },
       ]}
-      filters={uniqueCategories.map((category) => ({ id: category, label: category }))}
-      activeFilter={selectedCategory}
-      onFilterChange={setSelectedCategory}
       searchValue={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder="Search services..."
       searchWidthClass="sm:w-80"
     />
-  ), [searchQuery, selectedCategory, services, uniqueCategories]);
+  ), [searchQuery, services]);
 
   useSetPageHeader(
     "Services",
@@ -453,9 +444,6 @@ const ManageServicesPage = () => {
   ];
 
   const filteredServices = services.filter((service) => {
-    const matchesCategory =
-      selectedCategory === "All" || service.category === selectedCategory;
-
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
       !query ||
@@ -467,7 +455,7 @@ const ManageServicesPage = () => {
         service.short_description,
       ].some((value) => String(value || "").toLowerCase().includes(query));
 
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
   return (
@@ -483,7 +471,7 @@ const ManageServicesPage = () => {
               keyField="serviceid"
               emptyIcon={Box}
               emptyTitle="No services yet"
-              emptySubtitle={searchQuery ? "No services match your current filters." : "Add your first service package to get started."}
+              emptySubtitle={searchQuery ? "No services match your search." : "Add your first service package to get started."}
               emptyAction={
                 <Button onClick={openAddForm} className="bg-red-600 hover:bg-red-700 mt-4">
                   <Plus size={16} className="mr-2" />

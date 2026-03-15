@@ -4,6 +4,7 @@ import {
   deleteBookingService,
   getAllBookingsService,
   getBookingService,
+  resolveBookingEmployeeService,
 } from "../services/booking.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -71,6 +72,26 @@ export const createBooking = async (req, res, next) => {
     });
 
     successResponse(res, 201, "Booking created successfully", { booking });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resolveBookingEmployee = async (req, res, next) => {
+  try {
+    const customerId = req.user.id;
+    const userRole = req.user.role;
+    const { vehicleId, services, locationType } = req.body;
+
+    const assignment = await resolveBookingEmployeeService({
+      customerId,
+      userRole,
+      vehicleId,
+      services,
+      locationType,
+    });
+
+    successResponse(res, 200, "Employee assigned successfully", { assignment });
   } catch (error) {
     next(error);
   }

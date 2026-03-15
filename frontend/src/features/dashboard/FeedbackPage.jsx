@@ -47,7 +47,6 @@ const FeedbackPage = () => {
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState(5);
   const [searchQuery, setSearchQuery] = useState("");
-  const [ratingFilter, setRatingFilter] = useState("all");
 
   const fetchInitialData = async () => {
     try {
@@ -83,9 +82,7 @@ const FeedbackPage = () => {
         String(value || "").toLowerCase().includes(query),
       );
 
-    const matchesRating =
-      ratingFilter === "all" || Number(feedback.rating || 5) === Number(ratingFilter);
-    return matchesSearch && matchesRating;
+    return matchesSearch;
   });
 
   const avgRating = feedbacks.length > 0
@@ -101,20 +98,12 @@ const FeedbackPage = () => {
           { icon: Star, label: "Avg Rating", value: `${avgRating}/5`, iconClassName: "text-yellow-500" },
           { icon: Hash, label: "5-Star", value: fiveStarCount, iconClassName: "text-green-500" },
         ]}
-        filters={[
-          { id: "all", label: "All" },
-          { id: "5", label: "5-Star" },
-          { id: "4", label: "4-Star" },
-          { id: "3", label: "3-Star" },
-        ]}
-        activeFilter={ratingFilter}
-        onFilterChange={setRatingFilter}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search by vehicle or feedback..."
       />
     ),
-    [feedbacks, avgRating, fiveStarCount, ratingFilter, searchQuery],
+    [feedbacks, avgRating, fiveStarCount, searchQuery],
   );
 
   const handleSubmitFeedback = async (e) => {
@@ -144,7 +133,7 @@ const FeedbackPage = () => {
     () => (
       <Button
         onClick={() => setIsModalOpen(true)}
-        className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[11px] h-10 px-6 rounded-lg shadow-md flex items-center gap-2"
+        className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm flex items-center gap-2"
       >
         <MessageSquare size={16} />
         Add Feedback

@@ -12,6 +12,49 @@ import {
 import * as scheduleService from "./schedule.service.js";
 import { createNotificationService } from "./notification.service.js";
 import { checkDateIsHoliday } from "./systemHoliday.service.js";
+import { resolveAutoAssignedEmployee } from "../logics/employeeAssignment.logic.js";
+
+export const resolveBookingEmployeeService = async ({
+  customerId,
+  userRole,
+  vehicleId,
+  services,
+  locationType = "branch",
+}) => {
+  assertRequiredFields(
+    { customerId, vehicleId, services },
+    ["customerId", "vehicleId", "services"],
+  );
+
+  if (!Array.isArray(services) || services.length === 0) {
+    throw new ValidationError("At least one service is required.");
+  }
+
+  const client = await pool.connect();
+
+  try {
+    const vehicleCheck = await client.query(
+      "SELECT id, cusid FROM vehicle WHERE id = $1",
+      [vehicleId],
+    );
+
+    if (vehicleCheck.rowCount === 0) {
+      throw new NotFoundError("Vehicle not found");
+    }
+
+    if (userRole === "customer" && vehicleCheck.rows[0].cusid !== customerId) {
+      throw new ForbiddenError("You can only book with your own vehicles");
+    }
+
+    return await resolveAutoAssignedEmployee({
+      client,
+      serviceIds: services,
+      locationType,
+    });
+  } finally {
+    client.release();
+  }
+};
 
 export const getAllBookingsService = async (userId, userRole, userEmptype) => {
   const client = await pool.connect();

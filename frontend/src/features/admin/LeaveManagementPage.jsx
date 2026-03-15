@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
-import PageToolbar from "@/components/common/PageToolbar";
+import BookingFlowToolbar from "@/components/common/BookingFlowToolbar";
 import { intervalMatchesQuickDateRange } from "@/utils/quickDateRange";
 const LeaveManagementPage = () => {
   const [leaves, setLeaves] = useState([]);
@@ -80,7 +80,7 @@ const LeaveManagementPage = () => {
   const headerAction = React.useMemo(() => (
     <Button
       onClick={() => setShowAddForm(true)}
-      className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
     >
       <Plus size={16} className="mr-2" />
       Record Leave
@@ -96,52 +96,67 @@ const LeaveManagementPage = () => {
     return matchesDate;
   });
 
+  const toolbarTabs = React.useMemo(
+    () => [
+      { id: "all", label: "All" },
+      { id: "today", label: "Today" },
+      { id: "month", label: "This Month" },
+    ],
+    [],
+  );
+
   const toolbar = React.useMemo(
     () => (
-      <PageToolbar
-        stats={[
-          { icon: Briefcase, label: "Records", value: leaves.length, iconClassName: "text-gray-500" },
-          {
-            icon: CalendarIcon,
-            label: "Today",
-            value: leaves.filter((leave) =>
-              intervalMatchesQuickDateRange(
-                leave.leavestartdate,
-                leave.leaveenddate,
-                "today",
-              ),
-            ).length,
-            iconClassName: "text-red-500",
-          },
-          {
-            icon: CalendarIcon,
-            label: "This Month",
-            value: leaves.filter((leave) =>
-              intervalMatchesQuickDateRange(
-                leave.leavestartdate,
-                leave.leaveenddate,
-                "month",
-              ),
-            ).length,
-            iconClassName: "text-orange-500",
-          },
-          {
-            icon: User,
-            label: "Staff Affected",
-            value: new Set(leaves.map((leave) => leave.empid)).size,
-            iconClassName: "text-blue-500",
-          },
-        ]}
-        filters={[
-          { id: "all", label: "All" },
-          { id: "today", label: "Today" },
-          { id: "month", label: "This Month" },
-        ]}
-        activeFilter={dateRange}
-        onFilterChange={setDateRange}
+      <BookingFlowToolbar
+        tabs={toolbarTabs}
+        activeTab={dateRange}
+        onTabChange={setDateRange}
+        tabsAriaLabel="Leave date filters"
+        meta={(
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <Briefcase size={13} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500">Records</span>
+              <span className="text-xs font-semibold text-gray-900">{leaves.length}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CalendarIcon size={13} className="text-red-500" />
+              <span className="text-xs font-semibold text-gray-500">Today</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {leaves.filter((leave) =>
+                  intervalMatchesQuickDateRange(
+                    leave.leavestartdate,
+                    leave.leaveenddate,
+                    "today",
+                  ),
+                ).length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <CalendarIcon size={13} className="text-orange-500" />
+              <span className="text-xs font-semibold text-gray-500">This Month</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {leaves.filter((leave) =>
+                  intervalMatchesQuickDateRange(
+                    leave.leavestartdate,
+                    leave.leaveenddate,
+                    "month",
+                  ),
+                ).length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
+              <User size={13} className="text-blue-500" />
+              <span className="text-xs font-semibold text-gray-500">Staff Affected</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {new Set(leaves.map((leave) => leave.empid)).size}
+              </span>
+            </div>
+          </div>
+        )}
       />
     ),
-    [dateRange, leaves],
+    [dateRange, leaves, toolbarTabs],
   );
 
   useSetPageHeader(

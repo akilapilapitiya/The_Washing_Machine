@@ -107,6 +107,8 @@ export const AuthProvider = ({ children }) => {
         title: userData.title,
         nic: userData.nic,
         dob: userData.dob,
+        latitude: userData.latitude ?? null,
+        longitude: userData.longitude ?? null,
         profile_picture_url: userData.profile_picture_url,
       };
     } else if (type === "employee") {
