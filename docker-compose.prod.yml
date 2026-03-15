@@ -40,6 +40,7 @@ services:
     volumes:
       - certbot_certs:/etc/letsencrypt
       - certbot_www:/var/www/certbot
+      - backend_uploads:/usr/share/nginx/html/uploads:ro
     networks:
       - wm-network
     restart: unless-stopped
