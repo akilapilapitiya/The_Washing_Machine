@@ -19,16 +19,22 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) {
-              return "vendor-react";
+            // Group core libraries together to ensure stable initialization order
+            if (
+              id.includes("react") ||
+              id.includes("react-dom") ||
+              id.includes("react-router") ||
+              id.includes("@radix-ui") ||
+              id.includes("lucide-react") ||
+              id.includes("axios")
+            ) {
+              return "vendor-core";
             }
-            if (id.includes("@radix-ui") || id.includes("lucide-react") || id.includes("tailwindcss") || id.includes("clsx") || id.includes("tailwind-merge")) {
-              return "vendor-ui";
-            }
-            if (id.includes("@vis.gl")) {
+            // Keep heavy Google Maps SDK isolated
+            if (id.includes("@vis.gl") || id.includes("@googlemaps")) {
               return "vendor-maps";
             }
-            return "vendor";
+            return "vendor-utils";
           }
         },
       },
