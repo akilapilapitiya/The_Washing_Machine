@@ -39,7 +39,7 @@ const ServiceDetailsModal = ({ service, onClose }) => {
         <div className="w-full md:w-1/2 bg-gray-100 flex flex-col">
           <div className="flex-1 relative min-h-[300px] md:min-h-full">
             {activeImage ? (
-              <img
+              <img loading="lazy"
                 src={activeImage}
                 alt={service.servicename}
                 className="absolute inset-0 w-full h-full object-cover"
@@ -69,7 +69,7 @@ const ServiceDetailsModal = ({ service, onClose }) => {
                   onClick={() => setActiveImage(img)}
                   className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${activeImage === img ? "border-red-600 ring-1 ring-red-600" : "border-transparent hover:border-gray-300"}`}
                 >
-                  <img
+                  <img loading="lazy"
                     src={img}
                     alt=""
                     className="w-full h-full object-cover"

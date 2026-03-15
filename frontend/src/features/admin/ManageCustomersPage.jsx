@@ -131,7 +131,7 @@ const ManageCustomersPage = () => {
       render: (row) => (
         <div className="flex items-center gap-3">
           {row.profile_picture_url ? (
-            <img
+            <img loading="lazy"
               src={`${IMAGE_BASE_URL}${row.profile_picture_url}`}
               alt={row.first_name}
               className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
@@ -257,7 +257,7 @@ const ManageCustomersPage = () => {
                 <div className="flex gap-6 items-center">
                   <div className="relative shrink-0">
                     {selectedCustomer.profile_picture_url ? (
-                      <img
+                      <img loading="lazy"
                         src={`${IMAGE_BASE_URL}${selectedCustomer.profile_picture_url}`}
                         alt={selectedCustomer.first_name}
                         className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"

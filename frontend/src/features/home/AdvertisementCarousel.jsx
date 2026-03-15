@@ -174,7 +174,7 @@ const AdvertisementCarousel = () => {
         >
           <div className="lg:col-span-8 rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm flex flex-col">
             <div className="relative h-[250px] md:h-[350px] shrink-0">
-              <img
+              <img loading="lazy"
                 src={buildImageUrl(activeAd.image_url)}
                 alt={activeAd.title}
                 className="h-full w-full object-cover"
@@ -284,7 +284,7 @@ const AdvertisementCarousel = () => {
                   }`}
                 >
                   <div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 border border-gray-100">
-                    <img
+                    <img loading="lazy"
                       src={buildImageUrl(ad.image_url)}
                       alt={ad.title}
                       className="h-full w-full object-cover"

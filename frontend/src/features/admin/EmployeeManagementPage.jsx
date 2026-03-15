@@ -338,7 +338,7 @@ const EmployeeManagementPage = () => {
         <div className="flex items-center gap-3">
           <div className="relative shrink-0">
             {row.profile_picture_url ? (
-              <img
+              <img loading="lazy"
                 src={`${IMAGE_BASE_URL}${row.profile_picture_url}`}
                 alt={row.empname}
                 className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
@@ -463,7 +463,7 @@ const EmployeeManagementPage = () => {
                       <div className="flex gap-6 items-center">
                         <div className="relative shrink-0">
                           {selectedEmployee.profile_picture_url ? (
-                            <img
+                            <img loading="lazy"
                               src={`${IMAGE_BASE_URL}${selectedEmployee.profile_picture_url}`}
                               alt={selectedEmployee.empname}
                               className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"

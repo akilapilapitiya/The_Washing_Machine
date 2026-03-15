@@ -224,7 +224,7 @@ const ManageAdvertisementsPage = () => {
       render: (row) => (
         <div className="w-20 h-12 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50 flex items-center justify-center">
           {row.image_url ? (
-            <img
+            <img loading="lazy"
               src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${row.image_url}`}
               alt={row.title}
               className="w-full h-full object-cover"
@@ -331,7 +331,7 @@ const ManageAdvertisementsPage = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded bg-gray-50 overflow-hidden border border-gray-100">
                       {ad.image_url && (
-                        <img
+                        <img loading="lazy"
                           src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${ad.image_url}`}
                           alt={ad.title}
                           className="w-full h-full object-cover"

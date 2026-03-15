@@ -317,7 +317,7 @@ const ManageServicesPage = () => {
         <div className="flex items-center gap-3">
           <div className="relative shrink-0">
             {row.image_url ? (
-              <img
+              <img loading="lazy"
                 src={`${IMAGE_BASE_URL}${row.image_url}`}
                 alt={row.servicename}
                 className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm"

@@ -11,7 +11,7 @@ const Footer = ({ id }) => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <img
+              <img loading="lazy"
                 src={logo}
                 alt="The Washing Machine Logo"
                 className="h-auto w-50 object-cover rounded"
