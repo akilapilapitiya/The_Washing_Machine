@@ -49,7 +49,7 @@ const createApp = () => {
   app.use(compressionConfig);
 
   // Rate Limiting
-  // app.use(generalLimiter);
+  app.use(generalLimiter);
 
   // Core Middleware
   app.use(express.json({ limit: "10mb", strict: false }));
