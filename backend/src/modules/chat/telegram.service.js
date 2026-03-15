@@ -1,3 +1,4 @@
+import logger from '../../configs/logger.js';
 import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
 import redis from "../../configs/redis.js";
@@ -18,19 +19,19 @@ let bot = null;
 
 export const initTelegramBot = () => {
   if (!token) {
-    console.warn("TELEGRAM_BOT_TOKEN not found. Chat features disabled.");
+    logger.warn("TELEGRAM_BOT_TOKEN not found. Chat features disabled.");
     return;
   }
 
   try {
     bot = new TelegramBot(token, { polling: true });
-    console.log("Telegram Bot started successfully.");
+    logger.info("Telegram Bot started successfully.");
 
     // Set Persistent Menu
     bot.setMyCommands([
       { command: "/start", description: "Link Account" },
       { command: "/jobs", description: "View Assigned Jobs" },
-    ]).catch(err => console.warn("[TELEGRAM] Failed to set menu commands (Network issue)"));
+    ]).catch(err => logger.warn("[TELEGRAM] Failed to set menu commands (Network issue)"));
 
     // Handle linking (both /start <CODE> and just <CODE>)
     bot.on("message", async (msg) => {
@@ -103,9 +104,9 @@ export const initTelegramBot = () => {
             },
           },
         );
-        console.log(`Linked Telegram chat ${chatId} to Employee ${employeeId}`);
+        logger.info(`Linked Telegram chat ${chatId} to Employee ${employeeId}`);
       } catch (error) {
-        console.error("Telegram Linking Error:", error);
+        logger.error("Telegram Linking Error:", error);
         bot.sendMessage(
           chatId,
           "❌ An error occurred while linking your account.",
@@ -135,7 +136,7 @@ export const initTelegramBot = () => {
         // Always answer callback to stop loading animation
         bot.answerCallbackQuery(query.id);
       } catch (error) {
-        console.error("Callback Error:", error);
+        logger.error("Callback Error:", error);
         bot.answerCallbackQuery(query.id, {
           text: "❌ Error processing request",
           show_alert: true,
@@ -145,18 +146,18 @@ export const initTelegramBot = () => {
 
     bot.on("polling_error", (err) => {
       if (err.code === 'ECONNRESET' || err.code === 'EFATAL') {
-        // console.warn("[TELEGRAM] Network failure (ECONNRESET/EFATAL). Bot will retry automatically.");
+        // logger.warn("[TELEGRAM] Network failure (ECONNRESET/EFATAL). Bot will retry automatically.");
       } else {
-        console.error("[TELEGRAM] Polling error:", err.message);
+        logger.error("[TELEGRAM] Polling error:", err.message);
       }
     });
 
     bot.on("error", (err) => {
-      console.error("[TELEGRAM] Fatal bot error:", err.message);
+      logger.error("[TELEGRAM] Fatal bot error:", err.message);
     });
 
   } catch (err) {
-    console.error("[TELEGRAM] Failed to initialize bot:", err.message);
+    logger.error("[TELEGRAM] Failed to initialize bot:", err.message);
   }
 };
 
@@ -218,7 +219,7 @@ const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
       bot.sendMessage(chatId, text, options);
     }
   } catch (error) {
-    console.error("Jobs Command Error:", error);
+    logger.error("Jobs Command Error:", error);
     sendMessage(chatId, "❌ failed to fetch jobs.");
   }
 };
@@ -295,7 +296,7 @@ const handleJobDetails = async (chatId, messageId, bookingId) => {
       reply_markup: { inline_keyboard },
     });
   } catch (error) {
-    console.error("Job Details Error:", error);
+    logger.error("Job Details Error:", error);
   }
 };
 
@@ -319,7 +320,7 @@ const handleStartJob = async (chatId, messageId, bookingId) => {
     await handleJobDetails(chatId, messageId, bookingId);
     sendMessage(chatId, "✅ Service Started!");
   } catch (error) {
-    console.error("Start Job Error:", error);
+    logger.error("Start Job Error:", error);
     sendMessage(chatId, "❌ Failed to start service: " + error.message);
   }
 };
@@ -344,7 +345,7 @@ const handleCompleteJob = async (chatId, messageId, bookingId) => {
     await handleJobDetails(chatId, messageId, bookingId);
     sendMessage(chatId, "🎉 Service Completed!");
   } catch (error) {
-    console.error("Complete Job Error:", error);
+    logger.error("Complete Job Error:", error);
     sendMessage(chatId, "❌ Failed to complete service: " + error.message);
   }
 };
@@ -363,6 +364,6 @@ export const sendMessage = async (chatId, text, options = {}) => {
   try {
     await bot.sendMessage(chatId, text, { parse_mode: "Markdown", ...options });
   } catch (error) {
-    console.error("Error sending Telegram message:", error.message);
+    logger.error("Error sending Telegram message:", error.message);
   }
 };

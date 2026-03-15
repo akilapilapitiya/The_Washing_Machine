@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import {
   assertAtLeastOneField,
@@ -664,7 +665,7 @@ export const updateBookingService = async (
       if (check.rowCount === 0) throw new NotFoundError("Employee not found");
 
       const empName = check.rows[0].empname;
-      console.log(
+      logger.info(
         `[DEBUG] Reassigning Booking ${bookingId} from ${current.current_empid} to ${employeeId}`,
       );
       finalEmpId = employeeId;
@@ -689,7 +690,7 @@ export const updateBookingService = async (
 
       // Notification to Previous Employee (if exists and not system account)
       if (current.current_empid && current.current_empid !== 1) {
-        console.log(
+        logger.info(
           `[DEBUG] Sending Job Removed Notification to Previous EmpID: ${current.current_empid}`,
         );
         const prevMsg = [
@@ -741,7 +742,7 @@ export const updateBookingService = async (
         `*Time:* ${newStartTime}`,
       ].join("\n");
 
-      console.log(
+      logger.info(
         `[DEBUG] Sending Reassignment Notification to EmpID: ${finalEmpId}`,
       );
 

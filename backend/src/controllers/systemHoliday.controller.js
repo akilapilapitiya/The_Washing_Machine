@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import * as systemHolidayService from "../services/systemHoliday.service.js";
 
 // Get all holidays
@@ -6,7 +7,7 @@ export const getAllHolidaysController = async (req, res) => {
     const holidays = await systemHolidayService.getAllHolidays();
     res.status(200).json(holidays);
   } catch (error) {
-    console.error("Error fetching holidays:", error);
+    logger.error("Error fetching holidays:", error);
     res.status(500).json({ error: "Failed to fetch holidays" });
   }
 };
@@ -28,7 +29,7 @@ export const getHolidaysByRangeController = async (req, res) => {
     );
     res.status(200).json(holidays);
   } catch (error) {
-    console.error("Error fetching holidays by range:", error);
+    logger.error("Error fetching holidays by range:", error);
     res.status(500).json({ error: "Failed to fetch holidays" });
   }
 };
@@ -56,7 +57,7 @@ export const checkHolidayDateController = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error checking holiday date:", error);
+    logger.error("Error checking holiday date:", error);
     res.status(500).json({ error: "Failed to check holiday date" });
   }
 };
@@ -73,7 +74,7 @@ export const getHolidayByIdController = async (req, res) => {
 
     res.status(200).json(holiday);
   } catch (error) {
-    console.error("Error fetching holiday:", error);
+    logger.error("Error fetching holiday:", error);
     res.status(500).json({ error: "Failed to fetch holiday" });
   }
 };
@@ -112,7 +113,7 @@ export const createHolidayController = async (req, res) => {
     const newHoliday = await systemHolidayService.createHoliday(holidayData);
     res.status(201).json(newHoliday);
   } catch (error) {
-    console.error("Error creating holiday:", error);
+    logger.error("Error creating holiday:", error);
     if (error.code === "23505") {
       // Unique constraint violation
       res.status(409).json({ error: "A holiday already exists on this date" });
@@ -160,7 +161,7 @@ export const updateHolidayController = async (req, res) => {
     );
     res.status(200).json(updatedHoliday);
   } catch (error) {
-    console.error("Error updating holiday:", error);
+    logger.error("Error updating holiday:", error);
     if (error.code === "23505") {
       res.status(409).json({ error: "A holiday already exists on this date" });
     } else {
@@ -185,7 +186,7 @@ export const deleteHolidayController = async (req, res) => {
       holiday: deletedHoliday,
     });
   } catch (error) {
-    console.error("Error deleting holiday:", error);
+    logger.error("Error deleting holiday:", error);
     res.status(500).json({ error: "Failed to delete holiday" });
   }
 };
@@ -196,7 +197,7 @@ export const getUpcomingHolidaysController = async (req, res) => {
     const holidays = await systemHolidayService.getUpcomingHolidays();
     res.status(200).json(holidays);
   } catch (error) {
-    console.error("Error fetching upcoming holidays:", error);
+    logger.error("Error fetching upcoming holidays:", error);
     res.status(500).json({ error: "Failed to fetch upcoming holidays" });
   }
 };

@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import nodemailer from "nodemailer";
 import { otpTemplate, welcomeTemplate } from "../templates/email.templates.js";
 import { NODE_ENV } from "../configs/env.js";
@@ -30,12 +31,12 @@ export const sendEmail = async ({ to, subject, html }) => {
     html,
   });
 
-  console.log("Message sent: %s", info.messageId);
+  logger.info("Message sent: %s", info.messageId);
 
   // Preview only available when sending through an Ethereal account
   const previewUrl = nodemailer.getTestMessageUrl(info);
   if (previewUrl) {
-    console.log("Preview URL: %s", previewUrl);
+    logger.info("Preview URL: %s", previewUrl);
   }
 
   return info;
@@ -63,10 +64,10 @@ export const sendOtpEmail = async (to, otp) => {
       ],
     });
 
-    console.log(`✅ OTP Email sent to ${to}`);
+    logger.info(`✅ OTP Email sent to ${to}`);
   } catch (error) {
-    console.error(`❌ Failed to send OTP email to ${to}`);
-    // console.error(error); // Uncomment for debugging
+    logger.error(`❌ Failed to send OTP email to ${to}`);
+    // logger.error(error); // Uncomment for debugging
   }
 };
 
@@ -92,8 +93,8 @@ export const sendWelcomeEmail = async (to, password, loginUrl) => {
       ],
     });
 
-    console.log(`✅ Welcome Email sent to ${to}`);
+    logger.info(`✅ Welcome Email sent to ${to}`);
   } catch (error) {
-    console.error(`❌ Failed to send Welcome email to ${to}`);
+    logger.error(`❌ Failed to send Welcome email to ${to}`);
   }
 };

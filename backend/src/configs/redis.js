@@ -1,3 +1,4 @@
+import logger from './logger.js';
 import Redis from "ioredis";
 import dotenv from "dotenv";
 
@@ -12,11 +13,11 @@ const redisConnect = () => {
   });
 
   redis.on("connect", () => {
-    console.log("Redis connected");
+    logger.info("Redis connected");
   });
 
   redis.on("error", (err) => {
-    console.error("Redis connection error:", err);
+    logger.error("Redis connection error:", err);
   });
 
   return redis;

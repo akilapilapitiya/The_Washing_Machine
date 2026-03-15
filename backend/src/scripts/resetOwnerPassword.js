@@ -1,3 +1,4 @@
+import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS } from "../configs/env.js";
@@ -6,7 +7,7 @@ async function resetOwnerPassword() {
   const email = "owner@washingmachine.com";
   const newPassword = "Owner@123";
 
-  console.log(`Resetting password for ${email} to default...`);
+  logger.info(`Resetting password for ${email} to default...`);
 
   try {
     const passwordHash = await bcrypt.hash(newPassword, Number(SALT_ROUNDS));
@@ -20,15 +21,15 @@ async function resetOwnerPassword() {
     );
 
     if (result.rowCount > 0) {
-      console.log("✅ Password reset successful.");
-      console.log("Credentials restored:");
-      console.log(`Email: ${email}`);
-      console.log(`Password: ${newPassword}`);
+      logger.info("✅ Password reset successful.");
+      logger.info("Credentials restored:");
+      logger.info(`Email: ${email}`);
+      logger.info(`Password: ${newPassword}`);
     } else {
-      console.log("❌ Owner account not found.");
+      logger.info("❌ Owner account not found.");
     }
   } catch (err) {
-    console.error("❌ Failed to update password:", err.message);
+    logger.error("❌ Failed to update password:", err.message);
   } finally {
     process.exit();
   }
