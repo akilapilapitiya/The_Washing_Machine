@@ -161,6 +161,7 @@ const ProfilePage = () => {
               addressLine2: profile.address_line2,
               profile_picture_url: profile.profile_picture_url,
               dependents: profile.dependents,
+              hasTelegram: profile.has_telegram,
             };
           }
         }
@@ -605,26 +606,34 @@ const ProfilePage = () => {
                 userType === "cashier") &&
                 !isEditing && (
                   <Button
-                    variant="outline"
+                    variant={user?.hasTelegram ? "default" : "outline"}
                     onClick={handleConnectTelegram}
-                    className="gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    className={`gap-2 ${
+                      user?.hasTelegram 
+                        ? "bg-green-600 hover:bg-green-700 text-white border-transparent" 
+                        : "border-blue-200 text-blue-600 hover:bg-blue-50"
+                    }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-send"
-                    >
-                      <path d="m22 2-7 20-4-9-9-4Z" />
-                      <path d="M22 2 11 13" />
-                    </svg>
-                    Connect Telegram
+                    {user?.hasTelegram ? (
+                      <CheckCircle size={16} className="text-white" />
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-send"
+                      >
+                        <path d="m22 2-7 20-4-9-9-4Z" />
+                        <path d="M22 2 11 13" />
+                      </svg>
+                    )}
+                    {user?.hasTelegram ? "Change Connection" : "Connect Telegram"}
                   </Button>
                 )}
             </CardHeader>

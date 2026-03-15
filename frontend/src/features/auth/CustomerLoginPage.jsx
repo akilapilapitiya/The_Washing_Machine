@@ -12,7 +12,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signIn } from "@/services/auth.service";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import logo from "@/assets/logo.svg";
 
 const CustomerLoginPage = () => {
@@ -27,6 +27,7 @@ const CustomerLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({
@@ -35,11 +36,33 @@ const CustomerLoginPage = () => {
     });
     // Clear error when user starts typing
     if (error) setError("");
+    if (errors[e.target.id]) {
+      setErrors((prev) => ({ ...prev, [e.target.id]: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    
+    if (!validateForm()) return;
+
     setLoading(true);
 
     try {
@@ -109,7 +132,7 @@ const CustomerLoginPage = () => {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="flex items-center gap-1">Email <span className="text-red-500">*</span></Label>
                 <Input
                   id="email"
                   type="email"
@@ -117,12 +140,18 @@ const CustomerLoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={loading}
-                  required
+                  className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                    <AlertCircle size={14} />
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="flex items-center gap-1">Password <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -131,8 +160,7 @@ const CustomerLoginPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     disabled={loading}
-                    required
-                    className="pr-10"
+                    className={`pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   />
                   <button
                     type="button"
@@ -142,6 +170,12 @@ const CustomerLoginPage = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                    <AlertCircle size={14} />
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-between text-sm">

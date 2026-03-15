@@ -14,6 +14,7 @@ import {
   verifyOTP,
   logOTPToConsole,
 } from "../utils/otp.util.js";
+import { addEmailJob } from "../queue/email.queue.js";
 import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
@@ -82,6 +83,20 @@ export const signUp = async ({
     role: result.rows[0].rolename,
   };
   const token = generateToken(employee.empid, "employee", employee.emptype);
+
+  // Send the professional welcome email with their un-hashed password
+  try {
+    await addEmailJob({
+      type: "welcome",
+      to: email,
+      data: { 
+        password: password, 
+        loginUrl: "https://washingmachine.truegate.live/employee-login" 
+      },
+    });
+  } catch (error) {
+    console.error("Failed to queue welcome email:", error);
+  }
 
   return { employee, token };
 };
@@ -263,6 +278,7 @@ export const getEmployeeById = async (empid) => {
            e.first_name || ' ' || e.last_name AS empname,
            e.name_with_initials, e.address_number, e.address_line1, e.address_line2, 
            e.dob, e.speciality, e.profile_picture_url, e.created_at, e.updated_at,
+           e.telegram_chat_id IS NOT NULL AS has_telegram,
            (SELECT json_agg(d.*) FROM employee_dependent d WHERE d.empid = e.empid) as dependents
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
