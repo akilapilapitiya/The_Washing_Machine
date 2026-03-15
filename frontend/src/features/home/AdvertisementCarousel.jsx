@@ -140,17 +140,14 @@ const AdvertisementCarousel = () => {
   const canCallAdvertiser = Boolean(contactHref);
 
   return (
-    <section className="relative w-full py-14 overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white">
-      <div className="pointer-events-none absolute -top-24 right-12 h-56 w-56 rounded-full bg-red-100/70 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-10 h-44 w-44 rounded-full bg-gray-200/80 blur-3xl" />
-
-      <div className="max-w-7xl mx-auto px-4 space-y-6">
+    <section className="relative w-full py-16 overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white">
+      <div className="max-w-7xl mx-auto px-4 space-y-8">
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div className="space-y-2">
-            <p className="text-[11px] uppercase tracking-[0.18em] font-black text-red-600">
+            <p className="text-[11px] uppercase tracking-wider font-bold text-red-600">
               Featured Marketplace Ads
             </p>
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 leading-tight">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
               Discover Trusted Auto Partners
             </h2>
             <p className="text-gray-600 max-w-2xl">
@@ -171,69 +168,31 @@ const AdvertisementCarousel = () => {
         </div>
 
         <div
-          className="relative grid grid-cols-1 lg:grid-cols-12 gap-4"
+          className="relative grid grid-cols-1 lg:grid-cols-12 gap-6"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <div className="lg:col-span-8 rounded-3xl overflow-hidden border border-gray-200 bg-white shadow-xl">
-            <div className="relative h-[320px] md:h-[440px]">
+          <div className="lg:col-span-8 rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm flex flex-col">
+            <div className="relative h-[250px] md:h-[350px] shrink-0">
               <img
                 src={buildImageUrl(activeAd.image_url)}
                 alt={activeAd.title}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
               <div className="absolute top-4 left-4 right-4 flex items-start justify-between gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-gray-900">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-800 shadow-sm">
                   <Megaphone size={12} />
                   Sponsored Listing
                 </span>
 
                 {expiryMeta ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600/95 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
                     <Clock3 size={12} />
                     {expiryMeta}
                   </span>
                 ) : null}
-              </div>
-
-              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7 space-y-3">
-                <h3 className="text-white text-2xl md:text-4xl font-black leading-tight max-w-3xl">
-                  {activeAd.title}
-                </h3>
-                {activeAd.client_name ? (
-                  <p className="text-white/80 text-sm md:text-base">
-                    Advertiser: <span className="font-bold text-white">{activeAd.client_name}</span>
-                  </p>
-                ) : null}
-
-                {activeAd.client_contact ? (
-                  <p className="text-white/85 text-xs md:text-sm">
-                    Contact: <span className="font-bold text-white">{activeAd.client_contact}</span>
-                  </p>
-                ) : null}
-
-                <div className="flex items-center gap-3 pt-1">
-                  {canCallAdvertiser ? (
-                    <Button asChild className="bg-red-600 hover:bg-red-700 text-white font-bold">
-                      <a href={`tel:${contactHref}`}>
-                        Contact Advertiser
-                        <PhoneCall className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
-                  ) : (
-                    <Button disabled className="bg-red-600 text-white/80 font-bold cursor-not-allowed">
-                      Contact Not Shared
-                    </Button>
-                  )}
-                  <Button asChild variant="secondary" className="bg-white/90 hover:bg-white text-gray-900 font-bold">
-                    <a href="#contact">
-                      Post Your Ad With Us
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
               </div>
 
               {spotlightAds.length > 1 ? (
@@ -241,7 +200,7 @@ const AdvertisementCarousel = () => {
                   <button
                     type="button"
                     onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/55 text-white hover:bg-red-600 transition-colors"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/80 text-gray-800 hover:bg-white shadow-sm transition-colors border border-gray-100"
                     aria-label="Previous advertisement"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -249,7 +208,7 @@ const AdvertisementCarousel = () => {
                   <button
                     type="button"
                     onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/55 text-white hover:bg-red-600 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/80 text-gray-800 hover:bg-white shadow-sm transition-colors border border-gray-100"
                     aria-label="Next advertisement"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -258,7 +217,7 @@ const AdvertisementCarousel = () => {
               ) : null}
 
               {spotlightAds.length > 1 ? (
-                <div className="absolute left-0 right-0 bottom-0 h-1 bg-white/25">
+                <div className="absolute left-0 right-0 bottom-0 h-1 bg-black/10">
                   <div
                     className="h-full bg-red-500 transition-[width] duration-100 ease-linear"
                     style={{ width: `${progress}%` }}
@@ -266,9 +225,50 @@ const AdvertisementCarousel = () => {
                 </div>
               ) : null}
             </div>
+
+            <div className="p-6 md:p-8 space-y-4 bg-white flex-1 flex flex-col justify-center">
+              <div className="space-y-2">
+                <h3 className="text-gray-900 text-2xl md:text-3xl font-bold leading-tight max-w-3xl">
+                  {activeAd.title}
+                </h3>
+                <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-sm text-gray-600">
+                  {activeAd.client_name ? (
+                    <p>
+                      Advertiser: <span className="font-semibold text-gray-900">{activeAd.client_name}</span>
+                    </p>
+                  ) : null}
+                  {activeAd.client_contact ? (
+                    <p>
+                      Contact: <span className="font-semibold text-gray-900">{activeAd.client_contact}</span>
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                {canCallAdvertiser ? (
+                  <Button asChild className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-sm">
+                    <a href={`tel:${contactHref}`}>
+                      Contact Advertiser
+                      <PhoneCall className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                ) : (
+                  <Button disabled className="bg-red-600/50 text-white font-semibold cursor-not-allowed">
+                    Contact Not Shared
+                  </Button>
+                )}
+                <Button asChild variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50 font-semibold shadow-sm">
+                  <a href="#contact">
+                    Post Your Ad With Us
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            </div>
           </div>
 
-          <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3">
+          <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
             {spotlightAds.map((ad, index) => {
               const itemExpiryMeta = getExpiryMeta(ad.expiry_date);
 
@@ -277,13 +277,13 @@ const AdvertisementCarousel = () => {
                   key={ad.id}
                   type="button"
                   onClick={() => selectSlide(index)}
-                  className={`group flex items-center gap-3 rounded-2xl border bg-white p-3 text-left transition-all ${
+                  className={`group flex items-center gap-3 rounded-xl border bg-white p-3 text-left transition-all ${
                     index === currentIndex
-                      ? "border-red-300 ring-2 ring-red-100 shadow-md"
+                      ? "border-red-300 ring-1 ring-red-100 shadow-sm"
                       : "border-gray-200 hover:border-red-200 hover:shadow-sm"
                   }`}
                 >
-                  <div className="h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                  <div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 border border-gray-100">
                     <img
                       src={buildImageUrl(ad.image_url)}
                       alt={ad.title}
@@ -291,14 +291,14 @@ const AdvertisementCarousel = () => {
                     />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-gray-900 line-clamp-2">
+                    <p className="text-sm font-semibold text-gray-900 line-clamp-2">
                       {ad.title}
                     </p>
-                    <p className="text-[11px] font-semibold text-gray-500 truncate">
+                    <p className="text-[11px] font-medium text-gray-500 truncate mt-0.5">
                       {ad.client_name || "Auto Partner"}
                     </p>
                     {itemExpiryMeta ? (
-                      <p className="text-[10px] font-black uppercase tracking-wider text-red-600 mt-0.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-red-600 mt-1">
                         {itemExpiryMeta}
                       </p>
                     ) : null}

@@ -62,25 +62,23 @@ const ServiceCard = ({ service, onReadMore }) => {
     : null;
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-red-100 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.09)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(15,23,42,0.16)]">
+    <article className="group flex flex-col relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-red-200">
       {service.popular && (
         <div className="absolute top-4 right-4 z-20">
-          <span
-            className="bg-gray-900 text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase"
-          >
+          <span className="bg-gray-800 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider uppercase shadow-sm">
             POPULAR
           </span>
         </div>
       )}
 
       {hasOffer && (
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+        <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
             <Tag size={11} />
             {service.offer_description || "Special Offer"}
           </span>
           {savingsPercent ? (
-            <span className="inline-flex items-center bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-200">
+            <span className="inline-flex items-center bg-white text-red-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide border border-red-100 shadow-sm">
               Save {savingsPercent}%
             </span>
           ) : null}
@@ -110,42 +108,42 @@ const ServiceCard = ({ service, onReadMore }) => {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-          <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] font-semibold">
+          <span className="inline-flex items-center gap-1.5 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1 text-[11px] font-medium border border-white/20">
             <Clock3 size={12} />
             {toDuration(service.servicetime)}
           </span>
           {service.category ? (
-            <span className="inline-flex items-center rounded-full bg-black/35 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border border-white/30">
+            <span className="inline-flex items-center rounded-full bg-white/10 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide border border-white/20">
               {service.category}
             </span>
           ) : null}
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
-        <div className="space-y-2">
-          <h3 className="text-xl font-black text-gray-900 leading-tight">
+      <div className="flex flex-col flex-1 p-5 space-y-4">
+        <div className="space-y-2 flex-1">
+          <h3 className="text-xl font-bold text-gray-900 leading-tight">
             {service.servicename}
           </h3>
 
-          <p className="text-gray-600 leading-relaxed line-clamp-2 min-h-12 text-sm">
+          <p className="text-gray-600 leading-relaxed line-clamp-2 text-sm">
             {service.short_description ||
               service.servicedetails ||
               "Professional care crafted for long-lasting shine and protection."}
           </p>
         </div>
 
-        <div className="flex items-end justify-between gap-4 border-t border-gray-100 pt-4">
+        <div className="flex items-end justify-between gap-4 border-t border-gray-100 pt-4 mt-auto">
           <div className="flex flex-col gap-1">
             {hasOffer ? (
               <>
-                <span className="text-xs text-gray-400 line-through font-semibold">
+                <span className="text-xs text-gray-400 line-through font-medium">
                   {toCurrency(basePrice)}
                 </span>
-                <span className="text-2xl font-black text-red-600 leading-none">
+                <span className="text-2xl font-bold text-red-600 leading-none">
                   {toCurrency(offerPrice)}
                 </span>
                 {offerEndsText ? (
@@ -157,11 +155,11 @@ const ServiceCard = ({ service, onReadMore }) => {
             ) : (
               <>
                 {service.is_variable_price ? (
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider leading-none">
+                  <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide leading-none">
                     Starts From
                   </span>
                 ) : null}
-                <span className="text-2xl font-black text-gray-900 leading-none">
+                <span className="text-2xl font-bold text-gray-900 leading-none">
                   {toCurrency(basePrice)}
                 </span>
               </>
@@ -170,13 +168,13 @@ const ServiceCard = ({ service, onReadMore }) => {
 
           {onReadMore ? (
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
               onClick={(e) => {
                 e.preventDefault();
                 onReadMore(service);
               }}
-              className="rounded-full px-4 h-9 text-xs font-black uppercase tracking-wider text-gray-700 hover:text-red-700 hover:bg-red-50"
+              className="rounded-full px-4 h-9 text-xs font-semibold text-gray-700 hover:text-red-700 hover:bg-red-50 hover:border-red-200"
             >
               Details
               <ArrowUpRight size={14} className="ml-1" />
@@ -184,8 +182,6 @@ const ServiceCard = ({ service, onReadMore }) => {
           ) : null}
         </div>
       </div>
-
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-transparent group-hover:ring-red-200 pointer-events-none" />
     </article>
   );
 };

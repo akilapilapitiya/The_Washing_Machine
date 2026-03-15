@@ -121,10 +121,10 @@ const ServicesPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white">
       <div className="container mx-auto px-4 py-14 space-y-10">
         <div className="max-w-3xl space-y-3">
-          <p className="text-sm uppercase tracking-[0.18em] text-red-600 font-black">
+          <p className="text-sm uppercase tracking-wider text-red-600 font-bold">
             Service Catalog
           </p>
-          <h1 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
             All Services, One Place
           </h1>
           <p className="text-gray-600">
@@ -133,8 +133,8 @@ const ServicesPage = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="rounded-xl border border-gray-100 bg-white p-4 sm:p-5 shadow-sm space-y-4">
+          <div className="flex flex-wrap gap-2">
             {filters.map((filter) => {
               const Icon = filter.icon;
 
@@ -144,15 +144,15 @@ const ServicesPage = () => {
                   type="button"
                   variant="ghost"
                   onClick={() => setActiveFilter(filter.key)}
-                  className={`h-12 justify-start rounded-xl border px-3 text-xs sm:text-sm font-bold transition-all ${
+                  className={`h-11 justify-start rounded-full border px-4 text-xs sm:text-sm font-semibold transition-all ${
                     activeFilter === filter.key
-                      ? "border-red-200 bg-red-50 text-red-700"
-                      : "border-gray-200 text-gray-600 hover:border-red-100 hover:bg-red-50/40"
+                      ? "border-red-200 bg-red-50 text-red-700 shadow-sm"
+                      : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   <Icon size={16} className="mr-2 shrink-0" />
-                  <span className="truncate">{filter.label}</span>
-                  <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-gray-500 border border-gray-200">
+                  <span>{filter.label}</span>
+                  <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold border ${activeFilter === filter.key ? "bg-white text-red-600 border-red-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                     {filter.count}
                   </span>
                 </Button>
@@ -169,7 +169,7 @@ const ServicesPage = () => {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search services, categories, or offer labels"
-              className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-3 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100"
+              className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-3 text-sm outline-none focus:border-red-300 focus:bg-white focus:ring-2 focus:ring-red-100 transition-colors"
             />
           </div>
         </div>

@@ -141,7 +141,7 @@ const ServicesSection = ({ id }) => {
           {[img1, img2, img3, img4].map((img, index) => (
             <div
               key={index}
-              className="relative group overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+              className="relative group overflow-hidden rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               <img
                 src={img}
@@ -175,10 +175,10 @@ const ServicesSection = ({ id }) => {
           <>
             <div className="space-y-8 mb-12">
               <div className="flex items-center justify-between gap-4 flex-wrap">
-                <h3 className="text-2xl font-bold text-gray-900 border-l-4 border-red-600 pl-4">
+                <h3 className="text-2xl font-bold text-gray-900 border-l-2 border-red-600 pl-3">
                   Services On Offer Right Now
                 </h3>
-                <span className="inline-flex items-center rounded-full bg-red-100 text-red-700 px-3 py-1 text-xs font-extrabold uppercase tracking-widest">
+                <span className="inline-flex items-center rounded-full bg-red-50 text-red-700 px-3 py-1 text-xs font-semibold uppercase tracking-wide border border-red-100">
                   Limited Time
                 </span>
               </div>
@@ -197,9 +197,9 @@ const ServicesSection = ({ id }) => {
             {/* CTA Section */}
             <div className="text-center">
               <Link to="/services">
-                <Button size="lg" className="text-lg px-8">
+                <Button size="lg" className="text-base px-8 font-semibold shadow-sm">
                   See More Services
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -216,7 +216,7 @@ const ServicesSection = ({ id }) => {
         )}
 
         {!loading && !error && services.length > 0 && activeOfferServices.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
             <p className="text-gray-700 text-lg font-semibold mb-2">
               No live offers right now.
             </p>
@@ -224,9 +224,9 @@ const ServicesSection = ({ id }) => {
               Explore the full service catalog for our complete range.
             </p>
             <Link to="/services">
-              <Button size="lg" className="text-base px-6">
+              <Button size="lg" className="text-base px-6 font-semibold shadow-sm">
                 See More Services
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
