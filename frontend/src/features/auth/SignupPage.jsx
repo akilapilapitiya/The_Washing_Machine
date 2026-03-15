@@ -12,7 +12,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUp } from "@/services/auth.service";
-import { Loader2, MapPin, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Loader2, MapPin, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
 import LocationPicker from "@/components/common/LocationPicker";
 import logo from "@/assets/logo.svg";
 
@@ -336,7 +336,13 @@ const SignupPage = () => {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           disabled={loading}
-                          className={`pr-10 ${errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                          className={`pr-10 ${
+                            formData.confirmPassword && formData.password !== formData.confirmPassword 
+                              ? "border-red-500 focus-visible:ring-red-500" 
+                              : formData.confirmPassword && formData.password === formData.confirmPassword
+                              ? "border-green-500 focus-visible:ring-green-500"
+                              : errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
+                          }`}
                         />
                         <button
                           type="button"
@@ -346,7 +352,19 @@ const SignupPage = () => {
                           {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
-                      {errors.confirmPassword && (
+                      {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                          <AlertCircle size={14} />
+                          Passwords do not match
+                        </p>
+                      )}
+                      {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                        <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
+                          <CheckCircle size={14} />
+                          Passwords match
+                        </p>
+                      )}
+                      {errors.confirmPassword && (!formData.confirmPassword) && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
                           <AlertCircle size={14} />
                           {errors.confirmPassword}

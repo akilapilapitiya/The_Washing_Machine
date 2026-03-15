@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import {
   requestCustomerPasswordReset,
   resetCustomerPassword,
@@ -329,7 +329,13 @@ const ForgotPasswordPage = () => {
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); if(errors.confirmPassword) setErrors({...errors, confirmPassword: ""}); }}
                       disabled={loading}
-                      className={`pr-10 ${errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                      className={`pr-10 ${
+                            confirmPassword && password !== confirmPassword 
+                              ? "border-red-500 focus-visible:ring-red-500" 
+                              : confirmPassword && password === confirmPassword
+                              ? "border-green-500 focus-visible:ring-green-500"
+                              : errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
+                          }`}
                     />
                     <button
                       type="button"
@@ -339,7 +345,19 @@ const ForgotPasswordPage = () => {
                       {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
-                  {errors.confirmPassword && (
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <AlertCircle size={14} />
+                      Passwords do not match
+                    </p>
+                  )}
+                  {confirmPassword && password === confirmPassword && (
+                    <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
+                      <CheckCircle size={14} />
+                      Passwords match
+                    </p>
+                  )}
+                  {errors.confirmPassword && (!confirmPassword) && (
                     <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
                       <AlertCircle size={14} />
                       {errors.confirmPassword}
