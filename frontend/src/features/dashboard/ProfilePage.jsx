@@ -105,6 +105,7 @@ const ProfilePage = () => {
     code: "",
     botName: "",
   });
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   // Fetch fresh profile data on mount
   useEffect(() => {
@@ -436,18 +437,14 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
-      )
-    ) {
-      try {
-        await deleteCustomer(user.id);
-        toast.success("Account deleted successfully");
-        logout();
-      } catch (error) {
-        toast.error("Failed to delete account");
-      }
+    try {
+      await deleteCustomer(user.id);
+      toast.success("Account deleted successfully");
+      logout();
+    } catch (error) {
+      toast.error("Failed to delete account");
+    } finally {
+      setShowDeleteAlert(false);
     }
   };
 
@@ -1215,7 +1212,7 @@ const ProfilePage = () => {
                 </div>
                 <Button
                   variant="destructive"
-                  onClick={handleDeleteAccount}
+                  onClick={() => setShowDeleteAlert(true)}
                   className="rounded-lg font-bold px-8 h-11 shadow-sm transition-all duration-200"
                 >
                   Terminate Account
@@ -1283,6 +1280,33 @@ const ProfilePage = () => {
 
           <AlertDialogFooter>
             <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Account Deletion Confirmation */}
+      <AlertDialog
+        open={showDeleteAlert}
+        onOpenChange={setShowDeleteAlert}
+      >
+        <AlertDialogContent className="max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+              <ShieldAlert size={20} /> Terminate Account?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="pt-2 font-medium text-gray-600">
+              Are you sure you want to delete your account? This action is <span className="text-red-600 font-bold uppercase underline">irreversible</span> and all your data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="font-semibold">Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              className="font-bold bg-red-600 hover:bg-red-700"
+            >
+              Yes, Delete Account
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
