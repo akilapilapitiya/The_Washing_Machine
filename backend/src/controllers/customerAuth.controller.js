@@ -16,6 +16,8 @@ export const customerSignUp = async (req, res, next) => {
       email,
       password,
       telephone,
+      nic,
+      dob,
       latitude,
       longitude,
     } = req.body;
@@ -27,6 +29,8 @@ export const customerSignUp = async (req, res, next) => {
       email,
       password,
       telephone,
+      nic,
+      dob,
       latitude,
       longitude,
     });

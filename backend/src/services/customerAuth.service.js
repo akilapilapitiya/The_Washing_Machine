@@ -25,6 +25,8 @@ export const signUp = async ({
   email,
   password,
   telephone,
+  nic,
+  dob,
   latitude,
   longitude,
 }) => {
@@ -45,9 +47,9 @@ export const signUp = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO customer (title, first_name, last_name, cusemail, custel, password_hash, latitude, longitude)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING cusid, title, first_name, last_name, cusemail, custel, latitude, longitude, profile_picture_url
+    INSERT INTO customer (title, first_name, last_name, cusemail, custel, password_hash, nic, dob, latitude, longitude)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, profile_picture_url
     `,
     [
       title,
@@ -56,6 +58,8 @@ export const signUp = async ({
       email,
       telephone,
       passwordHash,
+      nic,
+      dob,
       latitude,
       longitude,
     ],
