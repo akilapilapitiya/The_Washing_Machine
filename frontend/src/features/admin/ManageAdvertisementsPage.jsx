@@ -196,23 +196,29 @@ const ManageAdvertisementsPage = () => {
     </Button>
   ), []);
 
-  // Prepare Toolbar (SubHeader row 2) stats
+  // Prepare Toolbar (SubHeader row 2)
   const toolbar = useMemo(
     () => (
       <PageToolbar
-        stats={[
-          { icon: BarChart3, label: "Total Ads", value: ads.length, iconClassName: "text-gray-500" },
-          { icon: CheckCircle, label: "Active", value: activeAds.length, iconClassName: "text-green-500" },
-          { icon: Clock, label: "Expired", value: expiredAds.length, iconClassName: "text-red-500" },
-          { icon: Clock, label: "Expiring Soon", value: expiringSoonAds.length, iconClassName: "text-amber-500" },
+        filters={[
+          {
+            id: "live",
+            label: "Live Advertisements",
+          },
+          {
+            id: "requests",
+            label: `Public Requests ${requestAds.length > 0 ? "•" : ""}`,
+          },
         ]}
+        activeFilter={activeTab}
+        onFilterChange={setActiveTab}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search advertisements..."
         searchWidthClass="sm:w-80"
       />
     ),
-    [activeAds.length, liveAds.length, expiredAds.length, expiringSoonAds.length, searchQuery]
+    [liveAds.length, requestAds.length, activeTab, searchQuery]
   );
 
   useSetPageHeader(
@@ -224,6 +230,7 @@ const ManageAdvertisementsPage = () => {
   );
 
   const columns = [
+    // ... columns remain the same
     {
       key: "preview",
       label: "Preview",
@@ -315,22 +322,11 @@ const ManageAdvertisementsPage = () => {
 
   if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;
 
-  const filteredAds = ads.filter((ad) => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
-
-    const status = ad.expiry_date && new Date(ad.expiry_date) < new Date() ? "expired" : "active";
-
-    return [ad.title, ad.client_name, ad.client_contact, status].some((value) =>
-      String(value || "").toLowerCase().includes(query),
-    );
-  });
-
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl space-y-8">
         {/* Expiring Soon Alert */}
-        {expiringSoonAds.length > 0 && (
+        {expiringSoonAds.length > 0 && activeTab === "live" && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
@@ -371,31 +367,6 @@ const ManageAdvertisementsPage = () => {
             </div>
           </div>
         )}
-
-        {/* Tabs */}
-        <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl w-max">
-          <button
-            onClick={() => setActiveTab("live")}
-            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === "live" ? "bg-white text-gray-900 shadow-md" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            Live Advertisements
-            <span className="ml-2 px-1.5 py-0.5 bg-gray-100 text-[10px] rounded-md">{liveAds.length}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("requests")}
-            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
-              activeTab === "requests" ? "bg-white text-red-600 shadow-md" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            Public Requests
-            {requestAds.length > 0 && (
-              <span className="animate-pulse flex h-2 w-2 rounded-full bg-red-600"></span>
-            )}
-            <span className="ml-auto px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded-md">{requestAds.length}</span>
-          </button>
-        </div>
 
         {loading && ads.length > 0 ? (
           <div className="flex items-center justify-center py-12">
