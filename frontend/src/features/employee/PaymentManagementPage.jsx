@@ -133,7 +133,7 @@ const PaymentManagementPage = () => {
         getBookings(),
         getAllPayments(),
       ]);
-      setPendingBookings(bookings.filter((b) => b.bookingstatus === "finished"));
+      setPendingBookings(bookings.filter((b) => b.bookingstatus === "completed"));
       setCompletedPayments(payments);
     } catch {
       toast.error("Failed to load data");
@@ -359,6 +359,45 @@ const PaymentManagementPage = () => {
               </CardHeader>
               <CardContent className="pt-6">
                 <form onSubmit={handleSubmitPayment} className="space-y-6">
+                  {/* Breakdown Section */}
+                  <div className="space-y-4">
+                    {/* Base Services */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-1 h-4 bg-red-600 rounded-full"></div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Base Services</h4>
+                      </div>
+                      <div className="space-y-1.5 pl-3 border-l border-gray-100">
+                        {(selectedBooking.services || []).map((s, idx) => (
+                          <div key={idx} className="flex justify-between items-center text-sm">
+                            <span className="text-gray-700 font-medium">{s.servicename || s.serviceName}</span>
+                            <span className="font-mono text-gray-900">Rs.{Number(s.serviceprice || s.price).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Additional Charges (Extras) */}
+                    {(selectedBooking.extras || []).length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Additional Charges</h4>
+                        </div>
+                        <div className="space-y-1.5 pl-3 border-l border-gray-100">
+                          {selectedBooking.extras.map((extra) => (
+                            <div key={extra.id} className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700 font-medium">{extra.item_name}</span>
+                              <span className={`font-mono ${!extra.price || Number(extra.price) === 0 ? "text-orange-600 font-bold" : "text-gray-900"}`}>
+                                {extra.price && Number(extra.price) > 0 ? `Rs.${Number(extra.price).toFixed(2)}` : "Price Pending"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Unpriced Extras Warning & Input */}
                   {(selectedBooking.extras || []).some(
                     (e) => !e.price || Number(e.price) === 0,
