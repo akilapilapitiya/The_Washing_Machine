@@ -94,8 +94,10 @@ const ManageAdvertisementsPage = () => {
       }
     }
 
-    if (!editingAd && !formData.image) {
-      newErrors.image = "Image file is required";
+    // Require image for new ads OR when promoting a request
+    const isPromoting = editingAd && editingAd.status === 'requested';
+    if ((!editingAd || isPromoting) && !formData.image) {
+      newErrors.image = "Ad banner image is required to go live";
     }
 
     setErrors(newErrors);
@@ -114,10 +116,15 @@ const ManageAdvertisementsPage = () => {
     if (formData.expiry_date) data.append("expiry_date", formData.expiry_date);
     if (formData.image) data.append("image", formData.image);
 
+    // If we're promoting a request, set status to active
+    if (editingAd && editingAd.status === 'requested') {
+      data.append("status", "active");
+    }
+
     try {
       if (editingAd) {
         await advertisementService.updateAd(editingAd.id, data);
-        toast.success("Advertisement updated successfully");
+        toast.success(editingAd.status === 'requested' ? "Ad promoted to live successfully!" : "Advertisement updated successfully");
       } else {
         await advertisementService.createAd(data);
         toast.success("Advertisement created successfully");
@@ -409,10 +416,10 @@ const ManageAdvertisementsPage = () => {
             <CardHeader className="border-b border-gray-100 pb-4 bg-white/50">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-bold flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${editingAd ? "bg-gray-50 text-gray-700" : "bg-red-50 text-red-600"}`}>
-                    {editingAd ? <Edit2 size={20} /> : <Plus size={20} />}
+                  <div className={`p-2 rounded-lg ${editingAd ? (editingAd.status === 'requested' ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-700") : "bg-red-50 text-red-600"}`}>
+                    {editingAd ? (editingAd.status === 'requested' ? <Zap size={20} /> : <Edit2 size={20} />) : <Plus size={20} />}
                   </div>
-                  {editingAd ? "Edit Advertisement" : "Create Advertisement"}
+                  {editingAd ? (editingAd.status === 'requested' ? "Promote Advertisement" : "Edit Advertisement") : "Create Advertisement"}
                 </CardTitle>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
                   <X size={20} />
@@ -493,8 +500,8 @@ const ManageAdvertisementsPage = () => {
 
                 <div className="pt-4 flex gap-3">
                   <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1 h-11">Cancel</Button>
-                  <Button type="submit" disabled={isSubmitting} className="flex-[2] h-11 bg-red-600 hover:bg-red-700 font-bold">
-                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingAd ? "Update Advertisement" : "Create Advertisement")}
+                  <Button type="submit" disabled={isSubmitting} className={`flex-[2] h-11 font-bold ${editingAd?.status === 'requested' ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}>
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingAd ? (editingAd.status === 'requested' ? "Activate & Post Ad" : "Update Advertisement") : "Create Advertisement")}
                   </Button>
                 </div>
               </form>
