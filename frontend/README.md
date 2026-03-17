@@ -153,6 +153,7 @@ All routes are defined in `App.jsx` and organised into three layout zones:
 |---|---|---|
 | `/` | Home | Public |
 | `/services` | Services | Public |
+| `/marketplace` | Marketplace | Public |
 | `/*` | NotFound | Public |
 
 ### Authentication — `AuthLayout` (no Navbar)
@@ -332,7 +333,7 @@ Booking initiation, active booking tracking, service history, payment history, f
 
 ### Home (Landing Page)
 
-Marketing sections rendered as isolated components: hero, services overview, partner logos (static imports for reliable Vite bundling), and call-to-action blocks.
+Marketing sections rendered as isolated components: hero, services overview, partner logos, and call-to-action blocks. Highlights include the **Advertisement Marketplace**, a public directory where community partners can be promoted or submit their own "Post Your Ad" requests.
 
 ---
 

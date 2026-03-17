@@ -219,7 +219,7 @@ All routes are mounted under `/api`. Interactive documentation is available at `
 |---|---|---|---|
 | `/api/authcustomer` | Customer authentication | None (rate limited) | — |
 | `/api/authemployee` | Employee authentication | None (rate limited) | — |
-| `/api/advertisement` | Homepage advertisements | Varies | Public GET |
+| `/api/advertisement` | Marketplace & Ad Requests | Varies | Public GET & POST (requests) |
 | `/api/booking` | Booking lifecycle | Required | Customer, Employee, Owner |
 | `/api/vehicle` | Customer vehicles | Required | Customer, Owner |
 | `/api/vehicle-catalog` | Vehicle type catalog | Required | Owner, public read |

@@ -113,10 +113,10 @@ All services run as Docker containers on a single Azure Virtual Machine. The Ngi
 
 | Role | Type | Capabilities |
 |---|---|---|
-| Customer | Customer account | Book services, manage vehicles, payment history, feedback |
+| Customer | Customer account | Book services, manage vehicles, marketplace requests, payment history, feedback |
 | Employee | Employee account | View assigned jobs, update status, leave requests, incident filing |
 | Cashier | Employee (`emptype=cashier`) | All employee capabilities + payment recording |
-| Owner | Employee (`emptype=owner`) | Full administrative access across all features |
+| Owner | Employee (`emptype=owner`) | Full administrative access, marketplace/ad management, reports |
 
 ---
 
@@ -253,6 +253,6 @@ Proprietary software. All rights reserved.
 
 ---
 
-**Version:** 1.6.0
-**Last Updated:** March 15, 2026
+**Version:** 1.7.0
+**Last Updated:** March 17, 2026
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
