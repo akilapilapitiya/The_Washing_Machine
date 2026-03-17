@@ -17,7 +17,9 @@ import {
   BarChart3,
   Image as ImageIcon,
   CheckCircle,
-  Clock
+  Clock,
+  Zap,
+  Megaphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
