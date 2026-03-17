@@ -34,6 +34,7 @@ const ManageAdvertisementsPage = () => {
   const [editingAd, setEditingAd] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("live"); // "live" or "requests"
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const [formData, setFormData] = useState({
@@ -163,8 +164,11 @@ const ManageAdvertisementsPage = () => {
     setIsModalOpen(true);
   };
 
-  const activeAds = ads.filter(ad => !ad.expiry_date || new Date(ad.expiry_date) >= new Date());
-  const expiredAds = ads.filter(ad => ad.expiry_date && new Date(ad.expiry_date) < new Date());
+  const liveAds = ads.filter(ad => ad.status !== 'requested');
+  const requestAds = ads.filter(ad => ad.status === 'requested');
+  
+  const activeAds = liveAds.filter(ad => !ad.expiry_date || new Date(ad.expiry_date) >= new Date());
+  const expiredAds = liveAds.filter(ad => ad.expiry_date && new Date(ad.expiry_date) < new Date());
 
   // Ads expiring within the next 3 days
   const expiringSoonAds = ads.filter(ad => {
@@ -206,7 +210,7 @@ const ManageAdvertisementsPage = () => {
         searchWidthClass="sm:w-80"
       />
     ),
-    [activeAds.length, ads.length, expiredAds.length, expiringSoonAds.length, searchQuery]
+    [activeAds.length, liveAds.length, expiredAds.length, expiringSoonAds.length, searchQuery]
   );
 
   useSetPageHeader(
@@ -278,6 +282,16 @@ const ManageAdvertisementsPage = () => {
       className: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
+          {row.status === 'requested' && (
+            <button
+              onClick={() => openEditModal(row)}
+              className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+              title="Promote to Live Ad"
+            >
+              <Zap size={14} className="fill-current" />
+              Promote
+            </button>
+          )}
           <button
             onClick={() => openEditModal(row)}
             className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
@@ -356,6 +370,31 @@ const ManageAdvertisementsPage = () => {
           </div>
         )}
 
+        {/* Tabs */}
+        <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl w-max">
+          <button
+            onClick={() => setActiveTab("live")}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              activeTab === "live" ? "bg-white text-gray-900 shadow-md" : "text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            Live Advertisements
+            <span className="ml-2 px-1.5 py-0.5 bg-gray-100 text-[10px] rounded-md">{liveAds.length}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("requests")}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+              activeTab === "requests" ? "bg-white text-red-600 shadow-md" : "text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            Public Requests
+            {requestAds.length > 0 && (
+              <span className="animate-pulse flex h-2 w-2 rounded-full bg-red-600"></span>
+            )}
+            <span className="ml-auto px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded-md">{requestAds.length}</span>
+          </button>
+        </div>
+
         {loading && ads.length > 0 ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={32} className="animate-spin text-red-600" />
@@ -363,16 +402,26 @@ const ManageAdvertisementsPage = () => {
         ) : (
           <DataTable
             columns={columns}
-            data={filteredAds}
+            data={activeTab === "live" ? liveAds.filter(ad => {
+              const query = searchQuery.trim().toLowerCase();
+              if (!query) return true;
+              return [ad.title, ad.client_name, ad.client_contact].some(v => String(v || "").toLowerCase().includes(query));
+            }) : requestAds.filter(ad => {
+              const query = searchQuery.trim().toLowerCase();
+              if (!query) return true;
+              return [ad.title, ad.client_name, ad.client_contact].some(v => String(v || "").toLowerCase().includes(query));
+            })}
             keyField="id"
-            emptyIcon={ImageIcon}
-            emptyTitle="No advertisements yet"
-            emptySubtitle={searchQuery ? "No advertisements match your search." : "Upload your first ad to show on the public home page."}
+            emptyIcon={activeTab === "live" ? ImageIcon : Megaphone}
+            emptyTitle={activeTab === "live" ? "No live advertisements" : "No pending requests"}
+            emptySubtitle={activeTab === "live" ? "Your active promotional content will appear here." : "New advertisement requests from the 'Post Your Ad' page will show up here."}
             emptyAction={
-              <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold mt-4">
-                <Plus size={16} className="mr-2" />
-                Create Advertisement
-              </Button>
+              activeTab === "live" && (
+                <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold mt-4">
+                  <Plus size={16} className="mr-2" />
+                  Create Advertisement
+                </Button>
+              )
             }
           />
         )}

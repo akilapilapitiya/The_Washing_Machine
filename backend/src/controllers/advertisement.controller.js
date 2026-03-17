@@ -33,6 +33,21 @@ export const createAdvertisement = async (req, res, next) => {
   }
 };
 
+export const requestAdvertisement = async (req, res, next) => {
+  try {
+    const { title, client_name, client_contact } = req.body;
+    const ad = await adService.createAdvertisementService({
+      title,
+      client_name,
+      client_contact,
+      status: 'requested'
+    });
+    res.status(201).json({ success: true, data: ad });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateAdvertisement = async (req, res, next) => {
   try {
     const { id } = req.params;

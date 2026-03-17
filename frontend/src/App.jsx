@@ -53,6 +53,8 @@ const NotificationsPage = lazy(() => import("./features/dashboard/NotificationsP
 const OwnerPricingPage = lazy(() => import("./features/dashboard/OwnerPricingPage"));
 const SystemHolidaysPage = lazy(() => import("./features/admin/SystemHolidaysPage"));
 
+const MarketplacePage = lazy(() => import("./features/home/MarketplacePage"));
+
 const App = () => {
   return (
     <AuthProvider>
@@ -64,6 +66,7 @@ const App = () => {
           {/* Public Routes with Navbar - MainLayout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="marketplace" element={<MarketplacePage />} />
             <Route path="services" element={<Services />} />
             <Route path="*" element={<NotFound />} />
           </Route>
