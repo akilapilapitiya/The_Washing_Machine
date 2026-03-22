@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import advertisementService from "../../services/advertisement.service";
 import {
   ArrowRight,
@@ -247,22 +248,24 @@ const AdvertisementCarousel = () => {
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 {canCallAdvertiser ? (
-                  <Button asChild className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-sm">
-                    <a href={`tel:${contactHref}`}>
-                      Contact Advertiser
-                      <PhoneCall className="ml-2 h-4 w-4" />
-                    </a>
-                  </Button>
+                  <div className="flex items-center gap-2 group/contact">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Connect With Advertiser</span>
+                      <span className="text-sm font-bold text-gray-900 group-hover/contact:text-red-600 transition-colors">
+                        {activeAd.client_contact}
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <Button disabled className="bg-red-600/50 text-white font-semibold cursor-not-allowed">
+                  <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest leading-none">
                     Contact Not Shared
-                  </Button>
+                  </span>
                 )}
                 <Button asChild variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50 font-semibold shadow-sm">
-                  <a href="#contact">
+                  <Link to="/marketplace">
                     Post Your Ad With Us
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </div>

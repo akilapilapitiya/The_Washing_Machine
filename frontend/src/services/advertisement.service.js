@@ -33,12 +33,18 @@ const deleteAd = async (id) => {
     return response.data;
 };
 
+const requestAd = async (adData) => {
+    const response = await api.post("/advertisement/request", adData);
+    return response.data;
+};
+
 const advertisementService = {
     getAds,
     getAdminAds,
     createAd,
     updateAd,
-    deleteAd
+    deleteAd,
+    requestAd
 };
 
 export default advertisementService;

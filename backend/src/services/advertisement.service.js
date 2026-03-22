@@ -7,7 +7,7 @@ export const getAllAdvertisementsService = async (isAdmin = false) => {
   `;
   
   if (!isAdmin) {
-    query += ` WHERE is_active = true AND (expiry_date IS NULL OR expiry_date > NOW()) `;
+    query += ` WHERE is_active = true AND status = 'active' AND (expiry_date IS NULL OR expiry_date > NOW()) `;
   }
   
   query += ` ORDER BY created_at DESC `;
@@ -17,12 +17,12 @@ export const getAllAdvertisementsService = async (isAdmin = false) => {
 };
 
 export const createAdvertisementService = async (adData) => {
-  const { title, image_url, client_name, client_contact, expiry_date } = adData;
+  const { title, image_url, client_name, client_contact, expiry_date, status = 'active' } = adData;
   const result = await pool.query(
-    `INSERT INTO advertisement (title, image_url, client_name, client_contact, expiry_date)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO advertisement (title, image_url, client_name, client_contact, expiry_date, status)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [title, image_url, client_name, client_contact, expiry_date]
+    [title, image_url, client_name, client_contact, expiry_date, status]
   );
   return result.rows[0];
 };

@@ -17,7 +17,9 @@ import {
   BarChart3,
   Image as ImageIcon,
   CheckCircle,
-  Clock
+  Clock,
+  Zap,
+  Megaphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -34,6 +36,7 @@ const ManageAdvertisementsPage = () => {
   const [editingAd, setEditingAd] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("live"); // "live" or "requests"
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
   const [formData, setFormData] = useState({
@@ -91,8 +94,10 @@ const ManageAdvertisementsPage = () => {
       }
     }
 
-    if (!editingAd && !formData.image) {
-      newErrors.image = "Image file is required";
+    // Require image for new ads OR when promoting a request
+    const isPromoting = editingAd && editingAd.status === 'requested';
+    if ((!editingAd || isPromoting) && !formData.image) {
+      newErrors.image = "Ad banner image is required to go live";
     }
 
     setErrors(newErrors);
@@ -111,10 +116,15 @@ const ManageAdvertisementsPage = () => {
     if (formData.expiry_date) data.append("expiry_date", formData.expiry_date);
     if (formData.image) data.append("image", formData.image);
 
+    // If we're promoting a request, set status to active
+    if (editingAd && editingAd.status === 'requested') {
+      data.append("status", "active");
+    }
+
     try {
       if (editingAd) {
         await advertisementService.updateAd(editingAd.id, data);
-        toast.success("Advertisement updated successfully");
+        toast.success(editingAd.status === 'requested' ? "Ad promoted to live successfully!" : "Advertisement updated successfully");
       } else {
         await advertisementService.createAd(data);
         toast.success("Advertisement created successfully");
@@ -163,8 +173,11 @@ const ManageAdvertisementsPage = () => {
     setIsModalOpen(true);
   };
 
-  const activeAds = ads.filter(ad => !ad.expiry_date || new Date(ad.expiry_date) >= new Date());
-  const expiredAds = ads.filter(ad => ad.expiry_date && new Date(ad.expiry_date) < new Date());
+  const liveAds = ads.filter(ad => ad.status !== 'requested');
+  const requestAds = ads.filter(ad => ad.status === 'requested');
+  
+  const activeAds = liveAds.filter(ad => !ad.expiry_date || new Date(ad.expiry_date) >= new Date());
+  const expiredAds = liveAds.filter(ad => ad.expiry_date && new Date(ad.expiry_date) < new Date());
 
   // Ads expiring within the next 3 days
   const expiringSoonAds = ads.filter(ad => {
@@ -190,23 +203,29 @@ const ManageAdvertisementsPage = () => {
     </Button>
   ), []);
 
-  // Prepare Toolbar (SubHeader row 2) stats
+  // Prepare Toolbar (SubHeader row 2)
   const toolbar = useMemo(
     () => (
       <PageToolbar
-        stats={[
-          { icon: BarChart3, label: "Total Ads", value: ads.length, iconClassName: "text-gray-500" },
-          { icon: CheckCircle, label: "Active", value: activeAds.length, iconClassName: "text-green-500" },
-          { icon: Clock, label: "Expired", value: expiredAds.length, iconClassName: "text-red-500" },
-          { icon: Clock, label: "Expiring Soon", value: expiringSoonAds.length, iconClassName: "text-amber-500" },
+        filters={[
+          {
+            id: "live",
+            label: "Live Advertisements",
+          },
+          {
+            id: "requests",
+            label: `Public Requests ${requestAds.length > 0 ? "•" : ""}`,
+          },
         ]}
+        activeFilter={activeTab}
+        onFilterChange={setActiveTab}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search advertisements..."
         searchWidthClass="sm:w-80"
       />
     ),
-    [activeAds.length, ads.length, expiredAds.length, expiringSoonAds.length, searchQuery]
+    [liveAds.length, requestAds.length, activeTab, searchQuery]
   );
 
   useSetPageHeader(
@@ -218,6 +237,7 @@ const ManageAdvertisementsPage = () => {
   );
 
   const columns = [
+    // ... columns remain the same
     {
       key: "preview",
       label: "Preview",
@@ -278,6 +298,16 @@ const ManageAdvertisementsPage = () => {
       className: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
+          {row.status === 'requested' && (
+            <button
+              onClick={() => openEditModal(row)}
+              className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+              title="Promote to Live Ad"
+            >
+              <Zap size={14} className="fill-current" />
+              Promote
+            </button>
+          )}
           <button
             onClick={() => openEditModal(row)}
             className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
@@ -299,22 +329,11 @@ const ManageAdvertisementsPage = () => {
 
   if (loading && ads.length === 0) return <PageLoader message="Loading advertisements..." />;
 
-  const filteredAds = ads.filter((ad) => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
-
-    const status = ad.expiry_date && new Date(ad.expiry_date) < new Date() ? "expired" : "active";
-
-    return [ad.title, ad.client_name, ad.client_contact, status].some((value) =>
-      String(value || "").toLowerCase().includes(query),
-    );
-  });
-
   return (
     <div>
       <div className="mx-auto w-full max-w-7xl space-y-8">
         {/* Expiring Soon Alert */}
-        {expiringSoonAds.length > 0 && (
+        {expiringSoonAds.length > 0 && activeTab === "live" && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
@@ -363,16 +382,26 @@ const ManageAdvertisementsPage = () => {
         ) : (
           <DataTable
             columns={columns}
-            data={filteredAds}
+            data={activeTab === "live" ? liveAds.filter(ad => {
+              const query = searchQuery.trim().toLowerCase();
+              if (!query) return true;
+              return [ad.title, ad.client_name, ad.client_contact].some(v => String(v || "").toLowerCase().includes(query));
+            }) : requestAds.filter(ad => {
+              const query = searchQuery.trim().toLowerCase();
+              if (!query) return true;
+              return [ad.title, ad.client_name, ad.client_contact].some(v => String(v || "").toLowerCase().includes(query));
+            })}
             keyField="id"
-            emptyIcon={ImageIcon}
-            emptyTitle="No advertisements yet"
-            emptySubtitle={searchQuery ? "No advertisements match your search." : "Upload your first ad to show on the public home page."}
+            emptyIcon={activeTab === "live" ? ImageIcon : Megaphone}
+            emptyTitle={activeTab === "live" ? "No live advertisements" : "No pending requests"}
+            emptySubtitle={activeTab === "live" ? "Your active promotional content will appear here." : "New advertisement requests from the 'Post Your Ad' page will show up here."}
             emptyAction={
-              <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold mt-4">
-                <Plus size={16} className="mr-2" />
-                Create Advertisement
-              </Button>
+              activeTab === "live" && (
+                <Button onClick={() => setIsModalOpen(true)} className="bg-red-600 hover:bg-red-700 font-bold mt-4">
+                  <Plus size={16} className="mr-2" />
+                  Create Advertisement
+                </Button>
+              )
             }
           />
         )}
@@ -387,10 +416,10 @@ const ManageAdvertisementsPage = () => {
             <CardHeader className="border-b border-gray-100 pb-4 bg-white/50">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-bold flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${editingAd ? "bg-gray-50 text-gray-700" : "bg-red-50 text-red-600"}`}>
-                    {editingAd ? <Edit2 size={20} /> : <Plus size={20} />}
+                  <div className={`p-2 rounded-lg ${editingAd ? (editingAd.status === 'requested' ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-700") : "bg-red-50 text-red-600"}`}>
+                    {editingAd ? (editingAd.status === 'requested' ? <Zap size={20} /> : <Edit2 size={20} />) : <Plus size={20} />}
                   </div>
-                  {editingAd ? "Edit Advertisement" : "Create Advertisement"}
+                  {editingAd ? (editingAd.status === 'requested' ? "Promote Advertisement" : "Edit Advertisement") : "Create Advertisement"}
                 </CardTitle>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
                   <X size={20} />
@@ -471,8 +500,8 @@ const ManageAdvertisementsPage = () => {
 
                 <div className="pt-4 flex gap-3">
                   <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1 h-11">Cancel</Button>
-                  <Button type="submit" disabled={isSubmitting} className="flex-[2] h-11 bg-red-600 hover:bg-red-700 font-bold">
-                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingAd ? "Update Advertisement" : "Create Advertisement")}
+                  <Button type="submit" disabled={isSubmitting} className={`flex-[2] h-11 font-bold ${editingAd?.status === 'requested' ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}>
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingAd ? (editingAd.status === 'requested' ? "Activate & Post Ad" : "Update Advertisement") : "Create Advertisement")}
                   </Button>
                 </div>
               </form>

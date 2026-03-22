@@ -153,6 +153,7 @@ All routes are defined in `App.jsx` and organised into three layout zones:
 |---|---|---|
 | `/` | Home | Public |
 | `/services` | Services | Public |
+| `/marketplace` | Marketplace | Public |
 | `/*` | NotFound | Public |
 
 ### Authentication — `AuthLayout` (no Navbar)
@@ -294,7 +295,7 @@ The base URL is set from `VITE_API_BASE_URL` at build time. In production this i
 | `report.service.js` | Daily income report, employee performance report |
 | `incident.service.js` | File incident, fetch incidents |
 | `notification.service.js` | Fetch notifications, mark as read |
-| `advertisement.service.js` | Fetch and manage homepage ads |
+| `advertisement.service.js` | Fetch, request, and manage homepage ads with image uploads |
 | `charges.service.js` | Fetch and update travel charge configuration |
 | `settings.service.js` | Read and write system-level settings |
 | `systemHoliday.service.js` | Manage non-working days |
@@ -320,7 +321,7 @@ A sequential wizard spread across six routes under `/dashboard/booking/*`. Each 
 
 ### Admin (12 pages, owner-only unless noted)
 
-Full CRUD management interfaces for: employees, services, vehicle catalog, customers (owner + cashier), bookings overview (owner + cashier), leave approvals, incidents, advertisements, system holidays, and two analytics reports (daily income, employee performance).
+Full CRUD management interfaces for: employees, services, vehicle catalog, customers (owner + cashier), bookings overview (owner + cashier), leave approvals, incidents, advertisements (including promoting requested ads to live status with banner uploads), system holidays, and two analytics reports (daily income, employee performance).
 
 ### Employee Portal
 
@@ -332,7 +333,7 @@ Booking initiation, active booking tracking, service history, payment history, f
 
 ### Home (Landing Page)
 
-Marketing sections rendered as isolated components: hero, services overview, partner logos (static imports for reliable Vite bundling), and call-to-action blocks.
+Marketing sections rendered as isolated components: hero, services overview, partner logos, and call-to-action blocks. Highlights include the **Advertisement Marketplace**, a public directory where community partners can be promoted or submit their own "Post Your Ad" requests for admin review and approval.
 
 ---
 
