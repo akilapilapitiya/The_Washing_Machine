@@ -42,6 +42,8 @@ tags:
     description: Admin/Owner reporting endpoints
   - name: Notification
     description: System notification endpoints
+  - name: Advertisement
+    description: Advertisement Request and Management endpoints
 paths: {} # empty, will be dynamically merged from paths/*.yaml
 
 components:

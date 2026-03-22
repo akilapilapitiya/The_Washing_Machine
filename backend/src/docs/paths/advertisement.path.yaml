@@ -1,0 +1,168 @@
+/advertisement:
+  get:
+    tags: [Advertisement]
+    summary: Get all live advertisements
+    description: Retrieve a list of all live advertisements. Cached for 1 hour.
+    responses:
+      "200":
+        description: Successful response
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Advertisement'
+
+  post:
+    tags: [Advertisement]
+    summary: Create a new advertisement (Admin only)
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+            properties:
+              title:
+                type: string
+              image:
+                type: string
+                format: binary
+              client_name:
+                type: string
+              client_contact:
+                type: string
+              status:
+                type: string
+                enum: [requested, live, inactive]
+    responses:
+      "201":
+        $ref: '#/components/responses/Created'
+      "400":
+        $ref: '#/components/responses/BadRequest'
+      "401":
+        $ref: '#/components/responses/Unauthorized'
+
+/advertisement/request:
+  post:
+    tags: [Advertisement]
+    summary: Request a new advertisement
+    description: Public endpoint to request a new advertisement.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - client_name
+              - client_contact
+            properties:
+              title:
+                type: string
+              client_name:
+                type: string
+              client_contact:
+                type: string
+    responses:
+      "201":
+        $ref: '#/components/responses/Created'
+      "400":
+        $ref: '#/components/responses/BadRequest'
+
+/advertisement/admin:
+  get:
+    tags: [Advertisement]
+    summary: Get all advertisements (Admin only)
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    responses:
+      "200":
+        description: Successful response
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Advertisement'
+      "401":
+        $ref: '#/components/responses/Unauthorized'
+
+/advertisement/{id}:
+  put:
+    tags: [Advertisement]
+    summary: Update an advertisement
+    description: Update an advertisement, including uploading a banner image and changing status.
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              image:
+                type: string
+                format: binary
+              client_name:
+                type: string
+              client_contact:
+                type: string
+              status:
+                type: string
+                enum: [requested, live, inactive]
+    responses:
+      "200":
+        $ref: '#/components/responses/Success'
+      "400":
+        $ref: '#/components/responses/BadRequest'
+      "401":
+        $ref: '#/components/responses/Unauthorized'
+
+  delete:
+    tags: [Advertisement]
+    summary: Delete an advertisement
+    security:
+      - bearerAuth: []
+      - cookieAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: '#/components/responses/Success'
+      "401":
+        $ref: '#/components/responses/Unauthorized'
