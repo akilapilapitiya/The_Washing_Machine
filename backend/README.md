@@ -253,6 +253,17 @@ POST /api/authemployee/forgot-password
 POST /api/authemployee/reset-password
 ```
 
+### Advertisement Endpoints
+
+```
+GET /api/advertisement                   Get all live advertisements (Cached)
+POST /api/advertisement/request          Submit an advertisement request
+GET /api/advertisement/admin             Get all advertisements for review (Owner only)
+POST /api/advertisement                  Create an advertisement with banner image (Owner only)
+PUT /api/advertisement/:id               Update status and banner image of an advertisement
+DELETE /api/advertisement/:id            Delete an advertisement
+```
+
 ---
 
 ## Middleware Stack
