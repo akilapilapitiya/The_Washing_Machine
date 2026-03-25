@@ -5,6 +5,7 @@ import {
   getAllBookingsService,
   getBookingService,
   resolveBookingEmployeeService,
+  rescheduleBookingService,
 } from "../services/booking.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -129,6 +130,23 @@ export const deleteBooking = async (req, res, next) => {
     await deleteBookingService(id, userId, userRole, userEmptype);
 
     successResponse(res, 200, "Booking deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rescheduleBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { newDate, newStartTime } = req.body;
+    const adminId = req.user.id;
+
+    if (!newDate || !newStartTime) {
+      throw new Error("Date and Time are required for rescheduling");
+    }
+
+    await rescheduleBookingService(id, newDate, newStartTime, adminId);
+    successResponse(res, 200, "Service rescheduled successfully");
   } catch (error) {
     next(error);
   }

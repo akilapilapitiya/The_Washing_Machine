@@ -918,3 +918,94 @@ export const deleteBookingService = async (
     client.release();
   }
 };
+
+export const rescheduleBookingService = async (bookingId, newDate, newStartTime, adminId) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // 1. Fetch booking details to calculate durations
+    const bookingRes = await client.query(
+      `SELECT b.bookingstatus, b.bookingstarttime, b.bookingendtime, 
+              s.schedulestarttime, s.scheduleendtime, ea.empid
+       FROM booking b
+       JOIN schedule s ON b.bookingid = s.bookingid
+       LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+       WHERE b.bookingid = $1`,
+      [bookingId]
+    );
+
+    if (bookingRes.rowCount === 0) throw new NotFoundError("Booking not found");
+    const booking = bookingRes.rows[0];
+
+    if (booking.bookingstatus === "completed" || booking.bookingstatus === "cancelled") {
+      throw new ValidationError("Cannot reschedule a completed or cancelled booking");
+    }
+
+    // 2. Validate Employee Overlap
+    if (booking.empid) {
+      const overlapQuery = `
+        SELECT 1 FROM schedule s
+        JOIN employeeassigned ea ON s.bookingid = ea.bookingid
+        WHERE ea.empid = $1
+        AND s.schedulestartdate = $2::date
+        AND s.bookingid != $3
+        AND NOT (
+          s.scheduleendtime <= $4::time 
+          OR 
+          s.schedulestarttime >= ($4::time + ($5::time - $6::time))
+        )
+      `;
+      const overlapCheck = await client.query(overlapQuery, [
+        booking.empid, newDate, bookingId, newStartTime, booking.scheduleendtime, booking.schedulestarttime
+      ]);
+
+      if (overlapCheck.rowCount > 0) {
+         throw new ValidationError("Selected timeslot overlaps with the assigned employee's existing schedule.");
+      }
+    }
+
+    // 3. Prevent rescheduling to a date that falls on a holiday block
+    const holidayQuery = `
+       SELECT holidayname FROM system_holidays 
+       WHERE date = $1::date 
+       AND (
+         holidaytype = 'full' OR 
+         (holidaytype = 'custom' AND NOT (endtime <= $4::time OR starttime >= ($4::time + ($5::time - $6::time))))
+       )
+    `;
+    const holidayCheck = await client.query(holidayQuery, [newDate, newStartTime, booking.bookingendtime, booking.bookingstarttime]);
+    if (holidayCheck.rowCount > 0) {
+       throw new ValidationError(`Timeslot intersects with a branch closure: ${holidayCheck.rows[0].holidayname}`);
+    }
+
+    // 4. Safely transition timeframes
+    await client.query(`
+      UPDATE booking 
+      SET bookingdate = $1, 
+          bookingendtime = $2::time + (bookingendtime - bookingstarttime),
+          bookingstarttime = $2, 
+          bookingstatus = CASE WHEN bookingstatus = 'pending' THEN 'scheduled' ELSE bookingstatus END,
+          updated_at = NOW() 
+      WHERE bookingid = $3
+    `, [newDate, newStartTime, bookingId]);
+
+    await client.query(`
+      UPDATE schedule 
+      SET schedulestartdate = $1, 
+          scheduleenddate = $1, 
+          scheduleendtime = $2::time + (scheduleendtime - schedulestarttime),
+          schedulestarttime = $2, 
+          updated_at = NOW() 
+      WHERE bookingid = $3
+    `, [newDate, newStartTime, bookingId]);
+
+    await client.query("COMMIT");
+    return true;
+  } catch (err) {
+    if (client) await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+};

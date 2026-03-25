@@ -6,6 +6,7 @@ import {
   getAllBookings,
   getBooking,
   resolveBookingEmployee,
+  rescheduleBooking,
 } from "../controllers/booking.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -41,5 +42,11 @@ bookingRouter.put(
   updateBooking
 );
 bookingRouter.delete("/:id", restrictTo("customer", "employee"), deleteBooking);
+
+bookingRouter.put(
+  "/:id/reschedule",
+  restrictTo("owner", "cashier"),
+  rescheduleBooking
+);
 
 export default bookingRouter;
