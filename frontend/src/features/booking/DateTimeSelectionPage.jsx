@@ -87,10 +87,7 @@ const DateTimeSelectionPage = () => {
     [tomorrow],
   );
 
-  const holidayLookup = useMemo(
-    () => new Map(holidays.map((holiday) => [holiday.date, holiday.name])),
-    [holidays],
-  );
+
 
   const blockedLookup = useMemo(() => new Set(blockedDates), [blockedDates]);
 
@@ -135,11 +132,15 @@ const DateTimeSelectionPage = () => {
         day,
       );
       const dateKey = toDateKey(date);
-      const holidayName = holidayLookup.get(dateKey) || "";
-      const isHoliday = Boolean(holidayName);
+      const daysHolidays = holidays.filter((h) => h.date === dateKey);
+      const fullDayHolidays = daysHolidays.filter((h) => !h.startTime || !h.endTime);
+      
+      const holidayName = daysHolidays.map((h) => h.name).join(", ");
+      const isHoliday = daysHolidays.length > 0;
       const isBlocked = blockedLookup.has(dateKey);
       const isBeforeMinDate = dateKey < minDate;
-      const isDisabled = isHoliday || isBlocked || isBeforeMinDate;
+      // Only fully block if there's a FULL DAY holiday, blocked by schedule, or past date
+      const isDisabled = fullDayHolidays.length > 0 || isBlocked || isBeforeMinDate;
 
       cells.push({
         day,
@@ -153,7 +154,7 @@ const DateTimeSelectionPage = () => {
     }
 
     return cells;
-  }, [calendarMonth, holidayLookup, blockedLookup, minDate, selectedDate]);
+  }, [calendarMonth, holidays, blockedLookup, minDate, selectedDate]);
 
   useEffect(() => {
     fetchHolidays();
@@ -170,6 +171,8 @@ const DateTimeSelectionPage = () => {
           holidayData.map((h) => ({
             date: h.holidaydate.split("T")[0], // Use date string directly, avoid timezone conversion
             name: h.holidayname,
+            startTime: h.starttime,
+            endTime: h.endtime,
           })),
         );
       }
@@ -199,11 +202,13 @@ const DateTimeSelectionPage = () => {
 
   useEffect(() => {
     if (selectedDate) {
-      // Check if date is a holiday
-      const holiday = holidays.find((h) => h.date === selectedDate);
-      if (holiday) {
+      // Check if date has a full-day holiday
+      const daysHolidays = holidays.filter((h) => h.date === selectedDate);
+      const fullDayHoliday = daysHolidays.find((h) => !h.startTime || !h.endTime);
+      
+      if (fullDayHoliday) {
         setError(
-          `Bookings are not available on ${holiday.name} (System Holiday).`,
+          `Bookings are not available on ${fullDayHoliday.name} (System Holiday).`,
         );
         setAvailableSlots([]);
         setSelectedTime(null); // Clear selected time
@@ -240,7 +245,9 @@ const DateTimeSelectionPage = () => {
       const scheduleArray = Array.isArray(schedule) ? schedule : [];
 
       // Filter slots
-      // A slot is available if it doesn't overlap with any schedule entry
+      // A slot is available if it doesn't overlap with any schedule entry OR partial holiday
+      const partialHolidays = holidays.filter((h) => h.date === selectedDate && h.startTime && h.endTime);
+      
       const filtered = timeSlots.filter((slot) => {
         const slotStart = slot.value;
         // Assume 1 hour default duration for checking overlap in basic phase
@@ -252,6 +259,11 @@ const DateTimeSelectionPage = () => {
           return !(
             entry.scheduleendtime <= slotStart ||
             entry.schedulestarttime >= slotEnd
+          );
+        }) || partialHolidays.some((holiday) => {
+          return !(
+            holiday.endTime <= slotStart || 
+            holiday.startTime >= slotEnd
           );
         });
 
