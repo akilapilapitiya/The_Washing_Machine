@@ -56,6 +56,7 @@ const ManageServicesPage = () => {
     category: "",
     is_featured: false,
     is_variable_price: false,
+    cooldown_duration: "15",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
@@ -132,6 +133,7 @@ const ManageServicesPage = () => {
       category: "",
       is_featured: false,
       is_variable_price: false,
+      cooldown_duration: "15",
     });
   }, []);
 
@@ -265,6 +267,7 @@ const ManageServicesPage = () => {
       category: service.category || "",
       is_featured: service.is_featured || false,
       is_variable_price: service.is_variable_price || false,
+      cooldown_duration: service.cooldown_duration?.toString() || "15",
     });
     setImageFile(null);
     setShowEditForm(true);
@@ -770,6 +773,22 @@ const ManageServicesPage = () => {
                           </span>
                         </div>
                       </div>
+                    </div>
+                    <div className="space-y-2 col-span-2 sm:col-span-1">
+                      <Label className="text-sm font-medium text-gray-700">
+                        Cooldown Buffer (min)
+                      </Label>
+                      <Input
+                         id="cooldown_duration"
+                         name="cooldown_duration"
+                         type="number"
+                         min="0"
+                         value={formData.cooldown_duration}
+                         onChange={handleInputChange}
+                         placeholder="15"
+                         className="h-11 border-gray-300 focus:ring-red-600"
+                         required
+                      />
                     </div>
                   </div>
                 </div>

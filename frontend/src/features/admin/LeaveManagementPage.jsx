@@ -30,11 +30,14 @@ const LeaveManagementPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [dateRange, setDateRange] = useState("all");
 
+  const [isPartialDay, setIsPartialDay] = useState(false);
   const [formData, setFormData] = useState({
     empid: "",
     startDate: "",
     endDate: "",
     reason: "",
+    startTime: "",
+    endTime: "",
   });
 
   useEffect(() => {
@@ -61,9 +64,17 @@ const LeaveManagementPage = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      await schedulerService.recordLeave(formData);
+      const payload = { ...formData };
+      if (!isPartialDay) {
+        delete payload.startTime;
+        delete payload.endTime;
+      } else {
+        payload.endDate = payload.startDate; // Partial leave is always single day
+      }
+      await schedulerService.recordLeave(payload);
       toast.success("Leave recorded successfully.");
-      setFormData({ empid: "", startDate: "", endDate: "", reason: "" });
+      setFormData({ empid: "", startDate: "", endDate: "", reason: "", startTime: "", endTime: "" });
+      setIsPartialDay(false);
       fetchData();
       setShowAddForm(false);
     } catch (err) {
@@ -255,9 +266,22 @@ const LeaveManagementPage = () => {
                   </select>
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isPartialDay"
+                    checked={isPartialDay}
+                    onChange={(e) => setIsPartialDay(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600 cursor-pointer"
+                  />
+                  <Label htmlFor="isPartialDay" className="cursor-pointer text-sm">
+                    Partial Day Leave (Specific Hours)
+                  </Label>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Start Date</Label>
+                    <Label>{isPartialDay ? "Date" : "Start Date"}</Label>
                     <Input
                       type="date"
                       className="border-gray-200"
@@ -268,19 +292,50 @@ const LeaveManagementPage = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input
-                      type="date"
-                      className="border-gray-200"
-                      value={formData.endDate}
-                      onChange={(e) =>
-                        setFormData({ ...formData, endDate: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
+                  {!isPartialDay && (
+                    <div className="space-y-2">
+                      <Label>End Date</Label>
+                      <Input
+                        type="date"
+                        className="border-gray-200"
+                        value={formData.endDate}
+                        onChange={(e) =>
+                          setFormData({ ...formData, endDate: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {isPartialDay && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Start Time</Label>
+                      <Input
+                        type="time"
+                        className="border-gray-200"
+                        value={formData.startTime}
+                        onChange={(e) =>
+                          setFormData({ ...formData, startTime: e.target.value })
+                        }
+                        required={isPartialDay}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>End Time</Label>
+                      <Input
+                        type="time"
+                        className="border-gray-200"
+                        value={formData.endTime}
+                        onChange={(e) =>
+                          setFormData({ ...formData, endTime: e.target.value })
+                        }
+                        required={isPartialDay}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Reason</Label>
