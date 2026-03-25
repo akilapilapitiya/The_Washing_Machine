@@ -317,7 +317,7 @@ export const createBookingService = async ({
 
     // 1. Calculate Service Duration and Base Price
     const servicesCheck = await client.query(
-      "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+      "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype, cooldown_duration FROM service WHERE serviceid = ANY($1)",
       [services],
     );
 
@@ -333,11 +333,17 @@ export const createBookingService = async ({
     }
 
     let serviceDurationSeconds = 0;
+    let maxCooldownSeconds = 0;
     let servicePrice = 0;
 
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
       serviceDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
+      
+      const cooldownMins = s.cooldown_duration ?? 15;
+      if (cooldownMins * 60 > maxCooldownSeconds) {
+        maxCooldownSeconds = cooldownMins * 60;
+      }
 
       const price = s.has_offer
         ? parseFloat(s.offer_price)
@@ -392,7 +398,7 @@ export const createBookingService = async ({
 
     // If not home visit, travel & buffer might be 0 or small, but logic holds if distance is 0.
     const totalDurationSeconds =
-      serviceDurationSeconds + roundTripSeconds + bufferSeconds;
+      serviceDurationSeconds + roundTripSeconds + bufferSeconds + maxCooldownSeconds;
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
@@ -781,7 +787,7 @@ export const updateBookingService = async (
 
     if (services || startTime) {
       const srvCheck = await client.query(
-        "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+        "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype, cooldown_duration FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
 
@@ -793,10 +799,15 @@ export const updateBookingService = async (
       }
 
       let duration = 0;
+      let maxCooldownSec = 0;
       totalPrice = 0;
       srvCheck.rows.forEach((s) => {
         const [h, m, s_] = s.servicetime.split(":").map(Number);
         duration += h * 3600 + m * 60 + (s_ || 0);
+        
+        const cooldownMins = s.cooldown_duration ?? 15;
+        if (cooldownMins * 60 > maxCooldownSec) maxCooldownSec = cooldownMins * 60;
+
         const price = s.has_offer
           ? parseFloat(s.offer_price)
           : parseFloat(s.serviceprice);
@@ -810,7 +821,7 @@ export const updateBookingService = async (
 
       const [sh, sm, ss] = newStartTime.split(":").map(Number);
       const startSec = sh * 3600 + sm * 60 + (ss || 0);
-      const totalDurationSec = duration + roundTripSeconds + bufferSeconds;
+      const totalDurationSec = duration + roundTripSeconds + bufferSeconds + maxCooldownSec;
 
       const endSec = startSec + totalDurationSec;
       endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;

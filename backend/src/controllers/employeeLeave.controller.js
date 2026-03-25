@@ -3,12 +3,14 @@ import { successResponse } from "../utils/response.util.js";
 
 export const createEmployeeLeave = async (req, res, next) => {
   try {
-    const { empid, startDate, endDate, reason } = req.body;
+    const { empid, startDate, endDate, reason, startTime, endTime } = req.body;
     const leave = await leaveService.createLeave({
       empid,
       startDate,
       endDate,
       reason,
+      startTime,
+      endTime
     });
     successResponse(res, 201, "Employee leave recorded successfully", leave);
   } catch (error) {

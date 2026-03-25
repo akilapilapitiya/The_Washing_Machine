@@ -6,7 +6,7 @@ import { createNotificationService } from "./notification.service.js";
 /**
  * Record a leave for an employee and block their schedule
  */
-export const createLeave = async ({ empid, startDate, endDate, reason }) => {
+export const createLeave = async ({ empid, startDate, endDate, reason, startTime = null, endTime = null }) => {
   const client = await pool.connect();
 
   try {
@@ -23,14 +23,20 @@ export const createLeave = async ({ empid, startDate, endDate, reason }) => {
 
     // 2. Check for conflicts with existing bookings
     // We check if the employee is assigned to any booking during the leave period
-    const conflictCheck = await client.query(
-      `SELECT b.bookingid, b.bookingdate 
+    let conflictCheckQuery = `
+       SELECT b.bookingid, b.bookingdate 
        FROM booking b
        JOIN employeeassigned ea ON b.bookingid = ea.bookingid
        WHERE ea.empid = $1 
-       AND b.bookingdate BETWEEN $2::date AND $3::date`,
-      [empid, startDate, endDate],
-    );
+       AND b.bookingdate BETWEEN $2::date AND $3::date`;
+    let queryParams = [empid, startDate, endDate];
+
+    if (startTime && endTime) {
+       conflictCheckQuery += ` AND NOT (b.bookingendtime <= $4::time OR b.bookingstarttime >= $5::time)`;
+       queryParams.push(startTime, endTime);
+    }
+
+    const conflictCheck = await client.query(conflictCheckQuery, queryParams);
 
     if (conflictCheck.rowCount > 0) {
       throw new ValidationError(
@@ -40,17 +46,19 @@ export const createLeave = async ({ empid, startDate, endDate, reason }) => {
 
     // 3. Create Leave record
     const leaveResult = await client.query(
-      `INSERT INTO employeeleave (leavestartdate, leaveenddate, leavereason, empid)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO employeeleave (leavestartdate, leaveenddate, leavereason, empid, leavestarttime, leaveendtime)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING leaveid`,
-      [startDate, endDate, reason, empid],
+      [startDate, endDate, reason, empid, startTime, endTime],
     );
     const leaveId = leaveResult.rows[0].leaveid;
 
     // 4. Populate Schedule (One entry per day of leave)
-    // We block the whole day 00:00 to 23:59
     const start = new Date(startDate);
     const end = new Date(endDate);
+    
+    const sTime = startTime || '00:00:00';
+    const eTime = endTime || '23:59:59';
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const currentDate = d.toISOString().split("T")[0];
@@ -58,8 +66,8 @@ export const createLeave = async ({ empid, startDate, endDate, reason }) => {
 
       await client.query(
         `INSERT INTO schedule (scheduleid, schedulestartdate, scheduleenddate, schedulestarttime, scheduleendtime, leaveid)
-         VALUES ($1, $2, $2, '00:00:00', '23:59:59', $3)`,
-        [scheduleId, currentDate, leaveId],
+         VALUES ($1, $2, $2, $3, $4, $5)`,
+        [scheduleId, currentDate, sTime, eTime, leaveId],
       );
     }
 
