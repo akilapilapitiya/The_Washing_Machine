@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Loader2, Save, Unlock, Lock } from "lucide-react";
+import { Loader2, Save, Unlock, Lock, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import DataTable from "@/components/common/DataTable";
 import * as schedulerService from "@/services/scheduler.service";
 import * as holidayService from "@/services/systemHoliday.service";
 import { toast } from "sonner";
@@ -199,6 +200,19 @@ const ManageDailySchedulePage = () => {
     </Button>
   );
 
+  const rosterColumns = [
+    { key: "time", label: "Time Slot", render: (b) => `${b.schedulestarttime.substring(0,5)} - ${b.scheduleendtime.substring(0,5)}` },
+    { key: "customer", label: "Customer", render: (b) => <span className="font-medium text-gray-900">{b.customer_firstname} {b.customer_lastname}</span> },
+    { key: "contact", label: "Contact Phone", render: (b) => (
+      <a href={`tel:${b.customer_phone}`} className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
+         <Phone size={14} className="mr-1.5" />
+         {b.customer_phone || "N/A"}
+      </a>
+    )},
+    { key: "employee", label: "Assigned To", render: (b) => b.employee_firstname ? `${b.employee_firstname} ${b.employee_lastname}` : <span className="text-gray-400 italic">Unassigned</span> },
+    { key: "bookingid", label: "Booking Ref", render: (b) => <span className="text-xs text-gray-500 font-mono">#{b.bookingid}</span> },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-8">
       <Card className="border border-gray-200 shadow-sm overflow-hidden">
@@ -279,10 +293,29 @@ const ManageDailySchedulePage = () => {
                 </div>
               )}
             </div>
-
           </div>
         </CardContent>
       </Card>
+
+      {/* Roster Table */}
+      {selectedDate && !loading && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <Card className="border border-gray-200 shadow-sm overflow-hidden mt-6">
+            <div className="bg-gray-50 px-5 py-4 border-b border-gray-200">
+              <h2 className="text-sm font-bold text-gray-900">Booked Customers Roster</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Contact customers instantly if operational delays occur today.</p>
+            </div>
+            <CardContent className="p-0">
+               <DataTable 
+                 columns={rosterColumns}
+                 data={bookings}
+                 keyField="scheduleid"
+                 emptyMessage="No customer bookings scheduled for this date."
+               />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

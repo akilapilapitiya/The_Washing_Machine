@@ -105,6 +105,12 @@ const Sidebar = () => {
   const employeeLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
     {
+      to: "/dashboard/admin/daily-schedule",
+      icon: Calendar,
+      label: "Daily Schedule",
+      roles: ["cashier"],
+    },
+    {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
       label: "Service Queue",

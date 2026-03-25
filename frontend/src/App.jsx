@@ -290,7 +290,7 @@ const App = () => {
             <Route
               path="admin/daily-schedule"
               element={
-                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                <EmployeeProtectedRoute allowedRoles={["owner", "cashier"]}>
                   <ManageDailySchedulePage />
                 </EmployeeProtectedRoute>
               }

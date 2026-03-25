@@ -46,7 +46,7 @@ router.delete(
 router.post(
   "/holidays/sync-daily",
   authMiddleware,
-  restrictTo("owner"),
+  restrictTo("owner", "cashier"),
   syncDailyHolidaysController,
 );
 

@@ -31,11 +31,20 @@ export const getBranchBookingsByDate = async (date) => {
         s.schedulestarttime::text, 
         s.scheduleendtime::text, 
         s.bookingid, 
-        b.bookingstatus
+        b.bookingstatus,
+        c.firstname AS customer_firstname,
+        c.lastname AS customer_lastname,
+        c.phone AS customer_phone,
+        e.firstname AS employee_firstname,
+        e.lastname AS employee_lastname
       FROM schedule s
       JOIN booking b ON s.bookingid = b.bookingid
+      JOIN customer c ON b.customerid = c.customerid
+      LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+      LEFT JOIN employee e ON ea.empid = e.empid
       WHERE s.schedulestartdate = $1::date
       AND b.bookingstatus NOT IN ('cancelled', 'rejected')
+      ORDER BY s.schedulestarttime ASC
     `;
     const result = await pool.query(query, [date]);
     return result.rows;
