@@ -421,6 +421,16 @@ const ManageServicesPage = () => {
       ),
     },
     {
+      key: "cooldown",
+      label: "Cooldown",
+      render: (row) => (
+        <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+          <Clock size={16} className="text-gray-400" />
+          {row.cooldown_duration ? `${row.cooldown_duration} min` : "15 min"}
+        </div>
+      ),
+    },
+    {
       key: "actions",
       label: "Actions",
       headerClassName: "text-right",
