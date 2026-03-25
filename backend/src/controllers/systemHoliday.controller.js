@@ -82,7 +82,7 @@ export const getHolidayByIdController = async (req, res) => {
 // Create new holiday (owner only)
 export const createHolidayController = async (req, res) => {
   try {
-    const { holidayname, holidaydate, holidaytype, description, is_recurring } =
+    const { holidayname, holidaydate, starttime, endtime, holidaytype, description, is_recurring } =
       req.body;
 
     // Validation
@@ -94,16 +94,18 @@ export const createHolidayController = async (req, res) => {
 
     // Check if date already has a holiday
     const existingHoliday =
-      await systemHolidayService.checkDateIsHoliday(holidaydate);
+      await systemHolidayService.checkDateIsHoliday(holidaydate, starttime, endtime);
     if (existingHoliday) {
       return res.status(409).json({
-        error: `A holiday already exists on this date: ${existingHoliday.holidayname}`,
+        error: `A holiday already exists on this date/time: ${existingHoliday.holidayname}`,
       });
     }
 
     const holidayData = {
       holidayname,
       holidaydate,
+      starttime: starttime || null,
+      endtime: endtime || null,
       holidaytype: holidaytype || "public",
       description,
       is_recurring: is_recurring || false,
@@ -127,7 +129,7 @@ export const createHolidayController = async (req, res) => {
 export const updateHolidayController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { holidayname, holidaydate, holidaytype, description, is_recurring } =
+    const { holidayname, holidaydate, starttime, endtime, holidaytype, description, is_recurring } =
       req.body;
 
     // Check if holiday exists
@@ -136,20 +138,23 @@ export const updateHolidayController = async (req, res) => {
       return res.status(404).json({ error: "Holiday not found" });
     }
 
-    // If updating date, check for conflicts
-    if (holidaydate && holidaydate !== existingHoliday.holidaydate) {
-      const dateConflict =
-        await systemHolidayService.checkDateIsHoliday(holidaydate);
-      if (dateConflict) {
-        return res.status(409).json({
-          error: `A holiday already exists on this date: ${dateConflict.holidayname}`,
-        });
-      }
+    // Always check for conflicts (excluding self)
+    const targetDate = holidaydate || existingHoliday.holidaydate;
+    const targetStart = starttime !== undefined ? starttime : existingHoliday.starttime;
+    const targetEnd = endtime !== undefined ? endtime : existingHoliday.endtime;
+    
+    const dateConflict = await systemHolidayService.checkDateIsHoliday(targetDate, targetStart, targetEnd, id);
+    if (dateConflict) {
+      return res.status(409).json({
+        error: `A holiday already exists in this timeframe: ${dateConflict.holidayname}`,
+      });
     }
 
     const holidayData = {
       holidayname,
       holidaydate,
+      starttime: targetStart,
+      endtime: targetEnd,
       holidaytype,
       description,
       is_recurring,

@@ -302,14 +302,6 @@ export const createBookingService = async ({
     throw new ValidationError("Booking date cannot be in the past");
   }
 
-  // Check if the booking date is a system holiday
-  const holiday = await checkDateIsHoliday(date);
-  if (holiday) {
-    throw new ValidationError(
-      `Bookings are not available on ${holiday.holidayname} (System Holiday)`,
-    );
-  }
-
   const client = await pool.connect();
 
   try {
@@ -408,6 +400,14 @@ export const createBookingService = async ({
     const endM = Math.floor((endSeconds % 3600) / 60);
     const endS = endSeconds % 60;
     const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:${String(endS).padStart(2, "0")}`;
+
+    // Check if the booking date & time intersects a branch closure
+    const holiday = await checkDateIsHoliday(date, startTime, endTime);
+    if (holiday) {
+      throw new ValidationError(
+        `Bookings are not available on this timeframe due to a branch closure: ${holiday.holidayname}`,
+      );
+    }
 
     // 3. Validate vehicle
     const vehicleCheck = await client.query(
@@ -825,6 +825,14 @@ export const updateBookingService = async (
 
       const endSec = startSec + totalDurationSec;
       endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;
+    }
+
+    // Check if the new date & time intersects a branch closure
+    const holiday = await checkDateIsHoliday(newDate, newStartTime, endTime);
+    if (holiday) {
+      throw new ValidationError(
+        `Updates are not possible: branch closure intersects this timeframe (${holiday.holidayname})`,
+      );
     }
 
     // Availability validation (optional for phase 1 but good practice)
