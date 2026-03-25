@@ -203,3 +203,34 @@ export const getUpcomingHolidays = async () => {
   const result = await pool.query(query);
   return result.rows;
 };
+
+// Sync daily holidays (replace all custom holidays on a specific date)
+export const syncDailyHolidays = async (date, blocks, userId) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    
+    // Delete existing custom holidays on this date
+    await client.query(
+      `DELETE FROM system_holidays WHERE holidaydate = $1 AND holidaytype = 'custom'`,
+      [date]
+    );
+
+    // Insert new blocks
+    for (const block of blocks) {
+      await client.query(
+        `INSERT INTO system_holidays (
+          holidayname, holidaydate, starttime, endtime, holidaytype, created_by
+        ) VALUES ($1, $2, $3, $4, 'custom', $5)`,
+        ['Branch Closure', date, block.starttime, block.endtime, userId]
+      );
+    }
+    
+    await client.query("COMMIT");
+  } catch (error) {
+    if (client) await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};

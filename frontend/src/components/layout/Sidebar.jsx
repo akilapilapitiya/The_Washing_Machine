@@ -179,6 +179,13 @@ const Sidebar = () => {
           active={location.pathname === "/dashboard/employee/payments"}
           nested
         />
+        <SidebarItem
+          to="/dashboard/admin/daily-schedule"
+          icon={Calendar}
+          label="Daily Schedule"
+          active={location.pathname === "/dashboard/admin/daily-schedule"}
+          nested
+        />
       </SidebarGroup>
 
       <SidebarGroup title="Management" icon={Users}>

@@ -52,6 +52,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 const NotificationsPage = lazy(() => import("./features/dashboard/NotificationsPage"));
 const OwnerPricingPage = lazy(() => import("./features/dashboard/OwnerPricingPage"));
 const SystemHolidaysPage = lazy(() => import("./features/admin/SystemHolidaysPage"));
+const ManageDailySchedulePage = lazy(() => import("./features/admin/ManageDailySchedulePage"));
 
 const MarketplacePage = lazy(() => import("./features/home/MarketplacePage"));
 
@@ -283,6 +284,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <ManageServicesPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/daily-schedule"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <ManageDailySchedulePage />
                 </EmployeeProtectedRoute>
               }
             />

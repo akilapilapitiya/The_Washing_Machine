@@ -206,3 +206,18 @@ export const getUpcomingHolidaysController = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch upcoming holidays" });
   }
 };
+
+export const syncDailyHolidaysController = async (req, res) => {
+  try {
+    const { date, blocks } = req.body;
+    if (!date || !Array.isArray(blocks)) {
+      return res.status(400).json({ error: "Date and blocks array are required" });
+    }
+    
+    await systemHolidayService.syncDailyHolidays(date, blocks, req.user.id);
+    return res.status(200).json({ message: "Daily schedule synced successfully" });
+  } catch (error) {
+    logger.error("Error syncing daily schedule:", error);
+    return res.status(500).json({ error: "Failed to sync daily schedule" });
+  }
+};

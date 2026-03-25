@@ -8,6 +8,7 @@ import {
   updateHolidayController,
   deleteHolidayController,
   getUpcomingHolidaysController,
+  syncDailyHolidaysController,
 } from "../controllers/systemHoliday.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
@@ -37,7 +38,16 @@ router.delete(
   "/holidays/:id",
   authMiddleware,
   restrictTo("owner"),
+  restrictTo("owner"),
   deleteHolidayController,
+);
+
+// Sync daily holidays
+router.post(
+  "/holidays/sync-daily",
+  authMiddleware,
+  restrictTo("owner"),
+  syncDailyHolidaysController,
 );
 
 export default router;
