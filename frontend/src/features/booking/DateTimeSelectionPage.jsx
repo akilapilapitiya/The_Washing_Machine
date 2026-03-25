@@ -19,18 +19,27 @@ const toDateKey = (date) => {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
-// Generate time slots between 9 AM and 4 PM
+// Generate time slots in 15-minute increments between 9 AM and 4:45 PM
 const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 9; hour <= 16; hour++) {
-    const time = `${hour.toString().padStart(2, "0")}:00`;
-    const displayTime =
-      hour < 12
-        ? `${hour}:00 AM`
-        : hour === 12
-          ? `12:00 PM`
-          : `${hour - 12}:00 PM`;
-    slots.push({ value: time, display: displayTime });
+    for (let min of [0, 15, 30, 45]) {
+      // Hard stop at 4:30 PM for starting a service (assuming minimum 30-60m block)
+      if (hour === 16 && min > 30) continue; 
+      
+      const time = `${hour.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
+      
+      let displayTime;
+      if (hour < 12) {
+        displayTime = `${hour}:${min === 0 ? "00" : min} AM`;
+      } else if (hour === 12) {
+        displayTime = `12:${min === 0 ? "00" : min} PM`;
+      } else {
+        displayTime = `${hour - 12}:${min === 0 ? "00" : min} PM`;
+      }
+      
+      slots.push({ value: time, display: displayTime });
+    }
   }
   return slots;
 };
@@ -249,10 +258,14 @@ const DateTimeSelectionPage = () => {
       const partialHolidays = holidays.filter((h) => h.date === selectedDate && h.startTime && h.endTime);
       
       const filtered = timeSlots.filter((slot) => {
-        const slotStart = slot.value;
-        // Assume 1 hour default duration for checking overlap in basic phase
-        const [h, m] = slotStart.split(":").map(Number);
-        const slotEnd = `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
+        const slotStart = `${slot.value}:00`;
+        // Assume 60 minutes default duration for checking overlap in basic phase
+        const [h, m] = slot.value.split(":").map(Number);
+        
+        const totalMinutes = h * 60 + m + 60;
+        const endH = Math.floor(totalMinutes / 60);
+        const endM = totalMinutes % 60;
+        const slotEnd = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
 
         const isOverlapping = scheduleArray.some((entry) => {
           // NOT (s.scheduleendtime <= $3::time OR s.schedulestarttime >= $4::time)
