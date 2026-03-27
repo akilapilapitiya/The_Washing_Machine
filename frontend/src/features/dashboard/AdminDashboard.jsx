@@ -209,6 +209,12 @@ const AdminDashboard = ({ data, loading }) => {
                   to="/dashboard/admin/holidays"
                   icon={Briefcase}
                />
+               <AdminActionItem
+                  title="Daily Schedule & Roster"
+                  description="Manage timeslots and contact details."
+                  to="/dashboard/admin/daily-schedule"
+                  icon={Clock}
+               />
             </div>
          </div>
       </div>

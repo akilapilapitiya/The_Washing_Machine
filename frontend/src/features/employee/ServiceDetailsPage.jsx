@@ -41,10 +41,13 @@ import BookingFlowToolbar, {
   BookingToolbarBackButton,
   BookingToolbarActionButton,
 } from "@/components/common/BookingFlowToolbar";
+import { useAuth } from "@/contexts/AuthContext";
+import RescheduleBookingModal from "./RescheduleBookingModal";
 
 const ServiceDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isOwner, isCashier } = useAuth();
 
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +69,9 @@ const ServiceDetailsPage = () => {
   const [reportDesc, setReportDesc] = useState("");
   const [reportSeverity, setReportSeverity] = useState("medium");
   const [reporting, setReporting] = useState(false);
+
+  // Reschedule State
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
   // Helpers Defined at Top to avoid TDZ
   const formatDate = (dateString) => {
@@ -196,6 +202,17 @@ const ServiceDetailsPage = () => {
           <div className="flex items-center gap-2">
             <BookingToolbarBackButton onClick={() => navigate(-1)} />
             
+            {isUpcoming && (isOwner || isCashier) && (
+              <BookingToolbarActionButton
+                 onClick={() => setShowRescheduleModal(true)}
+                 disabled={updating}
+                 className="bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300"
+              >
+                 <Calendar className="h-4 w-4 mr-2" />
+                 Reschedule
+              </BookingToolbarActionButton>
+            )}
+
             {isUpcoming && (
               <BookingToolbarActionButton
                 onClick={() => handleStatusChange("inProgress")}
@@ -221,7 +238,7 @@ const ServiceDetailsPage = () => {
         )}
       />
     );
-  }, [service, updating, navigate]);
+  }, [service, updating, navigate, isOwner, isCashier]);
 
   useSetPageHeader(
     "OPERATIONAL MISSION",
@@ -533,6 +550,14 @@ const ServiceDetailsPage = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {showRescheduleModal && (
+          <RescheduleBookingModal
+            booking={service}
+            onClose={() => setShowRescheduleModal(false)}
+            onRescheduled={fetchServiceDetails}
+          />
         )}
       </div>
     </div>

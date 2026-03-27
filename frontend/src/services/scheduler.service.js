@@ -34,10 +34,17 @@ export const recordLeave = async (leaveData) => {
   return response.data.data;
 };
 
-/**
- * Fetch my leaves (Employee)
- */
 export const getMyLeaves = async () => {
   const response = await api.get("/leave/my-leaves");
+  return response.data.data;
+};
+
+/**
+ * Fetch branch-wide schedule records for a given date (Owner only)
+ */
+export const getBranchDailySchedule = async (date) => {
+  const response = await api.get("/schedule/branch/daily", {
+    params: { date },
+  });
   return response.data.data;
 };

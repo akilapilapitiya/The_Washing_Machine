@@ -22,7 +22,7 @@ export const createNotificationService = async ({
   // Real-time delivery (Socket.io)
   try {
     const io = getIO();
-    io.to(`user-${recipientId}`).emit("notification", notification);
+    io.to(`user-${recipientRole}-${recipientId}`).emit("notification", notification);
   } catch (err) {
     logger.error("Socket emit failed:", err.message);
   }

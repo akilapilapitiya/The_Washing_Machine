@@ -302,14 +302,6 @@ export const createBookingService = async ({
     throw new ValidationError("Booking date cannot be in the past");
   }
 
-  // Check if the booking date is a system holiday
-  const holiday = await checkDateIsHoliday(date);
-  if (holiday) {
-    throw new ValidationError(
-      `Bookings are not available on ${holiday.holidayname} (System Holiday)`,
-    );
-  }
-
   const client = await pool.connect();
 
   try {
@@ -317,7 +309,7 @@ export const createBookingService = async ({
 
     // 1. Calculate Service Duration and Base Price
     const servicesCheck = await client.query(
-      "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+      "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype, cooldown_duration FROM service WHERE serviceid = ANY($1)",
       [services],
     );
 
@@ -333,11 +325,17 @@ export const createBookingService = async ({
     }
 
     let serviceDurationSeconds = 0;
+    let maxCooldownSeconds = 0;
     let servicePrice = 0;
 
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
       serviceDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
+      
+      const cooldownMins = s.cooldown_duration ?? 15;
+      if (cooldownMins * 60 > maxCooldownSeconds) {
+        maxCooldownSeconds = cooldownMins * 60;
+      }
 
       const price = s.has_offer
         ? parseFloat(s.offer_price)
@@ -392,7 +390,7 @@ export const createBookingService = async ({
 
     // If not home visit, travel & buffer might be 0 or small, but logic holds if distance is 0.
     const totalDurationSeconds =
-      serviceDurationSeconds + roundTripSeconds + bufferSeconds;
+      serviceDurationSeconds + roundTripSeconds + bufferSeconds + maxCooldownSeconds;
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
@@ -402,6 +400,14 @@ export const createBookingService = async ({
     const endM = Math.floor((endSeconds % 3600) / 60);
     const endS = endSeconds % 60;
     const endTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:${String(endS).padStart(2, "0")}`;
+
+    // Check if the booking date & time intersects a branch closure
+    const holiday = await checkDateIsHoliday(date, startTime, endTime);
+    if (holiday) {
+      throw new ValidationError(
+        `Bookings are not available on this timeframe due to a branch closure: ${holiday.holidayname}`,
+      );
+    }
 
     // 3. Validate vehicle
     const vehicleCheck = await client.query(
@@ -781,7 +787,7 @@ export const updateBookingService = async (
 
     if (services || startTime) {
       const srvCheck = await client.query(
-        "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype FROM service WHERE serviceid = ANY($1)",
+        "SELECT serviceid, servicename, servicetime, serviceprice, has_offer, offer_price, servicetype, cooldown_duration FROM service WHERE serviceid = ANY($1)",
         [newServices],
       );
 
@@ -793,10 +799,15 @@ export const updateBookingService = async (
       }
 
       let duration = 0;
+      let maxCooldownSec = 0;
       totalPrice = 0;
       srvCheck.rows.forEach((s) => {
         const [h, m, s_] = s.servicetime.split(":").map(Number);
         duration += h * 3600 + m * 60 + (s_ || 0);
+        
+        const cooldownMins = s.cooldown_duration ?? 15;
+        if (cooldownMins * 60 > maxCooldownSec) maxCooldownSec = cooldownMins * 60;
+
         const price = s.has_offer
           ? parseFloat(s.offer_price)
           : parseFloat(s.serviceprice);
@@ -810,10 +821,18 @@ export const updateBookingService = async (
 
       const [sh, sm, ss] = newStartTime.split(":").map(Number);
       const startSec = sh * 3600 + sm * 60 + (ss || 0);
-      const totalDurationSec = duration + roundTripSeconds + bufferSeconds;
+      const totalDurationSec = duration + roundTripSeconds + bufferSeconds + maxCooldownSec;
 
       const endSec = startSec + totalDurationSec;
       endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;
+    }
+
+    // Check if the new date & time intersects a branch closure
+    const holiday = await checkDateIsHoliday(newDate, newStartTime, endTime);
+    if (holiday) {
+      throw new ValidationError(
+        `Updates are not possible: branch closure intersects this timeframe (${holiday.holidayname})`,
+      );
     }
 
     // Availability validation (optional for phase 1 but good practice)
@@ -895,6 +914,134 @@ export const deleteBookingService = async (
   } catch (error) {
     if (client) await client.query("ROLLBACK");
     throw error;
+  } finally {
+    client.release();
+  }
+};
+
+export const rescheduleBookingService = async (bookingId, newDate, newStartTime, adminId) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // 1. Fetch booking details to calculate durations
+    const bookingRes = await client.query(
+      `SELECT b.bookingstatus, b.bookingstarttime, b.bookingendtime, 
+              s.schedulestarttime, s.scheduleendtime, ea.empid, v.cusid
+       FROM booking b
+       JOIN schedule s ON b.bookingid = s.bookingid
+       JOIN vehicle v ON b.vehid = v.id
+       LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+       WHERE b.bookingid = $1`,
+      [bookingId]
+    );
+
+    if (bookingRes.rowCount === 0) throw new NotFoundError("Booking not found");
+    const booking = bookingRes.rows[0];
+
+    if (booking.bookingstatus === "completed" || booking.bookingstatus === "cancelled") {
+      throw new ValidationError("Cannot reschedule a completed or cancelled booking");
+    }
+
+    // 2. Validate Employee Overlap
+    if (booking.empid) {
+      const overlapQuery = `
+        SELECT 1 FROM schedule s
+        JOIN employeeassigned ea ON s.bookingid = ea.bookingid
+        WHERE ea.empid = $1
+        AND s.schedulestartdate = $2::date
+        AND s.bookingid != $3
+        AND NOT (
+          s.scheduleendtime <= $4::time 
+          OR 
+          s.schedulestarttime >= ($4::time + ($5::time - $6::time))
+        )
+      `;
+      const overlapCheck = await client.query(overlapQuery, [
+        booking.empid, newDate, bookingId, newStartTime, booking.scheduleendtime, booking.schedulestarttime
+      ]);
+
+      if (overlapCheck.rowCount > 0) {
+         throw new ValidationError("Selected timeslot overlaps with the assigned employee's existing schedule.");
+      }
+    }
+
+    // 3. Prevent rescheduling to a date that falls on a holiday block
+    const holidayQuery = `
+       SELECT holidayname FROM system_holidays 
+       WHERE holidaydate = $1::date 
+       AND (
+         holidaytype = 'full' OR 
+         (holidaytype = 'custom' AND NOT (endtime <= $2::time OR starttime >= ($2::time + ($3::time - $4::time))))
+       )
+    `;
+    const holidayCheck = await client.query(holidayQuery, [newDate, newStartTime, booking.bookingendtime, booking.bookingstarttime]);
+    if (holidayCheck.rowCount > 0) {
+       throw new ValidationError(`Timeslot intersects with a branch closure: ${holidayCheck.rows[0].holidayname}`);
+    }
+
+    // 4. Safely transition timeframes
+    await client.query(`
+      UPDATE booking 
+      SET bookingdate = $1::date, 
+          bookingendtime = $2::time + (bookingendtime - bookingstarttime),
+          bookingstarttime = $2::time, 
+          updated_at = NOW() 
+      WHERE bookingid = $3::int
+    `, [newDate, newStartTime, bookingId]);
+
+    await client.query(`
+      UPDATE schedule 
+      SET schedulestartdate = $1::date, 
+          scheduleenddate = $1::date, 
+          scheduleendtime = $2::time + (scheduleendtime - schedulestarttime),
+          schedulestarttime = $2::time, 
+          updated_at = NOW() 
+      WHERE bookingid = $3::int
+    `, [newDate, newStartTime, bookingId]);
+
+    // 5. Dispatch Real-time WebSocket Notifications
+    const shortDate = new Date(newDate).toDateString();
+    
+    if (booking.cusid) {
+       await createNotificationService({
+         recipientId: booking.cusid,
+         recipientRole: 'customer',
+         title: 'Service Rescheduled',
+         message: `Your booking #${bookingId} has been administratively rescheduled to ${shortDate} at ${newStartTime.substring(0, 5)}.`,
+         type: 'info',
+         bookingId: bookingId
+       });
+    }
+
+    if (booking.empid) {
+       await createNotificationService({
+         recipientId: booking.empid,
+         recipientRole: 'employee',
+         title: 'Assignment Rescheduled',
+         message: `Your assigned task #${bookingId} has been shifted to ${shortDate} at ${newStartTime.substring(0, 5)}. Please review your updated itinerary.`,
+         type: 'info',
+         bookingId: bookingId
+       });
+    }
+
+    if (adminId) {
+       await createNotificationService({
+         recipientId: adminId,
+         recipientRole: 'employee',
+         title: 'Administrative Action Confirmed',
+         message: `You successfully rescheduled booking #${bookingId} array sequences for the entire branch grid.`,
+         type: 'success',
+         bookingId: bookingId
+       });
+    }
+
+    await client.query("COMMIT");
+    return true;
+  } catch (err) {
+    if (client) await client.query("ROLLBACK");
+    console.error(">>> DB ERROR CAUGHT: ", err);
+    throw err;
   } finally {
     client.release();
   }

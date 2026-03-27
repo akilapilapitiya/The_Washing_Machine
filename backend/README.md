@@ -331,9 +331,9 @@ Socket.io runs on the same HTTP server as Express. All socket connections requir
 
 On successful authentication:
 1. The decoded user payload is attached to `socket.user`.
-2. The socket automatically joins a private room: `user-<id>`.
+2. The socket automatically joins a strictly isolated, role-based private namespace room: `user-<role>-<id>`.
 
-The server can emit targeted notifications to any connected user using `io.to("user-<id>").emit(event, data)`. This is used by the notification service to push real-time alerts to specific users without broadcasting.
+The server can emit targeted notifications to any connected user using `io.to("user-<role>-<id>").emit(event, data)`. This is highly utilized by the Rescheduling engine to push `INFO`, `JOB_UPDATE`, and `SUCCESS` real-time alerts strictly to respective Customers, assigned Employees, and executing Administrators without cross-contamination.
 
 ---
 

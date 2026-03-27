@@ -105,6 +105,12 @@ const Sidebar = () => {
   const employeeLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
     {
+      to: "/dashboard/admin/daily-schedule",
+      icon: Calendar,
+      label: "Daily Schedule",
+      roles: ["cashier"],
+    },
+    {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
       label: "Service Queue",
@@ -177,6 +183,13 @@ const Sidebar = () => {
           icon={CreditCard}
           label="Record Payment"
           active={location.pathname === "/dashboard/employee/payments"}
+          nested
+        />
+        <SidebarItem
+          to="/dashboard/admin/daily-schedule"
+          icon={Calendar}
+          label="Daily Schedule"
+          active={location.pathname === "/dashboard/admin/daily-schedule"}
           nested
         />
       </SidebarGroup>

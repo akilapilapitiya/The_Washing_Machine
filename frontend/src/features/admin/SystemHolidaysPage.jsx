@@ -12,6 +12,7 @@ import {
   Loader2,
   Tag,
   AlertCircle,
+  Clock,
 } from "lucide-react";
 import * as holidayService from "@/services/systemHoliday.service";
 import { toast } from "sonner";
@@ -20,6 +21,24 @@ import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
+import { cn } from "@/lib/utils";
+
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 9; hour <= 16; hour++) {
+    const time = `${hour.toString().padStart(2, "0")}:00`;
+    const displayTime =
+      hour < 12
+        ? `${hour}:00 AM`
+        : hour === 12
+          ? `12:00 PM`
+          : `${hour - 12}:00 PM`;
+    slots.push({ value: time, display: displayTime });
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
 
 const SystemHolidaysPage = () => {
   const [holidays, setHolidays] = useState([]);
@@ -31,9 +50,12 @@ const SystemHolidaysPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
 
+  const [isPartialDay, setIsPartialDay] = useState(false);
   const [formData, setFormData] = useState({
     holidayname: "",
     holidaydate: "",
+    starttime: "",
+    endtime: "",
     holidaytype: "public",
     description: "",
     is_recurring: false,
@@ -66,10 +88,48 @@ const SystemHolidaysPage = () => {
     }));
   };
 
+  const getSelectedSlots = () => {
+    if (!formData.starttime || !formData.endtime) return [];
+    const sh = Number(formData.starttime.split(":")[0]);
+    const eh = Number(formData.endtime.split(":")[0]);
+    const slots = [];
+    for (let i = sh; i < eh; i++) {
+        slots.push(`${String(i).padStart(2, '0')}:00`);
+    }
+    return slots;
+  };
+
+  const handleSlotToggle = (val) => {
+    const currentSlots = getSelectedSlots();
+    let newSlots;
+    
+    if (currentSlots.includes(val)) {
+       newSlots = currentSlots.filter(s => s !== val);
+    } else {
+       newSlots = [...currentSlots, val];
+    }
+    
+    if (newSlots.length === 0) {
+       setFormData(prev => ({ ...prev, starttime: "", endtime: "" }));
+    } else {
+       const mapped = newSlots.map(s => Number(s.split(":")[0])).sort((a,b) => a-b);
+       const min = mapped[0];
+       const max = mapped[mapped.length - 1];
+       setFormData(prev => ({ 
+          ...prev, 
+          starttime: `${String(min).padStart(2, '0')}:00`, 
+          endtime: `${String(max + 1).padStart(2, '0')}:00` 
+       }));
+    }
+  };
+
   const resetForm = React.useCallback(() => {
+    setIsPartialDay(false);
     setFormData({
       holidayname: "",
       holidaydate: "",
+      starttime: "",
+      endtime: "",
       holidaytype: "public",
       description: "",
       is_recurring: false,
@@ -80,7 +140,12 @@ const SystemHolidaysPage = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      await holidayService.createHoliday(formData);
+      const payload = { ...formData };
+      if (!isPartialDay) {
+        delete payload.starttime;
+        delete payload.endtime;
+      }
+      await holidayService.createHoliday(payload);
       resetForm();
       setShowAddForm(false);
       toast.success("Holiday added successfully");
@@ -96,7 +161,12 @@ const SystemHolidaysPage = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      await holidayService.updateHoliday(selectedHoliday.holidayid, formData);
+      const payload = { ...formData };
+      if (!isPartialDay) {
+        delete payload.starttime;
+        delete payload.endtime;
+      }
+      await holidayService.updateHoliday(selectedHoliday.holidayid, payload);
       resetForm();
       setShowEditForm(false);
       setSelectedHoliday(null);
@@ -134,9 +204,13 @@ const SystemHolidaysPage = () => {
 
   const openEditForm = (holiday) => {
     setSelectedHoliday(holiday);
+    const hasTime = !!holiday.starttime && !!holiday.endtime;
+    setIsPartialDay(hasTime);
     setFormData({
       holidayname: holiday.holidayname,
       holidaydate: holiday.holidaydate.split("T")[0], // Use date string directly
+      starttime: hasTime ? holiday.starttime.substring(0, 5) : "",
+      endtime: hasTime ? holiday.endtime.substring(0, 5) : "",
       holidaytype: holiday.holidaytype,
       description: holiday.description || "",
       is_recurring: holiday.is_recurring || false,
@@ -243,11 +317,19 @@ const SystemHolidaysPage = () => {
   const columns = [
     {
       key: "date",
-      label: "Date",
+      label: "Date & Time",
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <Calendar size={16} className="text-gray-400" />
-          <span className="font-medium text-gray-900">{formatDate(row.holidaydate)}</span>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Calendar size={16} className="text-gray-400" />
+            <span className="font-medium text-gray-900">{formatDate(row.holidaydate)}</span>
+          </div>
+          {row.starttime && row.endtime && (
+             <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+               <Clock size={12} className="text-gray-400" />
+               <span>{row.starttime.substring(0, 5)} - {row.endtime.substring(0, 5)}</span>
+             </div>
+          )}
         </div>
       ),
     },
@@ -407,6 +489,52 @@ const SystemHolidaysPage = () => {
                     required
                   />
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isPartialDay"
+                    checked={isPartialDay}
+                    onChange={(e) => setIsPartialDay(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600 cursor-pointer"
+                  />
+                  <Label htmlFor="isPartialDay" className="cursor-pointer text-sm">
+                    Partial Day Closure (Specific Hours)
+                  </Label>
+                </div>
+
+                {isPartialDay && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-gray-700">Select Timeframes to Remove</Label>
+                      {formData.starttime && formData.endtime && (
+                        <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                           {formData.starttime.substring(0, 5)} - {formData.endtime.substring(0, 5)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {TIME_SLOTS.map((slot) => {
+                        const isSelected = getSelectedSlots().includes(slot.value);
+                        return (
+                          <button
+                            key={slot.value}
+                            type="button"
+                            onClick={() => handleSlotToggle(slot.value)}
+                            className={cn(
+                              "px-2 py-2 rounded-lg border text-xs font-bold transition-all duration-200 active:scale-95",
+                              isSelected
+                                ? "border-red-600 bg-red-600 text-white shadow-sm"
+                                : "border-gray-200 bg-white text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-600",
+                            )}
+                          >
+                            {slot.display}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">

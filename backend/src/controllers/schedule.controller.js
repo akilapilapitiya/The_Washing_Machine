@@ -1,6 +1,19 @@
 import * as scheduleService from "../services/schedule.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+export const getBranchDailyScheduleController = async (req, res, next) => {
+  try {
+    const { date } = req.query;
+    if (!date) {
+      return res.status(400).json({ success: false, message: "Date query parameter is required" });
+    }
+    const schedule = await scheduleService.getBranchBookingsByDate(date);
+    return successResponse(res, 200, "Branch daily bookings retrieved", schedule);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getEmployeeSchedule = async (req, res, next) => {
   try {
     const { empid } = req.params;
