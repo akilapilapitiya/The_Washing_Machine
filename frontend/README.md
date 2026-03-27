@@ -321,7 +321,7 @@ A sequential wizard spread across six routes under `/dashboard/booking/*`. Each 
 
 ### Admin (12 pages, owner-only unless noted)
 
-Full CRUD management interfaces for: employees, services, vehicle catalog, customers (owner + cashier), bookings overview (owner + cashier), leave approvals, incidents, advertisements (including promoting requested ads to live status with banner uploads), system holidays, and two analytics reports (daily income, employee performance).
+Full CRUD management interfaces for: employees, services, vehicle catalog, customers (owner + cashier), bookings overview (owner + cashier), leave approvals, incidents, advertisements (including promoting requested ads to live status with banner uploads), system holidays, automated daily schedule lock matrix (15-min granular timeslots), administrative booking rescheduling, and two analytics reports (daily income, employee performance).
 
 ### Employee Portal
 
@@ -329,7 +329,7 @@ Service queue view showing assigned bookings with status update controls. Detail
 
 ### Customer Dashboard
 
-Booking initiation, active booking tracking, service history, payment history, feedback submission, vehicle management, profile editing with avatar upload, and in-app notifications.
+Booking initiation, active booking tracking, service history, payment history, feedback submission, vehicle management, profile editing with avatar upload, and real-time WebSocket push notifications for operational updates.
 
 ### Home (Landing Page)
 

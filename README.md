@@ -113,10 +113,10 @@ All services run as Docker containers on a single Azure Virtual Machine. The Ngi
 
 | Role | Type | Capabilities |
 |---|---|---|
-| Customer | Customer account | Book services, manage vehicles, submit advertisement requests, payment history, feedback |
-| Employee | Employee account | View assigned jobs, update status, leave requests, incident filing |
+| Customer | Customer account | Book services, manage vehicles, submit advertisement requests, payment history, feedback, real-time WebSocket notifications |
+| Employee | Employee account | View assigned jobs, update status, leave requests, incident filing, real-time job update alerts |
 | Cashier | Employee (`emptype=cashier`) | All employee capabilities + payment recording |
-| Owner | Employee (`emptype=owner`) | Full administrative access, marketplace ad management (including banner uploads & live promotions), reports |
+| Owner | Employee (`emptype=owner`) | Full administrative access, marketplace ad management, daily schedule matrix locking, administrative service rescheduling, reports |
 
 ---
 
