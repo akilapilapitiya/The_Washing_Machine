@@ -2,7 +2,7 @@ const createBookingTable = async (pool) => {
   const queryText = `
     CREATE TABLE IF NOT EXISTS booking (
       bookingid SERIAL PRIMARY KEY,
-      bookingstatus VARCHAR(15) NOT NULL CHECK (bookingstatus IN ('pending', 'inProgress', 'completed', 'paid')),
+      bookingstatus VARCHAR(15) NOT NULL CHECK (bookingstatus IN ('pending', 'inProgress', 'completed', 'paid', 'cancelled', 'rejected')),
       bookingdate DATE NOT NULL,
       bookingstarttime TIME NOT NULL,
       bookingendtime TIME NOT NULL,
@@ -29,6 +29,11 @@ const createBookingTable = async (pool) => {
 
     -- Drop restrictive date check constraint if it exists to allow payment recording for past bookings
     ALTER TABLE booking DROP CONSTRAINT IF EXISTS booking_bookingdate_check;
+
+    -- Update bookingstatus constraint to allow cancelled and rejected states
+    ALTER TABLE booking DROP CONSTRAINT IF EXISTS booking_bookingstatus_check;
+    ALTER TABLE booking ADD CONSTRAINT booking_bookingstatus_check
+        CHECK (bookingstatus IN ('pending', 'inProgress', 'completed', 'paid', 'cancelled', 'rejected'));
     
     CREATE INDEX IF NOT EXISTS idx_booking_vehicle ON booking(vehid);
     CREATE INDEX IF NOT EXISTS idx_booking_date ON booking(bookingdate);

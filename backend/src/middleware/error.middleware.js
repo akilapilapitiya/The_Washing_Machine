@@ -30,7 +30,7 @@ const errorHandling = (err, req, res, next) => {
     // Check constraint violation
     else if (err.code === "23514") {
       status = 400;
-      message = "Invalid data provided";
+      message = "Check constraint violation: " + (err.message || err.detail || "Invalid data provided");
     }
     // Other database errors
     else {

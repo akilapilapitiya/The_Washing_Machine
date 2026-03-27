@@ -186,10 +186,7 @@ const ManageDailySchedulePage = () => {
     return cells;
   }, [calendarMonth, minDate, selectedDate]);
 
-  useSetPageHeader(
-    "Operations",
-    "Daily Timeslot Manager",
-    "Lock down branch availability for specific timeslots.",
+  const headerAction = useMemo(() => (
     <Button
       onClick={handleSave}
       disabled={!selectedDate || isSaving || loading}
@@ -198,6 +195,13 @@ const ManageDailySchedulePage = () => {
       {isSaving ? <Loader2 size={16} className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
       Save Custom Schedule
     </Button>
+  ), [selectedDate, isSaving, loading]);
+
+  useSetPageHeader(
+    "Operations",
+    "Daily Timeslot Manager",
+    "Lock down branch availability for specific timeslots.",
+    headerAction
   );
 
   const rosterColumns = [

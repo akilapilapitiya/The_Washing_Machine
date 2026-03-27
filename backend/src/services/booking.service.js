@@ -968,10 +968,10 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
     // 3. Prevent rescheduling to a date that falls on a holiday block
     const holidayQuery = `
        SELECT holidayname FROM system_holidays 
-       WHERE date = $1::date 
+       WHERE holidaydate = $1::date 
        AND (
          holidaytype = 'full' OR 
-         (holidaytype = 'custom' AND NOT (endtime <= $4::time OR starttime >= ($4::time + ($5::time - $6::time))))
+         (holidaytype = 'custom' AND NOT (endtime <= $2::time OR starttime >= ($2::time + ($3::time - $4::time))))
        )
     `;
     const holidayCheck = await client.query(holidayQuery, [newDate, newStartTime, booking.bookingendtime, booking.bookingstarttime]);
@@ -982,28 +982,28 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
     // 4. Safely transition timeframes
     await client.query(`
       UPDATE booking 
-      SET bookingdate = $1, 
+      SET bookingdate = $1::date, 
           bookingendtime = $2::time + (bookingendtime - bookingstarttime),
-          bookingstarttime = $2, 
-          bookingstatus = CASE WHEN bookingstatus = 'pending' THEN 'scheduled' ELSE bookingstatus END,
+          bookingstarttime = $2::time, 
           updated_at = NOW() 
-      WHERE bookingid = $3
+      WHERE bookingid = $3::int
     `, [newDate, newStartTime, bookingId]);
 
     await client.query(`
       UPDATE schedule 
-      SET schedulestartdate = $1, 
-          scheduleenddate = $1, 
+      SET schedulestartdate = $1::date, 
+          scheduleenddate = $1::date, 
           scheduleendtime = $2::time + (scheduleendtime - schedulestarttime),
-          schedulestarttime = $2, 
+          schedulestarttime = $2::time, 
           updated_at = NOW() 
-      WHERE bookingid = $3
+      WHERE bookingid = $3::int
     `, [newDate, newStartTime, bookingId]);
 
     await client.query("COMMIT");
     return true;
   } catch (err) {
     if (client) await client.query("ROLLBACK");
+    console.error(">>> DB ERROR CAUGHT: ", err);
     throw err;
   } finally {
     client.release();

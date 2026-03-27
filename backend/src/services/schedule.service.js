@@ -32,14 +32,15 @@ export const getBranchBookingsByDate = async (date) => {
         s.scheduleendtime::text, 
         s.bookingid, 
         b.bookingstatus,
-        c.firstname AS customer_firstname,
-        c.lastname AS customer_lastname,
-        c.phone AS customer_phone,
-        e.firstname AS employee_firstname,
-        e.lastname AS employee_lastname
+        c.first_name AS customer_firstname,
+        c.last_name AS customer_lastname,
+        c.custel AS customer_phone,
+        e.first_name AS employee_firstname,
+        e.last_name AS employee_lastname
       FROM schedule s
       JOIN booking b ON s.bookingid = b.bookingid
-      JOIN customer c ON b.customerid = c.customerid
+      JOIN vehicle v ON b.vehid = v.id
+      JOIN customer c ON v.cusid = c.cusid
       LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
       LEFT JOIN employee e ON ea.empid = e.empid
       WHERE s.schedulestartdate = $1::date
