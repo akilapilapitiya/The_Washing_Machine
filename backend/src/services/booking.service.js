@@ -927,9 +927,10 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
     // 1. Fetch booking details to calculate durations
     const bookingRes = await client.query(
       `SELECT b.bookingstatus, b.bookingstarttime, b.bookingendtime, 
-              s.schedulestarttime, s.scheduleendtime, ea.empid
+              s.schedulestarttime, s.scheduleendtime, ea.empid, v.cusid
        FROM booking b
        JOIN schedule s ON b.bookingid = s.bookingid
+       JOIN vehicle v ON b.vehid = v.id
        LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
        WHERE b.bookingid = $1`,
       [bookingId]
@@ -998,6 +999,42 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
           updated_at = NOW() 
       WHERE bookingid = $3::int
     `, [newDate, newStartTime, bookingId]);
+
+    // 5. Dispatch Real-time WebSocket Notifications
+    const shortDate = new Date(newDate).toDateString();
+    
+    if (booking.cusid) {
+       await createNotificationService({
+         recipientId: booking.cusid,
+         recipientRole: 'customer',
+         title: 'Service Rescheduled',
+         message: `Your booking #${bookingId} has been administratively rescheduled to ${shortDate} at ${newStartTime.substring(0, 5)}.`,
+         type: 'info',
+         bookingId: bookingId
+       });
+    }
+
+    if (booking.empid) {
+       await createNotificationService({
+         recipientId: booking.empid,
+         recipientRole: 'employee',
+         title: 'Assignment Rescheduled',
+         message: `Your assigned task #${bookingId} has been shifted to ${shortDate} at ${newStartTime.substring(0, 5)}. Please review your updated itinerary.`,
+         type: 'info',
+         bookingId: bookingId
+       });
+    }
+
+    if (adminId) {
+       await createNotificationService({
+         recipientId: adminId,
+         recipientRole: 'employee',
+         title: 'Administrative Action Confirmed',
+         message: `You successfully rescheduled booking #${bookingId} array sequences for the entire branch grid.`,
+         type: 'success',
+         bookingId: bookingId
+       });
+    }
 
     await client.query("COMMIT");
     return true;
