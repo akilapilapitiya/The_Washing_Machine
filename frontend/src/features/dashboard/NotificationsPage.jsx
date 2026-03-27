@@ -24,7 +24,7 @@ import PageToolbar from "@/components/common/PageToolbar";
 
 const NotificationsPage = () => {
   const { notifications, markAsRead, markAllAsRead, loading } = useNotification();
-  const { user } = useAuth();
+  const { user, isCustomer } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -85,8 +85,8 @@ const NotificationsPage = () => {
     }
 
     if (notification.booking_id) {
-      // Determine route based on user role
-      if (user.role === "customer") {
+      // Determine route based on user role context flag
+      if (isCustomer) {
         // For customers, maybe navigate to bookings list as specific booking details page might not be fully standard yet
         navigate(`/dashboard/bookings`);
       } else {

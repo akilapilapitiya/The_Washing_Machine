@@ -11,7 +11,7 @@ const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isCustomer } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,8 +36,8 @@ const NotificationBell = () => {
     setIsOpen(false);
 
     if (notification.booking_id) {
-      // Determine route based on user role
-      if (user.role === "customer") {
+      // Determine route based on user role context flag
+      if (isCustomer) {
         navigate(`/dashboard/bookings`); // Or specific booking details if available
       } else {
         // For employees/admin
