@@ -14,6 +14,7 @@ import { employeeValidator } from "../validators/index.js";
 
 const employeeAuthRouter = Router();
 
+// Public routes
 employeeAuthRouter.post(
   "/signin",
   validateSchema(employeeValidator.loginEmployee),
@@ -22,9 +23,10 @@ employeeAuthRouter.post(
 employeeAuthRouter.post("/signout", employeeSignOut);
 employeeAuthRouter.post("/forgot-password", requestEmployeePasswordReset);
 employeeAuthRouter.post("/reset-password", resetEmployeePassword);
+
+// Protected routes
 employeeAuthRouter.get("/me", authMiddleware, employeeGetMe);
 employeeAuthRouter.get("/roles", authMiddleware, employeeGetAllRoles);
-// PROTECTED ROUTE - Owner only
 employeeAuthRouter.post(
   "/signup",
   authMiddleware,
@@ -33,8 +35,3 @@ employeeAuthRouter.post(
   employeeSignUp,
 );
 export default employeeAuthRouter;
-
-/*
-STRUCTURRE OF EMPLOYEE ROUTES
-Only the Owner Can Sign Up New Employees
- */

@@ -9,16 +9,12 @@ import { cacheMiddleware } from "../middleware/cache.middleware.js";
 
 const catalogRouter = Router();
 
-// Public/Auth: Get catalog
-catalogRouter.get("/", authMiddleware, cacheMiddleware(3600), getCatalog);
+// Protected routes
+catalogRouter.use(authMiddleware);
 
-// Owner Only: Manage catalog
-catalogRouter.post("/", authMiddleware, restrictTo("owner"), addToCatalog);
-catalogRouter.delete(
-  "/:id",
-  authMiddleware,
-  restrictTo("owner"),
-  removeFromCatalog,
-);
+catalogRouter.get("/", cacheMiddleware(3600), getCatalog);
+
+catalogRouter.post("/", restrictTo("owner"), addToCatalog);
+catalogRouter.delete("/:id", restrictTo("owner"), removeFromCatalog);
 
 export default catalogRouter;

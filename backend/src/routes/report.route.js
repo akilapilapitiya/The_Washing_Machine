@@ -7,17 +7,13 @@ import {
 
 const router = express.Router();
 
-// Only owners can view financial reports
-router.get(
-  "/daily-income",
-  authMiddleware,
-  restrictTo("owner"),
-  getDailyIncomeReport,
-);
+// Protected routes
+router.use(authMiddleware);
+
+router.get("/daily-income", restrictTo("owner"), getDailyIncomeReport);
 
 router.get(
   "/employee-performance",
-  authMiddleware,
   restrictTo("owner"),
   getEmployeePerformanceReport,
 );

@@ -15,6 +15,7 @@ import { uploadProfilePicture } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
+// Protected routes
 router.use(authMiddleware);
 
 router.get(
@@ -27,7 +28,7 @@ router.get(
   "/available",
   restrictTo("manager", "owner", "customer"),
   getAvailableEmployees,
-); // /api/employee/available
+);
 router.get(
   "/:id",
   restrictTo("manager", "owner", "customer", "employee", "cashier"),

@@ -11,6 +11,7 @@ import { customerValidator } from "../validators/index.js";
 
 const customerAuthRouter = Router();
 
+// Public routes
 customerAuthRouter.post(
   "/signup",
   validateSchema(customerValidator.createCustomer),
