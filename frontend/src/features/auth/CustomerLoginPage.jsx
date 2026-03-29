@@ -48,7 +48,7 @@ const CustomerLoginPage = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
@@ -60,7 +60,7 @@ const CustomerLoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -110,10 +110,18 @@ const CustomerLoginPage = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
-            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
+            <img
+              src={logo}
+              alt="The Washing Machine"
+              className="h-12 w-auto mx-auto"
+            />
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Welcome Back</h1>
-          <p className="text-gray-500 text-sm">Sign in to your customer account</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+            Welcome Back
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Sign in to your customer account
+          </p>
         </div>
 
         <Card className="shadow-sm border-gray-200">
@@ -132,7 +140,9 @@ const CustomerLoginPage = () => {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="flex items-center gap-1">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="email" className="flex items-center gap-1">
+                  Email <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -140,7 +150,11 @@ const CustomerLoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={loading}
-                  className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  className={
+                    errors.email
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -151,7 +165,9 @@ const CustomerLoginPage = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="flex items-center gap-1">Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="password" className="flex items-center gap-1">
+                  Password <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -217,13 +233,19 @@ const CustomerLoginPage = () => {
             <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
               <p className="text-center text-sm text-gray-500">
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                <Link
+                  to="/signup"
+                  className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                >
                   Sign up
                 </Link>
               </p>
               <p className="text-center text-sm text-gray-500">
                 Are you an employee?{" "}
-                <Link to="/employee-login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                <Link
+                  to="/employee-login"
+                  className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                >
                   Employee portal →
                 </Link>
               </p>

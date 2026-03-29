@@ -97,7 +97,9 @@ const ChangePasswordPage = () => {
           <p className="text-sm uppercase tracking-wide text-red-600 font-semibold">
             Security
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Change Password</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Change Password
+          </h1>
           <p className="text-gray-600">
             Update your password to keep your account secure.
           </p>

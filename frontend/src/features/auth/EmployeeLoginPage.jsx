@@ -47,7 +47,7 @@ const EmployeeLoginPage = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
@@ -96,10 +96,18 @@ const EmployeeLoginPage = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
-            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
+            <img
+              src={logo}
+              alt="The Washing Machine"
+              className="h-12 w-auto mx-auto"
+            />
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Employee Portal</h1>
-          <p className="text-gray-500 text-sm">Sign in to your employee account</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+            Employee Portal
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Sign in to your employee account
+          </p>
         </div>
 
         <Card className="shadow-sm border-gray-200">
@@ -118,7 +126,9 @@ const EmployeeLoginPage = () => {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="flex items-center gap-1">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="email" className="flex items-center gap-1">
+                  Email <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -126,7 +136,11 @@ const EmployeeLoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={loading}
-                  className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  className={
+                    errors.email
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -137,7 +151,9 @@ const EmployeeLoginPage = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="flex items-center gap-1">Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="password" className="flex items-center gap-1">
+                  Password <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -203,13 +219,19 @@ const EmployeeLoginPage = () => {
             <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
               <p className="text-center text-sm text-gray-500">
                 Not an employee?{" "}
-                <Link to="/login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                <Link
+                  to="/login"
+                  className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                >
                   Customer sign in
                 </Link>
               </p>
               <p className="text-center text-sm text-gray-500">
                 New employee?{" "}
-                <Link to="/signup" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                <Link
+                  to="/signup"
+                  className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                >
                   Create an account →
                 </Link>
               </p>

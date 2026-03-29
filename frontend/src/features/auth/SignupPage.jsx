@@ -12,7 +12,14 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUp } from "@/services/auth.service";
-import { Loader2, MapPin, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import LocationPicker from "@/components/common/LocationPicker";
 import logo from "@/assets/logo.svg";
 
@@ -78,7 +85,7 @@ const SignupPage = () => {
     if (!formData.title) newErrors.title = "Title is required";
     if (!formData.firstName) newErrors.firstName = "First name is required";
     if (!formData.lastName) newErrors.lastName = "Last name is required";
-    
+
     if (!formData.email) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -176,10 +183,18 @@ const SignupPage = () => {
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
-            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
+            <img
+              src={logo}
+              alt="The Washing Machine"
+              className="h-12 w-auto mx-auto"
+            />
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Create an Account</h1>
-          <p className="text-gray-500 text-sm">Join The Washing Machine today</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+            Create an Account
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Join The Washing Machine today
+          </p>
         </div>
 
         <Card className="shadow-sm border border-slate-200">
@@ -201,14 +216,23 @@ const SignupPage = () => {
                 {/* Left Column: Personal Info */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="flex items-center gap-1">Title <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="title" className="flex items-center gap-1">
+                      Title <span className="text-red-500">*</span>
+                    </Label>
                     <select
                       id="title"
                       value={formData.title}
                       onChange={handleChange}
                       disabled={loading}
                       className={`flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 appearance-none ${errors.title ? "border-red-500" : "border-gray-300"}`}
-                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 0.75rem center", backgroundSize: "1rem", paddingRight: "2.5rem" }}
+                      style={{
+                        backgroundImage:
+                          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 0.75rem center",
+                        backgroundSize: "1rem",
+                        paddingRight: "2.5rem",
+                      }}
                     >
                       <option value="">Select Title</option>
                       <option value="Mr.">Mr.</option>
@@ -227,13 +251,22 @@ const SignupPage = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="flex items-center gap-1">First Name <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="firstName"
+                        className="flex items-center gap-1"
+                      >
+                        First Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         id="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
                         disabled={loading}
-                        className={errors.firstName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                        className={
+                          errors.firstName
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
                       />
                       {errors.firstName && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -243,13 +276,22 @@ const SignupPage = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="flex items-center gap-1">Last Name <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="lastName"
+                        className="flex items-center gap-1"
+                      >
+                        Last Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         id="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
                         disabled={loading}
-                        className={errors.lastName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                        className={
+                          errors.lastName
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
                       />
                       {errors.lastName && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -261,7 +303,9 @@ const SignupPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-1">Email Address <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="email" className="flex items-center gap-1">
+                      Email Address <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="email"
                       type="email"
@@ -269,7 +313,11 @@ const SignupPage = () => {
                       value={formData.email}
                       onChange={handleChange}
                       disabled={loading}
-                      className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      className={
+                        errors.email
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : ""
+                      }
                     />
                     {errors.email && (
                       <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -280,7 +328,9 @@ const SignupPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-1">Phone Number <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="phone" className="flex items-center gap-1">
+                      Phone Number <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -288,7 +338,11 @@ const SignupPage = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       disabled={loading}
-                      className={errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      className={
+                        errors.phone
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : ""
+                      }
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -300,7 +354,12 @@ const SignupPage = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="flex items-center gap-1">Password <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="password"
+                        className="flex items-center gap-1"
+                      >
+                        Password <span className="text-red-500">*</span>
+                      </Label>
                       <div className="relative">
                         <Input
                           id="password"
@@ -316,7 +375,11 @@ const SignupPage = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </button>
                       </div>
                       {errors.password && (
@@ -327,7 +390,12 @@ const SignupPage = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="flex items-center gap-1">Confirm <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="flex items-center gap-1"
+                      >
+                        Confirm <span className="text-red-500">*</span>
+                      </Label>
                       <div className="relative">
                         <Input
                           id="confirmPassword"
@@ -337,34 +405,46 @@ const SignupPage = () => {
                           onChange={handleChange}
                           disabled={loading}
                           className={`pr-10 ${
-                            formData.confirmPassword && formData.password !== formData.confirmPassword 
-                              ? "border-red-500 focus-visible:ring-red-500" 
-                              : formData.confirmPassword && formData.password === formData.confirmPassword
-                              ? "border-green-500 focus-visible:ring-green-500"
-                              : errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
+                            formData.confirmPassword &&
+                            formData.password !== formData.confirmPassword
+                              ? "border-red-500 focus-visible:ring-red-500"
+                              : formData.confirmPassword &&
+                                  formData.password === formData.confirmPassword
+                                ? "border-green-500 focus-visible:ring-green-500"
+                                : errors.confirmPassword
+                                  ? "border-red-500 focus-visible:ring-red-500"
+                                  : ""
                           }`}
                         />
                         <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         >
-                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirmPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </button>
                       </div>
-                      {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                          <AlertCircle size={14} />
-                          Passwords do not match
-                        </p>
-                      )}
-                      {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                        <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
-                          <CheckCircle size={14} />
-                          Passwords match
-                        </p>
-                      )}
-                      {errors.confirmPassword && (!formData.confirmPassword) && (
+                      {formData.confirmPassword &&
+                        formData.password !== formData.confirmPassword && (
+                          <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                            <AlertCircle size={14} />
+                            Passwords do not match
+                          </p>
+                        )}
+                      {formData.confirmPassword &&
+                        formData.password === formData.confirmPassword && (
+                          <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
+                            <CheckCircle size={14} />
+                            Passwords match
+                          </p>
+                        )}
+                      {errors.confirmPassword && !formData.confirmPassword && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
                           <AlertCircle size={14} />
                           {errors.confirmPassword}
@@ -406,15 +486,17 @@ const SignupPage = () => {
                         Home Location <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <div className={`rounded-xl overflow-hidden shadow-inner border ${errors.location ? "border-red-500 ring-1 ring-red-500" : "border-slate-200"}`}>
+                    <div
+                      className={`rounded-xl overflow-hidden shadow-inner border ${errors.location ? "border-red-500 ring-1 ring-red-500" : "border-slate-200"}`}
+                    >
                       <LocationPicker
                         onLocationSelect={handleLocationSelect}
                         initialLocation={
                           formData.latitude && formData.longitude
                             ? {
-                              lat: parseFloat(formData.latitude),
-                              lng: parseFloat(formData.longitude),
-                            }
+                                lat: parseFloat(formData.latitude),
+                                lng: parseFloat(formData.longitude),
+                              }
                             : undefined
                         }
                       />
@@ -425,11 +507,14 @@ const SignupPage = () => {
                         {errors.location}
                       </p>
                     )}
-                    {formData.latitude && formData.distance && !errors.location && (
-                      <p className="text-xs text-green-600 font-medium mt-2">
-                        Location selected ({formData.distance.toFixed(1)} km from HQ).
-                      </p>
-                    )}
+                    {formData.latitude &&
+                      formData.distance &&
+                      !errors.location && (
+                        <p className="text-xs text-green-600 font-medium mt-2">
+                          Location selected ({formData.distance.toFixed(1)} km
+                          from HQ).
+                        </p>
+                      )}
                   </div>
                 </div>
               </div>
@@ -438,13 +523,19 @@ const SignupPage = () => {
                 <div className="flex flex-col gap-1 order-2 sm:order-1">
                   <p className="text-sm text-gray-600">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                    <Link
+                      to="/login"
+                      className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                    >
                       Log in
                     </Link>
                   </p>
                   <p className="text-sm text-gray-600">
                     Employee?{" "}
-                    <Link to="/employee-login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                    <Link
+                      to="/employee-login"
+                      className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                    >
                       Employee portal →
                     </Link>
                   </p>
