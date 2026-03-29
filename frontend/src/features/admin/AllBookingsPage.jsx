@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "react-router-dom";
-import {
-  Calendar,
-  Clock,
-  Briefcase,
-  Wrench,
-  CheckCircle,
-} from "lucide-react";
+import { Calendar, Clock, Briefcase, Wrench, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
@@ -33,7 +27,7 @@ const AllBookingsPage = () => {
       const searchId = searchParams.get("search");
 
       if (searchId) {
-        const foundBooking = data.find(b => String(b.bookingid) === searchId);
+        const foundBooking = data.find((b) => String(b.bookingid) === searchId);
         if (foundBooking) {
           setServices([foundBooking]); // Show only the targeted booking
           setSearchQuery(searchId); // Pre-fill search query with the ID
@@ -86,7 +80,9 @@ const AllBookingsPage = () => {
             <button
               onClick={() => setActiveTab("upcoming")}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "upcoming" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                activeTab === "upcoming"
+                  ? "bg-white text-red-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               Upcoming ({pendingServices.length})
@@ -94,7 +90,9 @@ const AllBookingsPage = () => {
             <button
               onClick={() => setActiveTab("in-progress")}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "in-progress" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                activeTab === "in-progress"
+                  ? "bg-white text-red-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               Active ({inProgressServices.length})
@@ -102,7 +100,9 @@ const AllBookingsPage = () => {
             <button
               onClick={() => setActiveTab("completed")}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                activeTab === "completed"
+                  ? "bg-white text-red-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               Completed ({completedServices.length})
@@ -115,7 +115,13 @@ const AllBookingsPage = () => {
         searchWidthClass="sm:w-64"
       />
     ),
-    [activeTab, pendingServices.length, inProgressServices.length, completedServices.length, searchQuery]
+    [
+      activeTab,
+      pendingServices.length,
+      inProgressServices.length,
+      completedServices.length,
+      searchQuery,
+    ],
   );
 
   useSetPageHeader(
@@ -125,7 +131,7 @@ const AllBookingsPage = () => {
       ? "Manage all bookings, view status, and assign tasks."
       : "View your upcoming and active service tasks.",
     null,
-    toolbar
+    toolbar,
   );
 
   const columns = [
@@ -143,7 +149,9 @@ const AllBookingsPage = () => {
       label: "Customer & Vehicle",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-gray-900 text-sm">{row.cusname || "Unregistered"}</span>
+          <span className="font-bold text-gray-900 text-sm">
+            {row.cusname || "Unregistered"}
+          </span>
           <span className="text-xs text-gray-500 font-medium mt-0.5">
             {row.vehbrand} {row.vehmodel} • {row.vehplate}
           </span>
@@ -155,7 +163,11 @@ const AllBookingsPage = () => {
       label: "Date & Time",
       render: (row) => (
         <div className="flex flex-col text-sm font-medium text-gray-600">
-          <span>{row.bookingdate ? format(new Date(row.bookingdate), "MMM d, yyyy") : "N/A"}</span>
+          <span>
+            {row.bookingdate
+              ? format(new Date(row.bookingdate), "MMM d, yyyy")
+              : "N/A"}
+          </span>
           <span className="text-xs text-gray-400 mt-0.5">
             {row.bookingstarttime} - {row.bookingendtime}
           </span>
@@ -167,7 +179,9 @@ const AllBookingsPage = () => {
       label: "Employee",
       render: (row) => (
         <span className="text-sm font-semibold text-gray-700">
-          {row.assigned_empname || <span className="text-gray-300 italic font-normal">Unassigned</span>}
+          {row.assigned_empname || (
+            <span className="text-gray-300 italic font-normal">Unassigned</span>
+          )}
         </span>
       ),
     },
@@ -186,7 +200,9 @@ const AllBookingsPage = () => {
               </span>
             ))
           ) : (
-            <span className="text-[10px] text-gray-400 font-semibold">Standard</span>
+            <span className="text-[10px] text-gray-400 font-semibold">
+              Standard
+            </span>
           )}
         </div>
       ),
@@ -205,22 +221,38 @@ const AllBookingsPage = () => {
         const showActions = isOwner || isCashier;
         return (
           <div className="flex justify-end gap-2">
-            {showActions && (row.bookingstatus === "pending" || row.bookingstatus === "scheduled") && (
-              <Link to={`/dashboard/admin/bookings?search=${row.bookingid}`}>
-                <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200">
-                  Reassign
-                </Button>
-              </Link>
-            )}
+            {showActions &&
+              (row.bookingstatus === "pending" ||
+                row.bookingstatus === "scheduled") && (
+                <Link to={`/dashboard/admin/bookings?search=${row.bookingid}`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200"
+                  >
+                    Reassign
+                  </Button>
+                </Link>
+              )}
             {showActions && row.bookingstatus === "completed" && (
-              <Link to={`/dashboard/employee/payments?bookingId=${row.bookingid}`}>
-                <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-black uppercase border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200">
+              <Link
+                to={`/dashboard/employee/payments?bookingId=${row.bookingid}`}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-[10px] font-black uppercase border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200"
+                >
                   Pay
                 </Button>
               </Link>
             )}
             <Link to={`/dashboard/employee/service/${row.bookingid}`}>
-              <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-[10px] font-black uppercase text-gray-500 hover:text-gray-900 border-gray-200"
+              >
                 View
               </Button>
             </Link>
@@ -234,17 +266,35 @@ const AllBookingsPage = () => {
 
   const getActiveData = () => {
     switch (activeTab) {
-      case "in-progress": return inProgressServices;
-      case "completed": return completedServices;
-      default: return pendingServices;
+      case "in-progress":
+        return inProgressServices;
+      case "completed":
+        return completedServices;
+      default:
+        return pendingServices;
     }
   };
 
   const getEmptyProps = () => {
     switch (activeTab) {
-      case "in-progress": return { icon: Wrench, title: "No active jobs", subtitle: "There are no services currently in progress." };
-      case "completed": return { icon: CheckCircle, title: "No completed services", subtitle: "Completed service records will appear here." };
-      default: return { icon: Calendar, title: "No upcoming bookings", subtitle: "Check back later for new assignments." };
+      case "in-progress":
+        return {
+          icon: Wrench,
+          title: "No active jobs",
+          subtitle: "There are no services currently in progress.",
+        };
+      case "completed":
+        return {
+          icon: CheckCircle,
+          title: "No completed services",
+          subtitle: "Completed service records will appear here.",
+        };
+      default:
+        return {
+          icon: Calendar,
+          title: "No upcoming bookings",
+          subtitle: "Check back later for new assignments.",
+        };
     }
   };
 
@@ -258,7 +308,9 @@ const AllBookingsPage = () => {
         keyField="bookingid"
         emptyIcon={emptyProps.icon}
         emptyTitle={emptyProps.title}
-        emptySubtitle={searchQuery ? "No bookings match your search." : emptyProps.subtitle}
+        emptySubtitle={
+          searchQuery ? "No bookings match your search." : emptyProps.subtitle
+        }
       />
     </div>
   );

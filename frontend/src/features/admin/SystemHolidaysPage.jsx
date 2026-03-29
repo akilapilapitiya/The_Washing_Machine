@@ -94,7 +94,7 @@ const SystemHolidaysPage = () => {
     const eh = Number(formData.endtime.split(":")[0]);
     const slots = [];
     for (let i = sh; i < eh; i++) {
-        slots.push(`${String(i).padStart(2, '0')}:00`);
+      slots.push(`${String(i).padStart(2, "0")}:00`);
     }
     return slots;
   };
@@ -102,24 +102,26 @@ const SystemHolidaysPage = () => {
   const handleSlotToggle = (val) => {
     const currentSlots = getSelectedSlots();
     let newSlots;
-    
+
     if (currentSlots.includes(val)) {
-       newSlots = currentSlots.filter(s => s !== val);
+      newSlots = currentSlots.filter((s) => s !== val);
     } else {
-       newSlots = [...currentSlots, val];
+      newSlots = [...currentSlots, val];
     }
-    
+
     if (newSlots.length === 0) {
-       setFormData(prev => ({ ...prev, starttime: "", endtime: "" }));
+      setFormData((prev) => ({ ...prev, starttime: "", endtime: "" }));
     } else {
-       const mapped = newSlots.map(s => Number(s.split(":")[0])).sort((a,b) => a-b);
-       const min = mapped[0];
-       const max = mapped[mapped.length - 1];
-       setFormData(prev => ({ 
-          ...prev, 
-          starttime: `${String(min).padStart(2, '0')}:00`, 
-          endtime: `${String(max + 1).padStart(2, '0')}:00` 
-       }));
+      const mapped = newSlots
+        .map((s) => Number(s.split(":")[0]))
+        .sort((a, b) => a - b);
+      const min = mapped[0];
+      const max = mapped[mapped.length - 1];
+      setFormData((prev) => ({
+        ...prev,
+        starttime: `${String(min).padStart(2, "0")}:00`,
+        endtime: `${String(max + 1).padStart(2, "0")}:00`,
+      }));
     }
   };
 
@@ -249,15 +251,18 @@ const SystemHolidaysPage = () => {
   };
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Button
-      onClick={openAddForm}
-      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
-    >
-      <Plus size={18} />
-      Add Holiday
-    </Button>
-  ), [openAddForm]);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        onClick={openAddForm}
+        className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+      >
+        <Plus size={18} />
+        Add Holiday
+      </Button>
+    ),
+    [openAddForm],
+  );
 
   const filteredHolidays = holidays.filter((holiday) => {
     const query = searchQuery.trim().toLowerCase();
@@ -268,7 +273,11 @@ const SystemHolidaysPage = () => {
         holiday.holidaytype,
         holiday.description,
         holiday.holidaydate,
-      ].some((value) => String(value || "").toLowerCase().includes(query))
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      )
     );
   });
 
@@ -276,17 +285,26 @@ const SystemHolidaysPage = () => {
     () => (
       <PageToolbar
         stats={[
-          { icon: Calendar, label: "Total", value: holidays.length, iconClassName: "text-red-500" },
+          {
+            icon: Calendar,
+            label: "Total",
+            value: holidays.length,
+            iconClassName: "text-red-500",
+          },
           {
             icon: Tag,
             label: "Public",
-            value: holidays.filter((holiday) => holiday.holidaytype === "public").length,
+            value: holidays.filter(
+              (holiday) => holiday.holidaytype === "public",
+            ).length,
             iconClassName: "text-blue-500",
           },
           {
             icon: Tag,
             label: "Company",
-            value: holidays.filter((holiday) => holiday.holidaytype === "company").length,
+            value: holidays.filter(
+              (holiday) => holiday.holidaytype === "company",
+            ).length,
             iconClassName: "text-purple-500",
           },
           {
@@ -322,13 +340,17 @@ const SystemHolidaysPage = () => {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Calendar size={16} className="text-gray-400" />
-            <span className="font-medium text-gray-900">{formatDate(row.holidaydate)}</span>
+            <span className="font-medium text-gray-900">
+              {formatDate(row.holidaydate)}
+            </span>
           </div>
           {row.starttime && row.endtime && (
-             <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-               <Clock size={12} className="text-gray-400" />
-               <span>{row.starttime.substring(0, 5)} - {row.endtime.substring(0, 5)}</span>
-             </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+              <Clock size={12} className="text-gray-400" />
+              <span>
+                {row.starttime.substring(0, 5)} - {row.endtime.substring(0, 5)}
+              </span>
+            </div>
           )}
         </div>
       ),
@@ -377,9 +399,7 @@ const SystemHolidaysPage = () => {
             <Edit size={16} />
           </button>
           <button
-            onClick={() =>
-              handleDeleteHoliday(row.holidayid, row.holidayname)
-            }
+            onClick={() => handleDeleteHoliday(row.holidayid, row.holidayname)}
             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
             title="Delete Holiday"
           >
@@ -498,7 +518,10 @@ const SystemHolidaysPage = () => {
                     onChange={(e) => setIsPartialDay(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600 cursor-pointer"
                   />
-                  <Label htmlFor="isPartialDay" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="isPartialDay"
+                    className="cursor-pointer text-sm"
+                  >
                     Partial Day Closure (Specific Hours)
                   </Label>
                 </div>
@@ -506,16 +529,21 @@ const SystemHolidaysPage = () => {
                 {isPartialDay && (
                   <div className="space-y-3 pt-2">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-gray-700">Select Timeframes to Remove</Label>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Select Timeframes to Remove
+                      </Label>
                       {formData.starttime && formData.endtime && (
                         <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                           {formData.starttime.substring(0, 5)} - {formData.endtime.substring(0, 5)}
+                          {formData.starttime.substring(0, 5)} -{" "}
+                          {formData.endtime.substring(0, 5)}
                         </span>
                       )}
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {TIME_SLOTS.map((slot) => {
-                        const isSelected = getSelectedSlots().includes(slot.value);
+                        const isSelected = getSelectedSlots().includes(
+                          slot.value,
+                        );
                         return (
                           <button
                             key={slot.value}
@@ -544,10 +572,11 @@ const SystemHolidaysPage = () => {
                     {["public", "company", "custom"].map((type) => (
                       <label
                         key={type}
-                        className={`flex items-center justify-center gap-2 border p-3 rounded-lg cursor-pointer transition-all ${formData.holidaytype === type
-                          ? "border-red-600 bg-red-50/50 ring-1 ring-red-600"
-                          : "border-gray-200 hover:bg-gray-50"
-                          }`}
+                        className={`flex items-center justify-center gap-2 border p-3 rounded-lg cursor-pointer transition-all ${
+                          formData.holidaytype === type
+                            ? "border-red-600 bg-red-50/50 ring-1 ring-red-600"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }`}
                       >
                         <input
                           type="radio"
@@ -558,10 +587,11 @@ const SystemHolidaysPage = () => {
                           className="sr-only"
                         />
                         <span
-                          className={`text-xs font-semibold uppercase ${formData.holidaytype === type
-                            ? "text-red-900"
-                            : "text-gray-600"
-                            }`}
+                          className={`text-xs font-semibold uppercase ${
+                            formData.holidaytype === type
+                              ? "text-red-900"
+                              : "text-gray-600"
+                          }`}
                         >
                           {type}
                         </span>

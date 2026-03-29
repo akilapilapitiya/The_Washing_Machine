@@ -89,51 +89,71 @@ const DailyIncomeReportPage = () => {
 
   const maxDate = format(new Date(), "yyyy-MM-dd");
 
-  const toolbar = React.useMemo(() => (
-    <PageToolbar
-      stats={[
-        { icon: DollarSign, label: "Revenue", value: formatCurrency(totalRevenue), iconClassName: "text-green-500" },
-        { icon: TrendingUp, label: "Transactions", value: totalTx, iconClassName: "text-blue-500" },
-      ]}
-      rightSlot={
-        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">From</label>
-            <input
-              type="date"
-              value={startDate}
-              max={maxDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
-            />
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          {
+            icon: DollarSign,
+            label: "Revenue",
+            value: formatCurrency(totalRevenue),
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: TrendingUp,
+            label: "Transactions",
+            value: totalTx,
+            iconClassName: "text-blue-500",
+          },
+        ]}
+        rightSlot={
+          <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
+            <div className="flex flex-col flex-1 md:flex-none">
+              <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">
+                From
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                max={maxDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+              />
+            </div>
+            <div className="h-6 w-px bg-gray-200 shrink-0"></div>
+            <div className="flex flex-col flex-1 md:flex-none">
+              <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">
+                To
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                max={maxDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+              />
+            </div>
           </div>
-          <div className="h-6 w-px bg-gray-200 shrink-0"></div>
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">To</label>
-            <input
-              type="date"
-              value={endDate}
-              max={maxDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
-            />
-          </div>
-        </div>
-      }
-    />
-  ), [endDate, maxDate, startDate, totalRevenue, totalTx]);
+        }
+      />
+    ),
+    [endDate, maxDate, startDate, totalRevenue, totalTx],
+  );
 
-  const headerAction = React.useMemo(() => (
-    <Button
-      variant="outline"
-      onClick={handleDownload}
-      disabled={report.length === 0}
-      className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
-    >
-      <Download size={16} className="mr-2" />
-      Export CSV
-    </Button>
-  ), [report.length, handleDownload]);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        variant="outline"
+        onClick={handleDownload}
+        disabled={report.length === 0}
+        className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+      >
+        <Download size={16} className="mr-2" />
+        Export CSV
+      </Button>
+    ),
+    [report.length, handleDownload],
+  );
 
   useSetPageHeader(
     "Financial Reports",
@@ -159,8 +179,12 @@ const DailyIncomeReportPage = () => {
       label: "Volume",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-bold text-gray-900">{row.transaction_count}</span>
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Transactions</span>
+          <span className="text-sm font-bold text-gray-900">
+            {row.transaction_count}
+          </span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+            Transactions
+          </span>
         </div>
       ),
     },
@@ -169,9 +193,15 @@ const DailyIncomeReportPage = () => {
       label: "Revenue Generated",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-black text-green-700">{formatCurrency(row.total_income)}</span>
+          <span className="text-sm font-black text-green-700">
+            {formatCurrency(row.total_income)}
+          </span>
           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
-            Avg. Rs. {(parseFloat(row.total_income) / parseInt(row.transaction_count)).toFixed(0)} / tx
+            Avg. Rs.{" "}
+            {(
+              parseFloat(row.total_income) / parseInt(row.transaction_count)
+            ).toFixed(0)}{" "}
+            / tx
           </span>
         </div>
       ),
@@ -196,7 +226,9 @@ const DailyIncomeReportPage = () => {
           ) : report.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-gray-400 py-12">
               <Calendar size={32} className="mb-2 opacity-20" />
-              <p className="text-sm font-medium">No data available for this range</p>
+              <p className="text-sm font-medium">
+                No data available for this range
+              </p>
             </div>
           ) : (
             <div className="h-72 flex items-end justify-between gap-1 pt-12 pb-6 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-gray-50/50 to-white">
