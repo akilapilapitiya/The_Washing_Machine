@@ -116,6 +116,14 @@ export const recordServiceSnapshot = async (req, res, next) => {
     const { id } = req.params;
     const { currentMileage, nextServiceMileage, bookingId } = req.body;
 
+    console.log("[DEBUG] Service Snapshot Request:", {
+      vehicleId: id,
+      currentMileage,
+      nextServiceMileage,
+      bookingId,
+      bodyRaw: req.body,
+    });
+
     const vehicle = await recordServiceSnapshotService(id, {
       currentMileage: Number(currentMileage),
       nextServiceMileage: Number(nextServiceMileage),

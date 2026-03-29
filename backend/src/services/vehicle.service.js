@@ -263,7 +263,7 @@ export const recordServiceSnapshotService = async (
 
   // Look up customer details
   const customerResult = await pool.query(
-    `SELECT cusid, cusname, cusemail FROM customer WHERE cusid = $1`,
+    `SELECT cusid, TRIM(CONCAT_WS(' ', title, first_name, last_name)) as cusname, cusemail FROM customer WHERE cusid = $1`,
     [vehicle.cusid],
   );
 
