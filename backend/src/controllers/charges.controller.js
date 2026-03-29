@@ -49,3 +49,21 @@ export const updateItemPrice = async (req, res, next) => {
     next(error);
   }
 };
+
+// UPDATE Base Service Price
+export const updateServicePrice = async (req, res, next) => {
+  try {
+    const { bookingId, serviceId } = req.params;
+    const { price } = req.body;
+
+    const updatedService = await chargesService.updateServicePriceService(
+      bookingId,
+      serviceId,
+      price,
+    );
+
+    res.json(updatedService);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -50,3 +50,23 @@ export const updateExtraItemPriceService = async (extraId, price, userId) => {
 
   return result.rows[0];
 };
+
+export const updateServicePriceService = async (bookingId, serviceId, price) => {
+  if (price === undefined || price < 0) {
+    throw new Error("Valid price is required");
+  }
+
+  const result = await pool.query(
+    `UPDATE servicesbooked 
+     SET service_price_at_booking = $1
+     WHERE bookingid = $2 AND serviceid = $3 
+     RETURNING *`,
+    [price, bookingId, serviceId],
+  );
+
+  if (result.rowCount === 0) {
+    throw new NotFoundError("Service not found for this booking");
+  }
+
+  return result.rows[0];
+};
