@@ -1,4 +1,4 @@
-import pool from "../../src/configs/database.js";
+import pool from "../../configs/database.js";
 
 const seedRoles = async (pool) => {
   const roles = [

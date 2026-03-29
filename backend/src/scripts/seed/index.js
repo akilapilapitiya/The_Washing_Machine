@@ -1,4 +1,4 @@
-import pool from "../../src/configs/database.js";
+import pool from "../../configs/database.js";
 import seedRoles from "./01_roles.seed.js";
 import seedSystemSettings from "./02_system_settings.seed.js";
 import seedOwnerAccount from "./03_owner_account.seed.js";
