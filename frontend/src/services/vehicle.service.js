@@ -49,3 +49,14 @@ export const deleteVehicle = async (id) => {
   const response = await api.delete(`/vehicle/${id}`);
   return response.data;
 };
+
+/**
+ * Record service snapshot (mileage update on booking completion)
+ * @param {number} vehicleId - Vehicle ID
+ * @param {Object} data - { currentMileage, nextServiceMileage, bookingId }
+ * @returns {Promise<Object>} - Updated vehicle
+ */
+export const recordServiceSnapshot = async (vehicleId, data) => {
+  const response = await api.put(`/vehicle/${vehicleId}/service-snapshot`, data);
+  return response.data;
+};

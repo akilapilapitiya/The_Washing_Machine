@@ -5,6 +5,7 @@ import {
   getVehicle,
   updateVehicle,
   deleteVehicle,
+  recordServiceSnapshot,
 } from "../controllers/vehicle.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -22,6 +23,11 @@ vehicleRouter.post(
   createVehicle,
 );
 vehicleRouter.delete("/:id", restrictTo("customer"), deleteVehicle);
+vehicleRouter.put(
+  "/:id/service-snapshot",
+  restrictTo("employee", "cashier", "owner"),
+  recordServiceSnapshot,
+);
 vehicleRouter.put(
   "/:id",
   restrictTo("employee"),

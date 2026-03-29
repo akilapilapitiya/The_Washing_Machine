@@ -8,6 +8,9 @@ import {
   NotFoundError,
   ValidationError,
 } from "../utils/errors.util.js";
+import { createNotificationService } from "./notification.service.js";
+import { addEmailJob } from "../queue/email.queue.js";
+import logger from "../configs/logger.js";
 
 // Create a vehicle
 export const createVehicleService = async ({
@@ -226,4 +229,84 @@ export const deleteVehicleService = async (id, customerId) => {
   }
 
   await pool.query("DELETE FROM vehicle WHERE id = $1", [id]);
+};
+
+// Record service snapshot on booking completion
+export const recordServiceSnapshotService = async (
+  vehicleId,
+  { currentMileage, nextServiceMileage, bookingId },
+) => {
+  // Validate inputs
+  if (!currentMileage || currentMileage <= 0) {
+    throw new ValidationError("Current mileage must be greater than 0");
+  }
+  if (!nextServiceMileage || nextServiceMileage <= currentMileage) {
+    throw new ValidationError(
+      "Next service mileage must be greater than current mileage",
+    );
+  }
+
+  // Atomically update vehicle mileage
+  const vehicleResult = await pool.query(
+    `UPDATE vehicle
+     SET vehmileage = $1, next_service_mileage = $2, updated_at = NOW()
+     WHERE id = $3
+     RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage`,
+    [currentMileage, nextServiceMileage, vehicleId],
+  );
+
+  if (vehicleResult.rowCount === 0) {
+    throw new NotFoundError("Vehicle not found");
+  }
+
+  const vehicle = vehicleResult.rows[0];
+
+  // Look up customer details
+  const customerResult = await pool.query(
+    `SELECT cusid, cusname, cusemail FROM customer WHERE cusid = $1`,
+    [vehicle.cusid],
+  );
+
+  const customer = customerResult.rows[0];
+
+  if (!customer) {
+    logger.warn(
+      `No customer found for vehicle ${vehicleId} (cusid: ${vehicle.cusid})`,
+    );
+    return vehicle;
+  }
+
+  // Dispatch in-app notification
+  try {
+    await createNotificationService({
+      recipientId: customer.cusid,
+      recipientRole: "customer",
+      title: "Service Complete — Next Service Reminder",
+      message: `Your ${vehicle.vehbrand} ${vehicle.vehmodel} (${vehicle.vehplate}) service is complete! Current odometer: ${currentMileage.toLocaleString()} km. Next service due at ${nextServiceMileage.toLocaleString()} km.`,
+      type: "info",
+      bookingId: bookingId || null,
+    });
+  } catch (err) {
+    logger.error("Failed to dispatch service-complete notification:", err.message);
+  }
+
+  // Queue branded email
+  try {
+    await addEmailJob({
+      type: "service_complete",
+      to: customer.cusemail,
+      data: {
+        customerName: customer.cusname,
+        vehicleBrand: vehicle.vehbrand,
+        vehicleModel: vehicle.vehmodel,
+        vehiclePlate: vehicle.vehplate,
+        currentMileage,
+        nextServiceMileage,
+      },
+    });
+  } catch (err) {
+    logger.error("Failed to queue service-complete email:", err.message);
+  }
+
+  return vehicle;
 };

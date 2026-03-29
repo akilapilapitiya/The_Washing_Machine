@@ -5,6 +5,7 @@ import {
   getAllVehiclesByRoleService,
   updateVehicleService,
   deleteVehicleService,
+  recordServiceSnapshotService,
 } from "../services/vehicle.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -104,6 +105,26 @@ export const deleteVehicle = async (req, res, next) => {
     await deleteVehicleService(id, customerId);
 
     successResponse(res, 200, "Vehicle deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+// RECORD Service Snapshot (on booking completion)
+export const recordServiceSnapshot = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { currentMileage, nextServiceMileage, bookingId } = req.body;
+
+    const vehicle = await recordServiceSnapshotService(id, {
+      currentMileage: Number(currentMileage),
+      nextServiceMileage: Number(nextServiceMileage),
+      bookingId: bookingId ? Number(bookingId) : null,
+    });
+
+    successResponse(res, 200, "Service snapshot recorded successfully", {
+      vehicle,
+    });
   } catch (error) {
     next(error);
   }

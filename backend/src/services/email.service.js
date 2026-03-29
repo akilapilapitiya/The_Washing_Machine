@@ -1,6 +1,6 @@
 import logger from "../configs/logger.js";
 import nodemailer from "nodemailer";
-import { otpTemplate, welcomeTemplate } from "../templates/email.templates.js";
+import { otpTemplate, welcomeTemplate, serviceCompleteTemplate } from "../templates/email.templates.js";
 import { NODE_ENV } from "../configs/env.js";
 
 // Create transporter
@@ -96,5 +96,32 @@ export const sendWelcomeEmail = async (to, password, loginUrl) => {
     logger.info(`✅ Welcome Email sent to ${to}`);
   } catch (error) {
     logger.error(`❌ Failed to send Welcome email to ${to}`);
+  }
+};
+
+export const sendServiceCompleteEmail = async (to, data) => {
+  const html = serviceCompleteTemplate(data);
+  const transport = await createTransporter();
+
+  const logoPath = "./src/templates/logo.jpg";
+
+  try {
+    await transport.sendMail({
+      from: '"The Washing Machine" <no-reply@washingmachine.com>',
+      to,
+      subject: "Service Complete — Your Next Service Reminder | The Washing Machine",
+      html,
+      attachments: [
+        {
+          filename: "logo.jpg",
+          path: logoPath,
+          cid: "logo@washingmachine",
+        },
+      ],
+    });
+
+    logger.info(`✅ Service Complete Email sent to ${to}`);
+  } catch (error) {
+    logger.error(`❌ Failed to send Service Complete email to ${to}`);
   }
 };

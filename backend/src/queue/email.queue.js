@@ -5,6 +5,7 @@ import {
   sendEmail,
   sendOtpEmail,
   sendWelcomeEmail,
+  sendServiceCompleteEmail,
 } from "../services/email.service.js";
 
 const connection = {
@@ -26,6 +27,8 @@ const worker = new Worker(
         await sendOtpEmail(to, data.otp);
       } else if (type === "welcome") {
         await sendWelcomeEmail(to, data.password, data.loginUrl);
+      } else if (type === "service_complete") {
+        await sendServiceCompleteEmail(to, data);
       } else {
         await sendEmail({ to, subject, html });
       }
