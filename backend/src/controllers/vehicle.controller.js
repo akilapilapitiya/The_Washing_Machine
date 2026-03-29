@@ -6,6 +6,8 @@ import {
   updateVehicleService,
   deleteVehicleService,
   recordServiceSnapshotService,
+  getServiceRemindersService,
+  sendServiceReminderService,
 } from "../services/vehicle.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -135,6 +137,25 @@ export const recordServiceSnapshot = async (req, res, next) => {
     successResponse(res, 200, "Service snapshot recorded successfully", {
       vehicle,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getServiceReminders = async (req, res, next) => {
+  try {
+    const reminders = await getServiceRemindersService();
+    successResponse(res, 200, "Service reminders fetched successfully", { reminders });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendServiceReminder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const response = await sendServiceReminderService(id);
+    successResponse(res, 200, "Reminder dispatched successfully", response);
   } catch (error) {
     next(error);
   }

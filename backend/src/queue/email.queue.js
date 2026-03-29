@@ -6,6 +6,7 @@ import {
   sendOtpEmail,
   sendWelcomeEmail,
   sendServiceCompleteEmail,
+  sendServiceReminderEmail,
 } from "../services/email.service.js";
 
 const connection = {
@@ -29,6 +30,8 @@ const worker = new Worker(
         await sendWelcomeEmail(to, data.password, data.loginUrl);
       } else if (type === "service_complete") {
         await sendServiceCompleteEmail(to, data);
+      } else if (type === "service_reminder") {
+        await sendServiceReminderEmail(to, data);
       } else {
         await sendEmail({ to, subject, html });
       }

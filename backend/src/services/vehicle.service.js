@@ -345,8 +345,8 @@ export const recordServiceSnapshotService = async (
     await createNotificationService({
       recipientId: customer.cusid,
       recipientRole: "customer",
-      title: "Service Complete — Next Service Reminder",
-      message: `Your ${vehicle.vehbrand} ${vehicle.vehmodel} (${vehicle.vehplate}) service is complete! Current odometer: ${currentMileage.toLocaleString()} km. Next service due at ${nextServiceMileage.toLocaleString()} km.`,
+      title: "Service Complete",
+      message: `Your ${vehicle.vehbrand} ${vehicle.vehmodel} (${vehicle.vehplate}) service is complete! Current odometer: ${currentMileage.toLocaleString()} km.`,
       type: "info",
       bookingId: bookingId || null,
     });
@@ -355,4 +355,78 @@ export const recordServiceSnapshotService = async (
   }
 
   return vehicle;
+};
+
+// GET Service Reminders list
+export const getServiceRemindersService = async () => {
+  const result = await pool.query(`
+    SELECT
+      v.id as vehicle_id,
+      v.vehplate,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehmileage,
+      v.next_service_mileage,
+      v.next_service_date,
+      c.cusid,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
+      c.cusemail,
+      c.custel
+    FROM vehicle v
+    JOIN customer c ON v.cusid = c.cusid
+    WHERE v.next_service_date IS NOT NULL
+    ORDER BY v.next_service_date ASC
+  `);
+
+  return result.rows;
+};
+
+// POST Send Service Reminder
+export const sendServiceReminderService = async (id) => {
+  const vehicleRes = await pool.query(`
+    SELECT
+      v.id, v.vehplate, v.vehbrand, v.vehmodel, v.vehmileage, v.next_service_mileage, v.next_service_date,
+      c.cusid, c.cusemail, TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname
+    FROM vehicle v
+    JOIN customer c ON v.cusid = c.cusid
+    WHERE v.id = $1
+  `, [id]);
+
+  if (vehicleRes.rowCount === 0) {
+    throw new NotFoundError("Vehicle not found");
+  }
+
+  const data = vehicleRes.rows[0];
+
+  // Queue Email Reminder
+  try {
+    await addEmailJob({
+      type: "service_reminder",
+      to: data.cusemail,
+      data: {
+        customerName: data.cusname,
+        vehicleBrand: data.vehbrand,
+        vehicleModel: data.vehmodel,
+        vehiclePlate: data.vehplate,
+        nextServiceMileage: data.next_service_mileage,
+      },
+    });
+  } catch (err) {
+    logger.error("Failed to queue service reminder email:", err.message);
+  }
+
+  // Dispatch App Notification
+  try {
+    await createNotificationService({
+      recipientId: data.cusid,
+      recipientRole: "customer",
+      title: "Service Reminder",
+      message: `Heads up! Your ${data.vehbrand} ${data.vehmodel} (${data.vehplate}) is almost due for its next service on ${data.next_service_date ? new Date(data.next_service_date).toLocaleDateString() : 'soon'}.`,
+      type: "warning",
+    });
+  } catch (err) {
+    logger.error("Failed to dispatch service reminder notification:", err.message);
+  }
+
+  return { message: "Reminder dispatched" };
 };

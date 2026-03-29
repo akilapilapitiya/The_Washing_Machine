@@ -56,7 +56,17 @@ export const deleteVehicle = async (id) => {
  * @param {Object} data - { currentMileage, nextServiceMileage, bookingId }
  * @returns {Promise<Object>} - Updated vehicle
  */
-export const recordServiceSnapshot = async (vehicleId, data) => {
-  const response = await api.put(`/vehicle/${vehicleId}/service-snapshot`, data);
+export const recordServiceSnapshot = async (id, payload) => {
+  const response = await api.put(`/vehicle/${id}/service-snapshot`, payload);
+  return response.data;
+};
+
+export const getServiceReminders = async () => {
+  const response = await api.get("/vehicle/reminders");
+  return response.data;
+};
+
+export const sendServiceReminder = async (id) => {
+  const response = await api.post(`/vehicle/${id}/send-reminder`);
   return response.data;
 };

@@ -225,3 +225,48 @@ export const serviceCompleteTemplate = ({
 </body>
 </html>
 `;
+
+export const serviceReminderTemplate = ({
+  customerName,
+  vehicleBrand,
+  vehicleModel,
+  vehiclePlate,
+  nextServiceMileage,
+}) => `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; background-color: #1a1a1a;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="cid:logo@washingmachine" alt="The Washing Machine Logo" style="max-width: 150px; height: auto;">
+    </div>
+    <div style="background-color: #ffffff; padding: 30px; border-radius: 8px;">
+        <h2 style="color: #e53e3e; margin-top: 0; text-align: center;">It's Time For Your Next Service!</h2>
+        <p style="font-size: 16px; color: #333;">Hi ${customerName},</p>
+        <p style="font-size: 16px; color: #333; line-height: 1.5;">
+            Based on your service history with us, we noticed that your vehicle is due for maintenance soon. Keeping up with regular services ensures your vehicle stays in top condition!
+        </p>
+        
+        <div style="background-color: #f8f9fa; border-left: 4px solid #e53e3e; padding: 15px; margin: 25px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a1a1a;">Vehicle Information</p>
+            <p style="margin: 0; color: #555; display: flex; justify-content: space-between;">
+                <span><strong>Vehicle:</strong> ${vehicleBrand} ${vehicleModel}</span>
+                <span><strong>Plate:</strong> ${vehiclePlate}</span>
+            </p>
+            ${nextServiceMileage ? `
+            <p style="margin: 10px 0 0 0; color: #555;">
+                <strong style="color: #e53e3e;">Target Mileage:</strong> ${nextServiceMileage.toLocaleString()} km
+            </p>
+            ` : ''}
+        </div>
+
+        <p style="font-size: 16px; color: #333; line-height: 1.5;">
+            Schedule your appointment today to secure your preferred time with our experts.
+        </p>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="https://thewashingmachine.com/dashboard/book" style="display: inline-block; padding: 12px 30px; background-color: #e53e3e; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Schedule Appointment</a>
+        </div>
+        <p style="color: #888; font-size: 13px; margin-top: 30px; text-align: center;">
+            Thank you for choosing,<br><strong>The Washing Machine Team</strong>
+        </p>
+    </div>
+  </div>
+`;

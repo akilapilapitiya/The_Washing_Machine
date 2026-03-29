@@ -54,6 +54,8 @@ const OwnerPricingPage = lazy(() => import("./features/dashboard/OwnerPricingPag
 const SystemHolidaysPage = lazy(() => import("./features/admin/SystemHolidaysPage"));
 const ManageDailySchedulePage = lazy(() => import("./features/admin/ManageDailySchedulePage"));
 
+const ServiceRemindersPage = lazy(() => import("./features/admin/ServiceRemindersPage"));
+
 const MarketplacePage = lazy(() => import("./features/home/MarketplacePage"));
 
 const App = () => {
@@ -372,6 +374,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <OwnerPricingPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/reminders"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner", "manager"]}>
+                  <ServiceRemindersPage />
                 </EmployeeProtectedRoute>
               }
             />

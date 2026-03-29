@@ -6,6 +6,8 @@ import {
   updateVehicle,
   deleteVehicle,
   recordServiceSnapshot,
+  getServiceReminders,
+  sendServiceReminder,
 } from "../controllers/vehicle.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -15,6 +17,13 @@ const vehicleRouter = Router();
 
 // Protected routes
 vehicleRouter.use(authMiddleware);
+
+vehicleRouter.get(
+  "/reminders",
+  restrictTo("owner", "manager"),
+  getServiceReminders,
+);
+
 vehicleRouter.get("/:id", getVehicle);
 vehicleRouter.post(
   "/",
@@ -25,9 +34,16 @@ vehicleRouter.post(
 vehicleRouter.delete("/:id", restrictTo("customer"), deleteVehicle);
 vehicleRouter.put(
   "/:id/service-snapshot",
-  restrictTo("employee", "cashier", "owner"),
+  restrictTo("employee", "cashier", "owner", "manager"),
   recordServiceSnapshot,
 );
+
+vehicleRouter.post(
+  "/:id/send-reminder",
+  restrictTo("owner", "manager"),
+  sendServiceReminder,
+);
+
 vehicleRouter.put(
   "/:id",
   restrictTo("employee"),
