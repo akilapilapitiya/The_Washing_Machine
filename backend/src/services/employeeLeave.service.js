@@ -6,7 +6,14 @@ import { createNotificationService } from "./notification.service.js";
 /**
  * Record a leave for an employee and block their schedule
  */
-export const createLeave = async ({ empid, startDate, endDate, reason, startTime = null, endTime = null }) => {
+export const createLeave = async ({
+  empid,
+  startDate,
+  endDate,
+  reason,
+  startTime = null,
+  endTime = null,
+}) => {
   const client = await pool.connect();
 
   try {
@@ -32,8 +39,8 @@ export const createLeave = async ({ empid, startDate, endDate, reason, startTime
     let queryParams = [empid, startDate, endDate];
 
     if (startTime && endTime) {
-       conflictCheckQuery += ` AND NOT (b.bookingendtime <= $4::time OR b.bookingstarttime >= $5::time)`;
-       queryParams.push(startTime, endTime);
+      conflictCheckQuery += ` AND NOT (b.bookingendtime <= $4::time OR b.bookingstarttime >= $5::time)`;
+      queryParams.push(startTime, endTime);
     }
 
     const conflictCheck = await client.query(conflictCheckQuery, queryParams);
@@ -56,9 +63,9 @@ export const createLeave = async ({ empid, startDate, endDate, reason, startTime
     // 4. Populate Schedule (One entry per day of leave)
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
-    const sTime = startTime || '00:00:00';
-    const eTime = endTime || '23:59:59';
+
+    const sTime = startTime || "00:00:00";
+    const eTime = endTime || "23:59:59";
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const currentDate = d.toISOString().split("T")[0];

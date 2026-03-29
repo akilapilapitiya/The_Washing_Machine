@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import pool from "../configs/database.js";
 import {
   assertAtLeastOneField,
@@ -22,10 +22,11 @@ export const resolveBookingEmployeeService = async ({
   services,
   locationType = "branch",
 }) => {
-  assertRequiredFields(
-    { customerId, vehicleId, services },
-    ["customerId", "vehicleId", "services"],
-  );
+  assertRequiredFields({ customerId, vehicleId, services }, [
+    "customerId",
+    "vehicleId",
+    "services",
+  ]);
 
   if (!Array.isArray(services) || services.length === 0) {
     throw new ValidationError("At least one service is required.");
@@ -331,7 +332,7 @@ export const createBookingService = async ({
     servicesCheck.rows.forEach((s) => {
       const [hours, minutes, seconds] = s.servicetime.split(":").map(Number);
       serviceDurationSeconds += hours * 3600 + minutes * 60 + (seconds || 0);
-      
+
       const cooldownMins = s.cooldown_duration ?? 15;
       if (cooldownMins * 60 > maxCooldownSeconds) {
         maxCooldownSeconds = cooldownMins * 60;
@@ -390,7 +391,10 @@ export const createBookingService = async ({
 
     // If not home visit, travel & buffer might be 0 or small, but logic holds if distance is 0.
     const totalDurationSeconds =
-      serviceDurationSeconds + roundTripSeconds + bufferSeconds + maxCooldownSeconds;
+      serviceDurationSeconds +
+      roundTripSeconds +
+      bufferSeconds +
+      maxCooldownSeconds;
 
     const [startH, startM, startS] = startTime.split(":").map(Number);
     const startSeconds = startH * 3600 + startM * 60 + (startS || 0);
@@ -804,9 +808,10 @@ export const updateBookingService = async (
       srvCheck.rows.forEach((s) => {
         const [h, m, s_] = s.servicetime.split(":").map(Number);
         duration += h * 3600 + m * 60 + (s_ || 0);
-        
+
         const cooldownMins = s.cooldown_duration ?? 15;
-        if (cooldownMins * 60 > maxCooldownSec) maxCooldownSec = cooldownMins * 60;
+        if (cooldownMins * 60 > maxCooldownSec)
+          maxCooldownSec = cooldownMins * 60;
 
         const price = s.has_offer
           ? parseFloat(s.offer_price)
@@ -821,7 +826,8 @@ export const updateBookingService = async (
 
       const [sh, sm, ss] = newStartTime.split(":").map(Number);
       const startSec = sh * 3600 + sm * 60 + (ss || 0);
-      const totalDurationSec = duration + roundTripSeconds + bufferSeconds + maxCooldownSec;
+      const totalDurationSec =
+        duration + roundTripSeconds + bufferSeconds + maxCooldownSec;
 
       const endSec = startSec + totalDurationSec;
       endTime = `${String(Math.floor(endSec / 3600)).padStart(2, "0")}:${String(Math.floor((endSec % 3600) / 60)).padStart(2, "0")}:${String(endSec % 60).padStart(2, "0")}`;
@@ -919,7 +925,12 @@ export const deleteBookingService = async (
   }
 };
 
-export const rescheduleBookingService = async (bookingId, newDate, newStartTime, adminId) => {
+export const rescheduleBookingService = async (
+  bookingId,
+  newDate,
+  newStartTime,
+  adminId,
+) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -933,14 +944,19 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
        JOIN vehicle v ON b.vehid = v.id
        LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
        WHERE b.bookingid = $1`,
-      [bookingId]
+      [bookingId],
     );
 
     if (bookingRes.rowCount === 0) throw new NotFoundError("Booking not found");
     const booking = bookingRes.rows[0];
 
-    if (booking.bookingstatus === "completed" || booking.bookingstatus === "cancelled") {
-      throw new ValidationError("Cannot reschedule a completed or cancelled booking");
+    if (
+      booking.bookingstatus === "completed" ||
+      booking.bookingstatus === "cancelled"
+    ) {
+      throw new ValidationError(
+        "Cannot reschedule a completed or cancelled booking",
+      );
     }
 
     // 2. Validate Employee Overlap
@@ -958,11 +974,18 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
         )
       `;
       const overlapCheck = await client.query(overlapQuery, [
-        booking.empid, newDate, bookingId, newStartTime, booking.scheduleendtime, booking.schedulestarttime
+        booking.empid,
+        newDate,
+        bookingId,
+        newStartTime,
+        booking.scheduleendtime,
+        booking.schedulestarttime,
       ]);
 
       if (overlapCheck.rowCount > 0) {
-         throw new ValidationError("Selected timeslot overlaps with the assigned employee's existing schedule.");
+        throw new ValidationError(
+          "Selected timeslot overlaps with the assigned employee's existing schedule.",
+        );
       }
     }
 
@@ -975,22 +998,33 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
          (holidaytype = 'custom' AND NOT (endtime <= $2::time OR starttime >= ($2::time + ($3::time - $4::time))))
        )
     `;
-    const holidayCheck = await client.query(holidayQuery, [newDate, newStartTime, booking.bookingendtime, booking.bookingstarttime]);
+    const holidayCheck = await client.query(holidayQuery, [
+      newDate,
+      newStartTime,
+      booking.bookingendtime,
+      booking.bookingstarttime,
+    ]);
     if (holidayCheck.rowCount > 0) {
-       throw new ValidationError(`Timeslot intersects with a branch closure: ${holidayCheck.rows[0].holidayname}`);
+      throw new ValidationError(
+        `Timeslot intersects with a branch closure: ${holidayCheck.rows[0].holidayname}`,
+      );
     }
 
     // 4. Safely transition timeframes
-    await client.query(`
+    await client.query(
+      `
       UPDATE booking 
       SET bookingdate = $1::date, 
           bookingendtime = $2::time + (bookingendtime - bookingstarttime),
           bookingstarttime = $2::time, 
           updated_at = NOW() 
       WHERE bookingid = $3::int
-    `, [newDate, newStartTime, bookingId]);
+    `,
+      [newDate, newStartTime, bookingId],
+    );
 
-    await client.query(`
+    await client.query(
+      `
       UPDATE schedule 
       SET schedulestartdate = $1::date, 
           scheduleenddate = $1::date, 
@@ -998,42 +1032,44 @@ export const rescheduleBookingService = async (bookingId, newDate, newStartTime,
           schedulestarttime = $2::time, 
           updated_at = NOW() 
       WHERE bookingid = $3::int
-    `, [newDate, newStartTime, bookingId]);
+    `,
+      [newDate, newStartTime, bookingId],
+    );
 
     // 5. Dispatch Real-time WebSocket Notifications
     const shortDate = new Date(newDate).toDateString();
-    
+
     if (booking.cusid) {
-       await createNotificationService({
-         recipientId: booking.cusid,
-         recipientRole: 'customer',
-         title: 'Service Rescheduled',
-         message: `Your booking #${bookingId} has been administratively rescheduled to ${shortDate} at ${newStartTime.substring(0, 5)}.`,
-         type: 'info',
-         bookingId: bookingId
-       });
+      await createNotificationService({
+        recipientId: booking.cusid,
+        recipientRole: "customer",
+        title: "Service Rescheduled",
+        message: `Your booking #${bookingId} has been administratively rescheduled to ${shortDate} at ${newStartTime.substring(0, 5)}.`,
+        type: "info",
+        bookingId: bookingId,
+      });
     }
 
     if (booking.empid) {
-       await createNotificationService({
-         recipientId: booking.empid,
-         recipientRole: 'employee',
-         title: 'Assignment Rescheduled',
-         message: `Your assigned task #${bookingId} has been shifted to ${shortDate} at ${newStartTime.substring(0, 5)}. Please review your updated itinerary.`,
-         type: 'info',
-         bookingId: bookingId
-       });
+      await createNotificationService({
+        recipientId: booking.empid,
+        recipientRole: "employee",
+        title: "Assignment Rescheduled",
+        message: `Your assigned task #${bookingId} has been shifted to ${shortDate} at ${newStartTime.substring(0, 5)}. Please review your updated itinerary.`,
+        type: "info",
+        bookingId: bookingId,
+      });
     }
 
     if (adminId) {
-       await createNotificationService({
-         recipientId: adminId,
-         recipientRole: 'employee',
-         title: 'Administrative Action Confirmed',
-         message: `You successfully rescheduled booking #${bookingId} array sequences for the entire branch grid.`,
-         type: 'success',
-         bookingId: bookingId
-       });
+      await createNotificationService({
+        recipientId: adminId,
+        recipientRole: "employee",
+        title: "Administrative Action Confirmed",
+        message: `You successfully rescheduled booking #${bookingId} array sequences for the entire branch grid.`,
+        type: "success",
+        bookingId: bookingId,
+      });
     }
 
     await client.query("COMMIT");

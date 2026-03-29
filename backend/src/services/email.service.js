@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import nodemailer from "nodemailer";
 import { otpTemplate, welcomeTemplate } from "../templates/email.templates.js";
 import { NODE_ENV } from "../configs/env.js";
