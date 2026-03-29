@@ -73,6 +73,7 @@ const ServiceDetailsPage = () => {
   // Mileage Recording State (Service Snapshot)
   const [showMileageModal, setShowMileageModal] = useState(false);
   const [submittingSnapshot, setSubmittingSnapshot] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
 
   // Helpers Defined at Top to avoid TDZ
   const formatDate = (dateString) => {
@@ -144,6 +145,7 @@ const ServiceDetailsPage = () => {
         currentMileage: mileageVal,
         nextServiceMileage: nextVal,
         bookingId: parseInt(id),
+        isMaintenance: isMaintenance,
       });
 
       // Step 2: Transition booking to completed
@@ -820,6 +822,21 @@ const ServiceDetailsPage = () => {
                         </p>
                       )}
                   </div>
+                  
+                  <div className="pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer p-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={isMaintenance}
+                        onChange={(e) => setIsMaintenance(e.target.checked)}
+                        className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">
+                        Use this service to calculate Next Service Due Date
+                      </span>
+                    </label>
+                  </div>
+                  
                   <div className="flex gap-3 pt-4 mt-2">
                     <Button
                       type="button"
