@@ -67,16 +67,19 @@ const BookingPage = () => {
   };
 
   // Header action button - Manage Garage
-  const headerAction = useMemo(() => (
-    <Link to="/dashboard/vehicles">
-      <Button
-        variant="outline"
-        className="px-6 h-10 font-medium text-gray-700 border-gray-300"
-      >
-        Manage Garage
-      </Button>
-    </Link>
-  ), []);
+  const headerAction = useMemo(
+    () => (
+      <Link to="/dashboard/vehicles">
+        <Button
+          variant="outline"
+          className="px-6 h-10 font-medium text-gray-700 border-gray-300"
+        >
+          Manage Garage
+        </Button>
+      </Link>
+    ),
+    [],
+  );
 
   // Search toolbar component with Continue button
   const searchToolbar = useMemo(
@@ -85,12 +88,12 @@ const BookingPage = () => {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search vehicles..."
-        meta={(
+        meta={
           <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
             {tableData.length} vehicle{tableData.length !== 1 ? "s" : ""}
           </span>
-        )}
-        rightSlot={(
+        }
+        rightSlot={
           <>
             <BookingToolbarBackButton onClick={handleBack} />
             <BookingToolbarActionButton
@@ -102,10 +105,16 @@ const BookingPage = () => {
               <ArrowRight size={14} className="ml-2" />
             </BookingToolbarActionButton>
           </>
-        )}
+        }
       />
     ),
-    [searchQuery, tableData.length, handleBack, handleContinue, selectedVehicleId],
+    [
+      searchQuery,
+      tableData.length,
+      handleBack,
+      handleContinue,
+      selectedVehicleId,
+    ],
   );
 
   useSetPageHeader(
@@ -113,7 +122,7 @@ const BookingPage = () => {
     "Select Vehicle",
     "Choose one of your registered vehicles to continue.",
     headerAction,
-    searchToolbar
+    searchToolbar,
   );
 
   if (loading) {
@@ -187,9 +196,7 @@ const BookingPage = () => {
                     <div className="h-1.5 w-1.5 bg-white rounded-full" />
                   )}
                 </div>
-                <span className="text-gray-900">
-                  {row.displayName}
-                </span>
+                <span className="text-gray-900">{row.displayName}</span>
               </button>
             ),
           },

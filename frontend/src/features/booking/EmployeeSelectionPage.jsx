@@ -171,8 +171,10 @@ const EmployeeSelectionPage = () => {
     if (!query) return tableData;
 
     return tableData.filter((row) =>
-      [row.empname, row.roleLabel, row.emptype].some(
-        (value) => String(value || "").toLowerCase().includes(query),
+      [row.empname, row.roleLabel, row.emptype].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
       ),
     );
   }, [searchQuery, tableData]);
@@ -183,12 +185,12 @@ const EmployeeSelectionPage = () => {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search employees..."
-        meta={(
+        meta={
           <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
             {employees.length} available
           </span>
-        )}
-        rightSlot={(
+        }
+        rightSlot={
           <>
             <BookingToolbarBackButton onClick={handleBack} />
             <BookingToolbarActionButton
@@ -208,10 +210,16 @@ const EmployeeSelectionPage = () => {
               )}
             </BookingToolbarActionButton>
           </>
-        )}
+        }
       />
     ),
-    [employees.length, handleBack, handleContinue, searchQuery, resolvingEmployee],
+    [
+      employees.length,
+      handleBack,
+      handleContinue,
+      searchQuery,
+      resolvingEmployee,
+    ],
   );
 
   useSetPageHeader(
@@ -219,7 +227,7 @@ const EmployeeSelectionPage = () => {
     "Select Employee",
     "Choose a preferred employee or let us assign the best available.",
     null,
-    toolbar
+    toolbar,
   );
 
   return (
@@ -257,8 +265,12 @@ const EmployeeSelectionPage = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left w-8"></th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Employee</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Role</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                        Employee
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                        Role
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -282,9 +294,13 @@ const EmployeeSelectionPage = () => {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-col gap-0.5">
-                              <span className="font-semibold text-gray-900">{row.empname}</span>
+                              <span className="font-semibold text-gray-900">
+                                {row.empname}
+                              </span>
                               {row.empid !== "any" && (
-                                <span className="text-[11px] text-gray-400">ID: {row.empid}</span>
+                                <span className="text-[11px] text-gray-400">
+                                  ID: {row.empid}
+                                </span>
                               )}
                             </div>
                           </td>
@@ -305,11 +321,12 @@ const EmployeeSelectionPage = () => {
           <Card className="border-dashed border-2 border-gray-200">
             <CardContent className="py-12 text-center">
               <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">No employees match your search.</p>
+              <p className="text-gray-500 text-sm">
+                No employees match your search.
+              </p>
             </CardContent>
           </Card>
         )}
-
       </div>
     </div>
   );

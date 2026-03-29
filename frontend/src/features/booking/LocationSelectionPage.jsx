@@ -8,11 +8,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import {
-  APIProvider,
-  Map,
-  AdvancedMarker,
-} from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import LocationPicker from "@/components/common/LocationPicker";
 import { getPricingRules } from "@/services/settings.service";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,11 +47,14 @@ const LocationSelectionPage = () => {
   const { vehicleId, serviceIds } = routerLocation.state || {};
 
   const customerLat = user?.latitude != null ? parseFloat(user.latitude) : null;
-  const customerLng = user?.longitude != null ? parseFloat(user.longitude) : null;
+  const customerLng =
+    user?.longitude != null ? parseFloat(user.longitude) : null;
   const hasHomeLocation = customerLat !== null && customerLng !== null;
 
   useEffect(() => {
-    getPricingRules().then(setPricingRules).catch(() => {});
+    getPricingRules()
+      .then(setPricingRules)
+      .catch(() => {});
   }, []);
 
   const calculateCost = useCallback(
@@ -66,14 +65,19 @@ const LocationSelectionPage = () => {
         ? base_fee
         : base_fee + (distance - base_km) * additional_rate;
     },
-    [pricingRules]
+    [pricingRules],
   );
 
   const calculateMyHomeDistance = useCallback(async () => {
     if (!hasHomeLocation) return;
     setMyHomeCalculating(true);
     try {
-      const dist = haversineKm(HQ_COORDS.lat, HQ_COORDS.lng, customerLat, customerLng);
+      const dist = haversineKm(
+        HQ_COORDS.lat,
+        HQ_COORDS.lng,
+        customerLat,
+        customerLng,
+      );
       setMyHomeLocation({
         lat: customerLat,
         lng: customerLng,
@@ -90,7 +94,12 @@ const LocationSelectionPage = () => {
     if (selectedOptionId === "my-home" && hasHomeLocation && !myHomeLocation) {
       calculateMyHomeDistance();
     }
-  }, [selectedOptionId, hasHomeLocation, myHomeLocation, calculateMyHomeDistance]);
+  }, [
+    selectedOptionId,
+    hasHomeLocation,
+    myHomeLocation,
+    calculateMyHomeDistance,
+  ]);
 
   const travelCost = useMemo(() => {
     if (selectedOptionId === "my-home" && myHomeLocation)
@@ -102,7 +111,8 @@ const LocationSelectionPage = () => {
 
   const isContinueEnabled = useMemo(() => {
     if (selectedOptionId === "main-branch") return true;
-    if (selectedOptionId === "my-home") return hasHomeLocation && !!myHomeLocation;
+    if (selectedOptionId === "my-home")
+      return hasHomeLocation && !!myHomeLocation;
     if (selectedOptionId === "custom") return !!customMapLocation;
     return false;
   }, [selectedOptionId, hasHomeLocation, myHomeLocation, customMapLocation]);
@@ -110,14 +120,41 @@ const LocationSelectionPage = () => {
   const handleContinue = useCallback(() => {
     let locationData;
     if (selectedOptionId === "main-branch") {
-      locationData = { id: "main-branch", type: "branch", lat: null, lng: null, distance: 0, travelCost: 0 };
+      locationData = {
+        id: "main-branch",
+        type: "branch",
+        lat: null,
+        lng: null,
+        distance: 0,
+        travelCost: 0,
+      };
     } else if (selectedOptionId === "my-home") {
-      locationData = { id: "my-home", type: "home", ...myHomeLocation, travelCost };
+      locationData = {
+        id: "my-home",
+        type: "home",
+        ...myHomeLocation,
+        travelCost,
+      };
     } else {
-      locationData = { id: "custom", type: "home", ...customMapLocation, travelCost };
+      locationData = {
+        id: "custom",
+        type: "home",
+        ...customMapLocation,
+        travelCost,
+      };
     }
-    navigate("/dashboard/booking/employee", { state: { vehicleId, serviceIds, locationData } });
-  }, [selectedOptionId, myHomeLocation, customMapLocation, travelCost, vehicleId, serviceIds, navigate]);
+    navigate("/dashboard/booking/employee", {
+      state: { vehicleId, serviceIds, locationData },
+    });
+  }, [
+    selectedOptionId,
+    myHomeLocation,
+    customMapLocation,
+    travelCost,
+    vehicleId,
+    serviceIds,
+    navigate,
+  ]);
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -150,7 +187,7 @@ const LocationSelectionPage = () => {
         disabled: false,
       },
     ],
-    [hasHomeLocation]
+    [hasHomeLocation],
   );
 
   // ── Toolbar: location options + continue ────────────────────────────────
@@ -161,7 +198,7 @@ const LocationSelectionPage = () => {
         activeTab={selectedOptionId}
         onTabChange={setSelectedOptionId}
         tabsAriaLabel="Location options"
-        rightSlot={(
+        rightSlot={
           <>
             <BookingToolbarBackButton onClick={handleBack} />
             <BookingToolbarActionButton
@@ -172,17 +209,23 @@ const LocationSelectionPage = () => {
               <ArrowRight size={14} className="ml-2" />
             </BookingToolbarActionButton>
           </>
-        )}
+        }
       />
     );
-  }, [locationOptions, selectedOptionId, handleBack, handleContinue, isContinueEnabled]);
+  }, [
+    locationOptions,
+    selectedOptionId,
+    handleBack,
+    handleContinue,
+    isContinueEnabled,
+  ]);
 
   useSetPageHeader(
     "BOOK SERVICE",
     "Select Service Location",
     "Choose where you would like the service to take place.",
     null,
-    toolbar
+    toolbar,
   );
 
   // ── Map state ────────────────────────────────────────────────────────────
@@ -251,7 +294,9 @@ const LocationSelectionPage = () => {
       type: "Custom Location",
       coordinates: `${customMapLocation.lat?.toFixed(6)}, ${customMapLocation.lng?.toFixed(6)}`,
       distance: `${customMapLocation.distance?.toFixed(1)} km`,
-      duration: customMapLocation.duration ? `${customMapLocation.duration} min` : "—",
+      duration: customMapLocation.duration
+        ? `${customMapLocation.duration} min`
+        : "—",
       fee: `Rs. ${travelCost.toFixed(2)}`,
       note: customMapLocation.address || "Custom map location selected.",
     };
@@ -270,34 +315,55 @@ const LocationSelectionPage = () => {
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.45fr] gap-4 items-start">
-
           <div>
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
-                <p className="text-sm font-bold text-gray-900">Location Details</p>
+                <p className="text-sm font-bold text-gray-900">
+                  Location Details
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <tbody>
                     <tr className="border-b border-gray-100">
-                      <td className="px-4 py-2.5 font-semibold text-gray-600 w-32">Type</td>
-                      <td className="px-4 py-2.5 text-gray-900">{selectedLocationDetails.type}</td>
+                      <td className="px-4 py-2.5 font-semibold text-gray-600 w-32">
+                        Type
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-900">
+                        {selectedLocationDetails.type}
+                      </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="px-4 py-2.5 font-semibold text-gray-600">Coordinates</td>
-                      <td className="px-4 py-2.5 text-gray-900 font-mono text-xs">{selectedLocationDetails.coordinates}</td>
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">
+                        Coordinates
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-900 font-mono text-xs">
+                        {selectedLocationDetails.coordinates}
+                      </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="px-4 py-2.5 font-semibold text-gray-600">Distance</td>
-                      <td className="px-4 py-2.5 text-gray-900">{selectedLocationDetails.distance}</td>
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">
+                        Distance
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-900">
+                        {selectedLocationDetails.distance}
+                      </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="px-4 py-2.5 font-semibold text-gray-600">Travel Time</td>
-                      <td className="px-4 py-2.5 text-gray-900">{selectedLocationDetails.duration}</td>
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">
+                        Travel Time
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-900">
+                        {selectedLocationDetails.duration}
+                      </td>
                     </tr>
                     <tr>
-                      <td className="px-4 py-2.5 font-semibold text-gray-600">Est. Travel Fee</td>
-                      <td className="px-4 py-2.5 text-red-600 font-semibold">{selectedLocationDetails.fee}</td>
+                      <td className="px-4 py-2.5 font-semibold text-gray-600">
+                        Est. Travel Fee
+                      </td>
+                      <td className="px-4 py-2.5 text-red-600 font-semibold">
+                        {selectedLocationDetails.fee}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -320,7 +386,9 @@ const LocationSelectionPage = () => {
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <p className="text-sm font-bold text-gray-900">Map Preview</p>
-                <span className="text-xs font-medium text-gray-500">{selectedOptionLabel}</span>
+                <span className="text-xs font-medium text-gray-500">
+                  {selectedOptionLabel}
+                </span>
               </div>
               {selectedOptionId === "custom" ? (
                 <LocationPicker
@@ -333,18 +401,27 @@ const LocationSelectionPage = () => {
                     <Map
                       key={selectedOptionId}
                       defaultCenter={mapCenter}
-                      defaultZoom={selectedOptionId === "my-home" && hasHomeLocation ? 12 : 15}
+                      defaultZoom={
+                        selectedOptionId === "my-home" && hasHomeLocation
+                          ? 12
+                          : 15
+                      }
                       mapId="DEMO_MAP_ID"
                       clickableIcons={false}
                       gestureHandling="cooperative"
                       className="w-full h-full"
                     >
                       {/* HQ marker */}
-                      <AdvancedMarker position={HQ_COORDS} title="The Washing Machine — Main Branch">
+                      <AdvancedMarker
+                        position={HQ_COORDS}
+                        title="The Washing Machine — Main Branch"
+                      >
                         <div className="relative flex flex-col items-center">
                           <div className="bg-red-600 text-white px-2.5 py-1.5 rounded-lg shadow-lg border-2 border-white flex items-center gap-1.5">
                             <Building2 size={13} fill="currentColor" />
-                            <span className="text-xs font-bold whitespace-nowrap">The Washing Machine</span>
+                            <span className="text-xs font-bold whitespace-nowrap">
+                              The Washing Machine
+                            </span>
                           </div>
                           <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-red-600 -mt-px" />
                         </div>
@@ -352,11 +429,16 @@ const LocationSelectionPage = () => {
 
                       {/* Home marker */}
                       {selectedOptionId === "my-home" && hasHomeLocation && (
-                        <AdvancedMarker position={{ lat: customerLat, lng: customerLng }} title="Your Home">
+                        <AdvancedMarker
+                          position={{ lat: customerLat, lng: customerLng }}
+                          title="Your Home"
+                        >
                           <div className="relative flex flex-col items-center">
                             <div className="bg-blue-600 text-white px-2.5 py-1.5 rounded-lg shadow-lg border-2 border-white flex items-center gap-1.5">
                               <Home size={13} fill="currentColor" />
-                              <span className="text-xs font-bold">Your Home</span>
+                              <span className="text-xs font-bold">
+                                Your Home
+                              </span>
                             </div>
                             <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-blue-600 -mt-px" />
                           </div>
@@ -369,7 +451,9 @@ const LocationSelectionPage = () => {
                       <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
                         <div className="bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
                           <Loader2 className="animate-spin text-red-600 h-5 w-5" />
-                          <span className="text-sm font-medium text-gray-700">Calculating route…</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Calculating route…
+                          </span>
                         </div>
                       </div>
                     )}
