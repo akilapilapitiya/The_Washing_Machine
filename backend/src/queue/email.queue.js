@@ -1,7 +1,11 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import { Queue, Worker } from "bullmq";
 import { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } from "../configs/env.js";
-import { sendEmail, sendOtpEmail, sendWelcomeEmail } from "../services/email.service.js";
+import {
+  sendEmail,
+  sendOtpEmail,
+  sendWelcomeEmail,
+} from "../services/email.service.js";
 
 const connection = {
   host: REDIS_HOST || "localhost",

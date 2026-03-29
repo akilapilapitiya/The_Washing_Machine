@@ -1,7 +1,7 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import * as systemHolidayService from "../services/systemHoliday.service.js";
 
-// Get all holidays
+// GET all holidays
 export const getAllHolidaysController = async (req, res) => {
   try {
     const holidays = await systemHolidayService.getAllHolidays();
@@ -12,7 +12,7 @@ export const getAllHolidaysController = async (req, res) => {
   }
 };
 
-// Get holidays by date range
+// GET holidays by date range
 export const getHolidaysByRangeController = async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -34,7 +34,7 @@ export const getHolidaysByRangeController = async (req, res) => {
   }
 };
 
-// Check if a date is a holiday
+// GET holiday by date
 export const checkHolidayDateController = async (req, res) => {
   try {
     const { date } = req.params;
@@ -62,7 +62,7 @@ export const checkHolidayDateController = async (req, res) => {
   }
 };
 
-// Get holiday by ID
+// GET holiday by ID
 export const getHolidayByIdController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -79,11 +79,18 @@ export const getHolidayByIdController = async (req, res) => {
   }
 };
 
-// Create new holiday (owner only)
+// CREATE holiday (owner only)
 export const createHolidayController = async (req, res) => {
   try {
-    const { holidayname, holidaydate, starttime, endtime, holidaytype, description, is_recurring } =
-      req.body;
+    const {
+      holidayname,
+      holidaydate,
+      starttime,
+      endtime,
+      holidaytype,
+      description,
+      is_recurring,
+    } = req.body;
 
     // Validation
     if (!holidayname || !holidaydate) {
@@ -93,8 +100,11 @@ export const createHolidayController = async (req, res) => {
     }
 
     // Check if date already has a holiday
-    const existingHoliday =
-      await systemHolidayService.checkDateIsHoliday(holidaydate, starttime, endtime);
+    const existingHoliday = await systemHolidayService.checkDateIsHoliday(
+      holidaydate,
+      starttime,
+      endtime,
+    );
     if (existingHoliday) {
       return res.status(409).json({
         error: `A holiday already exists on this date/time: ${existingHoliday.holidayname}`,
@@ -129,8 +139,15 @@ export const createHolidayController = async (req, res) => {
 export const updateHolidayController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { holidayname, holidaydate, starttime, endtime, holidaytype, description, is_recurring } =
-      req.body;
+    const {
+      holidayname,
+      holidaydate,
+      starttime,
+      endtime,
+      holidaytype,
+      description,
+      is_recurring,
+    } = req.body;
 
     // Check if holiday exists
     const existingHoliday = await systemHolidayService.getHolidayById(id);
@@ -140,10 +157,16 @@ export const updateHolidayController = async (req, res) => {
 
     // Always check for conflicts (excluding self)
     const targetDate = holidaydate || existingHoliday.holidaydate;
-    const targetStart = starttime !== undefined ? starttime : existingHoliday.starttime;
+    const targetStart =
+      starttime !== undefined ? starttime : existingHoliday.starttime;
     const targetEnd = endtime !== undefined ? endtime : existingHoliday.endtime;
-    
-    const dateConflict = await systemHolidayService.checkDateIsHoliday(targetDate, targetStart, targetEnd, id);
+
+    const dateConflict = await systemHolidayService.checkDateIsHoliday(
+      targetDate,
+      targetStart,
+      targetEnd,
+      id,
+    );
     if (dateConflict) {
       return res.status(409).json({
         error: `A holiday already exists in this timeframe: ${dateConflict.holidayname}`,
@@ -196,7 +219,7 @@ export const deleteHolidayController = async (req, res) => {
   }
 };
 
-// Get upcoming holidays
+// GET upcoming holidays
 export const getUpcomingHolidaysController = async (req, res) => {
   try {
     const holidays = await systemHolidayService.getUpcomingHolidays();
@@ -207,15 +230,20 @@ export const getUpcomingHolidaysController = async (req, res) => {
   }
 };
 
+// Sync daily schedule (owner only)
 export const syncDailyHolidaysController = async (req, res) => {
   try {
     const { date, blocks } = req.body;
     if (!date || !Array.isArray(blocks)) {
-      return res.status(400).json({ error: "Date and blocks array are required" });
+      return res
+        .status(400)
+        .json({ error: "Date and blocks array are required" });
     }
-    
+
     await systemHolidayService.syncDailyHolidays(date, blocks, req.user.id);
-    return res.status(200).json({ message: "Daily schedule synced successfully" });
+    return res
+      .status(200)
+      .json({ message: "Daily schedule synced successfully" });
   } catch (error) {
     logger.error("Error syncing daily schedule:", error);
     return res.status(500).json({ error: "Failed to sync daily schedule" });

@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { getEmployeeSchedule, getBranchDailyScheduleController } from "../controllers/schedule.controller.js";
+import {
+  getEmployeeSchedule,
+  getBranchDailyScheduleController,
+} from "../controllers/schedule.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const scheduleRouter = Router();
 
+// Protected routes
 scheduleRouter.use(authMiddleware);
-
-// Public for all authenticated users (customers need to check availability too)
 scheduleRouter.get("/branch/daily", getBranchDailyScheduleController);
 scheduleRouter.get("/employee/:empid", getEmployeeSchedule);
 

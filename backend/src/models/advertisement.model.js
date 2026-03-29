@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 const createAdvertisementTable = async (pool) => {
   const query = `
     CREATE TABLE IF NOT EXISTS advertisement (

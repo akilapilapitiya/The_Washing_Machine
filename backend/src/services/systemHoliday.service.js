@@ -50,7 +50,12 @@ export const getHolidaysByDateRange = async (startDate, endDate) => {
 };
 
 // Check if a specific date is a holiday (optionally overlapping with specific hours)
-export const checkDateIsHoliday = async (date, startTime = null, endTime = null, excludeId = null) => {
+export const checkDateIsHoliday = async (
+  date,
+  startTime = null,
+  endTime = null,
+  excludeId = null,
+) => {
   let query = `
     SELECT holidayid, holidayname, holidaytype, starttime::text, endtime::text
     FROM system_holidays
@@ -141,8 +146,15 @@ export const createHoliday = async (holidayData) => {
 
 // Update holiday
 export const updateHoliday = async (holidayId, holidayData) => {
-  const { holidayname, holidaydate, starttime, endtime, holidaytype, description, is_recurring } =
-    holidayData;
+  const {
+    holidayname,
+    holidaydate,
+    starttime,
+    endtime,
+    holidaytype,
+    description,
+    is_recurring,
+  } = holidayData;
 
   const query = `
     UPDATE system_holidays
@@ -209,11 +221,11 @@ export const syncDailyHolidays = async (date, blocks, userId) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    
+
     // Delete existing custom holidays on this date
     await client.query(
       `DELETE FROM system_holidays WHERE holidaydate = $1 AND holidaytype = 'custom'`,
-      [date]
+      [date],
     );
 
     // Insert new blocks
@@ -222,10 +234,10 @@ export const syncDailyHolidays = async (date, blocks, userId) => {
         `INSERT INTO system_holidays (
           holidayname, holidaydate, starttime, endtime, holidaytype, created_by
         ) VALUES ($1, $2, $3, $4, 'custom', $5)`,
-        ['Branch Closure', date, block.starttime, block.endtime, userId]
+        ["Branch Closure", date, block.starttime, block.endtime, userId],
       );
     }
-    
+
     await client.query("COMMIT");
   } catch (error) {
     if (client) await client.query("ROLLBACK");

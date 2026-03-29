@@ -8,6 +8,7 @@ import {
 } from "../services/payment.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET Payment by ID
 export const getPayment = async (req, res, next) => {
   try {
     const { paymentid } = req.params;
@@ -19,7 +20,7 @@ export const getPayment = async (req, res, next) => {
       paymentid,
       userId,
       userRole,
-      userEmptype
+      userEmptype,
     );
 
     successResponse(res, 200, "Payment retrieved successfully", { payment });
@@ -28,6 +29,7 @@ export const getPayment = async (req, res, next) => {
   }
 };
 
+// GET All Payments (Admin)
 export const getAllPayments = async (req, res, next) => {
   try {
     const payments = await getAllPaymentsService();
@@ -38,6 +40,7 @@ export const getAllPayments = async (req, res, next) => {
   }
 };
 
+// GET My Payments (Customer)
 export const getMyPayments = async (req, res, next) => {
   try {
     const customerId = req.user.id;
@@ -49,6 +52,7 @@ export const getMyPayments = async (req, res, next) => {
   }
 };
 
+// CREATE Payment
 export const createPayment = async (req, res, next) => {
   try {
     const { paymentdate, paymenttype, paymentamount, bookingid } = req.body;
@@ -66,6 +70,7 @@ export const createPayment = async (req, res, next) => {
   }
 };
 
+// UPDATE Payment
 export const updatePayment = async (req, res, next) => {
   try {
     const { paymentid } = req.params;
@@ -79,6 +84,7 @@ export const updatePayment = async (req, res, next) => {
   }
 };
 
+// DELETE Payment
 export const deletePayment = async (req, res, next) => {
   try {
     const { paymentid } = req.params;

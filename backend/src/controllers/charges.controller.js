@@ -1,7 +1,6 @@
 import * as chargesService from "../services/charges.service.js";
 
-// POST /api/bookings/:id/extras
-// Employee adds item (price is null)
+// CREATE Extra Item
 export const addExtraItem = async (req, res, next) => {
   try {
     const bookingId = req.params.id;
@@ -20,7 +19,7 @@ export const addExtraItem = async (req, res, next) => {
   }
 };
 
-// DELETE /api/extras/:id
+// DELETE Extra Item
 export const removeExtraItem = async (req, res, next) => {
   try {
     const extraId = req.params.id;
@@ -31,8 +30,7 @@ export const removeExtraItem = async (req, res, next) => {
   }
 };
 
-// PUT /api/extras/:id/price
-// Cashier/Owner updates price
+// UPDATE Extra Item Price
 export const updateItemPrice = async (req, res, next) => {
   try {
     const extraId = req.params.id;

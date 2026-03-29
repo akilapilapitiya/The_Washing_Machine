@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import createBookingTable from "./booking.model.js";
 import createCustomerTable from "./customer.model.js";
 import createEmployeeTable from "./employee.model.js";

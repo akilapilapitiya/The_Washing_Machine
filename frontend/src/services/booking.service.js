@@ -104,7 +104,10 @@ export const updateBookingStatus = async (id, status) => {
  */
 export const rescheduleBooking = async (id, newDate, newStartTime) => {
   try {
-    const response = await api.put(`/booking/${id}/reschedule`, { newDate, newStartTime });
+    const response = await api.put(`/booking/${id}/reschedule`, {
+      newDate,
+      newStartTime,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error rescheduling booking ${id}:`, error);

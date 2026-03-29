@@ -8,6 +8,7 @@ import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const feedbackRouter = Router();
 
+// Protected routes
 feedbackRouter.use(authMiddleware);
 
 feedbackRouter.post("/", restrictTo("customer"), createFeedback);

@@ -1,9 +1,10 @@
-import logger from '../../configs/logger.js';
+import logger from "../../configs/logger.js";
 import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
 import redis from "../../configs/redis.js";
 import pool from "../../configs/database.js";
 import crypto from "crypto";
+import { TELEGRAM_TEXT, telegramPrompts } from "./telegram.prompts.js";
 
 import {
   getAllBookingsService,
@@ -17,6 +18,7 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 
 let bot = null;
 
+// Initiate Telegram Bot and set up handlers
 export const initTelegramBot = () => {
   if (!token) {
     logger.warn("TELEGRAM_BOT_TOKEN not found. Chat features disabled.");
@@ -28,10 +30,14 @@ export const initTelegramBot = () => {
     logger.info("Telegram Bot started successfully.");
 
     // Set Persistent Menu
-    bot.setMyCommands([
-      { command: "/start", description: "Link Account" },
-      { command: "/jobs", description: "View Assigned Jobs" },
-    ]).catch(err => logger.warn("[TELEGRAM] Failed to set menu commands (Network issue)"));
+    bot
+      .setMyCommands([
+        { command: "/start", description: "Link Account" },
+        { command: "/jobs", description: "View Assigned Jobs" },
+      ])
+      .catch((err) =>
+        logger.warn("[TELEGRAM] Failed to set menu commands (Network issue)"),
+      );
 
     // Handle linking (both /start <CODE> and just <CODE>)
     bot.on("message", async (msg) => {
@@ -41,24 +47,20 @@ export const initTelegramBot = () => {
       if (!text) return;
 
       // Persistent Menu Button Handler
-      if (text === "📅 My Jobs" || text === "/jobs") {
+      if (text === TELEGRAM_TEXT.myJobsButton || text === "/jobs") {
         await handleJobsCommand(chatId);
         return;
       }
 
       // Check if it's a simple start command
       if (text === "/start") {
-        bot.sendMessage(
-          chatId,
-          "👋 Welcome to The Washing Machine Employee Bot!\n\nTo link your account:\n1. Log in to the Employee Portal.\n2. Go to your Profile.\n3. Click 'Connect Telegram'.\n4. Send the code provided there.",
-          {
-            reply_markup: {
-              keyboard: [[{ text: "📅 My Jobs" }]],
-              resize_keyboard: true,
-              persistent: true,
-            },
+        bot.sendMessage(chatId, telegramPrompts.linkingInstructions(), {
+          reply_markup: {
+            keyboard: [[{ text: TELEGRAM_TEXT.myJobsButton }]],
+            resize_keyboard: true,
+            persistent: true,
           },
-        );
+        });
         return;
       }
 
@@ -76,10 +78,7 @@ export const initTelegramBot = () => {
         const employeeId = await redis.get(`telegram_link:${code}`);
 
         if (!employeeId) {
-          bot.sendMessage(
-            chatId,
-            "❌ Invalid or expired linking code. Please generate a new one from your portal.",
-          );
+          bot.sendMessage(chatId, telegramPrompts.invalidLinkCode());
           return;
         }
 
@@ -94,23 +93,16 @@ export const initTelegramBot = () => {
         // Cleanup
         await redis.del(`telegram_link:${code}`);
 
-        bot.sendMessage(
-          chatId,
-          "✅ Account successfully linked! You will now receive notifications here.",
-          {
-            reply_markup: {
-              keyboard: [[{ text: "📅 My Jobs" }]],
-              resize_keyboard: true,
-            },
+        bot.sendMessage(chatId, telegramPrompts.linkingSuccess(), {
+          reply_markup: {
+            keyboard: [[{ text: TELEGRAM_TEXT.myJobsButton }]],
+            resize_keyboard: true,
           },
-        );
+        });
         logger.info(`Linked Telegram chat ${chatId} to Employee ${employeeId}`);
       } catch (error) {
         logger.error("Telegram Linking Error:", error);
-        bot.sendMessage(
-          chatId,
-          "❌ An error occurred while linking your account.",
-        );
+        bot.sendMessage(chatId, telegramPrompts.linkingError());
       }
     });
 
@@ -138,14 +130,14 @@ export const initTelegramBot = () => {
       } catch (error) {
         logger.error("Callback Error:", error);
         bot.answerCallbackQuery(query.id, {
-          text: "❌ Error processing request",
+          text: telegramPrompts.callbackError(),
           show_alert: true,
         });
       }
     });
 
     bot.on("polling_error", (err) => {
-      if (err.code === 'ECONNRESET' || err.code === 'EFATAL') {
+      if (err.code === "ECONNRESET" || err.code === "EFATAL") {
         // logger.warn("[TELEGRAM] Network failure (ECONNRESET/EFATAL). Bot will retry automatically.");
       } else {
         logger.error("[TELEGRAM] Polling error:", err.message);
@@ -155,7 +147,6 @@ export const initTelegramBot = () => {
     bot.on("error", (err) => {
       logger.error("[TELEGRAM] Fatal bot error:", err.message);
     });
-
   } catch (err) {
     logger.error("[TELEGRAM] Failed to initialize bot:", err.message);
   }
@@ -168,7 +159,7 @@ const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
       [chatId],
     );
     if (empRes.rowCount === 0) {
-      sendMessage(chatId, "❌ You are not linked to an employee account.");
+      sendMessage(chatId, telegramPrompts.notLinked());
       return;
     }
     const empId = empRes.rows[0].empid;
@@ -180,7 +171,7 @@ const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
     );
 
     if (activeJobs.length === 0) {
-      const txt = "🎉 You have no pending jobs assigned.";
+      const txt = telegramPrompts.noActiveJobs();
       if (messageIdToEdit) {
         bot.editMessageText(txt, {
           chat_id: chatId,
@@ -203,7 +194,7 @@ const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
       ];
     });
 
-    const text = "📋 *Your Assigned Jobs*\nSelect a job to view details:";
+    const text = telegramPrompts.jobListIntro();
     const options = {
       parse_mode: "Markdown",
       reply_markup: { inline_keyboard },
@@ -220,7 +211,7 @@ const handleJobsCommand = async (chatId, messageIdToEdit = null) => {
     }
   } catch (error) {
     logger.error("Jobs Command Error:", error);
-    sendMessage(chatId, "❌ failed to fetch jobs.");
+    sendMessage(chatId, telegramPrompts.jobsFetchError());
   }
 };
 
@@ -250,19 +241,16 @@ const handleJobDetails = async (chatId, messageId, bookingId) => {
       ? booking.services.map((s) => s.serviceName).join(", ")
       : "N/A";
 
-    const msg = [
-      `*JOB DETAILS*`,
-      ``,
-      `*Customer:* ${booking.cusname}`,
-      `*Vehicle:* ${booking.vehbrand} ${booking.vehmodel} (${booking.vehplate})`,
-      `*Service:* ${services}`,
-      `*Date:* ${dateStr}`,
-      `*Time:* ${time}`,
-      `*Location:* ${location}`,
-      `*Contact:* ${booking.cusphone}`,
-      ``,
-      `*Status:* ${booking.bookingstatus.toUpperCase()}`,
-    ].join("\n");
+    const msg = telegramPrompts.jobDetails({
+      customer: booking.cusname,
+      vehicle: `${booking.vehbrand} ${booking.vehmodel} (${booking.vehplate})`,
+      services,
+      date: dateStr,
+      time,
+      location,
+      contact: booking.cusphone,
+      status: booking.bookingstatus,
+    });
 
     const inline_keyboard = [];
 
@@ -318,10 +306,10 @@ const handleStartJob = async (chatId, messageId, bookingId) => {
 
     // Refresh Details View
     await handleJobDetails(chatId, messageId, bookingId);
-    sendMessage(chatId, "✅ Service Started!");
+    sendMessage(chatId, telegramPrompts.startConfirmation());
   } catch (error) {
     logger.error("Start Job Error:", error);
-    sendMessage(chatId, "❌ Failed to start service: " + error.message);
+    sendMessage(chatId, telegramPrompts.startFailure(error.message));
   }
 };
 
@@ -343,10 +331,10 @@ const handleCompleteJob = async (chatId, messageId, bookingId) => {
 
     // Refresh Details View (it might disappear from list if filter logic excludes completed, but details view handles generic GET)
     await handleJobDetails(chatId, messageId, bookingId);
-    sendMessage(chatId, "🎉 Service Completed!");
+    sendMessage(chatId, telegramPrompts.completeConfirmation());
   } catch (error) {
     logger.error("Complete Job Error:", error);
-    sendMessage(chatId, "❌ Failed to complete service: " + error.message);
+    sendMessage(chatId, telegramPrompts.completeFailure(error.message));
   }
 };
 

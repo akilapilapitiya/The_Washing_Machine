@@ -8,26 +8,23 @@ import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const chargesRouter = Router();
 
-// Add Item (Employee, Owner)
+// Protected routes
+chargesRouter.use(authMiddleware);
+
 chargesRouter.post(
   "/bookings/:id/extras",
-  authMiddleware,
   restrictTo("employee", "manager", "owner"),
   addExtraItem,
 );
 
-// Remove Item (Employee, Owner)
 chargesRouter.delete(
   "/extras/:id",
-  authMiddleware,
   restrictTo("employee", "manager", "owner"),
   removeExtraItem,
 );
 
-// Update Price (Cashier, Owner, Manager)
 chargesRouter.put(
   "/extras/:id/price",
-  authMiddleware,
   restrictTo("cashier", "manager", "owner"),
   updateItemPrice,
 );

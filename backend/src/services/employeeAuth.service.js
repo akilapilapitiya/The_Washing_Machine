@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS, OTP_EXPIRES_IN_MINUTES } from "../configs/env.js";
@@ -90,9 +90,9 @@ export const signUp = async ({
     await addEmailJob({
       type: "welcome",
       to: email,
-      data: { 
-        password: password, 
-        loginUrl: "https://washingmachine.truegate.live/employee-login" 
+      data: {
+        password: password,
+        loginUrl: "https://washingmachine.truegate.live/employee-login",
       },
     });
   } catch (error) {

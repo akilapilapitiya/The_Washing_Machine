@@ -1,5 +1,5 @@
-import logger from '../configs/logger.js';
-import pool from "../configs/database.js";
+import logger from "../../configs/logger.js";
+import pool from "../../configs/database.js";
 
 // Debug utility: truncate all app tables safely
 // Use for local test/dev only. This will wipe ALL data.

@@ -509,3 +509,7 @@ http://localhost:5500/api-docs
 ```
 
 The specification is defined in YAML files under `src/docs/` and served via `swagger-ui-express`. All request/response schemas, authentication requirements, and example payloads are documented there.
+
+## Recent Maintenance
+
+- **March 29, 2026** — Applied Prettier formatting across controllers, middleware, and routes. Every Express router now follows a consistent `// Public routes` / `// Protected routes` comment scheme, Telegram bot text moved into `src/modules/chat/telegram.prompts.js`, and all scripts were consolidated under `src/scripts` (`accounts/`, `maintenance/`, `seed/`). Dependency cleanup removed `debug` and `morgan`, while `@jest/globals` was added to unbreak Jest suites.

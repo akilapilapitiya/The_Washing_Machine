@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Loader2,
-  Box,
-  ArrowRight,
-  Zap,
-} from "lucide-react";
+import { Loader2, Box, ArrowRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
@@ -55,7 +50,7 @@ const ServiceSelectionPage = () => {
 
   const packages = useMemo(
     () => services.filter((s) => !s.servicetype || s.servicetype === "package"),
-    [services]
+    [services],
   );
 
   // Filter by search and price
@@ -69,7 +64,7 @@ const ServiceSelectionPage = () => {
         (s) =>
           s.servicename.toLowerCase().includes(query) ||
           (s.short_description || "").toLowerCase().includes(query) ||
-          (s.servicedetails || "").toLowerCase().includes(query)
+          (s.servicedetails || "").toLowerCase().includes(query),
       );
     }
 
@@ -89,7 +84,9 @@ const ServiceSelectionPage = () => {
   }, [packages, searchQuery, priceFilter, showOffersOnly]);
 
   const handleSelectPackage = (packageId) => {
-    setSelectedPackageId(selectedPackageId === packageId ? "addons-only" : packageId);
+    setSelectedPackageId(
+      selectedPackageId === packageId ? "addons-only" : packageId,
+    );
   };
 
   const handleContinue = useCallback(() => {
@@ -97,7 +94,8 @@ const ServiceSelectionPage = () => {
       state: {
         vehicleId,
         // Pass null if add-ons only so downstream knows no main package
-        selectedPackageId: selectedPackageId === "addons-only" ? null : selectedPackageId,
+        selectedPackageId:
+          selectedPackageId === "addons-only" ? null : selectedPackageId,
       },
     });
   }, [navigate, vehicleId, selectedPackageId]);
@@ -113,7 +111,7 @@ const ServiceSelectionPage = () => {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search services..."
-        centerSlot={(
+        centerSlot={
           <>
             <select
               value={priceFilter}
@@ -140,8 +138,8 @@ const ServiceSelectionPage = () => {
               Offers
             </button>
           </>
-        )}
-        rightSlot={(
+        }
+        rightSlot={
           <>
             <BookingToolbarBackButton onClick={handleBack} />
             <BookingToolbarActionButton onClick={handleContinue}>
@@ -149,10 +147,10 @@ const ServiceSelectionPage = () => {
               <ArrowRight size={14} className="ml-2" />
             </BookingToolbarActionButton>
           </>
-        )}
+        }
       />
     ),
-    [searchQuery, priceFilter, showOffersOnly, handleBack, handleContinue]
+    [searchQuery, priceFilter, showOffersOnly, handleBack, handleContinue],
   );
 
   useSetPageHeader(
@@ -160,7 +158,7 @@ const ServiceSelectionPage = () => {
     "Select Service Package",
     "Choose the main service package for your booking.",
     null,
-    searchToolbar
+    searchToolbar,
   );
 
   if (loading) {
@@ -175,7 +173,9 @@ const ServiceSelectionPage = () => {
   }
 
   const ServiceRow = ({ service, isSelected, onSelect }) => {
-    const price = service.has_offer ? service.offer_price : service.serviceprice;
+    const price = service.has_offer
+      ? service.offer_price
+      : service.serviceprice;
     const displayPrice = parseFloat(price).toLocaleString();
     const originalPrice = service.has_offer
       ? parseFloat(service.serviceprice).toLocaleString()
@@ -237,10 +237,18 @@ const ServiceSelectionPage = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left w-8"></th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Service</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Duration</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                    <th className="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                      Service
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                      Duration
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                      Price
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,12 +264,18 @@ const ServiceSelectionPage = () => {
                     </td>
                     <td className="px-4 py-3" colSpan={3}>
                       <div className="flex flex-col gap-1">
-                        <span className="font-semibold text-gray-900">Add-ons Only</span>
-                        <span className="text-xs text-gray-500">Skip the main package — proceed with add-ons only</span>
+                        <span className="font-semibold text-gray-900">
+                          Add-ons Only
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Skip the main package — proceed with add-ons only
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-xs font-medium text-gray-400">—</span>
+                      <span className="text-xs font-medium text-gray-400">
+                        —
+                      </span>
                     </td>
                   </tr>
 
@@ -276,7 +290,10 @@ const ServiceSelectionPage = () => {
 
                   {filteredPackages.length === 0 && packages.length > 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center text-sm text-gray-400"
+                      >
                         No packages match your filters.
                       </td>
                     </tr>

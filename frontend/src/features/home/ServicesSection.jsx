@@ -32,7 +32,9 @@ const isOfferActive = (service) => {
   const startsAt = service.offer_start_date
     ? new Date(service.offer_start_date)
     : null;
-  const endsAt = service.offer_end_date ? new Date(service.offer_end_date) : null;
+  const endsAt = service.offer_end_date
+    ? new Date(service.offer_end_date)
+    : null;
 
   if (startsAt && Number.isNaN(startsAt.getTime())) return false;
   if (endsAt && Number.isNaN(endsAt.getTime())) return false;
@@ -143,7 +145,8 @@ const ServicesSection = ({ id }) => {
               key={index}
               className="relative group overflow-hidden rounded-xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 src={img}
                 alt={`Premium Service ${index + 1}`}
                 className="w-full h-auto block"
@@ -197,7 +200,10 @@ const ServicesSection = ({ id }) => {
             {/* CTA Section */}
             <div className="text-center">
               <Link to="/services">
-                <Button size="lg" className="text-base px-8 font-semibold shadow-sm">
+                <Button
+                  size="lg"
+                  className="text-base px-8 font-semibold shadow-sm"
+                >
                   See More Services
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -215,22 +221,28 @@ const ServicesSection = ({ id }) => {
           </div>
         )}
 
-        {!loading && !error && services.length > 0 && activeOfferServices.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-gray-700 text-lg font-semibold mb-2">
-              No live offers right now.
-            </p>
-            <p className="text-gray-500 mb-6">
-              Explore the full service catalog for our complete range.
-            </p>
-            <Link to="/services">
-              <Button size="lg" className="text-base px-6 font-semibold shadow-sm">
-                See More Services
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          services.length > 0 &&
+          activeOfferServices.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <p className="text-gray-700 text-lg font-semibold mb-2">
+                No live offers right now.
+              </p>
+              <p className="text-gray-500 mb-6">
+                Explore the full service catalog for our complete range.
+              </p>
+              <Link to="/services">
+                <Button
+                  size="lg"
+                  className="text-base px-6 font-semibold shadow-sm"
+                >
+                  See More Services
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          )}
       </div>
 
       {/* Service Details Modal */}

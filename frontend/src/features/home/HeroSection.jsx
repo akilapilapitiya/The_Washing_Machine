@@ -41,7 +41,6 @@ const HeroSection = ({ id }) => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-
           {/* Left Side: Typography & CTA */}
           <div className="space-y-8 max-w-2xl px-2 lg:px-0">
             {/* Headline */}
@@ -52,22 +51,32 @@ const HeroSection = ({ id }) => {
 
             {/* Subhead */}
             <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">
-              Experience meticulous car care delivered by experts. We combine cutting-edge tech with premium products to restore your vehicle's showroom glory.
+              Experience meticulous car care delivered by experts. We combine
+              cutting-edge tech with premium products to restore your vehicle's
+              showroom glory.
             </p>
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Button asChild size="lg" className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold shadow-sm transition-all group">
+              <Button
+                asChild
+                size="lg"
+                className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold shadow-sm transition-all group"
+              >
                 <Link to="/dashboard/book">
                   Book Service Now
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="h-14 px-8 text-lg font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all bg-white shadow-sm">
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-14 px-8 text-lg font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all bg-white shadow-sm"
+              >
                 <a href="#services">Explore Services</a>
               </Button>
             </div>
-
           </div>
 
           {/* Right Side: Dynamic Visual / Slideshow */}
@@ -77,8 +86,11 @@ const HeroSection = ({ id }) => {
               {images.map((image, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentImageIndex ? "opacity-100 scale-105" : "opacity-0 scale-100"
-                    }`}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    index === currentImageIndex
+                      ? "opacity-100 scale-105"
+                      : "opacity-0 scale-100"
+                  }`}
                 >
                   <img
                     src={image}
@@ -96,10 +108,11 @@ const HeroSection = ({ id }) => {
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${index === currentImageIndex
-                      ? "bg-white w-6 opacity-100"
-                      : "bg-white/50 w-1.5 opacity-70 hover:opacity-100 hover:bg-white"
-                      }`}
+                    className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${
+                      index === currentImageIndex
+                        ? "bg-white w-6 opacity-100"
+                        : "bg-white/50 w-1.5 opacity-70 hover:opacity-100 hover:bg-white"
+                    }`}
                     aria-label={`Go to image ${index + 1}`}
                   />
                 ))}
@@ -113,12 +126,15 @@ const HeroSection = ({ id }) => {
                   <Clock size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Fast Service</p>
-                  <p className="text-sm font-bold text-gray-900">Under 45 Mins</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">
+                    Fast Service
+                  </p>
+                  <p className="text-sm font-bold text-gray-900">
+                    Under 45 Mins
+                  </p>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>

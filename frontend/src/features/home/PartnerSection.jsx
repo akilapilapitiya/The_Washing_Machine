@@ -49,7 +49,8 @@ const PartnerSection = ({ id }) => {
               key={index}
               className="flex items-center justify-center p-6 bg-white rounded-lg border border-gray-200 hover:border-red-400 hover:shadow-lg transition-all duration-300 group"
             >
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 src={partner.logo}
                 alt={partner.name}
                 className="max-h-20 max-w-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
@@ -70,9 +71,7 @@ const PartnerSection = ({ id }) => {
               <div className="text-gray-600">Quality Assurance</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">
-                Expert
-              </div>
+              <div className="text-3xl font-bold text-red-600 mb-2">Expert</div>
               <div className="text-gray-600">Professional Brands</div>
             </div>
           </div>

@@ -1,6 +1,8 @@
 import * as employeeService from "../services/employee.service.js";
 import { successResponse } from "../utils/response.util.js";
+import { generateLinkingCode } from "../modules/chat/telegram.service.js";
 
+// GET All Employees
 export const getAllEmployees = async (req, res, next) => {
   try {
     const employees = await employeeService.getAllEmployeesService();
@@ -12,6 +14,7 @@ export const getAllEmployees = async (req, res, next) => {
   }
 };
 
+// GET Employee by ID
 export const getEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -22,6 +25,7 @@ export const getEmployee = async (req, res, next) => {
   }
 };
 
+// GET Available Employees for a given date/time
 export const getAvailableEmployees = async (req, res, next) => {
   try {
     const { date, startTime, endTime } = req.query;
@@ -36,6 +40,7 @@ export const getAvailableEmployees = async (req, res, next) => {
   }
 };
 
+// UPDATE Employee
 export const updateEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -46,6 +51,7 @@ export const updateEmployee = async (req, res, next) => {
   }
 };
 
+// DELETE Employee
 export const deleteEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -56,6 +62,7 @@ export const deleteEmployee = async (req, res, next) => {
   }
 };
 
+// UPDATE Employee Profile Picture
 export const updateProfilePicture = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -77,6 +84,7 @@ export const updateProfilePicture = async (req, res, next) => {
   }
 };
 
+// CHANGE Employee Password
 export const changePassword = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -96,6 +104,7 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
+// GET Employee Roles
 export const getRoles = async (req, res, next) => {
   try {
     const roles = await employeeService.getRolesService();
@@ -105,8 +114,8 @@ export const getRoles = async (req, res, next) => {
   }
 };
 
-import { generateLinkingCode } from "../modules/chat/telegram.service.js";
 
+// Generate Telegram Linking Code
 export const generateTelegramLink = async (req, res, next) => {
   try {
     // confirm user is employee

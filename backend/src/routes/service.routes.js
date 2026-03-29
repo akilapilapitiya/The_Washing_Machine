@@ -16,14 +16,13 @@ import { cacheMiddleware } from "../middleware/cache.middleware.js";
 
 const serviceRouter = Router();
 
-// GET services (public - no auth required)
+// Public routes
 serviceRouter.get("/", cacheMiddleware(3600), getAllServices);
 serviceRouter.get("/:serviceid", cacheMiddleware(3600), getService);
 
-// POST, PUT, DELETE - only managers and owners can manage services
+// Protected routes
 serviceRouter.use(authMiddleware, restrictTo("manager", "owner"));
 
-// PROTECTED ROUTE - Manager/Owner only
 serviceRouter.post(
   "/",
   uploadServiceImage.single("image"),
@@ -31,6 +30,7 @@ serviceRouter.post(
   validateSchema(serviceValidator.createService),
   createService,
 );
+
 serviceRouter.put(
   "/:serviceid",
   uploadServiceImage.single("image"),
@@ -38,6 +38,7 @@ serviceRouter.put(
   validateSchema(serviceValidator.updateService),
   updateService,
 );
+
 serviceRouter.delete("/:serviceid", deleteService);
 
 export default serviceRouter;

@@ -5,6 +5,7 @@ import {
 } from "../services/feedback.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// CREATE Feedback
 export const createFeedback = async (req, res, next) => {
   try {
     const customerId = req.user.id;
@@ -23,6 +24,7 @@ export const createFeedback = async (req, res, next) => {
   }
 };
 
+// GET My Feedbacks
 export const getMyFeedbacks = async (req, res, next) => {
   try {
     const customerId = req.user.id;
@@ -35,6 +37,8 @@ export const getMyFeedbacks = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET All Feedbacks (Admin)
 export const getAllFeedbacks = async (req, res, next) => {
   try {
     const feedbacks = await getAllFeedbacksService();

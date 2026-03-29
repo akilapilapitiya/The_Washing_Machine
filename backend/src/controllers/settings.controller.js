@@ -2,7 +2,7 @@ import logger from '../configs/logger.js';
 import pool from "../configs/database.js";
 import { ForbiddenError, NotFoundError } from "../utils/errors.util.js";
 
-// GET /api/settings/pricing
+// GET Pricing Rules
 export const getPricingRules = async (req, res, next) => {
   try {
     const result = await pool.query(
@@ -27,7 +27,7 @@ export const getPricingRules = async (req, res, next) => {
   }
 };
 
-// PUT /api/settings/pricing
+// UPDATE Pricing Rules
 export const updatePricingRules = async (req, res, next) => {
   try {
     logger.info("Update Pricing Body:", req.body);

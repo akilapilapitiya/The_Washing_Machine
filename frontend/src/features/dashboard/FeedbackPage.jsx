@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
   MessageSquare,
@@ -31,7 +26,9 @@ const renderStars = (count, size = 12) => (
       <Star
         key={i}
         size={size}
-        className={i < count ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
+        className={
+          i < count ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+        }
       />
     ))}
   </div>
@@ -78,25 +75,47 @@ const FeedbackPage = () => {
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
       !query ||
-      [feedback.vehbrand, feedback.vehmodel, feedback.feedbackdescription].some((value) =>
-        String(value || "").toLowerCase().includes(query),
+      [feedback.vehbrand, feedback.vehmodel, feedback.feedbackdescription].some(
+        (value) =>
+          String(value || "")
+            .toLowerCase()
+            .includes(query),
       );
 
     return matchesSearch;
   });
 
-  const avgRating = feedbacks.length > 0
-    ? (feedbacks.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) / feedbacks.length).toFixed(1)
-    : 0;
+  const avgRating =
+    feedbacks.length > 0
+      ? (
+          feedbacks.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) /
+          feedbacks.length
+        ).toFixed(1)
+      : 0;
   const fiveStarCount = feedbacks.filter((f) => Number(f.rating) === 5).length;
 
   const toolbar = React.useMemo(
     () => (
       <PageToolbar
         stats={[
-          { icon: MessageSquare, label: "Total Reviews", value: feedbacks.length, iconClassName: "text-blue-500" },
-          { icon: Star, label: "Avg Rating", value: `${avgRating}/5`, iconClassName: "text-yellow-500" },
-          { icon: Hash, label: "5-Star", value: fiveStarCount, iconClassName: "text-green-500" },
+          {
+            icon: MessageSquare,
+            label: "Total Reviews",
+            value: feedbacks.length,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: Star,
+            label: "Avg Rating",
+            value: `${avgRating}/5`,
+            iconClassName: "text-yellow-500",
+          },
+          {
+            icon: Hash,
+            label: "5-Star",
+            value: fiveStarCount,
+            iconClassName: "text-green-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
@@ -258,7 +277,10 @@ const FeedbackPage = () => {
                 <form onSubmit={handleSubmitFeedback} className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="booking" className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      <Label
+                        htmlFor="booking"
+                        className="text-[10px] font-black uppercase tracking-wider text-gray-400"
+                      >
                         Select Recent Service
                       </Label>
                       <select
@@ -271,7 +293,8 @@ const FeedbackPage = () => {
                         <option value="">Choose a service to review...</option>
                         {completedBookings.map((b) => (
                           <option key={b.bookingid} value={b.bookingid}>
-                            {formatDateShortSL(b.bookingdate)} — {b.vehbrand} {b.vehmodel}
+                            {formatDateShortSL(b.bookingdate)} — {b.vehbrand}{" "}
+                            {b.vehmodel}
                           </option>
                         ))}
                       </select>
@@ -291,16 +314,25 @@ const FeedbackPage = () => {
                           >
                             <Star
                               size={28}
-                              className={s <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
+                              className={
+                                s <= rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-200"
+                              }
                             />
                           </button>
                         ))}
-                        <span className="ml-2 text-sm font-black text-gray-900">{rating}/5</span>
+                        <span className="ml-2 text-sm font-black text-gray-900">
+                          {rating}/5
+                        </span>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="feedback" className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      <Label
+                        htmlFor="feedback"
+                        className="text-[10px] font-black uppercase tracking-wider text-gray-400"
+                      >
                         Your Comments
                       </Label>
                       <textarea
@@ -344,9 +376,12 @@ const FeedbackPage = () => {
                     <CheckCircle size={40} className="text-green-500" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-lg font-black text-gray-900">All Reviews Completed</h3>
+                    <h3 className="text-lg font-black text-gray-900">
+                      All Reviews Completed
+                    </h3>
                     <p className="text-gray-500 text-sm max-w-[280px] mx-auto">
-                      You've already rated all your recent services. Check back after your next visit!
+                      You've already rated all your recent services. Check back
+                      after your next visit!
                     </p>
                   </div>
                   <Button

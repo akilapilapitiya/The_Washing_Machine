@@ -7,6 +7,7 @@ import {
 } from "../services/customer.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET Customer by ID
 export const getCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
@@ -18,6 +19,7 @@ export const getCustomer = async (req, res, next) => {
   }
 };
 
+// GET All Customers
 export const getAllCustomers = async (req, res, next) => {
   try {
     const customers = await getAllCustomersService();
@@ -30,6 +32,7 @@ export const getAllCustomers = async (req, res, next) => {
   }
 };
 
+// UPDATE Customer
 export const updateCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;
@@ -75,6 +78,7 @@ export const updateCustomer = async (req, res, next) => {
   }
 };
 
+// UPDATE Customer Profile Picture
 export const updateProfilePicture = async (req, res, next) => {
   try {
     const { cusid } = req.params;
@@ -96,6 +100,7 @@ export const updateProfilePicture = async (req, res, next) => {
   }
 };
 
+// CHANGE Customer Password
 export const changePassword = async (req, res, next) => {
   try {
     const { cusid } = req.params;
@@ -115,6 +120,7 @@ export const changePassword = async (req, res, next) => {
   }
 };
 
+// DELETE Customer
 export const deleteCustomer = async (req, res, next) => {
   try {
     const { cusid } = req.params;

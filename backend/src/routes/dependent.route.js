@@ -6,7 +6,7 @@ import { dependentValidator } from "../validators/index.js";
 
 const router = Router();
 
-// All dependent routes require authentication and are restricted to employees (any type)
+// Protected routes
 router.use(authMiddleware);
 router.use(restrictTo("employee", "manager", "owner", "cashier"));
 

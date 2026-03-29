@@ -124,7 +124,9 @@ const AdvertisementCarousel = () => {
 
   const prevSlide = () => {
     if (!spotlightAds.length) return;
-    setCurrentIndex((prev) => (prev - 1 + spotlightAds.length) % spotlightAds.length);
+    setCurrentIndex(
+      (prev) => (prev - 1 + spotlightAds.length) % spotlightAds.length,
+    );
     setProgress(0);
   };
 
@@ -175,7 +177,8 @@ const AdvertisementCarousel = () => {
         >
           <div className="lg:col-span-8 rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm flex flex-col">
             <div className="relative h-[250px] md:h-[350px] shrink-0">
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 src={buildImageUrl(activeAd.image_url)}
                 alt={activeAd.title}
                 className="h-full w-full object-cover"
@@ -235,12 +238,18 @@ const AdvertisementCarousel = () => {
                 <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-sm text-gray-600">
                   {activeAd.client_name ? (
                     <p>
-                      Advertiser: <span className="font-semibold text-gray-900">{activeAd.client_name}</span>
+                      Advertiser:{" "}
+                      <span className="font-semibold text-gray-900">
+                        {activeAd.client_name}
+                      </span>
                     </p>
                   ) : null}
                   {activeAd.client_contact ? (
                     <p>
-                      Contact: <span className="font-semibold text-gray-900">{activeAd.client_contact}</span>
+                      Contact:{" "}
+                      <span className="font-semibold text-gray-900">
+                        {activeAd.client_contact}
+                      </span>
                     </p>
                   ) : null}
                 </div>
@@ -250,7 +259,9 @@ const AdvertisementCarousel = () => {
                 {canCallAdvertiser ? (
                   <div className="flex items-center gap-2 group/contact">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Connect With Advertiser</span>
+                      <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                        Connect With Advertiser
+                      </span>
                       <span className="text-sm font-bold text-gray-900 group-hover/contact:text-red-600 transition-colors">
                         {activeAd.client_contact}
                       </span>
@@ -261,7 +272,11 @@ const AdvertisementCarousel = () => {
                     Contact Not Shared
                   </span>
                 )}
-                <Button asChild variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50 font-semibold shadow-sm">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-gray-200 text-gray-700 hover:bg-gray-50 font-semibold shadow-sm"
+                >
                   <Link to="/marketplace">
                     Post Your Ad With Us
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -287,7 +302,8 @@ const AdvertisementCarousel = () => {
                   }`}
                 >
                   <div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 border border-gray-100">
-                    <img loading="lazy"
+                    <img
+                      loading="lazy"
                       src={buildImageUrl(ad.image_url)}
                       alt={ad.title}
                       className="h-full w-full object-cover"

@@ -22,7 +22,7 @@ import {
   Trash2,
   Wrench,
   Ban,
-  Play
+  Play,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -30,11 +30,7 @@ import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
 import * as chargesService from "@/services/charges.service";
 import { toast } from "sonner";
-import {
-  APIProvider,
-  Map,
-  AdvancedMarker,
-} from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { PageLoader } from "@/components/common/LoadingStates";
 import StatusBadge from "@/components/common/StatusBadge";
 import BookingFlowToolbar, {
@@ -190,26 +186,30 @@ const ServiceDetailsPage = () => {
   // Header Actions (Standardized to Booking Flow Theme)
   const headerToolbar = React.useMemo(() => {
     if (!service) return null;
-    
+
     // Define upcoming statuses that allow starting a service
-    const isUpcoming = ["confirmed", "scheduled", "pending"].includes(service.bookingstatus);
+    const isUpcoming = ["confirmed", "scheduled", "pending"].includes(
+      service.bookingstatus,
+    );
     const isInProgress = service.bookingstatus === "inProgress";
-    const isCancellable = !["completed", "cancelled"].includes(service.bookingstatus);
+    const isCancellable = !["completed", "cancelled"].includes(
+      service.bookingstatus,
+    );
 
     return (
       <BookingFlowToolbar
-        rightSlot={(
+        rightSlot={
           <div className="flex items-center gap-2">
             <BookingToolbarBackButton onClick={() => navigate(-1)} />
-            
+
             {isUpcoming && (isOwner || isCashier) && (
               <BookingToolbarActionButton
-                 onClick={() => setShowRescheduleModal(true)}
-                 disabled={updating}
-                 className="bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300"
+                onClick={() => setShowRescheduleModal(true)}
+                disabled={updating}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300"
               >
-                 <Calendar className="h-4 w-4 mr-2" />
-                 Reschedule
+                <Calendar className="h-4 w-4 mr-2" />
+                Reschedule
               </BookingToolbarActionButton>
             )}
 
@@ -219,7 +219,11 @@ const ServiceDetailsPage = () => {
                 disabled={updating}
                 className="bg-gray-900 hover:bg-black"
               >
-                {updating ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2 fill-current" />}
+                {updating ? (
+                  <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                ) : (
+                  <Play className="h-4 w-4 mr-2 fill-current" />
+                )}
                 Start Service
               </BookingToolbarActionButton>
             )}
@@ -230,12 +234,16 @@ const ServiceDetailsPage = () => {
                 disabled={updating}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {updating ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {updating ? (
+                  <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
                 Complete Job
               </BookingToolbarActionButton>
             )}
           </div>
-        )}
+        }
       />
     );
   }, [service, updating, navigate, isOwner, isCashier]);
@@ -243,9 +251,11 @@ const ServiceDetailsPage = () => {
   useSetPageHeader(
     "OPERATIONAL MISSION",
     service ? `Service Unit #${id}` : "Initializing Unit...",
-    service ? `${formatDate(service.bookingdate)} | Deployment ${service.bookingstarttime} - ${service.bookingendtime}` : "Retrieving operational payload...",
+    service
+      ? `${formatDate(service.bookingdate)} | Deployment ${service.bookingstarttime} - ${service.bookingendtime}`
+      : "Retrieving operational payload...",
     null,
-    headerToolbar
+    headerToolbar,
   );
 
   if (loading) return <PageLoader message="Synchronizing mission data..." />;
@@ -254,9 +264,17 @@ const ServiceDetailsPage = () => {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4">
         <ShieldAlert className="h-12 w-12 text-red-600" />
-        <h2 className="text-xl font-black text-gray-900">Mission Data Offline</h2>
-        <p className="text-sm text-gray-500 font-medium">{error || "The requested service record could not be retrieved."}</p>
-        <Button onClick={() => navigate(-1)} variant="outline" className="rounded-xl px-8 font-bold">
+        <h2 className="text-xl font-black text-gray-900">
+          Mission Data Offline
+        </h2>
+        <p className="text-sm text-gray-500 font-medium">
+          {error || "The requested service record could not be retrieved."}
+        </p>
+        <Button
+          onClick={() => navigate(-1)}
+          variant="outline"
+          className="rounded-xl px-8 font-bold"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Return to Hub
         </Button>
       </div>
@@ -266,22 +284,22 @@ const ServiceDetailsPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen animate-in fade-in duration-500">
       <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
-        
         <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-6 items-start">
-          
           {/* Main Content: Mission Core & Extras */}
           <div className="space-y-6">
-            
             {/* Mission Core Card - Mirroring Booking Confirmation table style */}
             <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden bg-white">
               <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <Car size={16} className="text-red-600" /> Mission Core Details
+                    <Car size={16} className="text-red-600" /> Mission Core
+                    Details
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 italic font-mono">#{String(service.bookingid).padStart(4, "0")}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 italic font-mono">
+                    #{String(service.bookingid).padStart(4, "0")}
+                  </span>
                   <StatusBadge status={service.bookingstatus} />
                 </div>
               </div>
@@ -289,40 +307,56 @@ const ServiceDetailsPage = () => {
                 <table className="w-full text-sm">
                   <tbody>
                     <tr className="border-b border-gray-100">
-                      <td className="px-5 py-3.5 font-semibold text-gray-600 w-40">Vehicle Model</td>
-                      <td className="px-5 py-3.5 text-gray-900">{service.vehbrand} {service.vehmodel}</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-600 w-40">
+                        Vehicle Model
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-900">
+                        {service.vehbrand} {service.vehmodel}
+                      </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="px-5 py-3.5 font-semibold text-gray-600">License Plate</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-600">
+                        License Plate
+                      </td>
                       <td className="px-5 py-3.5 font-mono text-gray-900 tracking-tight">
                         {service.vehplate}
                       </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="px-5 py-3.5 font-semibold text-gray-600">Service Date</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-600">
+                        Service Date
+                      </td>
                       <td className="px-5 py-3.5 text-gray-900 flex items-center gap-2">
                         <Calendar size={14} className="text-red-600" />
                         {formatDate(service.bookingdate)}
                       </td>
                     </tr>
                     <tr className="border-b border-gray-100">
-                      <td className="px-5 py-3.5 font-semibold text-gray-600">Operational Window</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-600">
+                        Operational Window
+                      </td>
                       <td className="px-5 py-3.5 text-gray-900 flex items-center gap-2">
                         <Clock size={14} className="text-red-600" />
                         {service.bookingstarttime} – {service.bookingendtime}
                       </td>
                     </tr>
                     <tr className="border-b border-gray-100 bg-gray-50/30">
-                      <td className="px-5 py-3.5 font-semibold text-gray-600">Primary Contact</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-600">
+                        Primary Contact
+                      </td>
                       <td className="px-5 py-3.5 text-gray-900 leading-tight">
                         <div className="flex flex-col">
                           <span>{service.cusname}</span>
-                          <span className="text-[10px] text-gray-400 font-medium">{service.cusemail}</span>
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            {service.cusemail}
+                          </span>
                         </div>
                       </td>
                     </tr>
                     <tr>
-                      <td className="px-5 py-3.5 font-semibold text-gray-600">Contact Line</td>
+                      <td className="px-5 py-3.5 font-semibold text-gray-600">
+                        Contact Line
+                      </td>
                       <td className="px-5 py-3.5 text-red-600 flex items-center gap-2">
                         <Phone size={14} />
                         {service.cusphone}
@@ -335,153 +369,197 @@ const ServiceDetailsPage = () => {
 
             {/* Service Inventory (Extras) - Mirroring Booking Confirmation table style */}
             <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden bg-white">
-               <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                  <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <Plus size={16} className="text-red-600" /> Resource & Material Log
-                  </p>
-                  <Button
-                    onClick={() => setShowExtraModal(true)}
-                    disabled={service.bookingstatus === "completed" || service.bookingstatus === "cancelled"}
-                    className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase tracking-wide rounded-md"
-                  >
-                    <Plus size={14} className="mr-1.5" /> Log Material
-                  </Button>
-               </div>
-               <div className="p-0">
-                  {service.extras && service.extras.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                         <thead className="bg-gray-50/70 border-b border-gray-100 font-sans">
-                            <tr>
-                               <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Material Logged</th>
-                               <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">Usage Details</th>
-                               <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Utility</th>
-                            </tr>
-                         </thead>
-                         <tbody className="divide-y divide-gray-50">
-                            {service.extras.map((item, idx) => (
-                               <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                  <td className="px-5 py-3.5">
-                                     <div className="flex items-center gap-3">
-                                        <div className="h-1.5 w-1.5 rounded-full bg-red-600" />
-                                        <span className="text-gray-900">{item.item_name}</span>
-                                     </div>
-                                  </td>
-                                  <td className="px-5 py-3.5">
-                                     <span className="text-xs text-gray-500 font-medium">{item.description || "—"}</span>
-                                  </td>
-                                  <td className="px-5 py-3.5 text-right">
-                                     <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        disabled={service.bookingstatus === "completed"}
-                                        className="h-8 w-8 text-gray-300 hover:text-red-600 transition-colors"
-                                        onClick={() => handleRemoveExtra(item.id)}
-                                     >
-                                        <Trash2 size={14} />
-                                     </Button>
-                                  </td>
-                               </tr>
-                            ))}
-                         </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="py-10 text-center bg-gray-50/30">
-                       <CheckSquare size={24} className="mx-auto mb-3 text-gray-200" />
-                       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No Materials Logged</p>
-                    </div>
-                  )}
-               </div>
+              <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <Plus size={16} className="text-red-600" /> Resource &
+                  Material Log
+                </p>
+                <Button
+                  onClick={() => setShowExtraModal(true)}
+                  disabled={
+                    service.bookingstatus === "completed" ||
+                    service.bookingstatus === "cancelled"
+                  }
+                  className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase tracking-wide rounded-md"
+                >
+                  <Plus size={14} className="mr-1.5" /> Log Material
+                </Button>
+              </div>
+              <div className="p-0">
+                {service.extras && service.extras.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50/70 border-b border-gray-100 font-sans">
+                        <tr>
+                          <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">
+                            Material Logged
+                          </th>
+                          <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-left">
+                            Usage Details
+                          </th>
+                          <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">
+                            Utility
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {service.extras.map((item, idx) => (
+                          <tr
+                            key={idx}
+                            className="hover:bg-gray-50/50 transition-colors"
+                          >
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                                <span className="text-gray-900">
+                                  {item.item_name}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className="text-xs text-gray-500 font-medium">
+                                {item.description || "—"}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={service.bookingstatus === "completed"}
+                                className="h-8 w-8 text-gray-300 hover:text-red-600 transition-colors"
+                                onClick={() => handleRemoveExtra(item.id)}
+                              >
+                                <Trash2 size={14} />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="py-10 text-center bg-gray-50/30">
+                    <CheckSquare
+                      size={24}
+                      className="mx-auto mb-3 text-gray-200"
+                    />
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      No Materials Logged
+                    </p>
+                  </div>
+                )}
+              </div>
             </Card>
           </div>
 
           {/* Sidebar Area: Map & Quick Pulse Actions */}
           <div className="space-y-6">
-            
             {/* Map Preview Card - Mirroring LocationSelectionPage style */}
             <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden bg-white">
-               <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                  <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <MapPin size={16} className="text-red-600" /> Deployment Area
-                  </p>
-                  <Button 
-                     variant="ghost" 
-                     size="sm" 
-                     className="h-7 text-[10px] font-black uppercase text-gray-400 hover:text-red-600 hover:bg-red-50 px-2"
-                     onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`, "_blank")}
+              <div className="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <MapPin size={16} className="text-red-600" /> Deployment Area
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[10px] font-black uppercase text-gray-400 hover:text-red-600 hover:bg-red-50 px-2"
+                  onClick={() =>
+                    window.open(
+                      `https://www.google.com/maps/dir/?api=1&destination=${service.bookinglocationlatitude},${service.bookinglocationlongitude}`,
+                      "_blank",
+                    )
+                  }
+                >
+                  <Navigation size={12} className="mr-1" /> External Link
+                </Button>
+              </div>
+              <CardContent className="p-0">
+                <div className="h-[280px] w-full relative">
+                  <APIProvider
+                    apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
                   >
-                     <Navigation size={12} className="mr-1" /> External Link
-                  </Button>
-               </div>
-               <CardContent className="p-0">
-                  <div className="h-[280px] w-full relative">
-                    <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-                      <Map
-                        defaultCenter={{
+                    <Map
+                      defaultCenter={{
+                        lat: parseFloat(service.bookinglocationlatitude),
+                        lng: parseFloat(service.bookinglocationlongitude),
+                      }}
+                      defaultZoom={15}
+                      mapId="SERVICE_MINI_MAP"
+                      disableDefaultUI={true}
+                      className="w-full h-full"
+                    >
+                      <AdvancedMarker
+                        position={{
                           lat: parseFloat(service.bookinglocationlatitude),
                           lng: parseFloat(service.bookinglocationlongitude),
                         }}
-                        defaultZoom={15}
-                        mapId="SERVICE_MINI_MAP"
-                        disableDefaultUI={true}
-                        className="w-full h-full"
                       >
-                        <AdvancedMarker
-                          position={{
-                            lat: parseFloat(service.bookinglocationlatitude),
-                            lng: parseFloat(service.bookinglocationlongitude),
-                          }}
-                        >
-                          <div className="bg-red-600 text-white p-2 rounded-full shadow-lg border-2 border-white">
-                            <MapPin size={16} fill="currentColor" />
-                          </div>
-                        </AdvancedMarker>
-                      </Map>
-                    </APIProvider>
-                  </div>
-                  {/* Map Footer Details - Mirroring the table style in LocationSelectionPage */}
-                  <div className="border-t border-gray-100 bg-gray-50/30">
-                    <table className="w-full text-xs">
-                      <tbody>
-                        <tr className="border-b border-gray-100/50">
-                          <td className="px-5 py-2.5 font-semibold text-gray-500 w-32">Distance from HQ</td>
-                          <td className="px-5 py-2.5 text-gray-900">{parseFloat(service.travel_distance || 0).toFixed(1)} km</td>
-                        </tr>
-                        <tr>
-                          <td className="px-5 py-2.5 font-semibold text-gray-500">Est. Transit</td>
-                          <td className="px-5 py-2.5 text-gray-900">~{parseFloat(service.travel_duration || 0).toFixed(0)} min</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-               </CardContent>
+                        <div className="bg-red-600 text-white p-2 rounded-full shadow-lg border-2 border-white">
+                          <MapPin size={16} fill="currentColor" />
+                        </div>
+                      </AdvancedMarker>
+                    </Map>
+                  </APIProvider>
+                </div>
+                {/* Map Footer Details - Mirroring the table style in LocationSelectionPage */}
+                <div className="border-t border-gray-100 bg-gray-50/30">
+                  <table className="w-full text-xs">
+                    <tbody>
+                      <tr className="border-b border-gray-100/50">
+                        <td className="px-5 py-2.5 font-semibold text-gray-500 w-32">
+                          Distance from HQ
+                        </td>
+                        <td className="px-5 py-2.5 text-gray-900">
+                          {parseFloat(service.travel_distance || 0).toFixed(1)}{" "}
+                          km
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-5 py-2.5 font-semibold text-gray-500">
+                          Est. Transit
+                        </td>
+                        <td className="px-5 py-2.5 text-gray-900">
+                          ~{parseFloat(service.travel_duration || 0).toFixed(0)}{" "}
+                          min
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
             </Card>
 
             {/* Quick Pulse Actions / Safety Guard */}
             <Card className="border-red-100 shadow-sm rounded-xl overflow-hidden bg-red-50/50">
               <div className="p-5 flex flex-col gap-4">
-                 <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
-                      <ShieldAlert size={18} />
-                    </div>
-                    <div className="flex flex-col">
-                       <span className="text-xs font-bold text-gray-900 tracking-tight">Safety Information</span>
-                       <span className="text-[10px] text-gray-500 font-medium leading-none mt-0.5 uppercase tracking-tighter">Operational Protocol</span>
-                    </div>
-                 </div>
-                 <p className="text-xs text-gray-600 font-medium leading-relaxed">Report any client harassment or security concerns instantly to the operational command.</p>
-                 <Button 
-                   onClick={() => setShowReportModal(true)}
-                   variant="outline"
-                   className="w-full h-10 border-red-200 bg-white hover:bg-red-600 text-red-600 hover:text-white font-bold text-[11px] uppercase tracking-widest rounded-lg transition-all shadow-sm"
-                 >
-                    Report Harassment
-                 </Button>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
+                    <ShieldAlert size={18} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-900 tracking-tight">
+                      Safety Information
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-medium leading-none mt-0.5 uppercase tracking-tighter">
+                      Operational Protocol
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  Report any client harassment or security concerns instantly to
+                  the operational command.
+                </p>
+                <Button
+                  onClick={() => setShowReportModal(true)}
+                  variant="outline"
+                  className="w-full h-10 border-red-200 bg-white hover:bg-red-600 text-red-600 hover:text-white font-bold text-[11px] uppercase tracking-widest rounded-lg transition-all shadow-sm"
+                >
+                  Report Harassment
+                </Button>
               </div>
             </Card>
           </div>
-
         </div>
 
         {/* MODALS - Redesigned to match the clean, sharp style */}
@@ -490,25 +568,60 @@ const ServiceDetailsPage = () => {
             <Card className="w-full max-w-md shadow-2xl border-gray-200 rounded-xl overflow-hidden bg-white">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
-                   <Plus size={16} className="text-red-600" /> Log Mission Materials
+                  <Plus size={16} className="text-red-600" /> Log Mission
+                  Materials
                 </CardTitle>
-                <X className="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors" size={18} onClick={() => setShowExtraModal(false)} />
+                <X
+                  className="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors"
+                  size={18}
+                  onClick={() => setShowExtraModal(false)}
+                />
               </div>
               <CardContent className="p-6">
                 <form onSubmit={handleAddExtra} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Material ID / Name</Label>
-                    <Input value={extraName} onChange={(e) => setExtraName(e.target.value)} placeholder="e.g. Premium Clay Bar" required className="h-10 border-gray-200 font-semibold text-sm rounded-lg" />
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Material ID / Name
+                    </Label>
+                    <Input
+                      value={extraName}
+                      onChange={(e) => setExtraName(e.target.value)}
+                      placeholder="e.g. Premium Clay Bar"
+                      required
+                      className="h-10 border-gray-200 font-semibold text-sm rounded-lg"
+                    />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Usage Description</Label>
-                    <Input value={extraDesc} onChange={(e) => setExtraDesc(e.target.value)} placeholder="Applied to exterior panels" className="h-10 border-gray-200 font-semibold text-sm rounded-lg" />
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Usage Description
+                    </Label>
+                    <Input
+                      value={extraDesc}
+                      onChange={(e) => setExtraDesc(e.target.value)}
+                      placeholder="Applied to exterior panels"
+                      className="h-10 border-gray-200 font-semibold text-sm rounded-lg"
+                    />
                   </div>
                   <div className="flex gap-3 pt-4 mt-2">
-                     <Button type="button" variant="ghost" className="flex-1 text-xs font-bold uppercase text-gray-500" onClick={() => setShowExtraModal(false)}>Discard</Button>
-                     <Button type="submit" disabled={addingExtra} className="flex-1 bg-gray-900 hover:bg-black text-white font-bold uppercase text-xs tracking-widest rounded-lg shadow-md">
-                       {addingExtra ? <Loader2 className="animate-spin" size={16} /> : "Record Item"}
-                     </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex-1 text-xs font-bold uppercase text-gray-500"
+                      onClick={() => setShowExtraModal(false)}
+                    >
+                      Discard
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={addingExtra}
+                      className="flex-1 bg-gray-900 hover:bg-black text-white font-bold uppercase text-xs tracking-widest rounded-lg shadow-md"
+                    >
+                      {addingExtra ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : (
+                        "Record Item"
+                      )}
+                    </Button>
                   </div>
                 </form>
               </CardContent>
@@ -521,30 +634,65 @@ const ServiceDetailsPage = () => {
             <Card className="w-full max-w-md shadow-2xl border-gray-200 rounded-xl overflow-hidden bg-white">
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-red-600">
-                   <ShieldAlert size={18} /> Report Harassment
+                  <ShieldAlert size={18} /> Report Harassment
                 </CardTitle>
-                <X className="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors" size={18} onClick={() => setShowReportModal(false)} />
+                <X
+                  className="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors"
+                  size={18}
+                  onClick={() => setShowReportModal(false)}
+                />
               </div>
               <CardContent className="p-6">
                 <form onSubmit={handleReportSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Threat Level</Label>
-                    <select className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-900 focus-visible:outline-none focus:ring-2 focus:ring-red-600" value={reportSeverity} onChange={(e) => setReportSeverity(e.target.value)}>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Threat Level
+                    </Label>
+                    <select
+                      className="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-900 focus-visible:outline-none focus:ring-2 focus:ring-red-600"
+                      value={reportSeverity}
+                      onChange={(e) => setReportSeverity(e.target.value)}
+                    >
                       <option value="low">Level 1 - General Concern</option>
                       <option value="medium">Level 2 - Action Required</option>
                       <option value="high">Level 3 - Immediate Threat</option>
-                      <option value="critical">Level 4 - Operational Emergency</option>
+                      <option value="critical">
+                        Level 4 - Operational Emergency
+                      </option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">Incident Brief</Label>
-                    <textarea className="flex min-h-[100px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 focus-visible:outline-none focus:ring-2 focus:ring-red-600 resize-none shadow-inner" value={reportDesc} onChange={(e) => setReportDesc(e.target.value)} required placeholder="Provide concise narrative of the safety concern..." />
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Incident Brief
+                    </Label>
+                    <textarea
+                      className="flex min-h-[100px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 focus-visible:outline-none focus:ring-2 focus:ring-red-600 resize-none shadow-inner"
+                      value={reportDesc}
+                      onChange={(e) => setReportDesc(e.target.value)}
+                      required
+                      placeholder="Provide concise narrative of the safety concern..."
+                    />
                   </div>
                   <div className="flex gap-3 pt-4 mt-2">
-                     <Button type="button" variant="ghost" className="flex-1 text-xs font-bold uppercase text-gray-500" onClick={() => setShowReportModal(false)}>Cancel</Button>
-                     <Button type="submit" disabled={reporting} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold uppercase text-xs tracking-widest rounded-lg shadow-lg">
-                          {reporting ? <Loader2 className="animate-spin" size={16} /> : "Submit Report"}
-                     </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex-1 text-xs font-bold uppercase text-gray-500"
+                      onClick={() => setShowReportModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={reporting}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold uppercase text-xs tracking-widest rounded-lg shadow-lg"
+                    >
+                      {reporting ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : (
+                        "Submit Report"
+                      )}
+                    </Button>
                   </div>
                 </form>
               </CardContent>

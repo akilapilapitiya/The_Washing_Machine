@@ -39,7 +39,9 @@ const EmployeePerformanceReportPage = () => {
         endDate,
       );
       // Filter to show only employees (exclude owner and cashier)
-      const filteredData = (data || []).filter(item => item.emptype === "employee");
+      const filteredData = (data || []).filter(
+        (item) => item.emptype === "employee",
+      );
       setReport(filteredData);
     } catch (err) {
       console.error(err);
@@ -100,52 +102,77 @@ const EmployeePerformanceReportPage = () => {
 
   const maxDate = format(new Date(), "yyyy-MM-dd");
 
-  const toolbar = React.useMemo(() => (
-    <PageToolbar
-      stats={[
-        { icon: TrendingUp, label: "MVP", value: topPerformer ? topPerformer.empname : "N/A", iconClassName: "text-yellow-500" },
-        { icon: Briefcase, label: "Total Jobs", value: totalJobs, iconClassName: "text-blue-500" },
-        { icon: Users, label: "Staff", value: report.length, iconClassName: "text-gray-500" },
-      ]}
-      rightSlot={
-        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">From</label>
-            <input
-              type="date"
-              value={startDate}
-              max={maxDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
-            />
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          {
+            icon: TrendingUp,
+            label: "MVP",
+            value: topPerformer ? topPerformer.empname : "N/A",
+            iconClassName: "text-yellow-500",
+          },
+          {
+            icon: Briefcase,
+            label: "Total Jobs",
+            value: totalJobs,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: Users,
+            label: "Staff",
+            value: report.length,
+            iconClassName: "text-gray-500",
+          },
+        ]}
+        rightSlot={
+          <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm h-10 w-full md:w-auto">
+            <div className="flex flex-col flex-1 md:flex-none">
+              <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">
+                From
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                max={maxDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+              />
+            </div>
+            <div className="h-6 w-px bg-gray-200 shrink-0"></div>
+            <div className="flex flex-col flex-1 md:flex-none">
+              <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">
+                To
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                max={maxDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
+              />
+            </div>
           </div>
-          <div className="h-6 w-px bg-gray-200 shrink-0"></div>
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[9px] text-gray-400 px-2 font-black uppercase tracking-widest mb-0.5 leading-none">To</label>
-            <input
-              type="date"
-              value={endDate}
-              max={maxDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="text-xs font-bold bg-transparent px-2 focus:outline-none h-4"
-            />
-          </div>
-        </div>
-      }
-    />
-  ), [endDate, maxDate, report.length, startDate, topPerformer, totalJobs]);
+        }
+      />
+    ),
+    [endDate, maxDate, report.length, startDate, topPerformer, totalJobs],
+  );
 
-  const headerAction = React.useMemo(() => (
-    <Button
-      variant="outline"
-      onClick={handleDownload}
-      disabled={report.length === 0}
-      className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
-    >
-      <Download size={16} className="mr-2" />
-      Export CSV
-    </Button>
-  ), [report.length, handleDownload]);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        variant="outline"
+        onClick={handleDownload}
+        disabled={report.length === 0}
+        className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+      >
+        <Download size={16} className="mr-2" />
+        Export CSV
+      </Button>
+    ),
+    [report.length, handleDownload],
+  );
 
   useSetPageHeader(
     "Financial Reports",
@@ -162,7 +189,9 @@ const EmployeePerformanceReportPage = () => {
       render: (row) => (
         <div className="flex flex-col">
           <span className="text-sm font-bold text-gray-900">{row.empname}</span>
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">{row.emptype}</span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+            {row.emptype}
+          </span>
         </div>
       ),
     },
@@ -171,8 +200,12 @@ const EmployeePerformanceReportPage = () => {
       label: "Workload",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-bold text-gray-900">{row.completed_jobs}</span>
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Jobs Completed</span>
+          <span className="text-sm font-bold text-gray-900">
+            {row.completed_jobs}
+          </span>
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
+            Jobs Completed
+          </span>
         </div>
       ),
     },
@@ -181,9 +214,15 @@ const EmployeePerformanceReportPage = () => {
       label: "Value Generated",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-black text-green-700">{formatCurrency(row.total_revenue)}</span>
+          <span className="text-sm font-black text-green-700">
+            {formatCurrency(row.total_revenue)}
+          </span>
           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
-            Avg. Rs. {(parseFloat(row.total_revenue) / parseInt(row.completed_jobs)).toFixed(0)} / job
+            Avg. Rs.{" "}
+            {(
+              parseFloat(row.total_revenue) / parseInt(row.completed_jobs)
+            ).toFixed(0)}{" "}
+            / job
           </span>
         </div>
       ),
@@ -208,7 +247,9 @@ const EmployeePerformanceReportPage = () => {
           ) : report.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-gray-400 py-12">
               <Users size={32} className="mb-2 opacity-20" />
-              <p className="text-sm font-medium">No performance data available</p>
+              <p className="text-sm font-medium">
+                No performance data available
+              </p>
             </div>
           ) : (
             <div className="h-72 flex items-end justify-between gap-2 pt-12 pb-6 px-6 overflow-x-auto no-scrollbar bg-gradient-to-t from-gray-50/50 to-white">

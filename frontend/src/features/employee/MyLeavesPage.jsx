@@ -76,28 +76,44 @@ const MyLeavesPage = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         tabsAriaLabel="Leave sections"
-        meta={(
+        meta={
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <Calendar size={13} className="text-gray-500" />
               <span className="text-xs font-semibold text-gray-500">Total</span>
-              <span className="text-xs font-semibold text-gray-900">{leaves.length}</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {leaves.length}
+              </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <CheckCircle size={13} className="text-green-500" />
-              <span className="text-xs font-semibold text-gray-500">Upcoming</span>
-              <span className="text-xs font-semibold text-gray-900">{upcomingLeaves.length}</span>
+              <span className="text-xs font-semibold text-gray-500">
+                Upcoming
+              </span>
+              <span className="text-xs font-semibold text-gray-900">
+                {upcomingLeaves.length}
+              </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <FileText size={13} className="text-gray-500" />
-              <span className="text-xs font-semibold text-gray-500">History</span>
-              <span className="text-xs font-semibold text-gray-900">{pastLeaves.length}</span>
+              <span className="text-xs font-semibold text-gray-500">
+                History
+              </span>
+              <span className="text-xs font-semibold text-gray-900">
+                {pastLeaves.length}
+              </span>
             </div>
           </div>
-        )}
+        }
       />
     ),
-    [activeTab, toolbarTabs, leaves.length, pastLeaves.length, upcomingLeaves.length],
+    [
+      activeTab,
+      toolbarTabs,
+      leaves.length,
+      pastLeaves.length,
+      upcomingLeaves.length,
+    ],
   );
 
   useSetPageHeader(
@@ -105,7 +121,7 @@ const MyLeavesPage = () => {
     "My Leaves",
     "View your approved leave requests and time off.",
     null,
-    toolbar
+    toolbar,
   );
 
   const columns = [
@@ -119,7 +135,9 @@ const MyLeavesPage = () => {
           </p>
           <p className="text-xs text-gray-500 mt-0.5">
             {calculateDuration(row.leavestartdate, row.leaveenddate)}{" "}
-            {calculateDuration(row.leavestartdate, row.leaveenddate) === 1 ? "day" : "days"}
+            {calculateDuration(row.leavestartdate, row.leaveenddate) === 1
+              ? "day"
+              : "days"}
           </p>
         </div>
       ),
@@ -168,7 +186,9 @@ const MyLeavesPage = () => {
         data={displayLeaves}
         keyField="leaveid"
         emptyIcon={activeTab === "upcoming" ? Calendar : FileText}
-        emptyTitle={activeTab === "upcoming" ? "No Upcoming Leaves" : "No Leave History"}
+        emptyTitle={
+          activeTab === "upcoming" ? "No Upcoming Leaves" : "No Leave History"
+        }
         emptySubtitle={
           activeTab === "upcoming"
             ? "You don't have any approved leaves scheduled."

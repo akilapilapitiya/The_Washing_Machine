@@ -1,6 +1,7 @@
 import pool from "../configs/database.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET Database Connection Test
 export const databaseConnection = async (req, res) => {
   const result = await pool.query("SELECT current_database()");
   successResponse(res, 200, "Database connection successful", {

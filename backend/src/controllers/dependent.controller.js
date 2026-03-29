@@ -1,6 +1,7 @@
 import * as dependentService from "../services/dependent.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET My Dependents
 export const getMyDependents = async (req, res, next) => {
   try {
     const dependents = await dependentService.getMyDependentsService(
@@ -12,6 +13,7 @@ export const getMyDependents = async (req, res, next) => {
   }
 };
 
+// CREATE Dependent
 export const createDependent = async (req, res, next) => {
   try {
     const dependent = await dependentService.addDependentService(
@@ -24,6 +26,7 @@ export const createDependent = async (req, res, next) => {
   }
 };
 
+// UPDATE Dependent
 export const removeDependent = async (req, res, next) => {
   try {
     await dependentService.removeDependentService(req.params.id, req.user.id);

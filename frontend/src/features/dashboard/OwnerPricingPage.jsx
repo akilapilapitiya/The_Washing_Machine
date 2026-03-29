@@ -104,7 +104,6 @@ const OwnerPricingPage = () => {
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6">
-
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">
           <Card className="shadow-sm">

@@ -13,20 +13,17 @@ import { paymentValidator } from "../validators/index.js";
 
 const paymentRouter = Router();
 
-// Protect all payment routes
+// Protected routes
 paymentRouter.use(authMiddleware);
 
-// Customer self-service
 paymentRouter.get("/my", restrictTo("customer"), getMyPayments);
 
-// Shared access
 paymentRouter.get(
   "/:paymentid",
   restrictTo("customer", "cashier", "owner"),
   getPayment,
 );
 
-// Manager/Owner only
 paymentRouter.delete("/:paymentid", restrictTo("owner"), deletePayment);
 paymentRouter.put(
   "/:paymentid",

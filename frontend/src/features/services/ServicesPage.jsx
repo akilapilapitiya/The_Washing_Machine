@@ -18,7 +18,9 @@ const isOfferActive = (service) => {
   const startsAt = service.offer_start_date
     ? new Date(service.offer_start_date)
     : null;
-  const endsAt = service.offer_end_date ? new Date(service.offer_end_date) : null;
+  const endsAt = service.offer_end_date
+    ? new Date(service.offer_end_date)
+    : null;
 
   if (startsAt && Number.isNaN(startsAt.getTime())) return false;
   if (endsAt && Number.isNaN(endsAt.getTime())) return false;
@@ -152,7 +154,9 @@ const ServicesPage = () => {
                 >
                   <Icon size={16} className="mr-2 shrink-0" />
                   <span>{filter.label}</span>
-                  <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold border ${activeFilter === filter.key ? "bg-white text-red-600 border-red-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                  <span
+                    className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold border ${activeFilter === filter.key ? "bg-white text-red-600 border-red-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}
+                  >
                     {filter.count}
                   </span>
                 </Button>

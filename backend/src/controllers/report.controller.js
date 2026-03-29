@@ -4,6 +4,7 @@ import {
 } from "../services/report.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET Daily Income Report
 export const getDailyIncomeReport = async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
@@ -22,6 +23,7 @@ export const getDailyIncomeReport = async (req, res, next) => {
   }
 };
 
+// GET Employee Performance Report
 export const getEmployeePerformanceReport = async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;

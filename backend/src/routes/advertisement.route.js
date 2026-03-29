@@ -8,15 +8,27 @@ const router = express.Router();
 
 // Public routes
 router.get("/", cacheMiddleware(3600), adController.getAdvertisements);
+
 router.post("/request", adController.requestAdvertisement);
 
-// Admin routes
+// Protected routes
 router.use(authMiddleware);
 router.use(restrictTo("owner"));
 
 router.get("/admin", adController.getAdminAdvertisements);
-router.post("/", uploadAdvertisementImage.single("image"), adController.createAdvertisement);
-router.put("/:id", uploadAdvertisementImage.single("image"), adController.updateAdvertisement);
+
+router.post(
+  "/",
+  uploadAdvertisementImage.single("image"),
+  adController.createAdvertisement,
+);
+
+router.put(
+  "/:id",
+  uploadAdvertisementImage.single("image"),
+  adController.updateAdvertisement,
+);
+
 router.delete("/:id", adController.deleteAdvertisement);
 
 export default router;

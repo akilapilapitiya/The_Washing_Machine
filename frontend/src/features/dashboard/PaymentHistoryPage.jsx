@@ -35,20 +35,35 @@ const PaymentHistoryPage = () => {
     const matchesSearch =
       !query ||
       [payment.paymenttype, String(payment.paymentamount || "")].some((value) =>
-        String(value || "").toLowerCase().includes(query),
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
       );
 
     return matchesSearch;
   });
 
-  const totalAmount = payments.reduce((sum, p) => sum + (Number(p.paymentamount) || 0), 0);
+  const totalAmount = payments.reduce(
+    (sum, p) => sum + (Number(p.paymentamount) || 0),
+    0,
+  );
 
   const toolbar = React.useMemo(
     () => (
       <PageToolbar
         stats={[
-          { icon: Wallet, label: "Total Paid", value: `Rs. ${totalAmount.toLocaleString()}`, iconClassName: "text-green-500" },
-          { icon: Hash, label: "Transactions", value: payments.length, iconClassName: "text-blue-500" },
+          {
+            icon: Wallet,
+            label: "Total Paid",
+            value: `Rs. ${totalAmount.toLocaleString()}`,
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: Hash,
+            label: "Transactions",
+            value: payments.length,
+            iconClassName: "text-blue-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}

@@ -35,12 +35,12 @@ const ManageVehicleCatalogPage = () => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
-  
+
   // Modal states
   const [showAddBrandModal, setShowAddBrandModal] = useState(false);
   const [showAddModelModal, setShowAddModelModal] = useState(false);
   const [showViewModelsModal, setShowViewModelsModal] = useState(false);
-  
+
   // Selection states
   const [selectedBrand, setSelectedBrand] = useState("");
   const [newBrandName, setNewBrandName] = useState("");
@@ -205,52 +205,74 @@ const ManageVehicleCatalogPage = () => {
     },
   ];
 
-  const brandData = sortedBrands.map((brand) => ({
-    brand,
-    models: groupedCatalog[brand],
-  })).filter((item) => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return true;
+  const brandData = sortedBrands
+    .map((brand) => ({
+      brand,
+      models: groupedCatalog[brand],
+    }))
+    .filter((item) => {
+      const query = searchQuery.trim().toLowerCase();
+      if (!query) return true;
 
-    return (
-      item.brand.toLowerCase().includes(query) ||
-      item.models.some((model) => String(model.model || "").toLowerCase().includes(query))
-    );
-  });
+      return (
+        item.brand.toLowerCase().includes(query) ||
+        item.models.some((model) =>
+          String(model.model || "")
+            .toLowerCase()
+            .includes(query),
+        )
+      );
+    });
 
   // Memoize action element for stable reference
-  const headerAction = React.useMemo(() => (
-    <div className="flex items-center gap-3">
-      <Button
-        onClick={() => setShowAddBrandModal(true)}
-        variant="outline"
-        className="h-10 px-4 flex items-center gap-2 border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
-      >
-        <Plus size={18} />
-        Add Brand
-      </Button>
-      <Button
-        onClick={() => setShowAddModelModal(true)}
-        className="h-10 px-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
-      >
-        <Plus size={18} />
-        Add Model
-      </Button>
-    </div>
-  ), []);
+  const headerAction = React.useMemo(
+    () => (
+      <div className="flex items-center gap-3">
+        <Button
+          onClick={() => setShowAddBrandModal(true)}
+          variant="outline"
+          className="h-10 px-4 flex items-center gap-2 border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+        >
+          <Plus size={18} />
+          Add Brand
+        </Button>
+        <Button
+          onClick={() => setShowAddModelModal(true)}
+          className="h-10 px-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+        >
+          <Plus size={18} />
+          Add Model
+        </Button>
+      </div>
+    ),
+    [],
+  );
 
-  const toolbar = React.useMemo(() => (
-    <PageToolbar
-      stats={[
-        { icon: Layers, label: "Brands", value: sortedBrands.length, iconClassName: "text-red-600" },
-        { icon: Car, label: "Models", value: models.filter((i) => i.model).length, iconClassName: "text-red-600" },
-      ]}
-      searchValue={searchQuery}
-      onSearchChange={setSearchQuery}
-      searchPlaceholder="Search brands or models..."
-      searchWidthClass="sm:w-80"
-    />
-  ), [models, searchQuery, sortedBrands.length]);
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          {
+            icon: Layers,
+            label: "Brands",
+            value: sortedBrands.length,
+            iconClassName: "text-red-600",
+          },
+          {
+            icon: Car,
+            label: "Models",
+            value: models.filter((i) => i.model).length,
+            iconClassName: "text-red-600",
+          },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search brands or models..."
+        searchWidthClass="sm:w-80"
+      />
+    ),
+    [models, searchQuery, sortedBrands.length],
+  );
 
   useSetPageHeader(
     "System Administration",
@@ -270,7 +292,11 @@ const ManageVehicleCatalogPage = () => {
         keyField="brand"
         emptyIcon={Car}
         emptyTitle="No brands found"
-        emptySubtitle={searchQuery ? "No brands match your search." : "Start by adding a vehicle brand to the catalog."}
+        emptySubtitle={
+          searchQuery
+            ? "No brands match your search."
+            : "Start by adding a vehicle brand to the catalog."
+        }
       />
 
       {/* Add Brand Modal */}
@@ -300,7 +326,12 @@ const ManageVehicleCatalogPage = () => {
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="brandName" className="text-sm font-semibold text-gray-700">Brand Name</Label>
+                    <Label
+                      htmlFor="brandName"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Brand Name
+                    </Label>
                     <Input
                       id="brandName"
                       placeholder="e.g. BMW, Toyota, Tesla"
@@ -366,7 +397,9 @@ const ManageVehicleCatalogPage = () => {
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Select Brand</Label>
+                    <Label className="text-sm font-semibold text-gray-700">
+                      Select Brand
+                    </Label>
                     <select
                       className="w-full h-11 px-3 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
                       value={selectedBrand}
@@ -381,7 +414,12 @@ const ManageVehicleCatalogPage = () => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="modelName" className="text-sm font-semibold text-gray-700">Model Name</Label>
+                    <Label
+                      htmlFor="modelName"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Model Name
+                    </Label>
                     <Input
                       id="modelName"
                       placeholder="e.g. X5, Corolla, Model 3"
@@ -404,7 +442,9 @@ const ManageVehicleCatalogPage = () => {
                 <Button
                   type="submit"
                   className="bg-red-600 hover:bg-red-700 h-11 px-6 text-white"
-                  disabled={submittingModel || !selectedBrand || !newModelName.trim()}
+                  disabled={
+                    submittingModel || !selectedBrand || !newModelName.trim()
+                  }
                 >
                   {submittingModel ? (
                     <Loader2 className="animate-spin mr-2" size={16} />
@@ -448,7 +488,9 @@ const ManageVehicleCatalogPage = () => {
                     {
                       key: "model",
                       label: "Model Name",
-                      render: (row) => <span className="font-semibold">{row.model}</span>,
+                      render: (row) => (
+                        <span className="font-semibold">{row.model}</span>
+                      ),
                     },
                     {
                       key: "actions",
@@ -466,7 +508,7 @@ const ManageVehicleCatalogPage = () => {
                       ),
                     },
                   ]}
-                  data={viewingBrand?.models?.filter(m => m.model) || []}
+                  data={viewingBrand?.models?.filter((m) => m.model) || []}
                   keyField="id"
                   showSearch={false}
                   emptyTitle="No models found"

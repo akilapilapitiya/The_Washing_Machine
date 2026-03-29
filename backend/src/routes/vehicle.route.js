@@ -12,28 +12,26 @@ import { vehicleValidator } from "../validators/index.js";
 
 const vehicleRouter = Router();
 
+// Protected routes
 vehicleRouter.use(authMiddleware);
 vehicleRouter.get("/:id", getVehicle);
-//Customer only routes
 vehicleRouter.post(
   "/",
   restrictTo("customer"),
   validateSchema(vehicleValidator.createVehicle),
-  createVehicle
+  createVehicle,
 );
 vehicleRouter.delete("/:id", restrictTo("customer"), deleteVehicle);
-//Employee only routes - Update mileage
 vehicleRouter.put(
   "/:id",
   restrictTo("employee"),
   validateSchema(vehicleValidator.updateVehicle),
-  updateVehicle
+  updateVehicle,
 );
-//Customer owner and Manager Routes
 vehicleRouter.get(
   "/",
   restrictTo("customer", "manager", "owner"),
-  getCustomerVehicles
+  getCustomerVehicles,
 );
 
 export default vehicleRouter;
