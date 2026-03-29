@@ -455,3 +455,7 @@ npm run test:run
 ```
 
 Test files reside alongside the features they test or in a dedicated `__tests__` directory within the feature domain. The Vitest configuration is embedded in `vite.config.js` under the `test` key, keeping a single source of truth for build and test tooling.
+
+## Recent Maintenance
+
+- **March 29, 2026** — Ran Prettier across the SPA, pruned unused packages (`dotenv`, `tailwindcss` moved to dev-only, unused `tw-animate-css` verified), and centralized axios logging/health-check helpers. Route guards and layout files now share consistent comments, while the test harness still boots via `src/setupTests.js` to mock `localStorage`/`matchMedia`.

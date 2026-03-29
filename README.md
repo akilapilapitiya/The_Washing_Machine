@@ -256,3 +256,7 @@ Proprietary software. All rights reserved.
 **Version:** 1.7.0
 **Last Updated:** March 22, 2026
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
+
+## Recent Maintenance
+
+- March 29, 2026: Prettier and lint-driven clean up across backend/ frontend routes, scripts, and shared utilities. All Express routers now follow the same public/protected comment style, Telegram prompt strings live in a single helper, and seeding/maintenance scripts were consolidated under `src/scripts`. Dependency lists were pruned (`debug`, `morgan`, `dotenv` on the frontend) and `@jest/globals` was added for Jest suites.
