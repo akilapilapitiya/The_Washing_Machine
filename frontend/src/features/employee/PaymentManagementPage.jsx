@@ -133,7 +133,9 @@ const PaymentManagementPage = () => {
         getBookings(),
         getAllPayments(),
       ]);
-      setPendingBookings(bookings.filter((b) => b.bookingstatus === "completed"));
+      setPendingBookings(
+        bookings.filter((b) => b.bookingstatus === "completed"),
+      );
       setCompletedPayments(payments);
     } catch {
       toast.error("Failed to load data");
@@ -186,7 +188,9 @@ const PaymentManagementPage = () => {
             <button
               onClick={() => setActiveTab("pending")}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "pending" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                activeTab === "pending"
+                  ? "bg-white text-red-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               Pending ({pendingBookings.length})
@@ -194,7 +198,9 @@ const PaymentManagementPage = () => {
             <button
               onClick={() => setActiveTab("completed")}
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-md transition-all ${
-                activeTab === "completed" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                activeTab === "completed"
+                  ? "bg-white text-red-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               Completed ({completedPayments.length})
@@ -202,16 +208,30 @@ const PaymentManagementPage = () => {
           </div>
         }
         stats={[
-          { icon: DollarSign, label: "Pending", value: pendingBookings.length, iconClassName: "text-red-500" },
-          { icon: CheckCircle, label: "Completed", value: completedPayments.length, iconClassName: "text-green-500" },
+          {
+            icon: DollarSign,
+            label: "Pending",
+            value: pendingBookings.length,
+            iconClassName: "text-red-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Completed",
+            value: completedPayments.length,
+            iconClassName: "text-green-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder={activeTab === "completed" ? "Search payments..." : "Search bookings..."}
+        searchPlaceholder={
+          activeTab === "completed"
+            ? "Search payments..."
+            : "Search bookings..."
+        }
         searchWidthClass="sm:w-72"
       />
     ),
-    [activeTab, completedPayments.length, pendingBookings.length, searchQuery]
+    [activeTab, completedPayments.length, pendingBookings.length, searchQuery],
   );
 
   useSetPageHeader(
@@ -219,7 +239,7 @@ const PaymentManagementPage = () => {
     "Review Payments",
     "Manage and record customer payments for completed services.",
     null,
-    toolbar
+    toolbar,
   );
 
   if (loading) return <PageLoader message="Loading payment information..." />;
@@ -232,7 +252,11 @@ const PaymentManagementPage = () => {
       label: "ID",
       render: (row) => (
         <span className="font-mono font-bold text-gray-500 text-sm">
-          #{String(isPaymentView ? row.paymentid : row.bookingid).padStart(4, "0")}
+          #
+          {String(isPaymentView ? row.paymentid : row.bookingid).padStart(
+            4,
+            "0",
+          )}
         </span>
       ),
     },
@@ -241,7 +265,9 @@ const PaymentManagementPage = () => {
       label: "Customer & Vehicle",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-gray-900 text-sm">{row.cusname || "Unregistered"}</span>
+          <span className="font-bold text-gray-900 text-sm">
+            {row.cusname || "Unregistered"}
+          </span>
           <span className="text-xs text-gray-500 font-medium mt-0.5">
             {row.vehbrand} {row.vehmodel} • {row.vehplate}
           </span>
@@ -253,8 +279,11 @@ const PaymentManagementPage = () => {
       label: "Date",
       render: (row) => (
         <span className="text-sm font-medium text-gray-600">
-          {row[isPaymentView ? "paymentdate" : "bookingdate"] 
-            ? format(new Date(row[isPaymentView ? "paymentdate" : "bookingdate"]), "MMM d, yyyy") 
+          {row[isPaymentView ? "paymentdate" : "bookingdate"]
+            ? format(
+                new Date(row[isPaymentView ? "paymentdate" : "bookingdate"]),
+                "MMM d, yyyy",
+              )
             : "N/A"}
         </span>
       ),
@@ -263,14 +292,23 @@ const PaymentManagementPage = () => {
       key: "amount",
       label: "Amount",
       render: (row) => {
-        const extrasTotal = (row.extras || []).reduce((sum, e) => sum + (Number(e.price) || 0), 0);
+        const extrasTotal = (row.extras || []).reduce(
+          (sum, e) => sum + (Number(e.price) || 0),
+          0,
+        );
         const baseTotal = Number(row.totalprice || row.total_price || 0);
-        const displayTotal = isPaymentView ? Number(row.paymentamount) : baseTotal + extrasTotal;
+        const displayTotal = isPaymentView
+          ? Number(row.paymentamount)
+          : baseTotal + extrasTotal;
         return (
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-gray-900">Rs.{displayTotal.toFixed(2)}</span>
+            <span className="text-sm font-bold text-gray-900">
+              Rs.{displayTotal.toFixed(2)}
+            </span>
             {!isPaymentView && extrasTotal > 0 && (
-              <span className="text-[10px] text-orange-600 font-medium">Incl. Rs.{extrasTotal.toFixed(2)} extras</span>
+              <span className="text-[10px] text-orange-600 font-medium">
+                Incl. Rs.{extrasTotal.toFixed(2)} extras
+              </span>
             )}
           </div>
         );
@@ -279,7 +317,9 @@ const PaymentManagementPage = () => {
     {
       key: "status",
       label: "Status",
-      render: (row) => <StatusBadge status={isPaymentView ? "paid" : row.bookingstatus} />,
+      render: (row) => (
+        <StatusBadge status={isPaymentView ? "paid" : row.bookingstatus} />
+      ),
     },
     {
       key: "actions",
@@ -327,13 +367,25 @@ const PaymentManagementPage = () => {
         row.vehmodel,
         row.vehplate,
         row.paymenttype,
-      ].some((value) => String(value || "").toLowerCase().includes(query)),
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      ),
     );
   };
 
   const emptyProps = isPaymentView
-    ? { icon: DollarSign, title: "No completed payments", subtitle: "Recorded payments will appear here." }
-    : { icon: CheckCircle, title: "No pending payments", subtitle: "No completed bookings are awaiting payment." };
+    ? {
+        icon: DollarSign,
+        title: "No completed payments",
+        subtitle: "Recorded payments will appear here.",
+      }
+    : {
+        icon: CheckCircle,
+        title: "No pending payments",
+        subtitle: "No completed bookings are awaiting payment.",
+      };
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-8">
@@ -343,275 +395,292 @@ const PaymentManagementPage = () => {
         keyField={isPaymentView ? "paymentid" : "bookingid"}
         emptyIcon={emptyProps.icon}
         emptyTitle={emptyProps.title}
-        emptySubtitle={searchQuery ? "No records match your search." : emptyProps.subtitle}
+        emptySubtitle={
+          searchQuery ? "No records match your search." : emptyProps.subtitle
+        }
       />
 
-        {/* Payment Recording Modal */}
-        {selectedBooking && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-lg shadow-2xl">
-              <CardHeader className="border-b bg-gray-50/50">
-                <CardTitle className="flex items-center gap-2 text-xl font-bold">
-                  <DollarSign size={24} className="text-red-600" />
-                  Record Payment - BK-
-                  {selectedBooking.bookingid.toString().padStart(4, "0")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <form onSubmit={handleSubmitPayment} className="space-y-6">
-                  {/* Breakdown Section */}
-                  <div className="space-y-4">
-                    {/* Base Services */}
+      {/* Payment Recording Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-lg shadow-2xl">
+            <CardHeader className="border-b bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                <DollarSign size={24} className="text-red-600" />
+                Record Payment - BK-
+                {selectedBooking.bookingid.toString().padStart(4, "0")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmitPayment} className="space-y-6">
+                {/* Breakdown Section */}
+                <div className="space-y-4">
+                  {/* Base Services */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-1 h-4 bg-red-600 rounded-full"></div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">
+                        Base Services
+                      </h4>
+                    </div>
+                    <div className="space-y-1.5 pl-3 border-l border-gray-100">
+                      {(selectedBooking.services || []).map((s, idx) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center text-sm"
+                        >
+                          <span className="text-gray-700 font-medium">
+                            {s.servicename || s.serviceName}
+                          </span>
+                          <span className="font-mono text-gray-900">
+                            Rs.{Number(s.serviceprice || s.price).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Additional Charges (Extras) */}
+                  {(selectedBooking.extras || []).length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-1 h-4 bg-red-600 rounded-full"></div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Base Services</h4>
+                        <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">
+                          Additional Charges
+                        </h4>
                       </div>
                       <div className="space-y-1.5 pl-3 border-l border-gray-100">
-                        {(selectedBooking.services || []).map((s, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-sm">
-                            <span className="text-gray-700 font-medium">{s.servicename || s.serviceName}</span>
-                            <span className="font-mono text-gray-900">Rs.{Number(s.serviceprice || s.price).toFixed(2)}</span>
+                        {selectedBooking.extras.map((extra) => (
+                          <div
+                            key={extra.id}
+                            className="flex justify-between items-center text-sm"
+                          >
+                            <span className="text-gray-700 font-medium">
+                              {extra.item_name}
+                            </span>
+                            <span
+                              className={`font-mono ${!extra.price || Number(extra.price) === 0 ? "text-orange-600 font-bold" : "text-gray-900"}`}
+                            >
+                              {extra.price && Number(extra.price) > 0
+                                ? `Rs.${Number(extra.price).toFixed(2)}`
+                                : "Price Pending"}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
+                  )}
+                </div>
 
-                    {/* Additional Charges (Extras) */}
-                    {(selectedBooking.extras || []).length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
-                          <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Additional Charges</h4>
-                        </div>
-                        <div className="space-y-1.5 pl-3 border-l border-gray-100">
-                          {selectedBooking.extras.map((extra) => (
-                            <div key={extra.id} className="flex justify-between items-center text-sm">
-                              <span className="text-gray-700 font-medium">{extra.item_name}</span>
-                              <span className={`font-mono ${!extra.price || Number(extra.price) === 0 ? "text-orange-600 font-bold" : "text-gray-900"}`}>
-                                {extra.price && Number(extra.price) > 0 ? `Rs.${Number(extra.price).toFixed(2)}` : "Price Pending"}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Unpriced Extras Warning & Input */}
-                  {(selectedBooking.extras || []).some(
-                    (e) => !e.price || Number(e.price) === 0,
-                  ) && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
-                        <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
-                          <ShieldAlert size={16} />
-                          <span>Pending Extra Charges</span>
-                        </div>
-                        <p className="text-xs text-orange-600">
-                          The following items must be priced before recording
-                          payment.
-                        </p>
-
-                        <div className="space-y-2">
-                          {selectedBooking.extras
-                            .filter((e) => !e.price || Number(e.price) === 0)
-                            .map((extra) => (
-                              <div
-                                key={extra.id}
-                                className="flex items-center justify-between bg-white p-2 rounded border border-orange-100"
-                              >
-                                <span className="text-sm font-medium text-gray-700">
-                                  {extra.item_name}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs text-gray-400">
-                                    Rs.
-                                  </span>
-                                  <input
-                                    type="number"
-                                    className="w-20 p-1 text-right text-sm border rounded focus:ring-2 focus:ring-orange-500 outline-none"
-                                    placeholder="0.00"
-                                    onBlur={async (e) => {
-                                      const val = parseFloat(e.target.value);
-                                      if (val > 0) {
-                                        try {
-                                          await chargesService.updateItemPrice(
-                                            extra.id,
-                                            val,
-                                          );
-                                          toast.success(
-                                            `Price updated for ${extra.item_name}`,
-                                          );
-
-                                          // Update local state to reflect change and recalculate total
-                                          setSelectedBooking((prev) => {
-                                            const newExtras = prev.extras.map(
-                                              (x) =>
-                                                x.id === extra.id
-                                                  ? { ...x, price: val }
-                                                  : x,
-                                            );
-                                            const newExtrasTotal =
-                                              newExtras.reduce(
-                                                (sum, item) =>
-                                                  sum + (Number(item.price) || 0),
-                                                0,
-                                              );
-                                            const base = Number(
-                                              prev.totalprice ||
-                                              prev.total_price ||
-                                              0,
-                                            );
-
-                                            // Construct new object
-                                            const updated = {
-                                              ...prev,
-                                              extras: newExtras,
-                                            };
-
-                                            // Update payment amount input automatically
-                                            setPaymentData((d) => ({
-                                              ...d,
-                                              paymentamount: (
-                                                base + newExtrasTotal
-                                              ).toFixed(2),
-                                            }));
-
-                                            return updated;
-                                          });
-                                          // Also trigger main data refresh in background
-                                          fetchData();
-                                        } catch (err) {
-                                          console.error(
-                                            "Failed to update price",
-                                            err,
-                                          );
-                                          toast.error("Failed to update price");
-                                        }
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Payment Summary */}
-                  <div className="bg-red-50 rounded-lg p-4 space-y-2 border border-red-100">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 text-sm font-medium">
-                        Booking Date
-                      </span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {new Date(
-                          selectedBooking.bookingdate,
-                        ).toLocaleDateString()}
-                      </span>
+                {/* Unpriced Extras Warning & Input */}
+                {(selectedBooking.extras || []).some(
+                  (e) => !e.price || Number(e.price) === 0,
+                ) && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
+                      <ShieldAlert size={16} />
+                      <span>Pending Extra Charges</span>
                     </div>
-                    <div className="border-t border-red-200 pt-2 flex justify-between">
-                      <span className="text-gray-800 font-bold">
-                        Total Amount Due
-                      </span>
-                      <span className="text-xl font-black text-red-600">
-                        Rs.
-                        {(
-                          Number(
-                            selectedBooking.totalprice ||
+                    <p className="text-xs text-orange-600">
+                      The following items must be priced before recording
+                      payment.
+                    </p>
+
+                    <div className="space-y-2">
+                      {selectedBooking.extras
+                        .filter((e) => !e.price || Number(e.price) === 0)
+                        .map((extra) => (
+                          <div
+                            key={extra.id}
+                            className="flex items-center justify-between bg-white p-2 rounded border border-orange-100"
+                          >
+                            <span className="text-sm font-medium text-gray-700">
+                              {extra.item_name}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-400">Rs.</span>
+                              <input
+                                type="number"
+                                className="w-20 p-1 text-right text-sm border rounded focus:ring-2 focus:ring-orange-500 outline-none"
+                                placeholder="0.00"
+                                onBlur={async (e) => {
+                                  const val = parseFloat(e.target.value);
+                                  if (val > 0) {
+                                    try {
+                                      await chargesService.updateItemPrice(
+                                        extra.id,
+                                        val,
+                                      );
+                                      toast.success(
+                                        `Price updated for ${extra.item_name}`,
+                                      );
+
+                                      // Update local state to reflect change and recalculate total
+                                      setSelectedBooking((prev) => {
+                                        const newExtras = prev.extras.map(
+                                          (x) =>
+                                            x.id === extra.id
+                                              ? { ...x, price: val }
+                                              : x,
+                                        );
+                                        const newExtrasTotal = newExtras.reduce(
+                                          (sum, item) =>
+                                            sum + (Number(item.price) || 0),
+                                          0,
+                                        );
+                                        const base = Number(
+                                          prev.totalprice ||
+                                            prev.total_price ||
+                                            0,
+                                        );
+
+                                        // Construct new object
+                                        const updated = {
+                                          ...prev,
+                                          extras: newExtras,
+                                        };
+
+                                        // Update payment amount input automatically
+                                        setPaymentData((d) => ({
+                                          ...d,
+                                          paymentamount: (
+                                            base + newExtrasTotal
+                                          ).toFixed(2),
+                                        }));
+
+                                        return updated;
+                                      });
+                                      // Also trigger main data refresh in background
+                                      fetchData();
+                                    } catch (err) {
+                                      console.error(
+                                        "Failed to update price",
+                                        err,
+                                      );
+                                      toast.error("Failed to update price");
+                                    }
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Summary */}
+                <div className="bg-red-50 rounded-lg p-4 space-y-2 border border-red-100">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 text-sm font-medium">
+                      Booking Date
+                    </span>
+                    <span className="text-sm font-bold text-gray-900">
+                      {new Date(
+                        selectedBooking.bookingdate,
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="border-t border-red-200 pt-2 flex justify-between">
+                    <span className="text-gray-800 font-bold">
+                      Total Amount Due
+                    </span>
+                    <span className="text-xl font-black text-red-600">
+                      Rs.
+                      {(
+                        Number(
+                          selectedBooking.totalprice ||
                             selectedBooking.total_price ||
                             0,
-                          ) +
-                          (selectedBooking.extras || []).reduce(
-                            (sum, e) => sum + (Number(e.price) || 0),
-                            0,
-                          )
-                        ).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Payment Amount */}
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentamount">
-                      Confirm Amount (Rs.) *
-                    </Label>
-                    <Input
-                      id="paymentamount"
-                      name="paymentamount"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={paymentData.paymentamount}
-                      onChange={handleInputChange}
-                      placeholder="Enter amount"
-                      required
-                    />
-                  </div>
-
-                  {/* Payment Method */}
-                  <div className="space-y-2">
-                    <Label htmlFor="paymenttype">Payment Method *</Label>
-                    <select
-                      id="paymenttype"
-                      name="paymenttype"
-                      value={paymentData.paymenttype}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
-                      required
-                    >
-                      {paymentMethods.map((method) => (
-                        <option key={method.value} value={method.value}>
-                          {method.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentdate">Payment Date *</Label>
-                    <Input
-                      id="paymentdate"
-                      name="paymentdate"
-                      type="date"
-                      value={paymentData.paymentdate}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex gap-3 justify-end pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setSelectedBooking(null)}
-                      disabled={submitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={
-                        submitting ||
-                        (selectedBooking.extras || []).some(
-                          (e) => !e.price || Number(e.price) === 0,
+                        ) +
+                        (selectedBooking.extras || []).reduce(
+                          (sum, e) => sum + (Number(e.price) || 0),
+                          0,
                         )
-                      }
-                      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold min-w-[140px]"
-                    >
-                      {submitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <CheckCircle size={18} />
-                      )}
-                      Confirm Payment
-                    </Button>
+                      ).toFixed(2)}
+                    </span>
                   </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                </div>
+
+                {/* Payment Amount */}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentamount">Confirm Amount (Rs.) *</Label>
+                  <Input
+                    id="paymentamount"
+                    name="paymentamount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={paymentData.paymentamount}
+                    onChange={handleInputChange}
+                    placeholder="Enter amount"
+                    required
+                  />
+                </div>
+
+                {/* Payment Method */}
+                <div className="space-y-2">
+                  <Label htmlFor="paymenttype">Payment Method *</Label>
+                  <select
+                    id="paymenttype"
+                    name="paymenttype"
+                    value={paymentData.paymenttype}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                    required
+                  >
+                    {paymentMethods.map((method) => (
+                      <option key={method.value} value={method.value}>
+                        {method.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="paymentdate">Payment Date *</Label>
+                  <Input
+                    id="paymentdate"
+                    name="paymentdate"
+                    type="date"
+                    value={paymentData.paymentdate}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSelectedBooking(null)}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={
+                      submitting ||
+                      (selectedBooking.extras || []).some(
+                        (e) => !e.price || Number(e.price) === 0,
+                      )
+                    }
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold min-w-[140px]"
+                  >
+                    {submitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CheckCircle size={18} />
+                    )}
+                    Confirm Payment
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
