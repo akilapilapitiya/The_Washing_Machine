@@ -114,13 +114,14 @@ export const deleteVehicle = async (req, res, next) => {
 export const recordServiceSnapshot = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { currentMileage, nextServiceMileage, bookingId } = req.body;
+    const { currentMileage, nextServiceMileage, bookingId, isMaintenance } = req.body;
 
     console.log("[DEBUG] Service Snapshot Request:", {
       vehicleId: id,
       currentMileage,
       nextServiceMileage,
       bookingId,
+      isMaintenance,
       bodyRaw: req.body,
     });
 
@@ -128,6 +129,7 @@ export const recordServiceSnapshot = async (req, res, next) => {
       currentMileage: Number(currentMileage),
       nextServiceMileage: Number(nextServiceMileage),
       bookingId: bookingId ? Number(bookingId) : null,
+      isMaintenance: Boolean(isMaintenance),
     });
 
     successResponse(res, 200, "Service snapshot recorded successfully", {

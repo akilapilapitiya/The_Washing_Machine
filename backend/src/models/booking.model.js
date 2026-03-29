@@ -13,6 +13,7 @@ const createBookingTable = async (pool) => {
       travel_distance DECIMAL(10,2) DEFAULT 0,
       travel_duration INT DEFAULT 0,
       travel_cost DECIMAL(10,2) DEFAULT 0,
+      is_maintenance BOOLEAN DEFAULT false,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       CONSTRAINT fk_booking_vehicle
@@ -26,6 +27,9 @@ const createBookingTable = async (pool) => {
 
     -- Ensure totalprice column exists
     ALTER TABLE booking ADD COLUMN IF NOT EXISTS totalprice DECIMAL(10,2) NOT NULL DEFAULT 0;
+
+    -- Ensure is_maintenance column exists
+    ALTER TABLE booking ADD COLUMN IF NOT EXISTS is_maintenance BOOLEAN DEFAULT false;
 
     -- Drop restrictive date check constraint if it exists to allow payment recording for past bookings
     ALTER TABLE booking DROP CONSTRAINT IF EXISTS booking_bookingdate_check;

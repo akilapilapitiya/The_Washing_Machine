@@ -234,7 +234,7 @@ export const deleteVehicleService = async (id, customerId) => {
 // Record service snapshot on booking completion
 export const recordServiceSnapshotService = async (
   vehicleId,
-  { currentMileage, nextServiceMileage, bookingId },
+  { currentMileage, nextServiceMileage, bookingId, isMaintenance },
 ) => {
   // Validate inputs
   if (!currentMileage || currentMileage <= 0) {
@@ -247,11 +247,11 @@ export const recordServiceSnapshotService = async (
   }
 
   // Atomically update vehicle mileage
-  const vehicleResult = await pool.query(
+  let vehicleResult = await pool.query(
     `UPDATE vehicle
      SET vehmileage = $1, next_service_mileage = $2, updated_at = NOW()
      WHERE id = $3
-     RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage`,
+     RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage, next_service_date`,
     [currentMileage, nextServiceMileage, vehicleId],
   );
 
@@ -259,7 +259,71 @@ export const recordServiceSnapshotService = async (
     throw new NotFoundError("Vehicle not found");
   }
 
-  const vehicle = vehicleResult.rows[0];
+  let vehicle = vehicleResult.rows[0];
+
+  // Process Next Service Date if flag is set
+  if (isMaintenance && bookingId) {
+    try {
+      // 1. Mark this booking as a maintenance service
+      await pool.query(
+        `UPDATE booking SET is_maintenance = true WHERE bookingid = $1`,
+        [bookingId],
+      );
+
+      // 2. Fetch past maintenance service dates
+      const datesRes = await pool.query(
+        `SELECT bookingdate FROM booking
+         WHERE vehid = $1 AND is_maintenance = true AND bookingstatus IN ('inProgress', 'completed', 'paid')
+         ORDER BY bookingdate ASC`,
+        [vehicleId],
+      );
+
+      let frequencyDays = 90; // Default fallback
+
+      if (datesRes.rowCount >= 2) {
+        // Calculate average days between services
+        const dates = datesRes.rows.map(r => new Date(r.bookingdate));
+        let totalDays = 0;
+        let intervals = 0;
+
+        for (let i = 1; i < dates.length; i++) {
+          const diffTime = Math.abs(dates[i] - dates[i-1]);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          totalDays += diffDays;
+          intervals++;
+        }
+
+        if (intervals > 0) {
+          frequencyDays = Math.round(totalDays / intervals);
+        }
+      } else {
+        // Fetch default frequency from settings
+        const settingsRes = await pool.query(
+          "SELECT value FROM sys_settings WHERE key = 'default_service_frequency_days'",
+        );
+        if (settingsRes.rowCount > 0 && settingsRes.rows[0].value) {
+          frequencyDays = parseInt(settingsRes.rows[0].value, 10) || 90;
+        }
+      }
+
+      // 3. Update vehicle next_service_date
+      const updateRes = await pool.query(
+        `UPDATE vehicle
+         SET next_service_date = CURRENT_DATE + $1::INTEGER, updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage, next_service_date`,
+        [frequencyDays, vehicleId],
+      );
+      
+      vehicle = updateRes.rows[0];
+      
+      logger.info(
+        `Calculated next service date for vehicle ${vehicleId}: frequency=${frequencyDays} days, next_date=${vehicle.next_service_date}`
+      );
+    } catch (err) {
+      logger.error("Failed to calculate next service date:", err.message);
+    }
+  }
 
   // Look up customer details
   const customerResult = await pool.query(
@@ -288,24 +352,6 @@ export const recordServiceSnapshotService = async (
     });
   } catch (err) {
     logger.error("Failed to dispatch service-complete notification:", err.message);
-  }
-
-  // Queue branded email
-  try {
-    await addEmailJob({
-      type: "service_complete",
-      to: customer.cusemail,
-      data: {
-        customerName: customer.cusname,
-        vehicleBrand: vehicle.vehbrand,
-        vehicleModel: vehicle.vehmodel,
-        vehiclePlate: vehicle.vehplate,
-        currentMileage,
-        nextServiceMileage,
-      },
-    });
-  } catch (err) {
-    logger.error("Failed to queue service-complete email:", err.message);
   }
 
   return vehicle;

@@ -9,6 +9,7 @@ const createVehicleTable = async (pool) => {
       fuel_type VARCHAR(20) CHECK (fuel_type IN ('Petrol', 'Diesel', 'Hybrid', 'Electric', 'Other')),
       vehcolor VARCHAR(30),
       next_service_mileage INT DEFAULT 0,
+      next_service_date DATE,
       manufacture_year INT,
       transmission VARCHAR(20) CHECK (transmission IN ('Manual', 'Automatic')),
       engine_capacity INT,
@@ -36,6 +37,10 @@ const createVehicleTable = async (pool) => {
 
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='vehicle' AND column_name='next_service_mileage') THEN
         ALTER TABLE vehicle ADD COLUMN next_service_mileage INT DEFAULT 0;
+      END IF;
+
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='vehicle' AND column_name='next_service_date') THEN
+        ALTER TABLE vehicle ADD COLUMN next_service_date DATE;
       END IF;
 
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='vehicle' AND column_name='manufacture_year') THEN
