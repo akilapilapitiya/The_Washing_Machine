@@ -11,17 +11,17 @@ const corsOptions = {
     const allowedOrigins =
       NODE_ENV === "production"
         ? [
-          process.env.CORS_ORIGIN,
-          "https://your-production-domain.com", // Example fallback
-        ].filter(Boolean)
+            process.env.CORS_ORIGIN,
+            "https://your-production-domain.com", // Example fallback
+          ].filter(Boolean)
         : [
-          // Development origins
-          "http://localhost:3000",
-          "http://localhost:5173",
-          "http://localhost:5174",
-          "http://127.0.0.1:3000",
-          "http://127.0.0.1:5173",
-        ];
+            // Development origins
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+          ];
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
