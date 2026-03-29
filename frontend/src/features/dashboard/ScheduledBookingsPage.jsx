@@ -351,7 +351,11 @@ const ScheduledBookingsPage = () => {
         booking.vehmodel,
         booking.vehplate,
         booking.services?.map((s) => s.servicename).join(" "),
-      ].some((value) => String(value || "").toLowerCase().includes(query));
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      );
 
     return matchesSearch;
   });
@@ -360,8 +364,18 @@ const ScheduledBookingsPage = () => {
     () => (
       <PageToolbar
         stats={[
-          { icon: Clock3, label: "Upcoming", value: upcomingBookings.length, iconClassName: "text-orange-500" },
-          { icon: CheckCircle, label: "Scheduled", value: bookings.filter((b) => b.bookingstatus === "pending").length, iconClassName: "text-blue-500" },
+          {
+            icon: Clock3,
+            label: "Upcoming",
+            value: upcomingBookings.length,
+            iconClassName: "text-orange-500",
+          },
+          {
+            icon: CheckCircle,
+            label: "Scheduled",
+            value: bookings.filter((b) => b.bookingstatus === "pending").length,
+            iconClassName: "text-blue-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
@@ -372,13 +386,16 @@ const ScheduledBookingsPage = () => {
   );
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Link to="/dashboard/book">
-      <Button className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm">
-        Book New Service
-      </Button>
-    </Link>
-  ), []);
+  const headerAction = React.useMemo(
+    () => (
+      <Link to="/dashboard/book">
+        <Button className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm">
+          Book New Service
+        </Button>
+      </Link>
+    ),
+    [],
+  );
 
   useSetPageHeader(
     "Bookings",
@@ -412,8 +429,12 @@ const ScheduledBookingsPage = () => {
           : `Vehicle ID: ${row.vehid}`;
         return (
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-gray-900 leading-tight">{vehicleName}</span>
-            <span className="text-[10px] font-mono text-gray-500 italic">{row.vehplate}</span>
+            <span className="text-sm font-bold text-gray-900 leading-tight">
+              {vehicleName}
+            </span>
+            <span className="text-[10px] font-mono text-gray-500 italic">
+              {row.vehplate}
+            </span>
           </div>
         );
       },
@@ -440,7 +461,10 @@ const ScheduledBookingsPage = () => {
       render: (row) => (
         <div className="flex flex-wrap gap-1 max-w-[200px]">
           {row.services?.map((s, idx) => (
-            <span key={idx} className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase">
+            <span
+              key={idx}
+              className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase"
+            >
               {s.servicename}
             </span>
           )) ?? <span className="text-[10px] text-gray-400 italic">—</span>}

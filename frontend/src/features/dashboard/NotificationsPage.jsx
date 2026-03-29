@@ -23,7 +23,8 @@ import DataTable from "@/components/common/DataTable";
 import PageToolbar from "@/components/common/PageToolbar";
 
 const NotificationsPage = () => {
-  const { notifications, markAsRead, markAllAsRead, loading } = useNotification();
+  const { notifications, markAsRead, markAllAsRead, loading } =
+    useNotification();
   const { user, isCustomer } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -40,28 +41,45 @@ const NotificationsPage = () => {
       notif.type,
       notif.booking_id ? `booking ${notif.booking_id}` : "",
       notif.is_read ? "read" : "unread",
-    ].some((value) => String(value || "").toLowerCase().includes(query));
+    ].some((value) =>
+      String(value || "")
+        .toLowerCase()
+        .includes(query),
+    );
   });
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Button
-      variant="outline"
-      className="hidden sm:flex h-10 px-5 text-sm font-medium text-gray-600 hover:text-red-600 bg-white border-gray-300"
-      onClick={markAllAsRead}
-      disabled={unreadCount === 0}
-    >
-      <CheckCircle size={14} className="mr-2" />
-      Mark all read
-    </Button>
-  ), [unreadCount, markAllAsRead]);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        variant="outline"
+        className="hidden sm:flex h-10 px-5 text-sm font-medium text-gray-600 hover:text-red-600 bg-white border-gray-300"
+        onClick={markAllAsRead}
+        disabled={unreadCount === 0}
+      >
+        <CheckCircle size={14} className="mr-2" />
+        Mark all read
+      </Button>
+    ),
+    [unreadCount, markAllAsRead],
+  );
 
   const toolbar = React.useMemo(
     () => (
       <PageToolbar
         stats={[
-          { icon: Bell, label: "Total", value: notifications.length, iconClassName: "text-blue-500" },
-          { icon: AlertTriangle, label: "Unread", value: unreadCount, iconClassName: "text-red-500" },
+          {
+            icon: Bell,
+            label: "Total",
+            value: notifications.length,
+            iconClassName: "text-blue-500",
+          },
+          {
+            icon: AlertTriangle,
+            label: "Unread",
+            value: unreadCount,
+            iconClassName: "text-red-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
@@ -146,7 +164,10 @@ const NotificationsPage = () => {
       key: "details",
       label: "Details",
       render: (row) => (
-        <div className="flex flex-col max-w-lg cursor-pointer" onClick={() => handleNotificationClick(row)}>
+        <div
+          className="flex flex-col max-w-lg cursor-pointer"
+          onClick={() => handleNotificationClick(row)}
+        >
           <span
             className={`text-sm text-gray-900 ${
               !row.is_read ? "font-bold" : "font-medium"
@@ -159,7 +180,8 @@ const NotificationsPage = () => {
           </span>
           {row.booking_id && (
             <div className="mt-1 flex items-center text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-              Booking #{String(row.booking_id).padStart(4, "0")} <ChevronRight size={10} className="ml-0.5" />
+              Booking #{String(row.booking_id).padStart(4, "0")}{" "}
+              <ChevronRight size={10} className="ml-0.5" />
             </div>
           )}
         </div>
@@ -210,7 +232,6 @@ const NotificationsPage = () => {
         emptySubtitle="We'll notify you when there are updates to your bookings, payments, or other important events."
       />
     </div>
-    
   );
 };
 

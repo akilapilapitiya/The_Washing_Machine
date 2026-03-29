@@ -46,7 +46,11 @@ const ServiceHistoryPage = () => {
         booking.vehbrand,
         booking.vehmodel,
         booking.services?.map((s) => s.servicename).join(" "),
-      ].some((value) => String(value || "").toLowerCase().includes(query));
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      );
 
     return matchesSearch;
   });
@@ -55,7 +59,12 @@ const ServiceHistoryPage = () => {
     () => (
       <PageToolbar
         stats={[
-          { icon: History, label: "Total", value: historyBookings.length, iconClassName: "text-gray-500" },
+          {
+            icon: History,
+            label: "Total",
+            value: historyBookings.length,
+            iconClassName: "text-gray-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
