@@ -1,5 +1,5 @@
-import logger from '../configs/logger.js';
-import pool from "../configs/database.js";
+import logger from "../../configs/logger.js";
+import pool from "../../configs/database.js";
 import { cleanAllData } from "./dataClean.script.js";
 
 async function main() {

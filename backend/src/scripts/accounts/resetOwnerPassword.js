@@ -1,7 +1,7 @@
-import logger from '../configs/logger.js';
-import pool from "../configs/database.js";
+import logger from "../../configs/logger.js";
+import pool from "../../configs/database.js";
 import bcrypt from "bcryptjs";
-import { SALT_ROUNDS } from "../configs/env.js";
+import { SALT_ROUNDS } from "../../configs/env.js";
 
 async function resetOwnerPassword() {
   const email = "owner@washingmachine.com";
