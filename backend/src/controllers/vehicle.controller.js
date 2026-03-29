@@ -8,6 +8,7 @@ import {
 } from "../services/vehicle.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// CREATE Vehicle
 export const createVehicle = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
@@ -43,6 +44,7 @@ export const createVehicle = async (req, res, next) => {
   }
 };
 
+// GET All Vehicles for Customer
 export const getCustomerVehicles = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -61,6 +63,7 @@ export const getCustomerVehicles = async (req, res, next) => {
   }
 };
 
+// GET Vehicle by ID
 export const getVehicle = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -76,6 +79,7 @@ export const getVehicle = async (req, res, next) => {
   }
 };
 
+// UPDATE Vehicle
 export const updateVehicle = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -91,6 +95,7 @@ export const updateVehicle = async (req, res, next) => {
   }
 };
 
+// DELETE Vehicle
 export const deleteVehicle = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware

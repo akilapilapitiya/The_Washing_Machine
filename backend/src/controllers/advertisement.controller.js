@@ -1,6 +1,7 @@
 import * as adService from "../services/advertisement.service.js";
 import { clearCacheByPattern } from "../configs/redis.js";
 
+// GET All Advertisements (public)
 export const getAdvertisements = async (req, res, next) => {
   try {
     const ads = await adService.getAllAdvertisementsService(false);
@@ -10,6 +11,7 @@ export const getAdvertisements = async (req, res, next) => {
   }
 };
 
+// GET All Advertisements (admin)
 export const getAdminAdvertisements = async (req, res, next) => {
   try {
     const ads = await adService.getAllAdvertisementsService(true);
@@ -19,6 +21,7 @@ export const getAdminAdvertisements = async (req, res, next) => {
   }
 };
 
+// CREATE Advertisement (admin)
 export const createAdvertisement = async (req, res, next) => {
   try {
     const adData = req.body;
@@ -33,6 +36,7 @@ export const createAdvertisement = async (req, res, next) => {
   }
 };
 
+// CREATE Advertisement Request (public)
 export const requestAdvertisement = async (req, res, next) => {
   try {
     const { title, client_name, client_contact } = req.body;
@@ -40,7 +44,7 @@ export const requestAdvertisement = async (req, res, next) => {
       title,
       client_name,
       client_contact,
-      status: 'requested'
+      status: "requested",
     });
     res.status(201).json({ success: true, data: ad });
   } catch (error) {
@@ -48,6 +52,7 @@ export const requestAdvertisement = async (req, res, next) => {
   }
 };
 
+// UPDATE Advertisement (admin)
 export const updateAdvertisement = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -63,6 +68,7 @@ export const updateAdvertisement = async (req, res, next) => {
   }
 };
 
+// DELETE Advertisement (admin)
 export const deleteAdvertisement = async (req, res, next) => {
   try {
     const { id } = req.params;

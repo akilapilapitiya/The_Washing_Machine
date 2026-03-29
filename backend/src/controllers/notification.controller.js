@@ -1,6 +1,7 @@
 import * as notificationService from "../services/notification.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET User Notifications
 export const getNotifications = async (req, res, next) => {
   try {
     const { id, role } = req.user;
@@ -14,6 +15,7 @@ export const getNotifications = async (req, res, next) => {
   }
 };
 
+// MARK Notification as Read
 export const markAsRead = async (req, res, next) => {
   try {
     const { id: notificationId } = req.params;
@@ -28,6 +30,7 @@ export const markAsRead = async (req, res, next) => {
   }
 };
 
+// MARK All Notifications as Read
 export const markAllRead = async (req, res, next) => {
   try {
     const { id, role } = req.user;

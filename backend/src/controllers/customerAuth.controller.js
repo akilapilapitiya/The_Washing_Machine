@@ -7,6 +7,7 @@ import {
 import { NODE_ENV, COOKIE_AGE } from "../configs/env.js";
 import { successResponse } from "../utils/response.util.js";
 
+// Customer Sign Up
 export const customerSignUp = async (req, res, next) => {
   try {
     const {
@@ -52,6 +53,7 @@ export const customerSignUp = async (req, res, next) => {
   }
 };
 
+// Customer Sign In
 export const customerSignIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;

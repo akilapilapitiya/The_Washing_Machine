@@ -9,6 +9,7 @@ import {
 } from "../services/booking.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET All Bookings
 export const getAllBookings = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -23,6 +24,7 @@ export const getAllBookings = async (req, res, next) => {
   }
 };
 
+// GET Booking by ID
 export const getBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -38,6 +40,7 @@ export const getBooking = async (req, res, next) => {
   }
 };
 
+// CREATE Booking
 export const createBooking = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
@@ -78,6 +81,7 @@ export const createBooking = async (req, res, next) => {
   }
 };
 
+// Resolve Booking Employee
 export const resolveBookingEmployee = async (req, res, next) => {
   try {
     const customerId = req.user.id;
@@ -98,6 +102,7 @@ export const resolveBookingEmployee = async (req, res, next) => {
   }
 };
 
+// UPDATE Booking
 export const updateBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -120,6 +125,7 @@ export const updateBooking = async (req, res, next) => {
   }
 };
 
+// DELETE Booking
 export const deleteBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -135,6 +141,7 @@ export const deleteBooking = async (req, res, next) => {
   }
 };
 
+// Reschedule Booking (admin)
 export const rescheduleBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
