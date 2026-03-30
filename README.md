@@ -113,9 +113,9 @@ All services run as Docker containers on a single Azure Virtual Machine. The Ngi
 
 | Role | Type | Capabilities |
 |---|---|---|
-| Customer | Customer account | Book services, manage vehicles, submit advertisement requests, payment history, feedback, real-time WebSocket notifications |
-| Employee | Employee account | View assigned jobs, update status, leave requests, incident filing, real-time job update alerts |
-| Cashier | Employee (`emptype=cashier`) | All employee capabilities + payment recording |
+| Customer | Customer account | Book services, manage vehicles, submit advertisement requests, payment history, feedback, Service Due Reminders, real-time WebSocket notifications |
+| Employee | Employee account | View assigned jobs, update status, Next Service Due tracking, leave requests, incident filing, real-time job update alerts |
+| Cashier | Employee (`emptype=cashier`) | All employee capabilities + unified payment recording with automated service card updates |
 | Owner | Employee (`emptype=owner`) | Full administrative access, marketplace ad management, daily schedule matrix locking, administrative service rescheduling, reports |
 
 ---
@@ -253,10 +253,11 @@ Proprietary software. All rights reserved.
 
 ---
 
-**Version:** 1.7.0
-**Last Updated:** March 22, 2026
+**Version:** 1.8.0
+**Last Updated:** March 30, 2026
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
 
 ## Recent Maintenance
 
 - March 29, 2026: Prettier and lint-driven clean up across backend/ frontend routes, scripts, and shared utilities. All Express routers now follow the same public/protected comment style, Telegram prompt strings live in a single helper, and seeding/maintenance scripts were consolidated under `src/scripts`. Dependency lists were pruned (`debug`, `morgan`, `dotenv` on the frontend) and `@jest/globals` was added for Jest suites.
+- March 30, 2026: Implemented the **"Service Due Reminder"** engine, integrating vehicle odometer tracking and automated next-service predictions into the booking lifecycle. Refined the **Payment Management** ledger by consolidating services and extras into a unified interface, renaming the transaction step to **"Complete Payment,"** and relaxing ledger constraints to allow for zero-price promotional items.
