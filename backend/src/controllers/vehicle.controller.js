@@ -5,6 +5,9 @@ import {
   getAllVehiclesByRoleService,
   updateVehicleService,
   deleteVehicleService,
+  recordServiceSnapshotService,
+  getServiceRemindersService,
+  sendServiceReminderService,
 } from "../services/vehicle.service.js";
 import { successResponse } from "../utils/response.util.js";
 
@@ -104,6 +107,55 @@ export const deleteVehicle = async (req, res, next) => {
     await deleteVehicleService(id, customerId);
 
     successResponse(res, 200, "Vehicle deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+// RECORD Service Snapshot (on booking completion)
+export const recordServiceSnapshot = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { currentMileage, nextServiceMileage, bookingId, isMaintenance } = req.body;
+
+    console.log("[DEBUG] Service Snapshot Request:", {
+      vehicleId: id,
+      currentMileage,
+      nextServiceMileage,
+      bookingId,
+      isMaintenance,
+      bodyRaw: req.body,
+    });
+
+    const vehicle = await recordServiceSnapshotService(id, {
+      currentMileage: Number(currentMileage),
+      nextServiceMileage: Number(nextServiceMileage),
+      bookingId: bookingId ? Number(bookingId) : null,
+      isMaintenance: Boolean(isMaintenance),
+    });
+
+    successResponse(res, 200, "Service snapshot recorded successfully", {
+      vehicle,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getServiceReminders = async (req, res, next) => {
+  try {
+    const reminders = await getServiceRemindersService();
+    successResponse(res, 200, "Service reminders fetched successfully", { reminders });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendServiceReminder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const response = await sendServiceReminderService(id);
+    successResponse(res, 200, "Reminder dispatched successfully", response);
   } catch (error) {
     next(error);
   }

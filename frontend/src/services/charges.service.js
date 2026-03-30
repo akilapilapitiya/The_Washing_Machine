@@ -19,3 +19,11 @@ export const updateItemPrice = async (extraId, price) => {
   });
   return response.data;
 };
+
+// Update base service price per booking (Cashier)
+export const updateServicePrice = async (bookingId, serviceId, price) => {
+  const response = await api.put(`/bookings/${bookingId}/services/${serviceId}/price`, {
+    price,
+  });
+  return response.data;
+};

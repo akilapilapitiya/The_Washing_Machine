@@ -8,6 +8,9 @@ import {
   NotFoundError,
   ValidationError,
 } from "../utils/errors.util.js";
+import { createNotificationService } from "./notification.service.js";
+import { addEmailJob } from "../queue/email.queue.js";
+import logger from "../configs/logger.js";
 
 // Create a vehicle
 export const createVehicleService = async ({
@@ -226,4 +229,204 @@ export const deleteVehicleService = async (id, customerId) => {
   }
 
   await pool.query("DELETE FROM vehicle WHERE id = $1", [id]);
+};
+
+// Record service snapshot on booking completion
+export const recordServiceSnapshotService = async (
+  vehicleId,
+  { currentMileage, nextServiceMileage, bookingId, isMaintenance },
+) => {
+  // Validate inputs
+  if (!currentMileage || currentMileage <= 0) {
+    throw new ValidationError("Current mileage must be greater than 0");
+  }
+  if (!nextServiceMileage || nextServiceMileage <= currentMileage) {
+    throw new ValidationError(
+      "Next service mileage must be greater than current mileage",
+    );
+  }
+
+  // Atomically update vehicle mileage
+  let vehicleResult = await pool.query(
+    `UPDATE vehicle
+     SET vehmileage = $1, next_service_mileage = $2, updated_at = NOW()
+     WHERE id = $3
+     RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage, next_service_date`,
+    [currentMileage, nextServiceMileage, vehicleId],
+  );
+
+  if (vehicleResult.rowCount === 0) {
+    throw new NotFoundError("Vehicle not found");
+  }
+
+  let vehicle = vehicleResult.rows[0];
+
+  // Process Next Service Date if flag is set
+  if (isMaintenance && bookingId) {
+    try {
+      // 1. Mark this booking as a maintenance service
+      await pool.query(
+        `UPDATE booking SET is_maintenance = true WHERE bookingid = $1`,
+        [bookingId],
+      );
+
+      // 2. Fetch past maintenance service dates
+      const datesRes = await pool.query(
+        `SELECT bookingdate FROM booking
+         WHERE vehid = $1 AND is_maintenance = true AND bookingstatus IN ('inProgress', 'completed', 'paid')
+         ORDER BY bookingdate ASC`,
+        [vehicleId],
+      );
+
+      let frequencyDays = 90; // Default fallback
+
+      if (datesRes.rowCount >= 2) {
+        // Calculate average days between services
+        const dates = datesRes.rows.map(r => new Date(r.bookingdate));
+        let totalDays = 0;
+        let intervals = 0;
+
+        for (let i = 1; i < dates.length; i++) {
+          const diffTime = Math.abs(dates[i] - dates[i-1]);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          totalDays += diffDays;
+          intervals++;
+        }
+
+        if (intervals > 0) {
+          frequencyDays = Math.round(totalDays / intervals);
+        }
+      } else {
+        // Fetch default frequency from settings
+        const settingsRes = await pool.query(
+          "SELECT value FROM sys_settings WHERE key = 'default_service_frequency_days'",
+        );
+        if (settingsRes.rowCount > 0 && settingsRes.rows[0].value) {
+          frequencyDays = parseInt(settingsRes.rows[0].value, 10) || 90;
+        }
+      }
+
+      // 3. Update vehicle next_service_date
+      const updateRes = await pool.query(
+        `UPDATE vehicle
+         SET next_service_date = CURRENT_DATE + $1::INTEGER, updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage, next_service_date`,
+        [frequencyDays, vehicleId],
+      );
+      
+      vehicle = updateRes.rows[0];
+      
+      logger.info(
+        `Calculated next service date for vehicle ${vehicleId}: frequency=${frequencyDays} days, next_date=${vehicle.next_service_date}`
+      );
+    } catch (err) {
+      logger.error("Failed to calculate next service date:", err.message);
+    }
+  }
+
+  // Look up customer details
+  const customerResult = await pool.query(
+    `SELECT cusid, TRIM(CONCAT_WS(' ', title, first_name, last_name)) as cusname, cusemail FROM customer WHERE cusid = $1`,
+    [vehicle.cusid],
+  );
+
+  const customer = customerResult.rows[0];
+
+  if (!customer) {
+    logger.warn(
+      `No customer found for vehicle ${vehicleId} (cusid: ${vehicle.cusid})`,
+    );
+    return vehicle;
+  }
+
+  // Dispatch in-app notification
+  try {
+    await createNotificationService({
+      recipientId: customer.cusid,
+      recipientRole: "customer",
+      title: "Service Complete",
+      message: `Your ${vehicle.vehbrand} ${vehicle.vehmodel} (${vehicle.vehplate}) service is complete! Current odometer: ${currentMileage.toLocaleString()} km.`,
+      type: "info",
+      bookingId: bookingId || null,
+    });
+  } catch (err) {
+    logger.error("Failed to dispatch service-complete notification:", err.message);
+  }
+
+  return vehicle;
+};
+
+// GET Service Reminders list
+export const getServiceRemindersService = async () => {
+  const result = await pool.query(`
+    SELECT
+      v.id as vehicle_id,
+      v.vehplate,
+      v.vehbrand,
+      v.vehmodel,
+      v.vehmileage,
+      v.next_service_mileage,
+      v.next_service_date,
+      c.cusid,
+      TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname,
+      c.cusemail,
+      c.custel
+    FROM vehicle v
+    JOIN customer c ON v.cusid = c.cusid
+    WHERE v.next_service_date IS NOT NULL
+    ORDER BY v.next_service_date ASC
+  `);
+
+  return result.rows;
+};
+
+// POST Send Service Reminder
+export const sendServiceReminderService = async (id) => {
+  const vehicleRes = await pool.query(`
+    SELECT
+      v.id, v.vehplate, v.vehbrand, v.vehmodel, v.vehmileage, v.next_service_mileage, v.next_service_date,
+      c.cusid, c.cusemail, TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname
+    FROM vehicle v
+    JOIN customer c ON v.cusid = c.cusid
+    WHERE v.id = $1
+  `, [id]);
+
+  if (vehicleRes.rowCount === 0) {
+    throw new NotFoundError("Vehicle not found");
+  }
+
+  const data = vehicleRes.rows[0];
+
+  // Queue Email Reminder
+  try {
+    await addEmailJob({
+      type: "service_reminder",
+      to: data.cusemail,
+      data: {
+        customerName: data.cusname,
+        vehicleBrand: data.vehbrand,
+        vehicleModel: data.vehmodel,
+        vehiclePlate: data.vehplate,
+        nextServiceMileage: data.next_service_mileage,
+      },
+    });
+  } catch (err) {
+    logger.error("Failed to queue service reminder email:", err.message);
+  }
+
+  // Dispatch App Notification
+  try {
+    await createNotificationService({
+      recipientId: data.cusid,
+      recipientRole: "customer",
+      title: "Service Reminder",
+      message: `Heads up! Your ${data.vehbrand} ${data.vehmodel} (${data.vehplate}) is almost due for its next service on ${data.next_service_date ? new Date(data.next_service_date).toLocaleDateString() : 'soon'}.`,
+      type: "warning",
+    });
+  } catch (err) {
+    logger.error("Failed to dispatch service reminder notification:", err.message);
+  }
+
+  return { message: "Reminder dispatched" };
 };

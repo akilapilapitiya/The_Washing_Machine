@@ -158,7 +158,7 @@ Tables are initialised in dependency order on server startup via `initModels()`.
 | `employee_leave` | Leave requests and approval status |
 | `employee_assigned` | Booking-to-employee assignment junction |
 | `vehicle_catalog` | Standardised vehicle type taxonomy |
-| `vehicle` | Customer-registered vehicles |
+| `vehicle` | Customer-registered vehicles (service trackers: mileage, next service date) |
 | `service` | Service definitions with pricing, duration, and active status |
 | `booking` | Core booking record; links customer, vehicle, and location |
 | `services_booked` | Booking line items (service + price snapshot at booking time) |
@@ -221,7 +221,7 @@ All routes are mounted under `/api`. Interactive documentation is available at `
 | `/api/authemployee` | Employee authentication | None (rate limited) | — |
 | `/api/advertisement` | Marketplace & Ad Requests | Varies | Public GET & POST (requests) |
 | `/api/booking` | Booking lifecycle | Required | Customer, Employee, Owner |
-| `/api/vehicle` | Customer vehicles | Required | Customer, Owner |
+| `/api/vehicle` | Customer vehicles & Service tracking | Required | Customer, Employee, Owner |
 | `/api/vehicle-catalog` | Vehicle type catalog | Required | Owner, public read |
 | `/api/service` | Service catalog | Required | Owner, public read |
 | `/api/employee` | Employee management | Required | Owner |
@@ -513,3 +513,4 @@ The specification is defined in YAML files under `src/docs/` and served via `swa
 ## Recent Maintenance
 
 - **March 29, 2026** — Applied Prettier formatting across controllers, middleware, and routes. Every Express router now follows a consistent `// Public routes` / `// Protected routes` comment scheme, Telegram bot text moved into `src/modules/chat/telegram.prompts.js`, and all scripts were consolidated under `src/scripts` (`accounts/`, `maintenance/`, `seed/`). Dependency cleanup removed `debug` and `morgan`, while `@jest/globals` was added to unbreak Jest suites.
+- **March 30, 2026** — Implemented "Next Service Due" reminder engine. Added vehicle odometer tracking and automated email/in-app service reminders triggered by booking completion. Refined the Payment management interface by consolidating "Extras" into the main ledger and renaming the final transaction step to "Complete Payment" for clarity. Relaxed payment validation to allow recording of Rs. 0.00 items when explicitly desired.

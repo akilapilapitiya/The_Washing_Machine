@@ -3,6 +3,7 @@ import {
   addExtraItem,
   removeExtraItem,
   updateItemPrice,
+  updateServicePrice,
 } from "../controllers/charges.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
@@ -27,6 +28,12 @@ chargesRouter.put(
   "/extras/:id/price",
   restrictTo("cashier", "manager", "owner"),
   updateItemPrice,
+);
+
+chargesRouter.put(
+  "/bookings/:bookingId/services/:serviceId/price",
+  restrictTo("cashier", "manager", "owner"),
+  updateServicePrice,
 );
 
 export default chargesRouter;

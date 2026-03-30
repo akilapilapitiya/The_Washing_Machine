@@ -210,6 +210,13 @@ const Sidebar = () => {
           nested
         />
         <SidebarItem
+          to="/dashboard/admin/reminders"
+          icon={Bell}
+          label="Service Reminders"
+          active={location.pathname === "/dashboard/admin/reminders"}
+          nested
+        />
+        <SidebarItem
           to="/dashboard/admin/services"
           icon={Settings}
           label="Services"

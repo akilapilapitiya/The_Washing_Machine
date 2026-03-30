@@ -29,6 +29,7 @@ import { useSetPageHeader } from "@/contexts/PageHeaderContext";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
 import * as chargesService from "@/services/charges.service";
+import * as vehicleService from "@/services/vehicle.service";
 import { toast } from "sonner";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { PageLoader } from "@/components/common/LoadingStates";
@@ -68,6 +69,11 @@ const ServiceDetailsPage = () => {
 
   // Reschedule State
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+
+  // Mileage Recording State (Service Snapshot)
+  const [showMileageModal, setShowMileageModal] = useState(false);
+  const [submittingSnapshot, setSubmittingSnapshot] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
 
   // Helpers Defined at Top to avoid TDZ
   const formatDate = (dateString) => {
@@ -113,6 +119,46 @@ const ServiceDetailsPage = () => {
       toast.error("Failed to update status.");
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Handle mileage submission + booking completion
+  const handleMileageSubmit = async (e) => {
+    e.preventDefault();
+    const mileageVal = Number(currentMileage);
+    const nextVal = Number(nextServiceMileage);
+
+    if (!mileageVal || mileageVal <= 0) {
+      toast.error("Current odometer must be greater than 0");
+      return;
+    }
+    if (!nextVal || nextVal <= mileageVal) {
+      toast.error("Next service mileage must be greater than current odometer");
+      return;
+    }
+
+    try {
+      setSubmittingSnapshot(true);
+
+      // Step 1: Record service snapshot
+      await vehicleService.recordServiceSnapshot(service.vehid, {
+        currentMileage: mileageVal,
+        nextServiceMileage: nextVal,
+        bookingId: parseInt(id),
+        isMaintenance: isMaintenance,
+      });
+
+      // Step 2: Transition booking to completed
+      await bookingService.updateBookingStatus(id, "completed");
+
+      setService((prev) => ({ ...prev, bookingstatus: "completed" }));
+      setShowMileageModal(false);
+      toast.success("Service completed and mileage recorded successfully");
+    } catch (err) {
+      console.error("Failed to complete service:", err);
+      toast.error(err?.response?.data?.message || "Failed to complete service");
+    } finally {
+      setSubmittingSnapshot(false);
     }
   };
 
@@ -230,7 +276,7 @@ const ServiceDetailsPage = () => {
 
             {isInProgress && (
               <BookingToolbarActionButton
-                onClick={() => handleStatusChange("completed")}
+                onClick={() => setShowMileageModal(true)}
                 disabled={updating}
                 className="bg-green-600 hover:bg-green-700"
               >
@@ -706,6 +752,121 @@ const ServiceDetailsPage = () => {
             onClose={() => setShowRescheduleModal(false)}
             onRescheduled={fetchServiceDetails}
           />
+        )}
+
+        {/* Mileage Recording Modal — mandatory before completion */}
+        {showMileageModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+            <Card className="w-full max-w-md shadow-2xl border-gray-200 rounded-xl overflow-hidden bg-white">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <Wrench size={16} className="text-green-600" /> Record Service
+                  Mileage
+                </CardTitle>
+                <X
+                  className="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors"
+                  size={18}
+                  onClick={() => setShowMileageModal(false)}
+                />
+              </div>
+              <CardContent className="p-6">
+                <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-800 font-semibold leading-relaxed">
+                    Recording the odometer reading is required before marking
+                    this service as complete. This enables automated next-service
+                    reminders for the customer.
+                  </p>
+                </div>
+                <form onSubmit={handleMileageSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Current Odometer (km)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={currentMileage}
+                      onChange={(e) => setCurrentMileage(e.target.value)}
+                      placeholder="e.g. 45000"
+                      required
+                      min="1"
+                      className="h-10 border-gray-200 font-semibold text-sm rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                      Next Service Due At (km)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={nextServiceMileage}
+                      onChange={(e) => setNextServiceMileage(e.target.value)}
+                      placeholder="e.g. 50000"
+                      required
+                      min="1"
+                      className="h-10 border-gray-200 font-semibold text-sm rounded-lg"
+                    />
+                    {currentMileage &&
+                      nextServiceMileage &&
+                      Number(nextServiceMileage) > Number(currentMileage) && (
+                        <p className="text-[10px] text-green-600 font-bold ml-1 mt-1">
+                          ≈{" "}
+                          {(Number(nextServiceMileage) - Number(currentMileage)).toLocaleString()}{" "}
+                          km until next service
+                        </p>
+                      )}
+                    {currentMileage &&
+                      nextServiceMileage &&
+                      Number(nextServiceMileage) <= Number(currentMileage) && (
+                        <p className="text-[10px] text-red-600 font-bold ml-1 mt-1">
+                          Must be greater than current odometer
+                        </p>
+                      )}
+                  </div>
+                  
+                  <div className="pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer p-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={isMaintenance}
+                        onChange={(e) => setIsMaintenance(e.target.checked)}
+                        className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">
+                        Use this service to calculate Next Service Due Date
+                      </span>
+                    </label>
+                  </div>
+                  
+                  <div className="flex gap-3 pt-4 mt-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex-1 text-xs font-bold uppercase text-gray-500"
+                      onClick={() => setShowMileageModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={
+                        submittingSnapshot ||
+                        !currentMileage ||
+                        !nextServiceMileage ||
+                        Number(nextServiceMileage) <= Number(currentMileage)
+                      }
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold uppercase text-xs tracking-widest rounded-lg shadow-md disabled:opacity-50"
+                    >
+                      {submittingSnapshot ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : (
+                        "Complete Service"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>
