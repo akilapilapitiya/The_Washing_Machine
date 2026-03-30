@@ -325,7 +325,7 @@ Full CRUD management interfaces for: employees, services, vehicle catalog, custo
 
 ### Employee Portal
 
-Service queue view showing assigned bookings with status update controls. Detailed service view per booking with customer, vehicle, and location details. Payment recording (cashier role). Leave request management. Incident filing.
+Service queue view showing assigned bookings with status update controls. Detailed service view per booking with customer, vehicle, and location details. Unified payment recording (cashier role) with a consolidated Charges Ledger for services and employee-added extras. Relaxed ledger validation allows processing zero-price items for promotional or free add-ons. Leave request management. Incident filing.
 
 ### Customer Dashboard
 
@@ -459,3 +459,4 @@ Test files reside alongside the features they test or in a dedicated `__tests__`
 ## Recent Maintenance
 
 - **March 29, 2026** — Ran Prettier across the SPA, pruned unused packages (`dotenv`, `tailwindcss` moved to dev-only, unused `tw-animate-css` verified), and centralized axios logging/health-check helpers. Route guards and layout files now share consistent comments, while the test harness still boots via `src/setupTests.js` to mock `localStorage`/`matchMedia`.
+- **March 30, 2026** — Refined the Payment Management interface by renaming the final transaction button to "Complete Payment" and relaxing ledger constraints to allow for Rs. 0.00 line items. Integrated "Service Card" mechanics into the vehicle management flow, enabling employees to update odometer readings and predict next service targets upon job completion.
