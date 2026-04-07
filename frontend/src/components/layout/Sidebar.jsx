@@ -300,6 +300,13 @@ const Sidebar = () => {
           nested
         />
         <SidebarItem
+          to="/dashboard/admin/reports/annual-income"
+          icon={BarChart3}
+          label="Annual Income"
+          active={location.pathname === "/dashboard/admin/reports/annual-income"}
+          nested
+        />
+        <SidebarItem
           to="/dashboard/admin/reports/employee-performance"
           icon={BarChart3}
           label="Employee Performance"

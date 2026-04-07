@@ -92,3 +92,24 @@ export const getDailyIncomeDetailedService = async (startDate, endDate) => {
 
   return result.rows;
 };
+
+/**
+ * Get monthly income report (last 12 months from a given reference date)
+ */
+export const getMonthlyIncomeReportService = async () => {
+  const result = await pool.query(
+    `
+    SELECT 
+      TO_CHAR(paymentdate, 'YYYY-MM') as month,
+      TO_CHAR(paymentdate, 'Mon YYYY') as month_label,
+      COUNT(*) as transaction_count,
+      SUM(paymentamount) as total_income
+    FROM payment
+    WHERE paymentdate::date >= (CURRENT_DATE - INTERVAL '12 months')
+    GROUP BY 1, 2
+    ORDER BY 1 ASC
+    `,
+  );
+
+  return result.rows;
+};

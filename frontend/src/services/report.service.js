@@ -29,6 +29,14 @@ export const getDailyIncomeDetailed = async (startDate, endDate) => {
 };
 
 /**
+ * Get monthly income report
+ */
+export const getMonthlyIncomeReport = async () => {
+  const response = await api.get("/report/monthly-income");
+  return response.data?.data?.report || [];
+};
+
+/**
  * Get employee performance report
  * @param {string} startDate
  * @param {string} endDate

@@ -42,6 +42,7 @@ const MyLeavesPage = lazy(() => import("./features/employee/MyLeavesPage"));
 const ManageVehicleCatalogPage = lazy(() => import("./features/admin/ManageVehicleCatalogPage"));
 const ManageIncidentsPage = lazy(() => import("./features/admin/ManageIncidentsPage"));
 const DailyIncomeReportPage = lazy(() => import("./features/admin/DailyIncomeReportPage"));
+const AnnualReportPage = lazy(() => import("./features/admin/AnnualReportPage"));
 const EmployeePerformanceReportPage = lazy(() => import("./features/admin/EmployeePerformanceReportPage"));
 const BookingReviewPage = lazy(() => import("./features/admin/BookingReviewPage"));
 const EmployeeIncidentPage = lazy(() => import("./features/employee/EmployeeIncidentPage"));
@@ -352,6 +353,14 @@ const App = () => {
               element={
                 <EmployeeProtectedRoute allowedRoles={["owner"]}>
                   <DailyIncomeReportPage />
+                </EmployeeProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/reports/annual-income"
+              element={
+                <EmployeeProtectedRoute allowedRoles={["owner"]}>
+                  <AnnualReportPage />
                 </EmployeeProtectedRoute>
               }
             />

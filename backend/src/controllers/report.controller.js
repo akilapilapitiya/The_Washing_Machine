@@ -1,6 +1,7 @@
 import {
   getDailyIncomeReportService,
   getDailyIncomeDetailedService,
+  getMonthlyIncomeReportService,
   getEmployeePerformanceReportService,
 } from "../services/report.service.js";
 import { successResponse } from "../utils/response.util.js";
@@ -63,3 +64,14 @@ export const getDailyIncomeDetailed = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET Monthly Income Report (last 12 months)
+export const getMonthlyIncomeReport = async (req, res, next) => {
+  try {
+    const report = await getMonthlyIncomeReportService();
+    successResponse(res, 200, "Monthly income report retrieved", { report });
+  } catch (error) {
+    next(error);
+  }
+};
+
