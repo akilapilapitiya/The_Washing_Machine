@@ -282,6 +282,13 @@ const Sidebar = () => {
           active={location.pathname === "/dashboard/admin/settings/pricing"}
           nested
         />
+        <SidebarItem
+          to="/dashboard/admin/settings/reminders"
+          icon={Bell}
+          label="Reminder Settings"
+          active={location.pathname === "/dashboard/admin/settings/reminders"}
+          nested
+        />
       </SidebarGroup>
 
       <SidebarGroup title="Reports" icon={BarChart3}>
