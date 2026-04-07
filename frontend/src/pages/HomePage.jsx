@@ -9,9 +9,9 @@ const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <HeroSection id="home" />
+      <ServicesSection id="services" />
       <AdvertisementCarousel />
       <PartnerSection id="partners" />
-      <ServicesSection id="services" />
       <Footer id="contact" />
     </div>
   );

@@ -143,107 +143,113 @@ const AdvertisementCarousel = () => {
   const canCallAdvertiser = Boolean(contactHref);
 
   return (
-    <section className="relative w-full py-16 bg-gray-50 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 space-y-8">
-        {/* Section Header */}
-        <div className="flex items-end justify-between gap-4 flex-wrap">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-bold uppercase tracking-[0.2em]">
-              Featured Partners
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
-              Discover Trusted Auto Partners
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl">
-              Mechanics, garages, oil brands, accessories, and vehicle care
-              products. Pick any listing to view advertiser details instantly.
-            </p>
+    <section className="relative w-full py-20 lg:py-32 overflow-hidden flex items-center justify-center">
+      {/* Ambient Blurred Background */}
+      <div className="absolute inset-0 w-full h-full z-0 bg-black overflow-hidden">
+        {spotlightAds.map((ad, index) => (
+          <div
+            key={`bg-${ad.id}`}
+            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${
+              index === currentIndex ? "opacity-50 z-10" : "opacity-0 z-0"
+            }`}
+          >
+            <img
+              src={buildImageUrl(ad.image_url)}
+              alt=""
+              className="h-full w-full object-cover blur-[40px] scale-110"
+            />
           </div>
-          {spotlightAds.length > 1 ? (
-            <button
-              type="button"
-              onClick={() => setIsPaused((prev) => !prev)}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 hover:border-red-200 hover:text-red-600 transition-all duration-300 shadow-sm"
-            >
-              {isPaused ? <Play size={14} /> : <Pause size={14} />}
-              {isPaused ? "Resume Autoplay" : "Pause Autoplay"}
-            </button>
-          ) : null}
-        </div>
+        ))}
+        {/* Extra dimming for contrast */}
+        <div className="absolute inset-0 bg-black/20 z-20"></div>
+      </div>
 
+      <div className="relative z-30 w-full max-w-5xl mx-auto px-4">
         <div
-          className="relative max-w-4xl mx-auto"
+          className="relative rounded-3xl overflow-hidden border-4 border-white/10 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] bg-black/40 flex flex-col"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          {/* Main Ad Poster */}
-          <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm flex flex-col">
-            <div className="relative h-[350px] md:h-[500px] shrink-0 bg-gray-100">
-              <img
-                loading="lazy"
-                src={buildImageUrl(activeAd.image_url)}
-                alt="Advertisement"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-
-              <div className="absolute top-4 left-4 right-4 flex items-start justify-between gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-gray-800 shadow-sm">
-                  <Megaphone size={12} />
-                  Sponsored Listing
-                </span>
-
-                {expiryMeta ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
-                    <Clock3 size={12} />
-                    {expiryMeta}
-                  </span>
-                ) : null}
-              </div>
-
-              {spotlightAds.length > 1 ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/80 text-gray-800 hover:bg-white shadow-sm transition-colors border border-gray-100"
-                    aria-label="Previous advertisement"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/80 text-gray-800 hover:bg-white shadow-sm transition-colors border border-gray-100"
-                    aria-label="Next advertisement"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </>
-              ) : null}
-
-              {spotlightAds.length > 1 ? (
-                <div className="absolute left-0 right-0 bottom-0 h-1 bg-black/10">
-                  <div
-                    className="h-full bg-red-500 transition-[width] duration-100 ease-linear"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              ) : null}
-            </div>
-
-            <div className="p-4 md:p-6 bg-white flex justify-center items-center border-t border-gray-100">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="bg-white border border-gray-200 hover:bg-gray-50 rounded-lg font-semibold shadow-sm px-8 h-12 text-gray-700"
+          {/* Main Ad Poster wrapper */}
+          <div className="relative h-[450px] md:h-[600px] w-full shrink-0">
+            {spotlightAds.map((ad, index) => {
+              const itemExpiryMeta = getExpiryMeta(ad.expiry_date);
+              return (
+                <div
+                  key={`fg-${ad.id}`}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                  }`}
                 >
-                  <Link to="/marketplace">
-                    Post Your Ad With Us
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-            </div>
+                  <img
+                    loading="lazy"
+                    src={buildImageUrl(ad.image_url)}
+                    alt="Advertisement"
+                    className="h-full w-full object-cover"
+                  />
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+                  <div className="absolute top-6 left-6 right-6 flex items-start justify-between gap-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-md px-4 py-1.5 text-xs font-bold text-gray-900 shadow-sm">
+                      <Megaphone size={14} />
+                      Sponsored
+                    </span>
+
+                    {itemExpiryMeta ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm">
+                        <Clock3 size={14} />
+                        {itemExpiryMeta}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Controls */}
+            {spotlightAds.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={prevSlide}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-white hover:text-black shadow-lg transition-all border border-white/20"
+                  aria-label="Previous advertisement"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextSlide}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-white hover:text-black shadow-lg transition-all border border-white/20"
+                  aria-label="Next advertisement"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            ) : null}
+
+            {/* Progress bar inside poster */}
+            {spotlightAds.length > 1 ? (
+              <div className="absolute left-0 right-0 bottom-0 h-1.5 bg-black/30 z-20">
+                <div
+                  className="h-full bg-red-500 transition-[width] duration-100 ease-linear shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            ) : null}
+          </div>
+
+          <div className="p-4 bg-white/10 backdrop-blur-2xl flex justify-center items-center border-t border-white/10 z-30">
+            <Button
+              asChild
+              className="bg-red-600 hover:bg-red-700 rounded-xl font-bold shadow-lg px-10 h-12 text-white"
+            >
+              <Link to="/marketplace">
+                Post Your Ad With Us
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

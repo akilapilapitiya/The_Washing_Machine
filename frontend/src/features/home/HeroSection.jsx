@@ -34,109 +34,82 @@ const HeroSection = ({ id }) => {
   return (
     <section
       id={id}
-      className="relative min-h-screen flex items-center bg-gradient-to-br from-neutral-50 to-gray-100 overflow-hidden pt-24 pb-16 lg:pt-0"
+      className="relative min-h-[90vh] lg:min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-20 lg:pt-0"
     >
-      {/* Clean Background */}
-      <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-br from-white to-gray-50/50"></div>
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-          {/* Left Side: Typography & CTA */}
-          <div className="space-y-8 max-w-2xl px-2 lg:px-0">
-            {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight">
-              Unleash the <br className="hidden sm:block" />
-              <span className="text-red-600">Shine</span> Your Car Deserves.
-            </h1>
-
-            {/* Subhead */}
-            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">
-              Experience meticulous car care delivered by experts. We combine
-              cutting-edge tech with premium products to restore your vehicle's
-              showroom glory.
-            </p>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Button
-                asChild
-                size="lg"
-                className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white text-lg font-semibold shadow-sm transition-all group"
-              >
-                <Link to="/dashboard/book">
-                  Book Service Now
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-14 px-8 text-lg font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-all bg-white shadow-sm"
-              >
-                <a href="#services">Explore Services</a>
-              </Button>
-            </div>
+      {/* Full Background Slideshow */}
+      <div className="absolute inset-0 w-full h-full z-0 bg-black overflow-hidden">
+        {images.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${
+              index === currentImageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
+          >
+            <img
+              src={image}
+              alt={`Background ${index + 1}`}
+              className={`h-full w-full object-cover blur-[4px] transition-transform duration-[6000ms] ease-linear ${
+                index === currentImageIndex ? "scale-110" : "scale-105"
+              }`}
+            />
+            {/* Dark overlay to highlight text */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/50 z-20"></div>
           </div>
+        ))}
+      </div>
 
-          {/* Right Side: Dynamic Visual / Slideshow */}
-          <div className="relative w-full aspect-square lg:aspect-[4/5] max-w-md mx-auto lg:ml-auto mt-12 lg:mt-0">
-            {/* Main Image Slideshow Container */}
-            <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-lg ring-1 ring-gray-200 bg-gray-100">
-              {images.map((image, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                    index === currentImageIndex
-                      ? "opacity-100 scale-105"
-                      : "opacity-0 scale-100"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`Car wash service ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                  {/* Subtle vignette gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/10 to-transparent"></div>
-                </div>
-              ))}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl relative z-10 text-center flex flex-col items-center">
+        
+        {/* Headline */}
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight mb-6">
+          Unleash the <br className="hidden sm:block" />
+          <span className="text-red-500">Shine</span> Your Car Deserves.
+        </h1>
 
-              {/* Image Navigation Dots inside container */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                {images.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${
-                      index === currentImageIndex
-                        ? "bg-white w-6 opacity-100"
-                        : "bg-white/50 w-1.5 opacity-70 hover:opacity-100 hover:bg-white"
-                    }`}
-                    aria-label={`Go to image ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
+        {/* Subhead */}
+        <p className="text-lg sm:text-xl text-gray-300 font-medium leading-relaxed max-w-2xl mb-10">
+          Experience meticulous car care delivered by experts. We combine
+          cutting-edge tech with premium products to restore your vehicle's
+          showroom glory.
+        </p>
 
-            {/* Floating Card */}
-            <div className="absolute -right-4 sm:-right-8 bottom-24 bg-white rounded-xl p-4 shadow-lg border border-gray-100 transition-transform duration-500 hover:-translate-y-1">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600">
-                  <Clock size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">
-                    Fast Service
-                  </p>
-                  <p className="text-sm font-bold text-gray-900">
-                    Under 45 Mins
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
+          <Button
+            asChild
+            size="lg"
+            className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white text-base lg:text-lg font-bold shadow-2xl transition-all duration-300 group rounded-xl"
+          >
+            <Link to="/dashboard/book">
+              Book Service Now
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="h-14 px-8 text-base lg:text-lg font-bold border-2 border-white/20 text-white hover:bg-white hover:text-gray-900 transition-all duration-300 bg-white/5 backdrop-blur-md shadow-2xl rounded-xl"
+          >
+            <a href="#services">Explore Services</a>
+          </Button>
         </div>
+      </div>
+
+      {/* Image Navigation Dots */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentImageIndex(index)}
+            className={`h-1.5 rounded-full transition-all duration-500 shadow-sm ${
+              index === currentImageIndex
+                ? "bg-red-500 w-10 opacity-100"
+                : "bg-white/40 w-2 opacity-100 hover:bg-white"
+            }`}
+            aria-label={`Go to image ${index + 1}`}
+          />
+        ))}
       </div>
     </section>
   );
