@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Loader2, Search, Sparkles, Package, Wrench, Tag } from "lucide-react";
+import { Loader2, Search, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ServiceCard from "@/components/ServiceCard";
 import ServiceDetailsModal from "./ServiceDetailsModal";
 import * as serviceService from "@/services/service.service";
 import { Button } from "@/components/ui/button";
-
+import Footer from "../home/Footer";
 import { toast } from "sonner";
 
 const isOfferActive = (service) => {
@@ -108,107 +108,94 @@ const ServicesPage = () => {
   }, [activeFilter, searchQuery, services]);
 
   const filters = [
-    { key: "all", label: "All Services", icon: Sparkles, count: counts.all },
-    {
-      key: "packages",
-      label: "Packages",
-      icon: Package,
-      count: counts.packages,
-    },
-    { key: "addons", label: "Add-ons", icon: Wrench, count: counts.addons },
-    { key: "offers", label: "Offers", icon: Tag, count: counts.offers },
+    { key: "all", label: "All Services", count: counts.all },
+    { key: "packages", label: "Packages", count: counts.packages },
+    { key: "addons", label: "Add-ons", count: counts.addons },
+    { key: "offers", label: "Live Offers", count: counts.offers },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white">
-      <div className="container mx-auto px-4 py-14 space-y-10">
-        <div className="max-w-3xl space-y-3">
-          <p className="text-sm uppercase tracking-wider text-red-600 font-bold">
-            Service Catalog
-          </p>
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="container mx-auto px-4 py-16 lg:py-24 space-y-16 max-w-7xl flex-1">
+        
+        {/* Header Section */}
+        <div className="text-center flex flex-col items-center">
+
+          <h1 className="text-4xl lg:text-6xl font-black text-gray-900 leading-tight">
             All Services, One Place
           </h1>
-          <p className="text-gray-600">
-            Browse every package and add-on. Use filters to quickly discover
-            what fits your vehicle care goals and budget.
-          </p>
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white p-4 sm:p-5 shadow-sm space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {filters.map((filter) => {
-              const Icon = filter.icon;
-
-              return (
-                <Button
-                  key={filter.key}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setActiveFilter(filter.key)}
-                  className={`h-11 justify-start rounded-full border px-4 text-xs sm:text-sm font-semibold transition-all ${
-                    activeFilter === filter.key
-                      ? "border-red-200 bg-red-50 text-red-700 shadow-sm"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon size={16} className="mr-2 shrink-0" />
-                  <span>{filter.label}</span>
-                  <span
-                    className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold border ${activeFilter === filter.key ? "bg-white text-red-600 border-red-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}
-                  >
-                    {filter.count}
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
-
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col items-center space-y-8">
+          {/* Search Input */}
+          <div className="w-full max-w-2xl relative group">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <Search size={20} className="text-gray-400 group-focus-within:text-red-500 transition-colors" />
+            </div>
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search services, categories, or offer labels"
-              className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-3 text-sm outline-none focus:border-red-300 focus:bg-white focus:ring-2 focus:ring-red-100 transition-colors"
+              placeholder="Search services, categories, or offer labels..."
+              className="h-14 w-full rounded-2xl border border-gray-200 bg-white pl-14 pr-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-red-300 transition-all shadow-sm font-medium"
             />
+          </div>
+
+          {/* Premium Filter Tabs */}
+          <div className="flex flex-wrap justify-center gap-3">
+            {filters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setActiveFilter(filter.key)}
+                className={`h-12 px-8 rounded-xl text-sm font-black tracking-tight transition-all duration-300 flex items-center gap-4 border ${
+                  activeFilter === filter.key
+                    ? "bg-gray-900 text-white border-gray-900 shadow-xl shadow-gray-200"
+                    : "bg-white text-gray-400 border-gray-100 hover:border-red-200 hover:text-red-600 shadow-sm"
+                }`}
+              >
+                {filter.label}
+                <span
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-colors ${
+                    activeFilter === filter.key ? "bg-white/10 text-gray-300" : "bg-gray-50 text-gray-400"
+                  }`}
+                >
+                  {filter.count}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
+        {/* Results Section */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-red-600" />
-              <p className="text-gray-600">Loading services...</p>
-            </div>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-64 rounded-3xl bg-gray-50 animate-pulse border border-gray-100" />
+            ))}
           </div>
         ) : filteredServices.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-gray-700 font-semibold mb-2">
-                No services match this view.
-              </p>
-              <p className="text-gray-500 mb-6">
-                Try another filter or clear your search.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setActiveFilter("all");
-                  setSearchQuery("");
-                }}
-                className="border-gray-300"
-              >
-                Reset Filters
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200 text-center">
+            <AlertCircle size={48} className="text-gray-200 mb-4" />
+            <p className="text-gray-900 text-xl font-black mb-2">
+              No services match your search.
+            </p>
+            <p className="text-gray-500 mb-8 max-w-xs">
+              Try adjusting your filters or search keywords to find what you need.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setActiveFilter("all");
+                setSearchQuery("");
+              }}
+              className="rounded-xl border-gray-200 h-10 px-6 font-bold"
+            >
+              Reset All Filters
+            </Button>
+          </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {filteredServices.map((service) => (
               <ServiceCard
                 key={service.serviceid}
@@ -219,6 +206,8 @@ const ServicesPage = () => {
           </div>
         )}
       </div>
+
+      <Footer id="contact" />
 
       {selectedService && (
         <ServiceDetailsModal
