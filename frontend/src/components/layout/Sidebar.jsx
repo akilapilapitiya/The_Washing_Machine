@@ -253,8 +253,8 @@ const Sidebar = () => {
         />
         <SidebarItem
           to="/dashboard/admin/attendance"
-          icon={Calendar}
-          label="Attendance"
+          icon={Umbrella}
+          label="Employee Leaves"
           active={location.pathname === "/dashboard/admin/attendance"}
           nested
         />
