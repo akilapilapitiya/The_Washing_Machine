@@ -130,32 +130,25 @@ const ServicesSection = ({ id }) => {
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-16 flex flex-col items-center">
-          <div className="inline-block px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
-            What We Offer
-          </div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
             Premium Services & Live Offers
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl text-center">
-            Explore our premium workmanship gallery, then browse the services
-            that are currently running special offer pricing.
-          </p>
         </div>
 
         {/* Visual Showcase Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-24">
           {[img1, img2, img3, img4].map((img, index) => (
             <div
               key={index}
-              className="relative group overflow-hidden rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              className="relative group overflow-hidden rounded-[2rem] shadow-lg border border-gray-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-red-100"
             >
               <img
                 loading="lazy"
                 src={img}
                 alt={`Premium Service ${index + 1}`}
-                className="w-full h-auto block object-cover"
+                className="w-full h-full aspect-[4/5] object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
           ))}
         </div>
@@ -188,19 +181,11 @@ const ServicesSection = ({ id }) => {
         {!loading && !error && activeOfferServices.length > 0 && (
           <>
             <div className="space-y-8 mb-16">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="border-l-4 border-red-600 pl-4">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Services On Offer Right Now
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+                <div>
+                  <h3 className="text-3xl font-black text-gray-900">
+                    Live Offers
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Limited-time pricing on selected services
-                  </p>
-                </div>
-                <div className="self-start sm:self-auto">
-                  <span className="bg-red-600 text-white rounded-full text-[10px] font-bold uppercase tracking-wider px-3 py-1">
-                    Limited Time
-                  </span>
                 </div>
               </div>
 
