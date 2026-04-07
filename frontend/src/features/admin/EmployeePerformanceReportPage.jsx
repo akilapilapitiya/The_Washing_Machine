@@ -10,8 +10,10 @@ import {
   DollarSign,
   Users,
   Briefcase,
+  Printer,
 } from "lucide-react";
 import * as reportService from "@/services/report.service";
+import { printEmployeePerformanceReport } from "@/utils/employeeReport";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -159,19 +161,35 @@ const EmployeePerformanceReportPage = () => {
     [endDate, maxDate, report.length, startDate, topPerformer, totalJobs],
   );
 
+  const handlePrintReport = React.useCallback(() => {
+    if (!report.length) return;
+    printEmployeePerformanceReport(report, startDate, endDate);
+  }, [report, startDate, endDate]);
+
   const headerAction = React.useMemo(
     () => (
-      <Button
-        variant="outline"
-        onClick={handleDownload}
-        disabled={report.length === 0}
-        className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
-      >
-        <Download size={16} className="mr-2" />
-        Export CSV
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={handlePrintReport}
+          disabled={report.length === 0}
+          className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+        >
+          <Printer size={16} className="mr-2" />
+          Print Report
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleDownload}
+          disabled={report.length === 0}
+          className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+        >
+          <Download size={16} className="mr-2" />
+          Export CSV
+        </Button>
+      </div>
     ),
-    [report.length, handleDownload],
+    [report.length, handleDownload, handlePrintReport],
   );
 
   useSetPageHeader(
