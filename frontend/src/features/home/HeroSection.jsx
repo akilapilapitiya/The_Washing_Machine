@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Sparkles,
-  Clock,
-  Shield,
-  Star,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 // Import hero section images
 import image1 from "@/assets/heroSection/image1.jpg";
@@ -23,94 +15,97 @@ const HeroSection = ({ id }) => {
   const images = [image1, image2, image3, image4, image5, image6];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Auto-advance slideshow every 5 seconds
+  // Auto-advance slideshow every 6 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [images.length]);
 
   return (
     <section
       id={id}
-      className="relative min-h-[90vh] lg:min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-20 lg:pt-0"
+      className="relative h-screen min-h-[700px] w-full flex items-center overflow-hidden bg-black"
     >
-      {/* Full Background Slideshow */}
-      <div className="absolute inset-0 w-full h-full z-0 bg-black overflow-hidden">
+      {/* Cinematic Background Canvas */}
+      <div className="absolute inset-0 z-0">
         {images.map((image, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${
-              index === currentImageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+            className={`absolute inset-0 transition-all duration-[2000ms] ease-in-out transform ${
+              index === currentImageIndex ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0"
             }`}
           >
             <img
               src={image}
-              alt={`Background ${index + 1}`}
-              className={`h-full w-full object-cover blur-[4px] transition-transform duration-[6000ms] ease-linear ${
-                index === currentImageIndex ? "scale-110" : "scale-105"
-              }`}
+              alt={`Exhibition ${index + 1}`}
+              className="h-full w-full object-cover"
             />
-            {/* Dark overlay to highlight text */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/50 z-20"></div>
+            {/* Architectural Vignette Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent z-20"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-20"></div>
           </div>
         ))}
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl relative z-10 text-center flex flex-col items-center">
+      <div className="container mx-auto px-6 lg:px-12 relative z-30 flex flex-col items-start pt-20">
+        {/* Top Accent Bar */}
+        <div className="h-1 w-12 bg-red-600 mb-8 animate-in slide-in-from-left duration-700"></div>
         
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight mb-6">
-          Unleash the <br className="hidden sm:block" />
-          <span className="text-red-500">Shine</span> Your Car Deserves.
-        </h1>
+        {/* Monolithic Typography */}
+        <div className="max-w-5xl">
+          <h1 className="text-6xl sm:text-7xl lg:text-9xl font-black text-white leading-[0.85] tracking-tighter mb-8 uppercase animate-in fade-in slide-in-from-bottom-10 duration-700 ease-out">
+            Precision <br />
+            Performance <br />
+            Perfection.
+          </h1>
 
-        {/* Subhead */}
-        <p className="text-lg sm:text-xl text-gray-300 font-medium leading-relaxed max-w-2xl mb-10">
-          Experience meticulous car care delivered by experts. We combine
-          cutting-edge tech with premium products to restore your vehicle's
-          showroom glory.
-        </p>
+          <p className="text-base sm:text-lg text-gray-400 font-medium max-w-xl mb-12 leading-relaxed tracking-wide animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+            Meticulous car care delivered by experts. We combine cutting-edge tech with premium products to restore your vehicle's showroom glory.
+          </p>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
-          <Button
-            asChild
-            size="lg"
-            className="h-14 px-8 bg-red-600 hover:bg-red-700 text-white text-base lg:text-lg font-bold shadow-2xl transition-all duration-300 group rounded-xl"
-          >
-            <Link to="/dashboard/book">
-              Book Service Now
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="h-14 px-8 text-base lg:text-lg font-bold border-2 border-white/20 text-white hover:bg-white hover:text-gray-900 transition-all duration-300 bg-white/5 backdrop-blur-md shadow-2xl rounded-xl"
-          >
-            <a href="#services">Explore Services</a>
-          </Button>
+          {/* Boutique Call to Action */}
+          <div className="flex animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <Button
+              asChild
+              className="h-16 px-12 bg-red-600 hover:bg-red-700 text-white text-lg font-black rounded-none shadow-[0_20px_50px_rgba(220,38,38,0.3)] transition-all group border-none uppercase tracking-[0.2em]"
+            >
+              <Link to="/dashboard/book">
+                Book Service
+                <ArrowRight className="ml-4 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Image Navigation Dots */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentImageIndex(index)}
-            className={`h-1.5 rounded-full transition-all duration-500 shadow-sm ${
-              index === currentImageIndex
-                ? "bg-red-500 w-10 opacity-100"
-                : "bg-white/40 w-2 opacity-100 hover:bg-white"
-            }`}
-            aria-label={`Go to image ${index + 1}`}
-          />
-        ))}
+      {/* Industrial Slide Counter HUD */}
+      <div className="absolute bottom-12 left-6 lg:left-12 z-30 flex items-center gap-6">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Showcase</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xl font-black text-white font-mono">
+              0{(currentImageIndex + 1)}
+            </span>
+            <div className="w-20 h-[2px] bg-white/20 relative">
+              <div 
+                className="absolute top-0 left-0 h-full bg-red-600 transition-all duration-[2000ms] ease-in-out"
+                style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }}
+              />
+            </div>
+            <span className="text-xl font-black text-white/40 font-mono">
+              0{images.length}
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* Side Decorative line */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 h-40 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+
+      {/* Section Transition Gradient (Bottom) */}
+      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-white to-transparent z-[25] pointer-events-none"></div>
     </section>
   );
 };

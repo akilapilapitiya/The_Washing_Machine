@@ -126,13 +126,17 @@ const ServicesSection = ({ id }) => {
   );
 
   return (
-    <section id={id} className="py-16 lg:py-20 bg-white">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Section Header */}
-        <div className="text-center mb-16 flex flex-col items-center">
-          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
-            Premium Services & Live Offers
+    <section id={id} className="pt-28 pb-20 bg-white">
+      <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
+        {/* Section Header - Left Aligned to match Brand Path */}
+        <div className="mb-20">
+          <div className="h-[1px] w-12 bg-red-600 mb-6"></div>
+          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight uppercase tracking-tighter mb-4">
+            Services & Exclusive Offers
           </h2>
+          <p className="text-gray-500 font-medium max-w-xl">
+            Explore our meticulously curated service selection. From express maintenance to high-end detailing, were store your vehicle to its peak condition.
+          </p>
         </div>
 
         {/* Visual Showcase Gallery */}
