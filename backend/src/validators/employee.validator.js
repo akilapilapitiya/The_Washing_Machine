@@ -68,7 +68,7 @@ export const employeeValidator = {
   }).min(1),
 
   loginEmployee: Joi.object({
-    email: Joi.string().email().required().messages({
+    email: Joi.string().trim().lowercase().email().required().messages({
       "string.email": "Must be a valid email address",
       "any.required": "Email is required",
     }),

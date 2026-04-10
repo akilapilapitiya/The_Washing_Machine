@@ -10,7 +10,7 @@ async function updateOwnerEmail() {
       `UPDATE employee 
        SET email = $1 
        WHERE emptype = 'owner' OR roleid = (SELECT roleid FROM role WHERE rolename = 'owner')
-       RETURNING empid, empname, email`,
+       RETURNING empid, first_name, last_name, email`,
       [newEmail],
     );
 

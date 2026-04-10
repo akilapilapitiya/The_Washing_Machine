@@ -104,15 +104,21 @@ export const signUp = async ({
 
 // Signin function
 export const signIn = async ({ email, password }) => {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!normalizedEmail || !password) {
+    throw new UnauthorizedError("Invalid email or password");
+  }
+
   const result = await pool.query(
     `
     SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, e.password_hash, 
            e.first_name || ' ' || e.last_name AS empname, r.rolename, e.profile_picture_url 
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
-    WHERE e.email = $1
+    WHERE LOWER(TRIM(e.email)) = $1
     `,
-    [email],
+    [normalizedEmail],
   );
 
   if (result.rowCount === 0) {

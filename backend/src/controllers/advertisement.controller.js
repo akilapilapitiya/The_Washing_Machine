@@ -28,6 +28,10 @@ export const createAdvertisement = async (req, res, next) => {
     if (req.file) {
       adData.image_url = `/uploads/ads/${req.file.filename}`;
     }
+    // Handle string booleans from FormData
+    if (adData.is_active === "true") adData.is_active = true;
+    if (adData.is_active === "false") adData.is_active = false;
+
     const ad = await adService.createAdvertisementService(adData);
     await clearCacheByPattern("cache:/api/advertisement*");
     res.status(201).json({ success: true, data: ad });
@@ -44,7 +48,7 @@ export const requestAdvertisement = async (req, res, next) => {
       title,
       client_name,
       client_contact,
-      status: "requested",
+      is_active: false,
     });
     res.status(201).json({ success: true, data: ad });
   } catch (error) {
@@ -60,6 +64,10 @@ export const updateAdvertisement = async (req, res, next) => {
     if (req.file) {
       adData.image_url = `/uploads/ads/${req.file.filename}`;
     }
+    // Handle string booleans from FormData
+    if (adData.is_active === "true") adData.is_active = true;
+    if (adData.is_active === "false") adData.is_active = false;
+
     const ad = await adService.updateAdvertisementService(id, adData);
     await clearCacheByPattern("cache:/api/advertisement*");
     res.json({ success: true, data: ad });
