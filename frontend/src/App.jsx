@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EmployeeProtectedRoute from "@/components/EmployeeProtectedRoute";
+import CustomerProtectedRoute from "@/components/CustomerProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
 import AuthLayout from "./components/layout/AuthLayout";
 const Home = lazy(() => import("./pages/Home"));
@@ -99,41 +100,41 @@ const App = () => {
             <Route
               path="book"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <Booking />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="bookings"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <ScheduledBookingsPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="history"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <ServiceHistoryPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="payments"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <PaymentHistoryPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="feedback"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <Feedback />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
@@ -155,9 +156,9 @@ const App = () => {
             <Route
               path="vehicles"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <Vehicles />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
@@ -173,49 +174,49 @@ const App = () => {
             <Route
               path="booking/services"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <ServiceSelectionPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="booking/addons"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <AddonsSelectionPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="booking/location"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <LocationSelectionPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="booking/employee"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <EmployeeSelectionPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="booking/datetime"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <DateTimeSelectionPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
             <Route
               path="booking/confirmation"
               element={
-                <ProtectedRoute>
+                <CustomerProtectedRoute>
                   <BookingConfirmationPage />
-                </ProtectedRoute>
+                </CustomerProtectedRoute>
               }
             />
 
