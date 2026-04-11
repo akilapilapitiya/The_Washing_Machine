@@ -12,7 +12,7 @@ A full-stack vehicle service booking platform for modern automotive businesses. 
 The_Washing_Machine/
 ├── backend/              # Node.js + Express REST API
 ├── frontend/             # React + Vite SPA
-├── terraform/            # Azure infrastructure (IaC)
+├── terraform/            # AWS infrastructure (IaC)
 ├── .github/workflows/    # GitHub Actions (mirror to GitLab)
 ├── .gitlab-ci.yml        # CI/CD pipeline definition
 ├── docker-compose.yml    # Local development stack
@@ -23,7 +23,7 @@ Each subdirectory contains its own `README.md` with detailed documentation:
 
 - [backend/README.md](./backend/README.md) — API architecture, routes, database schema, auth, testing
 - [frontend/README.md](./frontend/README.md) — SPA architecture, routing, state management, build
-- [terraform/README.md](./terraform/README.md) — Azure resources, NSG rules, VM spec, state management
+- [terraform/README.md](./terraform/README.md) — AWS resources, Security Groups, EC2 spec, state management
 
 ---
 
@@ -53,7 +53,7 @@ Nginx (HTTP/2 + Gzip)              ← React SPA + Let's Encrypt SSL
                                              (employee notifications)
 ```
 
-All services run as Docker containers on a single Azure Virtual Machine. The Nginx frontend container serves static assets with high parallelism and proxies /api requests to a Node.js cluster managed by PM2. API performance is accelerated by an integrated Redis Edge Caching layer.
+All services run as Docker containers on a single AWS EC2 Instance. The Nginx frontend container serves static assets with high parallelism and proxies /api requests to a Node.js cluster managed by PM2. API performance is accelerated by an integrated Redis Edge Caching layer.
 
 ---
 
@@ -98,9 +98,9 @@ All services run as Docker containers on a single Azure Virtual Machine. The Ngi
 
 | Category | Technology |
 |---|---|
-| Cloud | Microsoft Azure (East US) |
-| IaC | Terraform + AzureRM provider |
-| Compute | Azure B1s VM (Ubuntu 22.04 LTS) |
+| Cloud | Amazon Web Services (Singapore) |
+| IaC | Terraform + AWS provider |
+| Compute | AWS t3.micro EC2 (Ubuntu 22.04 LTS) |
 | Containers | Docker + Docker Compose |
 | Reverse proxy | Nginx |
 | SSL | Let's Encrypt (Certbot, auto-renew) |
@@ -128,14 +128,14 @@ Pushes and pull requests to `main` on GitHub trigger the following:
 GitHub (main branch)
     └── GitHub Actions: mirror to GitLab
             └── GitLab CI/CD:
-                ├── infra    → terraform apply  (provision / update Azure VM)
+                ├── infra    → terraform apply  (provision / update AWS EC2)
                 ├── build    → docker build + push  (backend + frontend images)
-                ├── deploy   → SSH to VM, write .env.prod, docker compose up
+                ├── deploy   → SSH into EC2, write .env.prod, docker compose up
                 ├── ssl      → [manual] Certbot issues Let's Encrypt certificate
                 └── seed     → [manual] seed roles, settings, owner account
 ```
 
-The `ssl` and `seed` stages are triggered manually and are one-time operations. All other stages run automatically.
+The `ssl` and `seed` stages are triggered manually and are one-time operations. All other stages run automatically on the `main` branch.
 
 ---
 
@@ -198,10 +198,10 @@ Application available at `http://localhost:5173`.
 
 ### Prerequisites
 
-1. An Azure service principal with Contributor rights — set `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_SUBSCRIPTION_ID`, `ARM_TENANT_ID` as protected GitLab CI/CD variables.
-2. An SSH key pair — set `SSH_PUBLIC_KEY` and `SSH_PRIVATE_KEY` (base64-encoded private key) as GitLab CI/CD variables.
-3. A Google Maps API key — set `VITE_GOOGLE_MAPS_API_KEY` as a GitLab CI/CD variable.
-4. A DNS `A` record: `washingmachine` → VM public IP at your DNS provider.
+1. AWS IAM Credentials — set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as protected GitLab CI/CD variables.
+2. SSH Key Pair — set `SSH_PUBLIC_KEY` and `SSH_PRIVATE_KEY` (base64-encoded private key) as GitLab CI/CD variables.
+3. Google Maps API key — set `VITE_GOOGLE_MAPS_API_KEY` as a GitLab CI/CD variable.
+4. DNS `A` record: `washingmachine` → AWS Elastic IP at your DNS provider.
 
 ### Deployment sequence
 
@@ -253,11 +253,12 @@ Proprietary software. All rights reserved.
 
 ---
 
-**Version:** 1.8.0
-**Last Updated:** March 30, 2026
+**Version:** 1.9.0
+**Last Updated:** April 11, 2026
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
 
 ## Recent Maintenance
 
-- March 29, 2026: Prettier and lint-driven clean up across backend/ frontend routes, scripts, and shared utilities. All Express routers now follow the same public/protected comment style, Telegram prompt strings live in a single helper, and seeding/maintenance scripts were consolidated under `src/scripts`. Dependency lists were pruned (`debug`, `morgan`, `dotenv` on the frontend) and `@jest/globals` was added for Jest suites.
-- March 30, 2026: Implemented the **"Service Due Reminder"** engine, integrating vehicle odometer tracking and automated next-service predictions into the booking lifecycle. Refined the **Payment Management** ledger by consolidating services and extras into a unified interface, renaming the transaction step to **"Complete Payment,"** and relaxing ledger constraints to allow for zero-price promotional items.
+- March 29, 2026: Prettier and lint-driven clean up across backend/ frontend routes, scripts, and shared utilities.
+- March 30, 2026: Implemented the **"Service Due Reminder"** engine and refined the **Payment Management** ledger.
+- April 11, 2026: **Production Platform Migration**. Successfully migrated infrastructure from Azure (East US) to AWS (Singapore). Replaced Azure VM architecture with AWS EC2/VPC and updated the automated CI/CD pipeline to target the new environment.

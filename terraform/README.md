@@ -4,7 +4,7 @@
 
 This directory contains the Infrastructure as Code (IaC) definition for "The Washing Machine" production environment on **Amazon Web Services (AWS)**. It provisions a single-server architecture in the **Singapore (ap-southeast-1)** region.
 
-State is stored remotely in GitLab's managed Terraform backend, enabling safe concurrent operations and full history tracking through your CI/CD pipeline.
+The setup is optimized for the **AWS Free Tier** using a `t3.micro` instance.
 
 ---
 
@@ -18,7 +18,19 @@ State is stored remotely in GitLab's managed Terraform backend, enabling safe co
 | Security Group | `aws_security_group` | Firewall (Ports 22, 80, 443, 5500) |
 | EC2 Instance | `aws_instance` | Ubuntu 22.04 LTS (t3.micro) |
 | Elastic IP | `aws_eip` | Static public IP address |
-| Key Pair | `aws_key_pair` | SSH access authentication |
+| Key Pair | `aws_key_pair` | SSH access authentication (v2) |
+
+---
+
+## Configuration Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `location` | `ap-southeast-1` | AWS Region (Singapore) |
+| `vm_size` | `t3.micro` | Instance type (Free Tier eligible) |
+| `project_name` | `the-washing-machine` | Prefix used for all resources |
+| `admin_username` | `ubuntu` | Default login user |
+| `ssh_public_key` | (Required) | Your RSA public key string |
 
 ---
 
@@ -36,7 +48,7 @@ State is stored remotely in GitLab's managed Terraform backend, enabling safe co
 ## Setup & Configuration
 
 ### 1. Local Variables
-Sensitive variables (like your SSH key) should be stored in `terraform.tfvars`. This file is **ignored by git** to prevent credential leaks.
+Sensitive variables should be stored in `terraform.tfvars`. This file is **ignored by git** to prevent credential leaks.
 
 1. Copy the example file:
    ```bash
@@ -48,7 +60,7 @@ Sensitive variables (like your SSH key) should be stored in `terraform.tfvars`. 
    ```
 
 ### 2. Provider Authentication
-The pipeline authenticates using the following environment variables:
+The GitLab CI/CD pipeline authenticates using:
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
@@ -56,10 +68,11 @@ The pipeline authenticates using the following environment variables:
 
 ## CI/CD Pipeline Integration
 
-Terraform runs automatically on every push via **GitLab CI**. The results of the `terraform apply` (the public IP) are passed to the deployment stage to update your API URLs and SSH targets.
+Terraform runs automatically via **GitLab CI**. 
 
-- **Trigger**: Every push to any branch.
-- **Backend**: GitLab Managed HTTP State.
+- **Trigger**: Automated on push to **`main`** branch only.
+- **State**: Remote (GitLab Managed HTTP State).
+- **Provisioning**: The `user_data` script automatically configures a **2GB Swap file** and installs **Docker / Docker Compose** on first boot.
 
 ---
 
@@ -72,7 +85,7 @@ export AWS_ACCESS_KEY_ID="your_key"
 export AWS_SECRET_ACCESS_KEY="your_secret"
 
 terraform init \
-  -backend-config="address=https://gitlab.com/api/v4/projects/<PROJECT_ID>/terraform/state/default" \
+  -backend-config="address=https://gitlab.com/api/v4/projects/<PROJECT_ID>/terraform/state/aws-migration" \
   -backend-config="username=<GITLAB_USER>" \
   -backend-config="password=<GITLAB_TOKEN>"
 
