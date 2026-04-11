@@ -34,10 +34,7 @@ ssl:init:
     - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml restart frontend"
     - echo "HTTPS is now active at https://washingmachine.truegate.live"
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
-      when: manual
+    - when: manual
 
 # ==========================================
 # STAGE: SEED (Manual Database Initialization)
@@ -55,10 +52,7 @@ seed:prod:
     - export SERVER_IP=$(cat server_ip.txt)
     - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml exec -T backend npm run db:seed"
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
-      when: manual
+    - when: manual
 
 variables:
   TF_ROOT: ${CI_PROJECT_DIR}/terraform
@@ -92,8 +86,7 @@ terraform:apply:
     paths:
       - server_ip.txt
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+    - when: on_success
 
 # ==========================================
 # STAGE: BUILD (Docker)
@@ -109,8 +102,7 @@ build:backend:
     - docker build -t $BACKEND_IMAGE ./backend
     - docker push $BACKEND_IMAGE
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+    - when: on_success
 
 build:frontend:
   stage: build
@@ -128,8 +120,7 @@ build:frontend:
       -t $FRONTEND_IMAGE ./frontend
     - docker push $FRONTEND_IMAGE
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+    - when: on_success
 
 # ==========================================
 # STAGE: DEPLOY (SSH to EC2)
@@ -183,5 +174,4 @@ deploy:prod:
     - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml pull"
     - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml up -d"
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
+    - when: on_success
