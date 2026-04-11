@@ -90,36 +90,38 @@ resource "aws_security_group" "main" {
   }
 }
 
-resource "azurerm_linux_virtual_machine" "main" {
-  name                = "${var.project_name}-vm"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  network_interface_ids = [
-    azurerm_network_interface.main.id,
-  ]
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
 
-  admin_ssh_key {
-    username   = var.admin_username
-    public_key = var.ssh_public_key
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
+}
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
+resource "aws_key_pair" "main" {
+  key_name   = "${var.project_name}-key"
+  public_key = var.ssh_public_key
+}
 
-  user_data = base64encode(<<-EOF
+resource "aws_instance" "main" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.vm_size
+  key_name      = aws_key_pair.main.key_name
+
+  subnet_id              = aws_subnet.main.id
+  vpc_security_group_ids = [aws_security_group.main.id]
+
+  # Provisioning script
+  user_data = <<-EOF
               #!/bin/bash
-              # Setup Swap (Critical for B1s to avoid OOM)
+              # Setup Swap (Critical for small instances to avoid OOM)
               fallocate -l 2G /swapfile
               chmod 600 /swapfile
               mkswap /swapfile
@@ -131,9 +133,17 @@ resource "azurerm_linux_virtual_machine" "main" {
               apt-get install -y docker.io docker-compose-v2
               usermod -aG docker ${var.admin_username}
               EOF
-  )
 
   tags = {
     Name = "${var.project_name}-server"
+  }
+}
+
+resource "aws_eip" "main" {
+  instance = aws_instance.main.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-eip"
   }
 }
