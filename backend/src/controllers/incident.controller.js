@@ -34,11 +34,11 @@ export const createIncident = async (req, res, next) => {
   }
 };
 
-// Get Incidents (Owner)
+// Get Incidents (Role-Based)
 export const getIncidents = async (req, res, next) => {
   try {
-    // Join with customer and employee tables to get names
-    const result = await pool.query(`
+    const userRole = req.user.emptype || req.user.role;
+    let query = `
       SELECT 
         i.*,
         TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as customer_name,
@@ -47,8 +47,18 @@ export const getIncidents = async (req, res, next) => {
       FROM incident i
       LEFT JOIN customer c ON i.customer_id = c.cusid
       LEFT JOIN employee e ON i.employee_id = e.empid
-      ORDER BY i.created_at DESC
-    `);
+    `;
+    const params = [];
+
+    // If not owner/manager/cashier, only show their own incidents
+    if (userRole !== "owner" && userRole !== "cashier" && userRole !== "manager") {
+      query += ` WHERE i.employee_id = $1`;
+      params.push(req.user.id);
+    }
+
+    query += ` ORDER BY i.created_at DESC`;
+
+    const result = await pool.query(query, params);
 
     successResponse(res, 200, "Incidents retrieved", result.rows);
   } catch (error) {
