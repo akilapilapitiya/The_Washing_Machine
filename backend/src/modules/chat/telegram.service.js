@@ -71,13 +71,15 @@ export const initTelegramBot = () => {
         return;
       }
 
-      const code = codeMatch[1];
+      const code = codeMatch[1].toLowerCase();
+      logger.info(`[TELEGRAM] Received linking code attempt: ${code} from chatId: ${chatId}`);
 
       try {
         // Verify Code
         const employeeId = await redis.get(`telegram_link:${code}`);
 
         if (!employeeId) {
+          logger.warn(`[TELEGRAM] Invalid/Expired code provided: ${code}`);
           bot.sendMessage(chatId, telegramPrompts.invalidLinkCode());
           return;
         }
@@ -140,7 +142,7 @@ export const initTelegramBot = () => {
       if (err.code === "ECONNRESET" || err.code === "EFATAL") {
         // logger.warn("[TELEGRAM] Network failure (ECONNRESET/EFATAL). Bot will retry automatically.");
       } else {
-        logger.error("[TELEGRAM] Polling error:", err.message);
+        logger.error({ err }, "[TELEGRAM] Polling error");
       }
     });
 
