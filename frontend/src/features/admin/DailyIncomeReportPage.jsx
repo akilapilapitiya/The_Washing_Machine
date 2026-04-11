@@ -8,8 +8,10 @@ import {
   Loader2,
   TrendingUp,
   DollarSign,
+  Printer,
 } from "lucide-react";
 import * as reportService from "@/services/report.service";
+import { printIncomeReport } from "@/utils/incomeReport";
 import { toast } from "sonner";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -28,6 +30,7 @@ const DailyIncomeReportPage = () => {
     firstDay.toISOString().split("T")[0],
   );
   const [endDate, setEndDate] = useState(today.toISOString().split("T")[0]);
+  const [printDate, setPrintDate] = useState(today.toISOString().split("T")[0]);
 
   const fetchReport = React.useCallback(async () => {
     try {
@@ -140,19 +143,50 @@ const DailyIncomeReportPage = () => {
     [endDate, maxDate, startDate, totalRevenue, totalTx],
   );
 
+  const handlePrintReport = React.useCallback(async () => {
+    try {
+      const detailed = await reportService.getDailyIncomeDetailed(printDate, printDate);
+      printIncomeReport(detailed, printDate, printDate);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load detailed report data");
+    }
+  }, [printDate]);
+
   const headerAction = React.useMemo(
     () => (
-      <Button
-        variant="outline"
-        onClick={handleDownload}
-        disabled={report.length === 0}
-        className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
-      >
-        <Download size={16} className="mr-2" />
-        Export CSV
-      </Button>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden h-10">
+          <div className="flex items-center gap-1.5 px-3 border-r border-gray-200 h-full bg-gray-50/80">
+            <Calendar size={13} className="text-gray-400" />
+            <input
+              type="date"
+              value={printDate}
+              max={maxDate}
+              onChange={(e) => setPrintDate(e.target.value)}
+              className="text-xs font-bold bg-transparent focus:outline-none w-[110px]"
+            />
+          </div>
+          <button
+            onClick={handlePrintReport}
+            className="flex items-center gap-1.5 px-4 h-full text-xs font-semibold uppercase tracking-wide text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            <Printer size={14} />
+            Print
+          </button>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleDownload}
+          disabled={report.length === 0}
+          className="h-10 px-4 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm text-xs font-semibold uppercase tracking-wide"
+        >
+          <Download size={16} className="mr-2" />
+          Export CSV
+        </Button>
+      </div>
     ),
-    [report.length, handleDownload],
+    [report.length, handleDownload, handlePrintReport, printDate, maxDate],
   );
 
   useSetPageHeader(

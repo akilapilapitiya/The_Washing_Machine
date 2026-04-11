@@ -66,7 +66,7 @@ const EmployeeLoginPage = () => {
 
     try {
       const response = await employeeSignIn({
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
       });
 

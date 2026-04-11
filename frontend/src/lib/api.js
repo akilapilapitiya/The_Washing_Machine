@@ -58,17 +58,25 @@ api.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // Unauthorized - clear token and redirect to login
+          // Unauthorized - clear auth state and redirect to the correct login page
           console.error("[API Error] Unauthorized - clearing token");
+          const lastUserType = localStorage.getItem("userType");
           localStorage.removeItem("token");
           localStorage.removeItem("user");
+          localStorage.removeItem("userType");
+          localStorage.removeItem("emptype");
+          localStorage.removeItem("isAdmin");
+
+          const isAuthPage =
+            window.location.pathname.includes("/login") ||
+            window.location.pathname.includes("/signup") ||
+            window.location.pathname.includes("/employee-login") ||
+            window.location.pathname.includes("/forgot-password");
 
           // Only redirect if not already on auth pages
-          if (
-            !window.location.pathname.includes("/login") &&
-            !window.location.pathname.includes("/signup")
-          ) {
-            window.location.href = "/login";
+          if (!isAuthPage) {
+            window.location.href =
+              lastUserType === "employee" ? "/employee-login" : "/login";
           }
           break;
 

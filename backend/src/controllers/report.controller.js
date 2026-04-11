@@ -1,5 +1,7 @@
 import {
   getDailyIncomeReportService,
+  getDailyIncomeDetailedService,
+  getMonthlyIncomeReportService,
   getEmployeePerformanceReportService,
 } from "../services/report.service.js";
 import { successResponse } from "../utils/response.util.js";
@@ -43,3 +45,33 @@ export const getEmployeePerformanceReport = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET Detailed Daily Income Report (individual payments for print)
+export const getDailyIncomeDetailed = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const report = await getDailyIncomeDetailedService(
+      startDate ||
+        new Date(new Date().setDate(new Date().getDate() - 30))
+          .toISOString()
+          .split("T")[0],
+      endDate || new Date().toISOString().split("T")[0],
+    );
+
+    successResponse(res, 200, "Detailed income report retrieved", { report });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET Monthly Income Report (last 12 months)
+export const getMonthlyIncomeReport = async (req, res, next) => {
+  try {
+    const report = await getMonthlyIncomeReportService();
+    successResponse(res, 200, "Monthly income report retrieved", { report });
+  } catch (error) {
+    next(error);
+  }
+};
+

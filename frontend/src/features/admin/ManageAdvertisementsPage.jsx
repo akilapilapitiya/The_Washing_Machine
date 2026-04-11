@@ -45,6 +45,7 @@ const ManageAdvertisementsPage = () => {
     client_contact: "",
     expiry_date: "",
     image: null,
+    is_active: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -68,8 +69,9 @@ const ManageAdvertisementsPage = () => {
   }, []);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    const finalValue = type === "checkbox" ? checked : value;
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
     // Clear error when user types
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
@@ -96,7 +98,7 @@ const ManageAdvertisementsPage = () => {
     }
 
     // Require image for new ads OR when promoting a request
-    const isPromoting = editingAd && editingAd.status === "requested";
+    const isPromoting = editingAd && !editingAd.is_active;
     if ((!editingAd || isPromoting) && !formData.image) {
       newErrors.image = "Ad banner image is required to go live";
     }
@@ -116,17 +118,17 @@ const ManageAdvertisementsPage = () => {
     data.append("client_contact", formData.client_contact);
     if (formData.expiry_date) data.append("expiry_date", formData.expiry_date);
     if (formData.image) data.append("image", formData.image);
+    data.append("is_active", formData.is_active);
 
-    // If we're promoting a request, set status to active
-    if (editingAd && editingAd.status === "requested") {
-      data.append("status", "active");
-    }
+    // If we're promoting a request, the active status is already handled by formData.is_active
+    // but we'll ensure it's true if promote button was clicked through UI logic if needed.
+    // However, the toggle in the modal is better.
 
     try {
       if (editingAd) {
         await advertisementService.updateAd(editingAd.id, data);
         toast.success(
-          editingAd.status === "requested"
+          !editingAd.is_active && formData.is_active
             ? "Ad promoted to live successfully!"
             : "Advertisement updated successfully",
         );
@@ -142,6 +144,7 @@ const ManageAdvertisementsPage = () => {
         client_contact: "",
         expiry_date: "",
         image: null,
+        is_active: false,
       });
       fetchAds();
     } catch (error) {
@@ -182,13 +185,14 @@ const ManageAdvertisementsPage = () => {
       client_contact: ad.client_contact || "",
       expiry_date: ad.expiry_date ? ad.expiry_date.split("T")[0] : "",
       image: null,
+      is_active: !!ad.is_active,
     });
     setErrors({});
     setIsModalOpen(true);
   };
 
-  const liveAds = ads.filter((ad) => ad.status !== "requested");
-  const requestAds = ads.filter((ad) => ad.status === "requested");
+  const liveAds = ads.filter((ad) => ad.is_active);
+  const requestAds = ads.filter((ad) => !ad.is_active);
 
   const activeAds = liveAds.filter(
     (ad) => !ad.expiry_date || new Date(ad.expiry_date) >= new Date(),
@@ -218,6 +222,7 @@ const ManageAdvertisementsPage = () => {
             client_contact: "",
             expiry_date: "",
             image: null,
+            is_active: true, // New ads created by admin are active by default
           });
           setErrors({});
           setIsModalOpen(true);
@@ -312,12 +317,14 @@ const ManageAdvertisementsPage = () => {
           <div className="flex flex-col gap-1">
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border w-max ${
-                isExpired
+                !row.is_active
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                  : isExpired
                   ? "bg-red-50 text-red-700 border-red-200"
                   : "bg-green-50 text-green-700 border-green-200"
               }`}
             >
-              {isExpired ? "Expired" : "Active"}
+              {!row.is_active ? "Pending" : isExpired ? "Expired" : "Active"}
             </span>
             <p className="text-xs text-gray-500">
               {row.expiry_date
@@ -335,9 +342,21 @@ const ManageAdvertisementsPage = () => {
       className: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
-          {row.status === "requested" && (
+          {!row.is_active && (
             <button
-              onClick={() => openEditModal(row)}
+              onClick={() => {
+                setEditingAd(row);
+                setFormData({
+                  title: row.title,
+                  client_name: row.client_name || "",
+                  client_contact: row.client_contact || "",
+                  expiry_date: row.expiry_date ? row.expiry_date.split("T")[0] : "",
+                  image: null,
+                  is_active: true,
+                });
+                setErrors({});
+                setIsModalOpen(true);
+              }}
               className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
               title="Promote to Live Ad"
             >
@@ -493,10 +512,10 @@ const ManageAdvertisementsPage = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-bold flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-lg ${editingAd ? (editingAd.status === "requested" ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-700") : "bg-red-50 text-red-600"}`}
+                    className={`p-2 rounded-lg ${editingAd ? (!editingAd.is_active ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-700") : "bg-red-50 text-red-600"}`}
                   >
                     {editingAd ? (
-                      editingAd.status === "requested" ? (
+                      !editingAd.is_active ? (
                         <Zap size={20} />
                       ) : (
                         <Edit2 size={20} />
@@ -506,7 +525,7 @@ const ManageAdvertisementsPage = () => {
                     )}
                   </div>
                   {editingAd
-                    ? editingAd.status === "requested"
+                    ? !editingAd.is_active
                       ? "Promote Advertisement"
                       : "Edit Advertisement"
                     : "Create Advertisement"}
@@ -638,6 +657,23 @@ const ManageAdvertisementsPage = () => {
                   </div>
                 </div>
 
+                <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <input
+                    type="checkbox"
+                    id="is_active"
+                    name="is_active"
+                    checked={formData.is_active}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-600 cursor-pointer"
+                  />
+                  <Label
+                    htmlFor="is_active"
+                    className="text-sm font-semibold text-gray-900 cursor-pointer"
+                  >
+                    Active Advertisement (Published to Marketplace)
+                  </Label>
+                </div>
+
                 <div className="pt-4 flex gap-3">
                   <Button
                     type="button"
@@ -655,7 +691,7 @@ const ManageAdvertisementsPage = () => {
                     {isSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : editingAd ? (
-                      editingAd.status === "requested" ? (
+                      !editingAd.is_active ? (
                         "Activate & Post Ad"
                       ) : (
                         "Update Advertisement"

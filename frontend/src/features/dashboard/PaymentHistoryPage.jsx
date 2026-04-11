@@ -137,7 +137,7 @@ const PaymentHistoryPage = () => {
                   key={idx}
                   className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase"
                 >
-                  {s}
+                  {typeof s === "string" ? s : s.name || s.serviceName || "Service"}
                 </span>
               ))
             ) : (

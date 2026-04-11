@@ -5,13 +5,13 @@ const seedOwnerAccount = async (client) => {
   await ensureOwnerAccount({
     client,
     ownerOverrides: {
-      first_name: "System",
-      last_name: "Owner",
-      name_with_initials: "S. Owner",
-      email: "owner@washingmachine.lk",
-      address_line1: "Main Street",
-      address_line2: "Colombo",
-      speciality: "System Administration",
+      first_name: "Ridma",
+      last_name: "Jayasinghe",
+      name_with_initials: "R. Jayasinghe",
+      email: "owner@washingmachine.com",
+      address_line1: "Pannipitiya Road",
+      address_line2: "Maharagama",
+      speciality: "System Management",
     },
   });
   console.log("✓ Owner account seed completed");

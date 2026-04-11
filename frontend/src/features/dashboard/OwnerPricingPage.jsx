@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, Calculator, Route, Bell } from "lucide-react";
+import { Loader2, Save, Calculator, Route } from "lucide-react";
 import * as settingsService from "@/services/settings.service";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -38,19 +38,7 @@ const OwnerPricingPage = () => {
     },
   });
 
-  const {
-    register: registerReminder,
-    handleSubmit: handleSubmitReminder,
-    setValue: setReminderValue,
-    formState: { errors: reminderErrors },
-  } = useForm({
-    defaultValues: {
-      default_service_frequency_days: 90,
-      service_reminder_prior_days: 7,
-    },
-  });
 
-  const [savingReminder, setSavingReminder] = useState(false);
 
   const formValues = watch();
 
@@ -72,9 +60,7 @@ const OwnerPricingPage = () => {
       setValue("additional_rate", rules.additional_rate);
       setValue("buffer_minutes", rules.buffer_minutes || 30);
 
-      const reminders = await settingsService.getReminderSettings();
-      setReminderValue("default_service_frequency_days", reminders.default_service_frequency_days);
-      setReminderValue("service_reminder_prior_days", reminders.service_reminder_prior_days);
+
     } catch (error) {
       console.error("Failed to fetch settings:", error);
       toast.error("Could not load system settings.");
@@ -96,18 +82,7 @@ const OwnerPricingPage = () => {
     }
   };
 
-  const onSubmitReminder = async (data) => {
-    try {
-      setSavingReminder(true);
-      await settingsService.updateReminderSettings(data);
-      toast.success("Reminder settings updated successfully!");
-    } catch (error) {
-      console.error("Failed to update reminder settings:", error);
-      toast.error("Update failed. Please try again.");
-    } finally {
-      setSavingReminder(false);
-    }
-  };
+
 
   const calculateTestCost = () => {
     const dist = parseFloat(testDistance) || 0;
@@ -127,8 +102,8 @@ const OwnerPricingPage = () => {
 
   useSetPageHeader(
     "System Settings",
-    "General Configuration",
-    "Manage automated service reminders and travel pricing costs.",
+    "Travel Pricing",
+    "Configure base fees, distance rates, and buffer timing for travel costs.",
   );
 
   if (loading) return <PageLoader message="Loading settings..." />;
@@ -238,75 +213,7 @@ const OwnerPricingPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-gray-700" />
-                Service Reminder Settings
-              </CardTitle>
-              <CardDescription>
-                Configure intervals for automated next-service reminders.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmitReminder(onSubmitReminder)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="default_service_frequency_days">Default Service Interval (Days)</Label>
-                  <p className="text-xs text-gray-500">
-                    Used for new customers without enough service history.
-                  </p>
-                  <Input
-                    id="default_service_frequency_days"
-                    type="number"
-                    min="1"
-                    {...registerReminder("default_service_frequency_days", {
-                      required: "Required",
-                      min: 1,
-                      valueAsNumber: true,
-                    })}
-                  />
-                  {reminderErrors.default_service_frequency_days && (
-                    <span className="text-xs text-red-500">
-                      {reminderErrors.default_service_frequency_days.message}
-                    </span>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="service_reminder_prior_days">Notification Lead Time (Days)</Label>
-                  <p className="text-xs text-gray-500">
-                    How many days before the due date to alert the system.
-                  </p>
-                  <Input
-                    id="service_reminder_prior_days"
-                    type="number"
-                    min="0"
-                    {...registerReminder("service_reminder_prior_days", {
-                      required: "Required",
-                      min: 0,
-                      valueAsNumber: true,
-                    })}
-                  />
-                  {reminderErrors.service_reminder_prior_days && (
-                    <span className="text-xs text-red-500">
-                      {reminderErrors.service_reminder_prior_days.message}
-                    </span>
-                  )}
-                </div>
-
-                <Separator className="my-4" />
-
-                <Button
-                  type="submit"
-                  className="w-full h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
-                  disabled={savingReminder}
-                >
-                  {savingReminder && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {savingReminder ? "Saving..." : "Save Reminders"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">

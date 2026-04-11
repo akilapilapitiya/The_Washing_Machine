@@ -19,7 +19,7 @@ async function runSeeds() {
 
     console.log("\n✅ Database seeding completed successfully!");
     console.log("\n📝 Default Owner Credentials:");
-    console.log("   Email: owner@washingmachine.lk");
+    console.log("   Email: owner@washingmachine.com");
     console.log("   Password: Owner@123");
     console.log("\n⚠️  Please change the password after first login!\n");
 

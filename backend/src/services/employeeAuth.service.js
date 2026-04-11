@@ -58,7 +58,7 @@ export const signUp = async ({
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, (SELECT roleid FROM role WHERE rolename = $7::VARCHAR))
     RETURNING empid, first_name, last_name, email, emptel, emptype, empnic, 
-      first_name || ' ' || last_name AS empname,
+      TRIM(CONCAT_WS(' ', first_name, last_name)) AS empname,
       (SELECT rolename FROM role WHERE rolename = $7::VARCHAR) as rolename
     `,
     [
@@ -104,15 +104,21 @@ export const signUp = async ({
 
 // Signin function
 export const signIn = async ({ email, password }) => {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!normalizedEmail || !password) {
+    throw new UnauthorizedError("Invalid email or password");
+  }
+
   const result = await pool.query(
     `
     SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, e.password_hash, 
-           e.first_name || ' ' || e.last_name AS empname, r.rolename, e.profile_picture_url 
+           TRIM(CONCAT_WS(' ', e.first_name, e.last_name)) AS empname, r.rolename, e.profile_picture_url 
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
-    WHERE e.email = $1
+    WHERE LOWER(TRIM(e.email)) = $1
     `,
-    [email],
+    [normalizedEmail],
   );
 
   if (result.rowCount === 0) {
@@ -276,7 +282,7 @@ export const getEmployeeById = async (empid) => {
   const result = await pool.query(
     `
     SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, r.rolename, r.is_admin,
-           e.first_name || ' ' || e.last_name AS empname,
+           TRIM(CONCAT_WS(' ', e.first_name, e.last_name)) AS empname,
            e.name_with_initials, e.address_number, e.address_line1, e.address_line2, 
            e.dob, e.speciality, e.profile_picture_url, e.created_at, e.updated_at,
            e.telegram_chat_id IS NOT NULL AS has_telegram,
@@ -295,10 +301,10 @@ export const getEmployeeById = async (empid) => {
   return result.rows[0];
 };
 
-// Get all roles
+// Get all roles (excluding customer role for employee management)
 export const getAllRoles = async () => {
   const result = await pool.query(
-    "SELECT roleid, rolename, role_description, is_admin FROM role ORDER BY roleid ASC",
+    "SELECT roleid, rolename, role_description, is_admin FROM role WHERE rolename != 'customer' ORDER BY roleid ASC",
   );
   return result.rows;
 };

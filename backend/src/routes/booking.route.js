@@ -23,14 +23,14 @@ bookingRouter.get("/:id", restrictTo("customer", "employee"), getBooking);
 
 bookingRouter.post(
   "/resolve-employee",
-  restrictTo("customer", "employee"),
+  restrictTo("customer"),
   validateSchema(bookingValidator.resolveEmployee),
   resolveBookingEmployee,
 );
 
 bookingRouter.post(
   "/",
-  restrictTo("customer", "employee"),
+  restrictTo("customer"),
   validateSchema(bookingValidator.createBooking),
   createBooking,
 );
@@ -40,7 +40,7 @@ bookingRouter.put(
   validateSchema(bookingValidator.updateBooking),
   updateBooking,
 );
-bookingRouter.delete("/:id", restrictTo("customer", "employee"), deleteBooking);
+bookingRouter.delete("/:id", restrictTo("customer"), deleteBooking);
 
 bookingRouter.put(
   "/:id/reschedule",

@@ -17,7 +17,15 @@ incidentRouter.post(
   createIncident,
 );
 
-incidentRouter.get("/", restrictTo("owner"), getIncidents);
-incidentRouter.patch("/:id", restrictTo("owner"), updateIncidentStatus);
+incidentRouter.get(
+  "/",
+  restrictTo("owner", "cashier", "manager", "employee"),
+  getIncidents,
+);
+incidentRouter.patch(
+  "/:id",
+  restrictTo("owner", "cashier", "manager"),
+  updateIncidentStatus,
+);
 
 export default incidentRouter;
