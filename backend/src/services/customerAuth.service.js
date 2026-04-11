@@ -15,6 +15,7 @@ import {
   verifyOTP,
   logOTPToConsole,
 } from "../utils/otp.util.js";
+import { addEmailJob } from "../queue/email.queue.js";
 import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
