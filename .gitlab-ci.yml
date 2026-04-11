@@ -86,7 +86,7 @@ terraform:apply:
     paths:
       - server_ip.txt
   rules:
-    - when: on_success
+    - if: $CI_COMMIT_BRANCH == "main"
 
 # ==========================================
 # STAGE: BUILD (Docker)
@@ -102,7 +102,7 @@ build:backend:
     - docker build -t $BACKEND_IMAGE ./backend
     - docker push $BACKEND_IMAGE
   rules:
-    - when: on_success
+    - if: $CI_COMMIT_BRANCH == "main"
 
 build:frontend:
   stage: build
@@ -120,7 +120,7 @@ build:frontend:
       -t $FRONTEND_IMAGE ./frontend
     - docker push $FRONTEND_IMAGE
   rules:
-    - when: on_success
+    - if: $CI_COMMIT_BRANCH == "main"
 
 # ==========================================
 # STAGE: DEPLOY (SSH to EC2)
@@ -174,4 +174,4 @@ deploy:prod:
     - ssh ubuntu@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml pull"
     - ssh ubuntu@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml up -d"
   rules:
-    - when: on_success
+    - if: $CI_COMMIT_BRANCH == "main"
