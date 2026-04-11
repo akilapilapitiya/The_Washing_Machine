@@ -58,7 +58,7 @@ export const signUp = async ({
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, (SELECT roleid FROM role WHERE rolename = $7::VARCHAR))
     RETURNING empid, first_name, last_name, email, emptel, emptype, empnic, 
-      first_name || ' ' || last_name AS empname,
+      TRIM(CONCAT_WS(' ', first_name, last_name)) AS empname,
       (SELECT rolename FROM role WHERE rolename = $7::VARCHAR) as rolename
     `,
     [
@@ -113,7 +113,7 @@ export const signIn = async ({ email, password }) => {
   const result = await pool.query(
     `
     SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, e.password_hash, 
-           e.first_name || ' ' || e.last_name AS empname, r.rolename, e.profile_picture_url 
+           TRIM(CONCAT_WS(' ', e.first_name, e.last_name)) AS empname, r.rolename, e.profile_picture_url 
     FROM employee e
     LEFT JOIN role r ON e.roleid = r.roleid
     WHERE LOWER(TRIM(e.email)) = $1
@@ -282,7 +282,7 @@ export const getEmployeeById = async (empid) => {
   const result = await pool.query(
     `
     SELECT e.empid, e.first_name, e.last_name, e.email, e.emptel, r.rolename, r.is_admin,
-           e.first_name || ' ' || e.last_name AS empname,
+           TRIM(CONCAT_WS(' ', e.first_name, e.last_name)) AS empname,
            e.name_with_initials, e.address_number, e.address_line1, e.address_line2, 
            e.dob, e.speciality, e.profile_picture_url, e.created_at, e.updated_at,
            e.telegram_chat_id IS NOT NULL AS has_telegram,
