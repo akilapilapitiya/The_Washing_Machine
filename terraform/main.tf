@@ -106,7 +106,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_key_pair" "main" {
-  key_name   = "${var.project_name}-key"
+  key_name   = "${var.project_name}-key-v2"
   public_key = var.ssh_public_key
 }
 
