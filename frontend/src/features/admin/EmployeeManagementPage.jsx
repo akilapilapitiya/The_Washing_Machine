@@ -118,7 +118,11 @@ const EmployeeManagementPage = () => {
     try {
       const response = await employeeService.getRoles();
       if (response.success) {
-        setRoles(response.data);
+        // Double safeguard: ensure 'customer' role is never displayed in staff management
+        const staffRoles = response.data.filter(
+          (role) => role.rolename !== "customer",
+        );
+        setRoles(staffRoles);
       }
     } catch (err) {
       console.error("Failed to fetch roles:", err);

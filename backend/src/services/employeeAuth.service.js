@@ -301,10 +301,10 @@ export const getEmployeeById = async (empid) => {
   return result.rows[0];
 };
 
-// Get all roles
+// Get all roles (excluding customer role for employee management)
 export const getAllRoles = async () => {
   const result = await pool.query(
-    "SELECT roleid, rolename, role_description, is_admin FROM role ORDER BY roleid ASC",
+    "SELECT roleid, rolename, role_description, is_admin FROM role WHERE rolename != 'customer' ORDER BY roleid ASC",
   );
   return result.rows;
 };
