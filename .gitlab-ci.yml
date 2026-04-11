@@ -56,7 +56,7 @@ seed:prod:
 
 variables:
   TF_ROOT: ${CI_PROJECT_DIR}/terraform
-  TF_STATE_NAME: default
+  TF_STATE_NAME: aws-migration
   BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend:latest
   FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend:latest
 
