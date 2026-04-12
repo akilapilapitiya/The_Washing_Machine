@@ -1,0 +1,9 @@
+# Local secret variables
+terraform.tfvars
+
+# Ignore terraform state files (if run locally)
+*.tfstate
+*.tfstate.*
+
+# Ignore terraform directory
+.terraform/

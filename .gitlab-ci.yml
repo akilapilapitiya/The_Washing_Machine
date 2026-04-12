@@ -20,7 +20,7 @@ ssl:init:
   script:
     - export SERVER_IP=$(cat server_ip.txt)
     # Use named Docker volumes (same ones the frontend container mounts)
-    - ssh azureuser@$SERVER_IP "docker run --rm
+    - ssh ubuntu@$SERVER_IP "docker run --rm
         --mount source=app_certbot_certs,target=/etc/letsencrypt
         --mount source=app_certbot_www,target=/var/www/certbot
         certbot/certbot certonly
@@ -29,15 +29,12 @@ ssl:init:
         --email $SMTP_USER
         -d washingmachine.truegate.live"
     # Confirm cert is in the right place
-    - ssh azureuser@$SERVER_IP "docker run --rm --mount source=app_certbot_certs,target=/etc/letsencrypt alpine ls /etc/letsencrypt/live/ || echo 'CERT NOT FOUND'"
+    - ssh ubuntu@$SERVER_IP "docker run --rm --mount source=app_certbot_certs,target=/etc/letsencrypt alpine ls /etc/letsencrypt/live/ || echo 'CERT NOT FOUND'"
     # Restart frontend — entrypoint script detects cert and switches to HTTPS
-    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml restart frontend"
+    - ssh ubuntu@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml restart frontend"
     - echo "HTTPS is now active at https://washingmachine.truegate.live"
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
-      when: manual
+    - when: manual
 
 # ==========================================
 # STAGE: SEED (Manual Database Initialization)
@@ -53,16 +50,13 @@ seed:prod:
     - ssh-keyscan -H $(cat server_ip.txt) >> ~/.ssh/known_hosts
   script:
     - export SERVER_IP=$(cat server_ip.txt)
-    - ssh azureuser@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml exec -T backend npm run db:seed"
+    - ssh ubuntu@$SERVER_IP "cd app && docker compose -f docker-compose.prod.yml exec -T backend npm run db:seed"
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: manual
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
-      when: manual
+    - when: manual
 
 variables:
   TF_ROOT: ${CI_PROJECT_DIR}/terraform
-  TF_STATE_NAME: default
+  TF_STATE_NAME: aws-migration
   BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend:latest
   FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend:latest
 
@@ -93,7 +87,6 @@ terraform:apply:
       - server_ip.txt
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
 
 # ==========================================
 # STAGE: BUILD (Docker)
@@ -110,7 +103,6 @@ build:backend:
     - docker push $BACKEND_IMAGE
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
 
 build:frontend:
   stage: build
@@ -129,7 +121,6 @@ build:frontend:
     - docker push $FRONTEND_IMAGE
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
 
 # ==========================================
 # STAGE: DEPLOY (SSH to EC2)
@@ -176,12 +167,11 @@ deploy:prod:
     - echo "--- .env.prod preview (first 5 lines) ---"
     - head -5 .env.prod
     - echo "------------------------------------------"
-    - ssh azureuser@$SERVER_IP "mkdir -p app"
-    - scp .env.prod azureuser@$SERVER_IP:~/app/
-    - scp docker-compose.prod.yml azureuser@$SERVER_IP:~/app/
-    - ssh azureuser@$SERVER_IP "cd app && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
-    - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml pull"
-    - ssh azureuser@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml up -d"
+    - ssh ubuntu@$SERVER_IP "mkdir -p app"
+    - scp .env.prod ubuntu@$SERVER_IP:~/app/
+    - scp docker-compose.prod.yml ubuntu@$SERVER_IP:~/app/
+    - ssh ubuntu@$SERVER_IP "cd app && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh ubuntu@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml pull"
+    - ssh ubuntu@$SERVER_IP "cd app && CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE docker compose -f docker-compose.prod.yml up -d"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "feat/production-automation"
