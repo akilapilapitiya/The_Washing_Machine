@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { IMAGE_BASE_URL } from "@/configs/env";
+import UserAvatar from "../common/UserAvatar";
 import logo from "../../assets/logo.svg";
 
 const PublicNavbar = () => {
@@ -108,6 +109,7 @@ const PublicNavbar = () => {
                       {user?.name}
                     </span>
                   </div>
+                  <UserAvatar user={user} size="sm" />
                   <Link to="/dashboard">
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm h-9 px-5 rounded-lg shadow-sm transition-all flex items-center gap-2">
                       Dashboard

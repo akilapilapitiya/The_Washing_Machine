@@ -13,6 +13,7 @@ import Sidebar from "./Sidebar";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS } from "@/lib/colors";
+import UserAvatar from "../common/UserAvatar";
 import logo from "../../assets/logo.svg";
 import { PageHeaderProvider } from "@/contexts/PageHeaderContext";
 import PageSubHeader from "./PageSubHeader";
@@ -54,20 +55,23 @@ const DashboardLayout = () => {
             <div className="relative">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-red-100 transition-all focus:outline-none focus:ring-red-500 overflow-hidden"
               >
-                <User size={16} className="text-gray-600" />
+                <UserAvatar user={user} size="sm" className="border-none" />
               </button>
 
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] py-2 ring-1 ring-black ring-opacity-5 z-50 animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
-                  <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/50 mx-1 rounded-t-lg mb-1">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {user?.name || "User"}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate font-medium">
-                      {user?.email}
-                    </p>
+                  <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 mx-1 rounded-t-lg mb-1 flex items-center gap-3">
+                    <UserAvatar user={user} size="md" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {user?.name || "User"}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate font-medium">
+                        {user?.email}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="py-1 px-1">
