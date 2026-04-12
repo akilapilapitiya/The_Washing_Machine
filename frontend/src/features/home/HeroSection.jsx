@@ -61,10 +61,6 @@ const HeroSection = ({ id }) => {
             Perfection.
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-400 font-medium max-w-xl mb-12 leading-relaxed tracking-wide animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
-            Meticulous car care delivered by experts. We combine cutting-edge tech with premium products to restore your vehicle's showroom glory.
-          </p>
-
           {/* Boutique Call to Action */}
           <div className="flex animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
             <Button
@@ -76,27 +72,6 @@ const HeroSection = ({ id }) => {
                 <ArrowRight className="ml-4 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
               </Link>
             </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Industrial Slide Counter HUD */}
-      <div className="absolute bottom-12 left-6 lg:left-12 z-30 flex items-center gap-6">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Showcase</span>
-          <div className="flex items-center gap-4">
-            <span className="text-xl font-black text-white font-mono">
-              0{(currentImageIndex + 1)}
-            </span>
-            <div className="w-20 h-[2px] bg-white/20 relative">
-              <div 
-                className="absolute top-0 left-0 h-full bg-red-600 transition-all duration-[2000ms] ease-in-out"
-                style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }}
-              />
-            </div>
-            <span className="text-xl font-black text-white/40 font-mono">
-              0{images.length}
-            </span>
           </div>
         </div>
       </div>
