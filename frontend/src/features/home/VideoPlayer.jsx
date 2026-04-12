@@ -2,29 +2,31 @@ import React from "react";
 import { Facebook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const VideoCard = ({ src }) => (
+const VideoCard = React.memo(({ src, id }) => (
   <div className="relative w-full rounded-2xl overflow-hidden border border-gray-100 shadow-xl bg-white transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-red-200">
     <div className="aspect-[9/16] w-full">
       <iframe
+        name={`fb-video-${id}`}
         src={src}
         className="w-full h-full border-none overflow-hidden"
         scrolling="no"
         frameBorder="0"
         allowFullScreen={true}
+        loading="lazy"
         allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-        title="Service Video Showcase"
+        title={`Service Video Showcase ${id}`}
       ></iframe>
     </div>
   </div>
-);
+));
+
+const videoSources = [
+  "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F1260799399579681%2F&show_text=false&width=267&t=0&mute=1",
+  "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F919270604201389%2F&show_text=false&width=267&t=0&mute=1",
+  "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F961691629714952%2F&show_text=false&width=267&t=0&mute=1"
+];
 
 const VideoPlayer = ({ id }) => {
-  const videoSources = [
-    "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F1260799399579681%2F&show_text=true&width=267&t=0&mute=1",
-    "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F919270604201389%2F&show_text=true&width=267&t=0&mute=1",
-    "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F961691629714952%2F&show_text=true&width=267&t=0&mute=1"
-  ];
-
   return (
     <section id={id} className="py-24 bg-gray-50/50">
       <div className="container mx-auto px-6 lg:px-12 max-w-7xl">
@@ -39,7 +41,7 @@ const VideoPlayer = ({ id }) => {
         {/* Video Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {videoSources.map((src, index) => (
-            <VideoCard key={index} src={src} />
+            <VideoCard key={index} id={index} src={src} />
           ))}
         </div>
 
