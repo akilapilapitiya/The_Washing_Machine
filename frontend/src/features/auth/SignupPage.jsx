@@ -19,6 +19,7 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle,
+  ArrowLeft,
 } from "lucide-react";
 import LocationPicker from "@/components/common/LocationPicker";
 import logo from "@/assets/logo.svg";
@@ -179,29 +180,40 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4">
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block mb-6">
-            <img
-              src={logo}
-              alt="The Washing Machine"
-              className="h-12 w-auto mx-auto"
-            />
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
-            Create an Account
+    <div className="min-h-screen relative flex items-center justify-center py-12 px-4 overflow-hidden bg-gray-50">
+      {/* Background Watermark Logo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none flex items-center justify-center opacity-[0.15] mix-blend-multiply transition-opacity duration-1000">
+        <img
+          src={logo}
+          alt=""
+          className="w-[600px] lg:w-[1000px] h-auto object-contain grayscale"
+        />
+      </div>
+
+      {/* Back to Home Navigation */}
+      <Link 
+        to="/" 
+        className="fixed top-8 left-8 hidden md:flex items-center gap-3 text-gray-400 hover:text-red-600 transition-all duration-300 font-black uppercase tracking-[0.2em] text-[10px] group"
+      >
+        <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-red-600 group-hover:shadow-lg transition-all">
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+        </div>
+        <span>Back to Home</span>
+      </Link>
+
+      <div className="w-full max-w-4xl relative z-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 mb-2 uppercase">
+            Create Account
           </h1>
-          <p className="text-gray-500 text-sm">
-            Join The Washing Machine today
-          </p>
+
         </div>
 
-        <Card className="shadow-sm border border-slate-200">
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
+        <Card className="shadow-sm border-gray-200">
+          <CardHeader className="pb-4 text-center">
+            <CardTitle className="text-lg">Sign Up</CardTitle>
             <CardDescription>
-              Complete your profile to access laundry services
+              Complete your profile to access our premium services
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -212,8 +224,8 @@ const SignupPage = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left Column: Personal Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                {/* Left Column: All Text Fields */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="title" className="flex items-center gap-1">
@@ -302,54 +314,55 @@ const SignupPage = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-1">
-                      Email Address <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="example@email.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={loading}
-                      className={
-                        errors.email
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : ""
-                      }
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                        <AlertCircle size={14} />
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-1">
-                      Phone Number <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="07XXXXXXXX"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      disabled={loading}
-                      className={
-                        errors.phone
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : ""
-                      }
-                    />
-                    {errors.phone && (
-                      <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                        <AlertCircle size={14} />
-                        {errors.phone}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-1">
+                        Email <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@email.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className={
+                          errors.email
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
+                      />
+                      {errors.email && (
+                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                          <AlertCircle size={14} />
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-1">
+                        Phone <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="07XXXXXXXX"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className={
+                          errors.phone
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
+                      />
+                      {errors.phone && (
+                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                          <AlertCircle size={14} />
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -430,32 +443,10 @@ const SignupPage = () => {
                           )}
                         </button>
                       </div>
-                      {formData.confirmPassword &&
-                        formData.password !== formData.confirmPassword && (
-                          <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                            <AlertCircle size={14} />
-                            Passwords do not match
-                          </p>
-                        )}
-                      {formData.confirmPassword &&
-                        formData.password === formData.confirmPassword && (
-                          <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
-                            <CheckCircle size={14} />
-                            Passwords match
-                          </p>
-                        )}
-                      {errors.confirmPassword && !formData.confirmPassword && (
-                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                          <AlertCircle size={14} />
-                          {errors.confirmPassword}
-                        </p>
-                      )}
                     </div>
                   </div>
-                </div>
 
-                {/* Right Column: Address & Identity */}
-                <div className="space-y-4">
+                  {/* Move NIC & DOB to Left Column Bottom */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="nic">NIC (Optional)</Label>
@@ -478,8 +469,11 @@ const SignupPage = () => {
                       />
                     </div>
                   </div>
+                </div>
 
-                  <div className="space-y-2">
+                {/* Right Column: Dedicated Map */}
+                <div className="space-y-4 flex flex-col h-full">
+                  <div className="space-y-2 flex-1 flex flex-col">
                     <Label className="flex items-center gap-2 mb-1">
                       <span className="flex items-center gap-1">
                         <MapPin size={16} className="text-red-500" />
@@ -487,7 +481,7 @@ const SignupPage = () => {
                       </span>
                     </Label>
                     <div
-                      className={`rounded-xl overflow-hidden shadow-inner border ${errors.location ? "border-red-500 ring-1 ring-red-500" : "border-slate-200"}`}
+                      className={`rounded-xl overflow-hidden shadow-inner border flex-1 min-h-[340px] ${errors.location ? "border-red-500 ring-1 ring-red-500" : "border-slate-200"}`}
                     >
                       <LocationPicker
                         onLocationSelect={handleLocationSelect}
