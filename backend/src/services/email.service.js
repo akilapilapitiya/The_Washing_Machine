@@ -114,7 +114,8 @@ export const sendServiceCompleteEmail = async (to, data) => {
     await transport.sendMail({
       from: '"The Washing Machine" <no-reply@washingmachine.com>',
       to,
-      subject: "Service Complete — Your Next Service Reminder | The Washing Machine",
+      subject:
+        "Service Complete — Your Next Service Reminder | The Washing Machine",
       html,
       attachments: [
         {
@@ -141,7 +142,8 @@ export const sendServiceReminderEmail = async (to, data) => {
     await transport.sendMail({
       from: '"The Washing Machine" <no-reply@washingmachine.com>',
       to,
-      subject: "Due for Maintenance! Schedule Your Next Service | The Washing Machine",
+      subject:
+        "Due for Maintenance! Schedule Your Next Service | The Washing Machine",
       html,
       attachments: [
         {

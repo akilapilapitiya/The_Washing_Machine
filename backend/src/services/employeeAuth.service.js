@@ -104,7 +104,9 @@ export const signUp = async ({
 
 // Signin function
 export const signIn = async ({ email, password }) => {
-  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedEmail = String(email || "")
+    .trim()
+    .toLowerCase();
 
   if (!normalizedEmail || !password) {
     throw new UnauthorizedError("Invalid email or password");

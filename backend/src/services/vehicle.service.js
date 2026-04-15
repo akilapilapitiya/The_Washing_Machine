@@ -282,12 +282,12 @@ export const recordServiceSnapshotService = async (
 
       if (datesRes.rowCount >= 2) {
         // Calculate average days between services
-        const dates = datesRes.rows.map(r => new Date(r.bookingdate));
+        const dates = datesRes.rows.map((r) => new Date(r.bookingdate));
         let totalDays = 0;
         let intervals = 0;
 
         for (let i = 1; i < dates.length; i++) {
-          const diffTime = Math.abs(dates[i] - dates[i-1]);
+          const diffTime = Math.abs(dates[i] - dates[i - 1]);
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           totalDays += diffDays;
           intervals++;
@@ -314,11 +314,11 @@ export const recordServiceSnapshotService = async (
          RETURNING id, vehplate, vehmileage, vehbrand, vehmodel, cusid, next_service_mileage, next_service_date`,
         [frequencyDays, vehicleId],
       );
-      
+
       vehicle = updateRes.rows[0];
-      
+
       logger.info(
-        `Calculated next service date for vehicle ${vehicleId}: frequency=${frequencyDays} days, next_date=${vehicle.next_service_date}`
+        `Calculated next service date for vehicle ${vehicleId}: frequency=${frequencyDays} days, next_date=${vehicle.next_service_date}`,
       );
     } catch (err) {
       logger.error("Failed to calculate next service date:", err.message);
@@ -351,7 +351,10 @@ export const recordServiceSnapshotService = async (
       bookingId: bookingId || null,
     });
   } catch (err) {
-    logger.error("Failed to dispatch service-complete notification:", err.message);
+    logger.error(
+      "Failed to dispatch service-complete notification:",
+      err.message,
+    );
   }
 
   return vehicle;
@@ -383,14 +386,17 @@ export const getServiceRemindersService = async () => {
 
 // POST Send Service Reminder
 export const sendServiceReminderService = async (id) => {
-  const vehicleRes = await pool.query(`
+  const vehicleRes = await pool.query(
+    `
     SELECT
       v.id, v.vehplate, v.vehbrand, v.vehmodel, v.vehmileage, v.next_service_mileage, v.next_service_date,
       c.cusid, c.cusemail, TRIM(CONCAT_WS(' ', c.title, c.first_name, c.last_name)) as cusname
     FROM vehicle v
     JOIN customer c ON v.cusid = c.cusid
     WHERE v.id = $1
-  `, [id]);
+  `,
+    [id],
+  );
 
   if (vehicleRes.rowCount === 0) {
     throw new NotFoundError("Vehicle not found");
@@ -421,11 +427,14 @@ export const sendServiceReminderService = async (id) => {
       recipientId: data.cusid,
       recipientRole: "customer",
       title: "Service Reminder",
-      message: `Heads up! Your ${data.vehbrand} ${data.vehmodel} (${data.vehplate}) is almost due for its next service on ${data.next_service_date ? new Date(data.next_service_date).toLocaleDateString() : 'soon'}.`,
+      message: `Heads up! Your ${data.vehbrand} ${data.vehmodel} (${data.vehplate}) is almost due for its next service on ${data.next_service_date ? new Date(data.next_service_date).toLocaleDateString() : "soon"}.`,
       type: "warning",
     });
   } catch (err) {
-    logger.error("Failed to dispatch service reminder notification:", err.message);
+    logger.error(
+      "Failed to dispatch service reminder notification:",
+      err.message,
+    );
   }
 
   return { message: "Reminder dispatched" };

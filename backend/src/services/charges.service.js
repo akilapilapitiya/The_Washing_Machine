@@ -51,7 +51,11 @@ export const updateExtraItemPriceService = async (extraId, price, userId) => {
   return result.rows[0];
 };
 
-export const updateServicePriceService = async (bookingId, serviceId, price) => {
+export const updateServicePriceService = async (
+  bookingId,
+  serviceId,
+  price,
+) => {
   if (price === undefined || price < 0) {
     throw new Error("Valid price is required");
   }

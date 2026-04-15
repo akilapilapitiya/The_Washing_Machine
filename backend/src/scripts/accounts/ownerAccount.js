@@ -43,7 +43,11 @@ export async function ensureOwnerAccount({
 
   if (existingOwner.rowCount > 0) {
     logger.info("Owner account already exists. Skipping creation.");
-    return { created: false, owner: existingOwner.rows[0], password: ownerData.password };
+    return {
+      created: false,
+      owner: existingOwner.rows[0],
+      password: ownerData.password,
+    };
   }
 
   const passwordHash = await bcrypt.hash(ownerData.password, SALT);
