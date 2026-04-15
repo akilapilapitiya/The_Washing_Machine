@@ -17,7 +17,7 @@
                 data:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Advertisement'
+                    $ref: "#/components/schemas/Advertisement"
 
   post:
     tags: [Advertisement]
@@ -49,11 +49,11 @@
                 enum: [requested, live, inactive]
     responses:
       "201":
-        $ref: '#/components/responses/Created'
+        $ref: "#/components/responses/Created"
       "400":
-        $ref: '#/components/responses/BadRequest'
+        $ref: "#/components/responses/BadRequest"
       "401":
-        $ref: '#/components/responses/Unauthorized'
+        $ref: "#/components/responses/Unauthorized"
 
 /advertisement/request:
   post:
@@ -79,9 +79,9 @@
                 type: string
     responses:
       "201":
-        $ref: '#/components/responses/Created'
+        $ref: "#/components/responses/Created"
       "400":
-        $ref: '#/components/responses/BadRequest'
+        $ref: "#/components/responses/BadRequest"
 
 /advertisement/admin:
   get:
@@ -104,9 +104,9 @@
                 data:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Advertisement'
+                    $ref: "#/components/schemas/Advertisement"
       "401":
-        $ref: '#/components/responses/Unauthorized'
+        $ref: "#/components/responses/Unauthorized"
 
 /advertisement/{id}:
   put:
@@ -143,11 +143,11 @@
                 enum: [requested, live, inactive]
     responses:
       "200":
-        $ref: '#/components/responses/Success'
+        $ref: "#/components/responses/Success"
       "400":
-        $ref: '#/components/responses/BadRequest'
+        $ref: "#/components/responses/BadRequest"
       "401":
-        $ref: '#/components/responses/Unauthorized'
+        $ref: "#/components/responses/Unauthorized"
 
   delete:
     tags: [Advertisement]
@@ -163,6 +163,6 @@
           type: integer
     responses:
       "200":
-        $ref: '#/components/responses/Success'
+        $ref: "#/components/responses/Success"
       "401":
-        $ref: '#/components/responses/Unauthorized'
+        $ref: "#/components/responses/Unauthorized"
