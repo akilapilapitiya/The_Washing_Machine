@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import pool from "../configs/database.js";
 
 // Cache for settings (simple in-memory cache for now)
