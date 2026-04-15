@@ -1,17 +1,21 @@
 # Frontend — Technical Reference
 
+## Version
+**v2.0.0** — Production-grade single-page application for the vehicle service booking platform.
+
 ## Overview
 
 The frontend is a single-page application built with React 19 and Vite 7, serving three distinct user portals within a single bundle: a public-facing marketing site, a customer self-service dashboard, and a combined employee/owner management portal. Routing, authentication state, and API communication are managed entirely on the client.
 
-The application connects to the backend via a centralised Axios service layer, maintains a real-time WebSocket subscription for push notifications, and renders map-based location picking backed by the Google Maps JavaScript API.
+The application connects to the backend via a centralised Axios service layer, maintains a real-time WebSocket subscription for push notifications, and renders map-based location picking backed by the Google Maps JavaScript API. All 35+ pages are lazy-loaded using React.lazy() for optimal performance on slow networks.
 
 ---
 
 ## Table of Contents
 
-1. [Architecture](#architecture)
-2. [Technology Stack](#technology-stack)
+1. [Quick Start](#quick-start)
+2. [Architecture](#architecture)
+3. [Technology Stack](#technology-stack)
 3. [Project Structure](#project-structure)
 4. [Routing](#routing)
 5. [Authentication and Session Management](#authentication-and-session-management)
@@ -26,7 +30,68 @@ The application connects to the backend via a centralised Axios service layer, m
 14. [Testing](#testing)
 
 ---
+Quick Start
 
+### Prerequisites
+- Node.js 18+ with npm
+- Backend server running on `http://localhost:5500` (development)
+- Google Maps API key
+
+### Installation
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+```
+
+Edit `.env` with your local credentials:
+
+```
+VITE_API_BASE_URL=http://localhost:5500/api
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
+
+### Start Development Server
+
+```bash
+npm run dev
+```
+
+Application runs on `http://localhost:5173`. Changes automatically reload in the browser via HMR.
+
+### Verify Installation
+
+Visit these routes to verify setup:
+- `http://localhost:5173` — Home page
+- `http://localhost:5173/services` — Public service catalog
+- `http://localhost:5173/login` — Customer login
+- `http://localhost:5173/employee-login` — Employee login
+
+### Test Accounts
+
+Use credentials from your backend seed:
+- Customer: any registered customer account
+- Employee/Owner: from backend seed script
+
+---
+
+## What's New in v2.0
+
+- Lazy-loaded 35+ pages for improved perception of speed on slow networks
+- Enhanced form validation and error handling with React Hook Form
+- Refined UI component library with Radix primitives
+- Integrated Google Maps location picker with driving distance validation
+- Real-time notifications via Socket.io with role-based message routing
+- Improved responsive design for mobile-first service booking
+- Vite manual chunking for long-term browser cache optimization
+- Comprehensive feature domains (booking, admin, employee, customer)
+- Structured service layer with centralized API communication
+- Full test coverage with Vitest + React Testing Library
+
+---
+
+## 
 ## Architecture
 
 ```
@@ -413,12 +478,28 @@ In production, `VITE_API_BASE_URL` is set to `/api` (relative). Nginx on the fro
 cd frontend
 npm install
 cp .env.example .env
-# Set VITE_API_BASE_URL=http://localhost:5500/api in .env
-# Set VITE_GOOGLE_MAPS_API_KEY=your_key in .env
+```
+
+Edit `.env`:
+
+```
+VITE_API_BASE_URL=http://localhost:5500/api
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+VITE_MAX_BOOKING_RADIUS_KM=30
+```
+
+Start the dev server:
+
+```bash
 npm run dev
 ```
 
-The Vite dev server starts at `http://localhost:5173`. The backend must be running separately for API calls to succeed.
+The Vite dev server starts at `http://localhost:5173` with hot module replacement enabled. Changes to component files instantly update in the browser without full page reload.
+
+Requirements:
+- Backend must be running on `http://localhost:5500`
+- Google Maps API key must be valid for location picker functionality
+- `.env` file must have `VITE_` prefixed variables for Vite to expose them
 
 ### Production
 
@@ -428,19 +509,23 @@ The production image is built and deployed automatically by the GitLab CI/CD pip
 docker build \
   --build-arg VITE_API_BASE_URL=/api \
   --build-arg VITE_GOOGLE_MAPS_API_KEY=your_key \
-  -t frontend:latest .
+  -t frontend:2.0.0 .
 ```
 
-The resulting image is served by Nginx. Routing, SSL, and API proxying are handled by the Nginx configuration selected at container startup.
+The Dockerfile uses a two-stage build:
+1. **Build stage**: Node 20 Alpine — installs dependencies, runs `vite build`, output to `dist/`
+2. **Serve stage**: Nginx Alpine — serves `dist/` folder and proxies `/api/*` to backend
+
+Environment variables are baked into the bundle at build time. No runtime configuration needed. The custom `docker-entrypoint.sh` selects HTTP or HTTPS Nginx config based on presence of Let's Encrypt certificate.
 
 ### Available Scripts
 
 | Script | Description |
 |---|---|
-| `npm run dev` | Start Vite dev server with HMR |
-| `npm run build` | Production bundle to `dist/` |
-| `npm run preview` | Serve the production bundle locally |
-| `npm run lint` | Run ESLint across the codebase |
+| `npm run dev` | Start Vite dev server with HMR (port 5173) |
+| `npm run build` | Production bundle to `dist/` folder |
+| `npm run preview` | Serve production bundle locally for testing |
+| `npm run lint` | Run ESLint across all `.jsx` and `.js` files |
 | `npm test` | Run Vitest in watch mode |
 | `npm run test:run` | Run Vitest once (CI mode) |
 
@@ -448,15 +533,38 @@ The resulting image is served by Nginx. Routing, SSL, and API proxying are handl
 
 ## Testing
 
-Tests run with **Vitest** using **React Testing Library** in a jsdom environment. The setup file (`src/setupTests.js`) applies `@testing-library/jest-dom` matchers globally.
+Tests run with **Vitest** using **React Testing Library** in a jsdom environment. The setup file (`src/setupTests.js`) applies `@testing-library/jest-dom` matchers globally and mocks `localStorage`.
 
 ```bash
 npm run test:run
 ```
 
-Test files reside alongside the features they test or in a dedicated `__tests__` directory within the feature domain. The Vitest configuration is embedded in `vite.config.js` under the `test` key, keeping a single source of truth for build and test tooling.
+Test files reside alongside features or in a dedicated `__tests__` directory. The Vitest configuration is in `vite.config.js` under the `test` key.
 
-## Recent Maintenance
+### Test Coverage Areas
+- Route guards (authentication redirects)
+- Component rendering with props
+- User interactions (form submission, button clicks)
+- Context consumption (Auth, Notification)
+- Service layer API mocking
 
-- **March 29, 2026** — Ran Prettier across the SPA, pruned unused packages (`dotenv`, `tailwindcss` moved to dev-only, unused `tw-animate-css` verified), and centralized axios logging/health-check helpers. Route guards and layout files now share consistent comments, while the test harness still boots via `src/setupTests.js` to mock `localStorage`/`matchMedia`.
-- **March 30, 2026** — Refined the Payment Management interface by renaming the final transaction button to "Complete Payment" and relaxing ledger constraints to allow for Rs. 0.00 line items. Integrated "Service Card" mechanics into the vehicle management flow, enabling employees to update odometer readings and predict next service targets upon job completion.
+## Release Notes — v2.0.0
+
+**Release Date:** April 15, 2026
+
+### Major Features  
+- Production-grade SPA with optimized Vite build pipeline
+- Comprehensive feature domains: booking, admin, employee, customer dashboards
+- Real-time notifications with Socket.io integration
+- Google Maps location picker with distance validation
+- Multi-role authentication (customer, employee, cashier, owner)
+
+### Performance Improvements
+- Lazy-loaded 35+ pages reduce initial bundle size
+- Vite manual chunking for vendor code caching
+- Native image lazy-loading for secondary assets
+- Route-based code splitting for faster page transitions
+
+### Previous Maintenance History
+- **March 29, 2026** — Ran Prettier across the SPA, pruned unused packages, and centralized axios helpers. Route guards and layout files now share consistent comments. Test harness boots via `src/setupTests.js`.
+- **March 30, 2026** — Refined Payment Management interface: renamed final button to "Complete Payment", relaxed ledger constraints for Rs. 0.00 items. Integrated Service Card mechanics for odometer updates and next-service predictions.
