@@ -24,7 +24,7 @@ settingsRouter.put("/pricing", restrictTo("owner"), updatePricingRules);
 settingsRouter.get(
   "/reminders",
   restrictTo("employee", "manager", "owner", "customer"),
-  getReminderSettings
+  getReminderSettings,
 );
 settingsRouter.put("/reminders", restrictTo("owner"), updateReminderSettings);
 

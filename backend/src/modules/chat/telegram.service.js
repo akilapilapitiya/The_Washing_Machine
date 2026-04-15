@@ -72,7 +72,9 @@ export const initTelegramBot = () => {
       }
 
       const code = codeMatch[1].toLowerCase();
-      logger.info(`[TELEGRAM] Received linking code attempt: ${code} from chatId: ${chatId}`);
+      logger.info(
+        `[TELEGRAM] Received linking code attempt: ${code} from chatId: ${chatId}`,
+      );
 
       try {
         // Verify Code
