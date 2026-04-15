@@ -114,7 +114,6 @@ export const getRoles = async (req, res, next) => {
   }
 };
 
-
 // Generate Telegram Linking Code
 export const generateTelegramLink = async (req, res, next) => {
   try {

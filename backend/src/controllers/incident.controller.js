@@ -51,7 +51,11 @@ export const getIncidents = async (req, res, next) => {
     const params = [];
 
     // If not owner/manager/cashier, only show their own incidents
-    if (userRole !== "owner" && userRole !== "cashier" && userRole !== "manager") {
+    if (
+      userRole !== "owner" &&
+      userRole !== "cashier" &&
+      userRole !== "manager"
+    ) {
       query += ` WHERE i.employee_id = $1`;
       params.push(req.user.id);
     }

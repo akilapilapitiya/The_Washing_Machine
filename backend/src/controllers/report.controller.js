@@ -74,4 +74,3 @@ export const getMonthlyIncomeReport = async (req, res, next) => {
     next(error);
   }
 };
-

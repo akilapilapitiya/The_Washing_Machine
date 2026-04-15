@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import pool from "../configs/database.js";
 import { ForbiddenError, NotFoundError } from "../utils/errors.util.js";
 
@@ -74,15 +74,19 @@ export const updatePricingRules = async (req, res, next) => {
 export const getReminderSettings = async (req, res, next) => {
   try {
     const resultFreq = await pool.query(
-      "SELECT value FROM sys_settings WHERE key = 'default_service_frequency_days'"
+      "SELECT value FROM sys_settings WHERE key = 'default_service_frequency_days'",
     );
     const resultPrior = await pool.query(
-      "SELECT value FROM sys_settings WHERE key = 'service_reminder_prior_days'"
+      "SELECT value FROM sys_settings WHERE key = 'service_reminder_prior_days'",
     );
 
     res.json({
-      default_service_frequency_days: resultFreq.rows[0]?.value ? Number(resultFreq.rows[0].value) : 90,
-      service_reminder_prior_days: resultPrior.rows[0]?.value ? Number(resultPrior.rows[0].value) : 7,
+      default_service_frequency_days: resultFreq.rows[0]?.value
+        ? Number(resultFreq.rows[0].value)
+        : 90,
+      service_reminder_prior_days: resultPrior.rows[0]?.value
+        ? Number(resultPrior.rows[0].value)
+        : 7,
     });
   } catch (error) {
     next(error);
@@ -92,9 +96,13 @@ export const getReminderSettings = async (req, res, next) => {
 // UPDATE Reminder Settings
 export const updateReminderSettings = async (req, res, next) => {
   try {
-    const { default_service_frequency_days, service_reminder_prior_days } = req.body;
+    const { default_service_frequency_days, service_reminder_prior_days } =
+      req.body;
 
-    if (default_service_frequency_days === undefined || service_reminder_prior_days === undefined) {
+    if (
+      default_service_frequency_days === undefined ||
+      service_reminder_prior_days === undefined
+    ) {
       throw new Error("Missing required fields");
     }
 
@@ -105,8 +113,8 @@ export const updateReminderSettings = async (req, res, next) => {
       [
         "default_service_frequency_days",
         String(default_service_frequency_days),
-        "Default service frequency in days for new customers"
-      ]
+        "Default service frequency in days for new customers",
+      ],
     );
 
     await pool.query(
@@ -116,8 +124,8 @@ export const updateReminderSettings = async (req, res, next) => {
       [
         "service_reminder_prior_days",
         String(service_reminder_prior_days),
-        "Number of days prior to next service date to send reminder"
-      ]
+        "Number of days prior to next service date to send reminder",
+      ],
     );
 
     res.json({ message: "Reminder settings updated successfully" });
