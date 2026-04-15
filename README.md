@@ -1,8 +1,50 @@
 # The Washing Machine
 
-A full-stack vehicle service booking platform for modern automotive businesses. The system provides a customer self-service portal, an employee management suite, and a complete administrative interface, delivered as a containerised application with an automated CI/CD pipeline.
+**Version 2.0.0** — Production-grade vehicle service booking platform
+
+A full-stack platform for modern automotive businesses serving customers, employees, and administrators. The system provides a customer self-service portal, an employee management suite, and a complete administrative interface — delivered as containerised microservices with automated CI/CD deployment.
 
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
+
+---
+
+## Quick Start
+
+### Development Environment
+
+Start the full local stack in three steps:
+
+```bash
+# 1. Start PostgreSQL + Redis
+docker-compose up -d
+
+# 2. Backend (http://localhost:5500)
+cd backend && npm install && npm run db:reset:seed && npm run dev
+
+# 3. Frontend (http://localhost:5173)
+cd frontend && npm install && npm run dev
+```
+
+See [backend/README.md](./backend/README.md) and [frontend/README.md](./frontend/README.md) for detailed setup.
+
+### Production Deployment
+
+Push to `main` on GitHub. The automated CI/CD pipeline handles:
+- Terraform infrastructure provisioning
+- Docker image building and pushing to GitLab Container Registry
+- EC2 deployment with docker-compose
+- SSL certificate management via Let's Encrypt
+
+See [.gitlab-ci.yml](./.gitlab-ci.yml) for pipeline stages.
+
+---
+
+## What's New in v2.0.0
+
+- **Backend**: Refined edge caching, enhanced real-time socket communication, improved error handling, PM2 cluster mode, comprehensive Swagger documentation, Telegram bot integration, advanced scheduling workflows
+- **Frontend**: Lazy-loaded 35+ pages, enhanced form validation, integrated Google Maps location picker, real-time Socket.io notifications, responsive design improvements, Vite manual chunking for browser caching, full test coverage
+- **Infrastructure**: AWS Singapore deployment, automated CI/CD pipeline, Docker containerization, Let's Encrypt SSL with auto-renewal
+- **Documentation**: Complete API and SPA technical references, quick start guides, deployment instructions
 
 ---
 
@@ -151,77 +193,113 @@ The `ssl` and `seed` stages are triggered manually and are one-time operations. 
 
 ---
 
-## Quick Start — Local Development
+## Detailed Setup Instructions
 
-### Prerequisites
+### Backend
 
-- Node.js v18+
-- Docker and Docker Compose
-
-### 1. Start infrastructure
-
-```bash
-docker-compose up -d
-```
-
-Starts PostgreSQL and Redis locally.
-
-### 2. Backend
+Comprehensive guide: [backend/README.md](./backend/README.md)
 
 ```bash
 cd backend
 npm install
 cp .env.example .env.development.local
-# Set DB_PASSWORD, JWT_SECRET, SMTP credentials, TELEGRAM_BOT_TOKEN
-npm run db:reset:seed
-npm run dev
+# Edit .env.development.local with local credentials
+npm run docker:up      # Start PostgreSQL + Redis
+npm run db:reset:seed  # Initialize schema + seed owner account
+npm run dev            # Start server (http://localhost:5500)
 ```
 
-API available at `http://localhost:5500`.
+### Frontend
 
-### 3. Frontend
+Comprehensive guide: [frontend/README.md](./frontend/README.md)
 
 ```bash
 cd frontend
 npm install
 cp .env.example .env
-# Set VITE_API_BASE_URL=http://localhost:5500/api
-# Set VITE_GOOGLE_MAPS_API_KEY=your_key
-npm run dev
+# Edit .env with API base URL and Google Maps key
+npm run dev            # Start dev server (http://localhost:5173)
 ```
 
-Application available at `http://localhost:5173`.
+### Infrastructure
+
+Comprehensive guide: [terraform/README.md](./terraform/README.md)
 
 ---
 
-## First-Time Production Deployment
+## Production Deployment
 
-### Prerequisites
+Automated CI/CD pipeline on every push to `main`:
 
-1. AWS IAM Credentials — set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as protected GitLab CI/CD variables.
-2. SSH Key Pair — set `SSH_PUBLIC_KEY` and `SSH_PRIVATE_KEY` (base64-encoded private key) as GitLab CI/CD variables.
-3. Google Maps API key — set `VITE_GOOGLE_MAPS_API_KEY` as a GitLab CI/CD variable.
-4. DNS `A` record: `washingmachine` → AWS Elastic IP at your DNS provider.
+1. **GitHub push** → GitHub Actions mirroring → GitLab push
+2. **GitLab CI/CD pipeline** executes automatically:
+   - `infra:deploy` — Terraform provisions/updates AWS EC2 infrastructure
+   - `build:backend` — Docker builds backend:2.0.0 and pushes to GitLab Container Registry
+   - `build:frontend` — Docker builds frontend:2.0.0 and pushes to GitLab Container Registry
+   - `deploy:prod` — SSH into EC2, pulls images, runs docker-compose up -d
 
-### Deployment sequence
+3. **One-time manual steps** (first deployment only):
+   - `ssl:init` — Certbot obtains Let's Encrypt certificate via webroot validation
+   - `seed:prod` — Runs database seeding (roles, settings, owner account)
 
-```bash
-# 1. Push to main — pipeline runs infra → build → deploy automatically
-git push origin main
+After these one-time steps, subsequent deployments are fully automated.
 
-# 2. In GitLab: trigger ssl:init manually (one-time)
-#    Certbot obtains the Let's Encrypt certificate via webroot
-#    Container restarts; Nginx switches to HTTPS config
+### Prerequisites for First Deployment
 
-# 3. In GitLab: trigger seed:prod manually (one-time)
-#    Runs role seeding and creates the owner account
-```
+Set GitLab CI/CD variables:
+- `AWS_ACCESS_KEY_ID` — IAM user with EC2/VPC permissions
+- `AWS_SECRET_ACCESS_KEY` — IAM secret key
+- `SSH_PRIVATE_KEY` — Base64-encoded SSH private key for EC2 access
+- `VITE_GOOGLE_MAPS_API_KEY` — Google Maps API key
 
-Default owner credentials after seeding (change immediately):
+Add DNS A record:
+- `washingmachine.yourdomain.com` → AWS Elastic IP
+
+### Default Owner Account (after seed:prod)
+
+Create immediately after first deployment:
+
 ```
 Email:    owner@washingmachine.lk
 Password: Owner@123
+
+Action: Change password and update email in dashboard
 ```
+
+---
+
+## Environment Configuration
+
+All sensitive values are injected at deployment time via environment variables. No secrets are committed to the repository.
+
+### Backend (.env.production)
+
+Required variables:
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- `JWT_SECRET`, `JWT_EXPIRES_IN`, `COOKIE_AGE`
+- `REDIS_HOST`, `REDIS_PORT`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+- `GOOGLE_MAPS_API_KEY`, `CORS_ORIGIN`
+
+Optional: Telegram bot token and feature toggles
+
+### Frontend (build-time)
+
+Build arguments passed to Docker:
+- `VITE_API_BASE_URL` — `/api` (Nginx proxies to backend)
+- `VITE_GOOGLE_MAPS_API_KEY` — Embedded at build time
+
+### Infrastructure (terraform.tfvars)
+
+EC2 sizing, VPC configuration, security groups — see [terraform/README.md](./terraform/README.md)
+
+---
+
+## Cloud Architecture
+
+The application runs on **AWS (Singapore region)** with:
+- **Compute**: t3.micro EC2 instance (Ubuntu 22.04 LTS)
+- **Storage**: SSD-backed volumes (root + data partition)
 
 ---
 
@@ -249,16 +327,10 @@ Vitest with React Testing Library in a jsdom environment.
 
 ## License
 
-Proprietary software. All rights reserved.
+MIT License — See [LICENSE](./LICENSE) for details.
 
 ---
 
-**Version:** 1.9.0
-**Last Updated:** April 11, 2026
+**Version:** 2.0.0  
+**Last Updated:** April 15, 2026  
 **Live:** [washingmachine.truegate.live](https://washingmachine.truegate.live)
-
-## Recent Maintenance
-
-- March 29, 2026: Prettier and lint-driven clean up across backend/ frontend routes, scripts, and shared utilities.
-- March 30, 2026: Implemented the **"Service Due Reminder"** engine and refined the **Payment Management** ledger.
-- April 11, 2026: **Production Platform Migration**. Successfully migrated infrastructure from Azure (East US) to AWS (Singapore). Replaced Azure VM architecture with AWS EC2/VPC and updated the automated CI/CD pipeline to target the new environment.
