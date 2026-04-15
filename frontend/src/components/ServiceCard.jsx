@@ -93,9 +93,7 @@ const ServiceCard = ({ service, onReadMore }) => {
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
-          <div
-            className="h-full w-full flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-gray-100"
-          >
+          <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-gray-100">
             <div
               className={`inline-flex items-center justify-center w-20 h-20 ${service.bgColor || COLORS.bg.brandLight} rounded-full shadow-inner transition-transform duration-300 group-hover:scale-110`}
             >
