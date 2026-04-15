@@ -24,7 +24,9 @@ export const getDailyIncomeDetailed = async (startDate, endDate) => {
   if (startDate) params.append("startDate", startDate);
   if (endDate) params.append("endDate", endDate);
 
-  const response = await api.get(`/report/daily-income/detailed?${params.toString()}`);
+  const response = await api.get(
+    `/report/daily-income/detailed?${params.toString()}`,
+  );
   return response.data?.data?.report || [];
 };
 

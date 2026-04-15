@@ -22,8 +22,11 @@ export const updateItemPrice = async (extraId, price) => {
 
 // Update base service price per booking (Cashier)
 export const updateServicePrice = async (bookingId, serviceId, price) => {
-  const response = await api.put(`/bookings/${bookingId}/services/${serviceId}/price`, {
-    price,
-  });
+  const response = await api.put(
+    `/bookings/${bookingId}/services/${serviceId}/price`,
+    {
+      price,
+    },
+  );
   return response.data;
 };
