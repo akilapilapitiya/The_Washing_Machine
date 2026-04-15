@@ -156,7 +156,6 @@ const DashboardLayout = () => {
             </div>
           </main>
         </div>
-
       </div>
     </PageHeaderProvider>
   );

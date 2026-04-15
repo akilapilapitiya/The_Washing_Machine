@@ -54,7 +54,6 @@ const PublicNavbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="relative flex items-center justify-between h-full">
-          
           {/* LEFT: Mobile Menu Toggle / Desktop Logo */}
           <div className="flex-1 flex items-center justify-start gap-4">
             {/* Mobile Menu Toggle (LEFT on mobile) */}
@@ -66,7 +65,10 @@ const PublicNavbar = () => {
             </button>
 
             {/* Logo (Left-aligned on Desktop, hidden on Mobile center-logo config below) */}
-            <Link to="/" className="hidden lg:block flex-shrink-0 transition-opacity hover:opacity-90">
+            <Link
+              to="/"
+              className="hidden lg:block flex-shrink-0 transition-opacity hover:opacity-90"
+            >
               <img
                 src={logo}
                 alt="The Washing Machine Logo"
@@ -78,7 +80,10 @@ const PublicNavbar = () => {
           {/* CENTER: Mobile Logo / Desktop Navigation */}
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
             {/* Mobile Logo (Centered only on small screens) */}
-            <Link to="/" className="lg:hidden flex-shrink-0 transition-opacity hover:opacity-90">
+            <Link
+              to="/"
+              className="lg:hidden flex-shrink-0 transition-opacity hover:opacity-90"
+            >
               <img
                 src={logo}
                 alt="The Washing Machine Logo"
@@ -102,7 +107,9 @@ const PublicNavbar = () => {
                     <Link
                       to={item.path}
                       className={`text-sm font-semibold transition-colors duration-200 relative py-1 ${
-                        isLinkActive(item.path) ? "text-gray-900" : "text-gray-500 hover:text-gray-900"
+                        isLinkActive(item.path)
+                          ? "text-gray-900"
+                          : "text-gray-500 hover:text-gray-900"
                       }`}
                     >
                       {item.label}
@@ -133,7 +140,7 @@ const PublicNavbar = () => {
                   <UserAvatar user={user} size="sm" />
                   <Link to="/dashboard" className="hidden sm:block">
                     <Button className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm h-9 px-5 rounded-lg shadow-sm transition-all flex items-center gap-2">
-                       Dashboard
+                      Dashboard
                       <ArrowRight size={14} />
                     </Button>
                   </Link>
@@ -141,7 +148,10 @@ const PublicNavbar = () => {
               ) : (
                 <div className="flex items-center gap-2">
                   <Link to="/login">
-                    <Button variant="ghost" className="text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-transparent h-9 px-4 transition-colors">
+                    <Button
+                      variant="ghost"
+                      className="text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-transparent h-9 px-4 transition-colors"
+                    >
                       Log in
                     </Button>
                   </Link>
@@ -161,21 +171,19 @@ const PublicNavbar = () => {
       {isMenuOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] lg:hidden transition-opacity duration-300"
             onClick={() => setIsMenuOpen(false)}
           />
-          
+
           {/* Drawer Content */}
-          <div 
-            className="fixed inset-y-0 left-0 w-[280px] bg-white z-[70] lg:hidden flex flex-col shadow-2xl transition-transform duration-300 transform translate-x-0 animate-in slide-in-from-left duration-300"
-          >
+          <div className="fixed inset-y-0 left-0 w-[280px] bg-white z-[70] lg:hidden flex flex-col shadow-2xl transition-transform duration-300 transform translate-x-0 animate-in slide-in-from-left duration-300">
             {/* Drawer Header */}
             <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
               <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <img src={logo} alt="Logo" className="h-8 w-auto" />
               </Link>
-              <button 
+              <button
                 onClick={() => setIsMenuOpen(false)}
                 className="p-2 text-gray-400 hover:text-gray-900 transition-colors"
               >
@@ -189,8 +197,12 @@ const PublicNavbar = () => {
                 <div className="flex items-center gap-3">
                   <UserAvatar user={user} size="md" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -199,7 +211,9 @@ const PublicNavbar = () => {
             {/* Navigation Links */}
             <div className="flex-1 overflow-y-auto py-6">
               <div className="px-6 mb-4">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Navigation</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  Navigation
+                </span>
               </div>
               <div className="flex flex-col">
                 {navItems.map((item) => (
@@ -217,8 +231,8 @@ const PublicNavbar = () => {
                         to={item.path}
                         onClick={() => setIsMenuOpen(false)}
                         className={`px-6 py-4 text-lg font-bold transition-all border-l-4 ${
-                          isLinkActive(item.path) 
-                            ? "text-red-600 bg-red-50/50 border-red-600" 
+                          isLinkActive(item.path)
+                            ? "text-red-600 bg-red-50/50 border-red-600"
                             : "text-gray-600 border-transparent hover:text-red-600 hover:bg-red-50/50"
                         }`}
                       >
@@ -241,11 +255,17 @@ const PublicNavbar = () => {
               ) : (
                 <>
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full h-12 border-gray-200 text-gray-900 font-bold rounded-xl hover:bg-gray-50">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-gray-200 text-gray-900 font-bold rounded-xl hover:bg-gray-50"
+                    >
                       Log in
                     </Button>
                   </Link>
-                  <Link to="/dashboard/book" onClick={() => setIsMenuOpen(false)}>
+                  <Link
+                    to="/dashboard/book"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     <Button className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-sm">
                       Book Service Now
                     </Button>

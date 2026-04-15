@@ -100,7 +100,6 @@ const Sidebar = () => {
     { to: "/dashboard/feedback", icon: MessageSquare, label: "Feedback" },
   ];
 
-
   // Non-owner employee links (cashier, employee)
   const employeeLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -303,7 +302,9 @@ const Sidebar = () => {
           to="/dashboard/admin/reports/annual-income"
           icon={BarChart3}
           label="Annual Income"
-          active={location.pathname === "/dashboard/admin/reports/annual-income"}
+          active={
+            location.pathname === "/dashboard/admin/reports/annual-income"
+          }
           nested
         />
         <SidebarItem
