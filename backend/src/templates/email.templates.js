@@ -250,11 +250,15 @@ export const serviceReminderTemplate = ({
                 <span><strong>Vehicle:</strong> ${vehicleBrand} ${vehicleModel}</span>
                 <span><strong>Plate:</strong> ${vehiclePlate}</span>
             </p>
-            ${nextServiceMileage ? `
+            ${
+              nextServiceMileage
+                ? `
             <p style="margin: 10px 0 0 0; color: #555;">
                 <strong style="color: #e53e3e;">Target Mileage:</strong> ${nextServiceMileage.toLocaleString()} km
             </p>
-            ` : ''}
+            `
+                : ""
+            }
         </div>
 
         <p style="font-size: 16px; color: #333; line-height: 1.5;">
