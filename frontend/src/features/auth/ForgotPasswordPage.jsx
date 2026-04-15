@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import {
   requestCustomerPasswordReset,
   resetCustomerPassword,
@@ -18,6 +17,7 @@ import {
   resetEmployeePassword,
 } from "@/services/auth.service";
 import logo from "@/assets/logo.svg";
+import { ArrowLeft, AlertCircle, Eye, EyeOff, CheckCircle, Home } from "lucide-react";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -164,35 +164,47 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block mb-6">
-            <img
-              src={logo}
-              alt="The Washing Machine"
-              className="h-12 w-auto mx-auto"
-            />
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">
+    <div className="min-h-screen relative flex items-center justify-center py-12 px-4 overflow-hidden bg-gray-50">
+      {/* Background Watermark Logo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none flex items-center justify-center opacity-[0.15] mix-blend-multiply transition-opacity duration-1000">
+        <img
+          src={logo}
+          alt=""
+          className="w-[600px] lg:w-[1000px] h-auto object-contain grayscale"
+        />
+      </div>
+
+      {/* Back to Home Navigation */}
+      <Link 
+        to="/" 
+        className="fixed top-8 left-8 hidden md:flex items-center gap-3 text-gray-400 hover:text-red-600 transition-all duration-300 font-black uppercase tracking-[0.2em] text-[10px] group"
+      >
+        <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-red-600 group-hover:shadow-lg transition-all">
+          <Home size={16} className="transition-transform" />
+        </div>
+        <span>Back to Home</span>
+      </Link>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 mb-2 uppercase">
             Reset Password
           </h1>
-          <p className="text-gray-500 text-sm">
-            We'll send a verification code to your email
-          </p>
         </div>
 
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 font-medium text-sm"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 text-gray-400 hover:text-red-700 font-bold uppercase tracking-widest text-[10px] transition-colors"
+          >
+            <ArrowLeft size={14} />
+            {step === 0 ? "Back to Login" : "Back"}
+          </button>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Reset Password</CardTitle>
+        <Card className="shadow-sm border-gray-200">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-lg">Account Recovery</CardTitle>
             <CardDescription>
               {step === 0 && "Select your account type"}
               {step === 1 && "Enter your email to get started"}

@@ -18,11 +18,6 @@ import ServiceDetailsModal from "@/features/services/ServiceDetailsModal";
 import { getServices } from "@/services/service.service";
 import { COLORS } from "@/lib/colors";
 
-import img1 from "../../assets/serviceAssets/image1.png";
-import img2 from "../../assets/serviceAssets/image2.png";
-import img3 from "../../assets/serviceAssets/image3.png";
-import img4 from "../../assets/serviceAssets/image4.png";
-
 const isOfferActive = (service) => {
   if (!service?.has_offer) return false;
   if (service.offer_price === null || service.offer_price === undefined) {
@@ -139,24 +134,6 @@ const ServicesSection = ({ id }) => {
           </p>
         </div>
 
-        {/* Visual Showcase Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-24">
-          {[img1, img2, img3, img4].map((img, index) => (
-            <div
-              key={index}
-              className="relative group overflow-hidden rounded-[2rem] shadow-lg border border-gray-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-red-100"
-            >
-              <img
-                loading="lazy"
-                src={img}
-                alt={`Premium Service ${index + 1}`}
-                className="w-full h-full aspect-[4/5] object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-          ))}
-        </div>
-
         {/* Loading State */}
         {loading && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
@@ -221,19 +198,18 @@ const ServicesSection = ({ id }) => {
 
         {/* Empty State - No Services at all */}
         {!loading && !error && services.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-2xl border border-gray-200">
+          <div className="text-center py-20 bg-white">
             <p className="text-gray-500 text-lg">
               No services available at the moment.
             </p>
           </div>
         )}
 
-        {/* Empty State - No Live Offers */}
         {!loading &&
           !error &&
           services.length > 0 &&
           activeOfferServices.length === 0 && (
-            <div className="text-center py-16 px-4 bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center">
+            <div className="text-center py-16 px-4 bg-white flex flex-col items-center">
               <Tag className="w-16 h-16 text-gray-300 mb-4" />
               <h3 className="text-gray-900 text-xl font-bold mb-2">
                 No live offers right now.
