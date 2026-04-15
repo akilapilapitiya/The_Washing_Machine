@@ -1,4 +1,4 @@
-import logger from './logger.js';
+import logger from "./logger.js";
 import pkg from "pg";
 import { DB_USER, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT } from "./env.js";
 
