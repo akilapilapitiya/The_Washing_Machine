@@ -55,7 +55,9 @@ const BookingAvailabilityCalendar = ({
             <button
               key={dayCell.dateKey}
               type="button"
-              onClick={() => !dayCell.isDisabled && onDateSelect(dayCell.dateKey)}
+              onClick={() =>
+                !dayCell.isDisabled && onDateSelect(dayCell.dateKey)
+              }
               disabled={dayCell.isDisabled}
               title={
                 dayCell.isHoliday

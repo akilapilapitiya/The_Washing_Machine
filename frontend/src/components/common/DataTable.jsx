@@ -64,7 +64,9 @@ const DataTable = ({
 
   if (filteredData.length === 0) {
     return (
-      <Card className={`border-dashed border-2 py-24 bg-transparent border-gray-200 ${className}`}>
+      <Card
+        className={`border-dashed border-2 py-24 bg-transparent border-gray-200 ${className}`}
+      >
         <CardContent className="flex flex-col items-center justify-center gap-4 text-center">
           {isSearchEnabled && data.length > 0 && (
             <div className="w-full max-w-sm mb-4">
@@ -81,7 +83,9 @@ const DataTable = ({
           </div>
           <div className="space-y-1">
             <h3 className="text-xl font-black text-gray-900">
-              {isSearchEnabled && normalizedQuery ? "No matching records" : emptyTitle}
+              {isSearchEnabled && normalizedQuery
+                ? "No matching records"
+                : emptyTitle}
             </h3>
             <p className="text-sm text-gray-500 max-w-xs mx-auto">
               {isSearchEnabled && normalizedQuery
@@ -96,7 +100,9 @@ const DataTable = ({
   }
 
   return (
-    <Card className={`border-gray-200 shadow-sm overflow-hidden bg-white ${className}`}>
+    <Card
+      className={`border-gray-200 shadow-sm overflow-hidden bg-white ${className}`}
+    >
       {isSearchEnabled && (
         <div className="p-4 border-b border-gray-100 bg-white">
           <Input

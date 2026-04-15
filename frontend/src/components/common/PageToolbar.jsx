@@ -16,7 +16,8 @@ const PageToolbar = ({
   className = "",
 }) => {
   const showSearch = typeof onSearchChange === "function";
-  const showFilters = filters.length > 0 && typeof onFilterChange === "function";
+  const showFilters =
+    filters.length > 0 && typeof onFilterChange === "function";
 
   return (
     <div
@@ -72,7 +73,9 @@ const PageToolbar = ({
           {rightSlot}
 
           {showSearch && (
-            <div className={`relative w-full ${searchWidthClass} flex-shrink-0`}>
+            <div
+              className={`relative w-full ${searchWidthClass} flex-shrink-0`}
+            >
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 size={16}
