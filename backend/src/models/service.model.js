@@ -20,6 +20,7 @@ const createServiceTable = async (pool) => {
       offer_start_date TIMESTAMP,
       offer_end_date TIMESTAMP,
       servicetype VARCHAR(20) DEFAULT 'package',
+      cooldown_duration INTEGER DEFAULT 15,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -62,6 +63,9 @@ const createServiceTable = async (pool) => {
       END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='service' AND column_name='offer_description') THEN
         ALTER TABLE service ADD COLUMN offer_description TEXT;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='service' AND column_name='cooldown_duration') THEN
+        ALTER TABLE service ADD COLUMN cooldown_duration INTEGER DEFAULT 15;
       END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='service' AND column_name='offer_start_date') THEN
         ALTER TABLE service ADD COLUMN offer_start_date TIMESTAMP;

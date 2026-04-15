@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  ShieldAlert,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import { ShieldAlert, CheckCircle, XCircle, Clock } from "lucide-react";
 import * as incidentService from "@/services/incident.service";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -84,7 +79,9 @@ const ManageIncidentsPage = () => {
         incident.booking_id,
         incident.id,
       ].some((value) =>
-        String(value || "").toLowerCase().includes(query),
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
       );
 
     return matchesSearch;
@@ -94,23 +91,33 @@ const ManageIncidentsPage = () => {
     () => (
       <PageToolbar
         stats={[
-          { icon: ShieldAlert, label: "Total", value: incidents.length, iconClassName: "text-red-500" },
+          {
+            icon: ShieldAlert,
+            label: "Total",
+            value: incidents.length,
+            iconClassName: "text-red-500",
+          },
           {
             icon: ShieldAlert,
             label: "Open",
-            value: incidents.filter((incident) => incident.status === "open").length,
+            value: incidents.filter((incident) => incident.status === "open")
+              .length,
             iconClassName: "text-orange-500",
           },
           {
             icon: CheckCircle,
             label: "Resolved",
-            value: incidents.filter((incident) => incident.status === "resolved").length,
+            value: incidents.filter(
+              (incident) => incident.status === "resolved",
+            ).length,
             iconClassName: "text-green-500",
           },
           {
             icon: XCircle,
             label: "Dismissed",
-            value: incidents.filter((incident) => incident.status === "dismissed").length,
+            value: incidents.filter(
+              (incident) => incident.status === "dismissed",
+            ).length,
             iconClassName: "text-gray-500",
           },
         ]}
@@ -137,7 +144,9 @@ const ManageIncidentsPage = () => {
       key: "id",
       label: "ID",
       render: (row) => (
-        <span className="font-mono font-bold text-gray-500 text-sm">#{row.id}</span>
+        <span className="font-mono font-bold text-gray-500 text-sm">
+          #{row.id}
+        </span>
       ),
     },
     {
@@ -158,7 +167,9 @@ const ManageIncidentsPage = () => {
       label: "Reporter & Date",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-gray-900 font-bold text-sm">{row.employee_name || "Unknown"}</span>
+          <span className="text-gray-900 font-bold text-sm">
+            {row.employee_name || "Unknown"}
+          </span>
           <span className="text-xs text-gray-400 font-normal">
             {new Date(row.created_at).toLocaleString()}
           </span>
@@ -169,7 +180,10 @@ const ManageIncidentsPage = () => {
       key: "description",
       label: "Description",
       render: (row) => (
-        <p className="text-sm text-gray-700 font-medium line-clamp-1 max-w-[250px]" title={row.description}>
+        <p
+          className="text-sm text-gray-700 font-medium line-clamp-1 max-w-[250px]"
+          title={row.description}
+        >
           {row.description}
         </p>
       ),
@@ -179,9 +193,13 @@ const ManageIncidentsPage = () => {
       label: "Customer / Booking",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-bold text-gray-900">{row.customer_name || "N/A"}</span>
+          <span className="text-sm font-bold text-gray-900">
+            {row.customer_name || "N/A"}
+          </span>
           {row.booking_id && (
-            <span className="text-xs text-blue-600 font-medium">Booking #{row.booking_id}</span>
+            <span className="text-xs text-blue-600 font-medium">
+              Booking #{row.booking_id}
+            </span>
           )}
         </div>
       ),
@@ -192,7 +210,9 @@ const ManageIncidentsPage = () => {
       render: (row) => (
         <div className="flex items-center gap-2">
           {getStatusIcon(row.status)}
-          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">{row.status}</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+            {row.status}
+          </span>
         </div>
       ),
     },
@@ -201,7 +221,7 @@ const ManageIncidentsPage = () => {
       label: "Actions",
       headerClassName: "text-right",
       className: "text-right",
-      render: (row) => (
+      render: (row) =>
         row.status === "open" ? (
           <div className="flex justify-end gap-2">
             <Button
@@ -222,8 +242,7 @@ const ManageIncidentsPage = () => {
           </div>
         ) : (
           <span className="text-xs text-gray-300">—</span>
-        )
-      ),
+        ),
     },
   ];
 
@@ -235,7 +254,11 @@ const ManageIncidentsPage = () => {
         keyField="id"
         emptyIcon={CheckCircle}
         emptyTitle="All Quiet"
-        emptySubtitle={searchQuery ? "No incidents match your search." : "No active incidents reported. Operations are normal."}
+        emptySubtitle={
+          searchQuery
+            ? "No incidents match your search."
+            : "No active incidents reported. Operations are normal."
+        }
       />
     </div>
   );

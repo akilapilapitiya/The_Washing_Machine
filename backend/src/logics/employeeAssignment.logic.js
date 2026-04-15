@@ -11,7 +11,9 @@ const scoreSpecialityMatch = (speciality, serviceNames) => {
   const specialityText = String(speciality || "").toLowerCase();
   if (!specialityText) return 0;
 
-  const keywords = [...new Set(serviceNames.flatMap((name) => normalizeWords(name)))];
+  const keywords = [
+    ...new Set(serviceNames.flatMap((name) => normalizeWords(name))),
+  ];
   if (keywords.length === 0) return 0;
 
   let matches = 0;
@@ -30,7 +32,9 @@ export const resolveAutoAssignedEmployee = async ({
   locationType = "branch",
 }) => {
   if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
-    throw new ValidationError("At least one service is required for assignment");
+    throw new ValidationError(
+      "At least one service is required for assignment",
+    );
   }
 
   const servicesResult = await client.query(
@@ -95,7 +99,9 @@ export const resolveAutoAssignedEmployee = async ({
     );
   }
 
-  const serviceNames = servicesResult.rows.map((service) => service.servicename);
+  const serviceNames = servicesResult.rows.map(
+    (service) => service.servicename,
+  );
 
   const rankedEmployees = employeesResult.rows
     .map((employee) => {

@@ -29,6 +29,7 @@ const Navbar = () => {
     { path: "/#home", label: "Home", hash: "home" },
     { path: "/#services", label: "Services", hash: "services" },
     { path: "/#partners", label: "Partners", hash: "partners" },
+    { path: "/marketplace", label: "Marketplace" },
     { path: "/#contact", label: "Contact", hash: "contact" },
   ];
 
@@ -67,17 +68,28 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.path}
-                onClick={(e) => handleScrollToSection(e, item.hash)}
-                className="text-sm font-medium text-gray-700 hover:text-red-600 transition-colors relative group"
-              >
-                {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.hash ? (
+                <a
+                  key={item.label}
+                  href={item.path}
+                  onClick={(e) => handleScrollToSection(e, item.hash)}
+                  className="text-sm font-medium text-gray-700 hover:text-red-600 transition-colors relative group"
+                >
+                  {item.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className="text-sm font-medium text-gray-700 hover:text-red-600 transition-colors relative group"
+                >
+                  {item.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+              ),
+            )}
           </div>
 
           {/* Desktop Actions */}
@@ -150,16 +162,27 @@ const Navbar = () => {
         <div className="md:hidden bg-white border-b border-gray-100 animate-in slide-in-from-top-5 fade-in duration-200">
           <div className="px-4 py-6 space-y-4">
             <div className="flex flex-col space-y-3">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.path}
-                  onClick={(e) => handleScrollToSection(e, item.hash)}
-                  className="text-base font-medium text-gray-900 hover:text-red-600 py-2 border-b border-gray-50 last:border-0"
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) =>
+                item.hash ? (
+                  <a
+                    key={item.label}
+                    href={item.path}
+                    onClick={(e) => handleScrollToSection(e, item.hash)}
+                    className="text-base font-medium text-gray-900 hover:text-red-600 py-2 border-b border-gray-50 last:border-0"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.label}
+                    to={item.path}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-base font-medium text-gray-900 hover:text-red-600 py-2 border-b border-gray-50 last:border-0"
+                  >
+                    {item.label}
+                  </Link>
+                ),
+              )}
             </div>
 
             <div className="pt-4 flex flex-col gap-3">

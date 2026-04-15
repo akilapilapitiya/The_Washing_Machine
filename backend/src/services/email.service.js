@@ -1,6 +1,11 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import nodemailer from "nodemailer";
-import { otpTemplate, welcomeTemplate } from "../templates/email.templates.js";
+import {
+  otpTemplate,
+  welcomeTemplate,
+  serviceCompleteTemplate,
+  serviceReminderTemplate,
+} from "../templates/email.templates.js";
 import { NODE_ENV } from "../configs/env.js";
 
 // Create transporter
@@ -96,5 +101,61 @@ export const sendWelcomeEmail = async (to, password, loginUrl) => {
     logger.info(`✅ Welcome Email sent to ${to}`);
   } catch (error) {
     logger.error(`❌ Failed to send Welcome email to ${to}`);
+  }
+};
+
+export const sendServiceCompleteEmail = async (to, data) => {
+  const html = serviceCompleteTemplate(data);
+  const transport = await createTransporter();
+
+  const logoPath = "./src/templates/logo.jpg";
+
+  try {
+    await transport.sendMail({
+      from: '"The Washing Machine" <no-reply@washingmachine.com>',
+      to,
+      subject:
+        "Service Complete — Your Next Service Reminder | The Washing Machine",
+      html,
+      attachments: [
+        {
+          filename: "logo.jpg",
+          path: logoPath,
+          cid: "logo@washingmachine",
+        },
+      ],
+    });
+
+    logger.info(`✅ Service Complete Email sent to ${to}`);
+  } catch (error) {
+    logger.error(`❌ Failed to send Service Complete email to ${to}`);
+  }
+};
+
+export const sendServiceReminderEmail = async (to, data) => {
+  const html = serviceReminderTemplate(data);
+  const transport = await createTransporter();
+
+  const logoPath = "./src/templates/logo.jpg";
+
+  try {
+    await transport.sendMail({
+      from: '"The Washing Machine" <no-reply@washingmachine.com>',
+      to,
+      subject:
+        "Due for Maintenance! Schedule Your Next Service | The Washing Machine",
+      html,
+      attachments: [
+        {
+          filename: "logo.jpg",
+          path: logoPath,
+          cid: "logo@washingmachine",
+        },
+      ],
+    });
+
+    logger.info(`✅ Service Reminder Email sent to ${to}`);
+  } catch (error) {
+    logger.error(`❌ Failed to send Service Reminder email to ${to}`);
   }
 };

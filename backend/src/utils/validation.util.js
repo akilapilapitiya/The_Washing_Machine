@@ -8,7 +8,7 @@ export const assertRequiredFields = (payload, requiredFields) => {
     (field) =>
       payload[field] === undefined ||
       payload[field] === null ||
-      payload[field] === ""
+      payload[field] === "",
   );
 
   if (missing.length) {
@@ -17,7 +17,7 @@ export const assertRequiredFields = (payload, requiredFields) => {
       missing.map((field) => ({
         field,
         message: "This field is required",
-      }))
+      })),
     );
   }
 };
@@ -30,7 +30,7 @@ export const assertAtLeastOneField = (payload, allowedFields) => {
       allowedFields.map((field) => ({
         field,
         message: "Provide at least one field to update",
-      }))
+      })),
     );
   }
 };

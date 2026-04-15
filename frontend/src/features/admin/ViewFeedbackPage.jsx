@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  MessageSquare,
-  Star,
-  Calendar,
-  Briefcase,
-} from "lucide-react";
+import { MessageSquare, Star, Calendar, Briefcase } from "lucide-react";
 import { getAllFeedbacks } from "@/services/feedback.service";
 import { PageLoader } from "@/components/common/LoadingStates";
 import { useSetPageHeader } from "@/contexts/PageHeaderContext";
@@ -63,7 +58,11 @@ const ViewFeedbackPage = () => {
         feedback.feedbackdescription,
         feedback.bookingid,
         feedback.rating,
-      ].some((value) => String(value || "").toLowerCase().includes(query));
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      );
 
     return matchesSearch;
   });
@@ -71,8 +70,10 @@ const ViewFeedbackPage = () => {
   const averageRating =
     feedbacks.length > 0
       ? (
-          feedbacks.reduce((sum, feedback) => sum + Number(feedback.rating || 0), 0) /
-          feedbacks.length
+          feedbacks.reduce(
+            (sum, feedback) => sum + Number(feedback.rating || 0),
+            0,
+          ) / feedbacks.length
         ).toFixed(1)
       : "0.0";
 
@@ -80,12 +81,23 @@ const ViewFeedbackPage = () => {
     () => (
       <PageToolbar
         stats={[
-          { icon: MessageSquare, label: "Total", value: feedbacks.length, iconClassName: "text-gray-500" },
-          { icon: Star, label: "Avg Rating", value: averageRating, iconClassName: "text-amber-500" },
+          {
+            icon: MessageSquare,
+            label: "Total",
+            value: feedbacks.length,
+            iconClassName: "text-gray-500",
+          },
+          {
+            icon: Star,
+            label: "Avg Rating",
+            value: averageRating,
+            iconClassName: "text-amber-500",
+          },
           {
             icon: Star,
             label: "5 Stars",
-            value: feedbacks.filter((feedback) => Number(feedback.rating) === 5).length,
+            value: feedbacks.filter((feedback) => Number(feedback.rating) === 5)
+              .length,
             iconClassName: "text-yellow-500",
           },
         ]}
@@ -171,7 +183,11 @@ const ViewFeedbackPage = () => {
         keyField="feedbackid"
         emptyIcon={MessageSquare}
         emptyTitle="No feedback found"
-        emptySubtitle={searchQuery ? "No feedback matches your search." : "Customer reviews and ratings will appear here once they are submitted."}
+        emptySubtitle={
+          searchQuery
+            ? "No feedback matches your search."
+            : "Customer reviews and ratings will appear here once they are submitted."
+        }
       />
     </div>
   );

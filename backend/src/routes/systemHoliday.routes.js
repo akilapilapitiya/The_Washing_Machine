@@ -8,36 +8,29 @@ import {
   updateHolidayController,
   deleteHolidayController,
   getUpcomingHolidaysController,
+  syncDailyHolidaysController,
 } from "../controllers/systemHoliday.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes (accessible to all authenticated users)
-router.get("/holidays", authMiddleware, getAllHolidaysController);
-router.get("/holidays/upcoming", authMiddleware, getUpcomingHolidaysController);
-router.get("/holidays/range", authMiddleware, getHolidaysByRangeController);
-router.get("/holidays/check/:date", authMiddleware, checkHolidayDateController);
-router.get("/holidays/:id", authMiddleware, getHolidayByIdController);
+// Protected routes
+router.use(authMiddleware);
 
-// Owner-only routes
+router.get("/holidays", getAllHolidaysController);
+router.get("/holidays/upcoming", getUpcomingHolidaysController);
+router.get("/holidays/range", getHolidaysByRangeController);
+router.get("/holidays/check/:date", checkHolidayDateController);
+router.get("/holidays/:id", getHolidayByIdController);
+
+router.post("/holidays", restrictTo("owner"), createHolidayController);
+router.put("/holidays/:id", restrictTo("owner"), updateHolidayController);
+router.delete("/holidays/:id", restrictTo("owner"), deleteHolidayController);
+
 router.post(
-  "/holidays",
-  authMiddleware,
-  restrictTo("owner"),
-  createHolidayController,
-);
-router.put(
-  "/holidays/:id",
-  authMiddleware,
-  restrictTo("owner"),
-  updateHolidayController,
-);
-router.delete(
-  "/holidays/:id",
-  authMiddleware,
-  restrictTo("owner"),
-  deleteHolidayController,
+  "/holidays/sync-daily",
+  restrictTo("owner", "cashier"),
+  syncDailyHolidaysController,
 );
 
 export default router;

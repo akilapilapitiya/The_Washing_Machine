@@ -56,6 +56,7 @@ const ManageServicesPage = () => {
     category: "",
     is_featured: false,
     is_variable_price: false,
+    cooldown_duration: "15",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { confirm, Dialog: ConfirmDialog } = useConfirmDialog();
@@ -132,6 +133,7 @@ const ManageServicesPage = () => {
       category: "",
       is_featured: false,
       is_variable_price: false,
+      cooldown_duration: "15",
     });
   }, []);
 
@@ -265,6 +267,7 @@ const ManageServicesPage = () => {
       category: service.category || "",
       is_featured: service.is_featured || false,
       is_variable_price: service.is_variable_price || false,
+      cooldown_duration: service.cooldown_duration?.toString() || "15",
     });
     setImageFile(null);
     setShowEditForm(true);
@@ -277,29 +280,50 @@ const ManageServicesPage = () => {
   }, [resetForm]);
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Button
-      onClick={openAddForm}
-      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
-    >
-      <Plus size={18} />
-      Add Service
-    </Button>
-  ), [openAddForm]);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        onClick={openAddForm}
+        className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+      >
+        <Plus size={18} />
+        Add Service
+      </Button>
+    ),
+    [openAddForm],
+  );
 
-  const toolbar = React.useMemo(() => (
-    <PageToolbar
-      stats={[
-        { icon: Box, label: "Total", value: services.length, iconClassName: "text-gray-500" },
-        { icon: Tag, label: "Offers", value: services.filter((service) => service.has_offer).length, iconClassName: "text-red-500" },
-        { icon: Layers, label: "Featured", value: services.filter((service) => service.is_featured).length, iconClassName: "text-yellow-500" },
-      ]}
-      searchValue={searchQuery}
-      onSearchChange={setSearchQuery}
-      searchPlaceholder="Search services..."
-      searchWidthClass="sm:w-80"
-    />
-  ), [searchQuery, services]);
+  const toolbar = React.useMemo(
+    () => (
+      <PageToolbar
+        stats={[
+          {
+            icon: Box,
+            label: "Total",
+            value: services.length,
+            iconClassName: "text-gray-500",
+          },
+          {
+            icon: Tag,
+            label: "Offers",
+            value: services.filter((service) => service.has_offer).length,
+            iconClassName: "text-red-500",
+          },
+          {
+            icon: Layers,
+            label: "Featured",
+            value: services.filter((service) => service.is_featured).length,
+            iconClassName: "text-yellow-500",
+          },
+        ]}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search services..."
+        searchWidthClass="sm:w-80"
+      />
+    ),
+    [searchQuery, services],
+  );
 
   useSetPageHeader(
     "Services",
@@ -317,7 +341,8 @@ const ManageServicesPage = () => {
         <div className="flex items-center gap-3">
           <div className="relative shrink-0">
             {row.image_url ? (
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 src={`${IMAGE_BASE_URL}${row.image_url}`}
                 alt={row.servicename}
                 className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm"
@@ -418,6 +443,16 @@ const ManageServicesPage = () => {
       ),
     },
     {
+      key: "cooldown",
+      label: "Cooldown",
+      render: (row) => (
+        <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+          <Clock size={16} className="text-gray-400" />
+          {row.cooldown_duration ? `${row.cooldown_duration} min` : "15 min"}
+        </div>
+      ),
+    },
+    {
       key: "actions",
       label: "Actions",
       headerClassName: "text-right",
@@ -453,7 +488,11 @@ const ManageServicesPage = () => {
         service.category,
         service.servicetype,
         service.short_description,
-      ].some((value) => String(value || "").toLowerCase().includes(query));
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      );
 
     return matchesSearch;
   });
@@ -471,9 +510,16 @@ const ManageServicesPage = () => {
               keyField="serviceid"
               emptyIcon={Box}
               emptyTitle="No services yet"
-              emptySubtitle={searchQuery ? "No services match your search." : "Add your first service package to get started."}
+              emptySubtitle={
+                searchQuery
+                  ? "No services match your search."
+                  : "Add your first service package to get started."
+              }
               emptyAction={
-                <Button onClick={openAddForm} className="bg-red-600 hover:bg-red-700 mt-4">
+                <Button
+                  onClick={openAddForm}
+                  className="bg-red-600 hover:bg-red-700 mt-4"
+                >
                   <Plus size={16} className="mr-2" />
                   Add Service
                 </Button>
@@ -619,10 +665,14 @@ const ManageServicesPage = () => {
                         onChange={handleInputChange}
                         className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-gray-300"
                       >
-                        <option value="" disabled>Select a category</option>
+                        <option value="" disabled>
+                          Select a category
+                        </option>
                         <option value="Exterior">Exterior</option>
                         <option value="Interior">Interior</option>
-                        <option value="Exterior and Interior">Exterior and Interior</option>
+                        <option value="Exterior and Interior">
+                          Exterior and Interior
+                        </option>
                       </select>
                     </div>
                     <div className="space-y-2">
@@ -770,6 +820,22 @@ const ManageServicesPage = () => {
                           </span>
                         </div>
                       </div>
+                    </div>
+                    <div className="space-y-2 col-span-2 sm:col-span-1">
+                      <Label className="text-sm font-medium text-gray-700">
+                        Cooldown Buffer (min)
+                      </Label>
+                      <Input
+                        id="cooldown_duration"
+                        name="cooldown_duration"
+                        type="number"
+                        min="0"
+                        value={formData.cooldown_duration}
+                        onChange={handleInputChange}
+                        placeholder="15"
+                        className="h-11 border-gray-300 focus:ring-red-600"
+                        required
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,13 +1,13 @@
 variable "location" {
-  description = "Azure region"
+  description = "AWS Region"
   type        = string
-  default     = "East US"
+  default     = "ap-southeast-1"
 }
 
 variable "vm_size" {
-  description = "Size of the Virtual Machine"
+  description = "Size of the EC2 Instance"
   type        = string
-  default     = "Standard_B1s"
+  default     = "t3.micro"
 }
 
 variable "project_name" {
@@ -19,7 +19,7 @@ variable "project_name" {
 variable "admin_username" {
   description = "Admin username for the VM"
   type        = string
-  default     = "azureuser"
+  default     = "ubuntu"
 }
 
 variable "ssh_public_key" {

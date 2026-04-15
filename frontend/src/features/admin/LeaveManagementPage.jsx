@@ -30,11 +30,14 @@ const LeaveManagementPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [dateRange, setDateRange] = useState("all");
 
+  const [isPartialDay, setIsPartialDay] = useState(false);
   const [formData, setFormData] = useState({
     empid: "",
     startDate: "",
     endDate: "",
     reason: "",
+    startTime: "",
+    endTime: "",
   });
 
   useEffect(() => {
@@ -61,31 +64,46 @@ const LeaveManagementPage = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      await schedulerService.recordLeave(formData);
+      const payload = { ...formData };
+      if (!isPartialDay) {
+        delete payload.startTime;
+        delete payload.endTime;
+      } else {
+        payload.endDate = payload.startDate; // Partial leave is always single day
+      }
+      await schedulerService.recordLeave(payload);
       toast.success("Leave recorded successfully.");
-      setFormData({ empid: "", startDate: "", endDate: "", reason: "" });
+      setFormData({
+        empid: "",
+        startDate: "",
+        endDate: "",
+        reason: "",
+        startTime: "",
+        endTime: "",
+      });
+      setIsPartialDay(false);
       fetchData();
       setShowAddForm(false);
     } catch (err) {
-      toast.error(
-        err.response?.data?.message ||
-        "Failed to record leave.",
-      );
+      toast.error(err.response?.data?.message || "Failed to record leave.");
     } finally {
       setSubmitting(false);
     }
   };
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Button
-      onClick={() => setShowAddForm(true)}
-      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
-    >
-      <Plus size={16} className="mr-2" />
-      Record Leave
-    </Button>
-  ), []);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        onClick={() => setShowAddForm(true)}
+        className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+      >
+        <Plus size={16} className="mr-2" />
+        Record Leave
+      </Button>
+    ),
+    [],
+  );
 
   const filteredLeaves = leaves.filter((leave) => {
     const matchesDate = intervalMatchesQuickDateRange(
@@ -112,48 +130,60 @@ const LeaveManagementPage = () => {
         activeTab={dateRange}
         onTabChange={setDateRange}
         tabsAriaLabel="Leave date filters"
-        meta={(
+        meta={
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <Briefcase size={13} className="text-gray-500" />
-              <span className="text-xs font-semibold text-gray-500">Records</span>
-              <span className="text-xs font-semibold text-gray-900">{leaves.length}</span>
+              <span className="text-xs font-semibold text-gray-500">
+                Records
+              </span>
+              <span className="text-xs font-semibold text-gray-900">
+                {leaves.length}
+              </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <CalendarIcon size={13} className="text-red-500" />
               <span className="text-xs font-semibold text-gray-500">Today</span>
               <span className="text-xs font-semibold text-gray-900">
-                {leaves.filter((leave) =>
-                  intervalMatchesQuickDateRange(
-                    leave.leavestartdate,
-                    leave.leaveenddate,
-                    "today",
-                  ),
-                ).length}
+                {
+                  leaves.filter((leave) =>
+                    intervalMatchesQuickDateRange(
+                      leave.leavestartdate,
+                      leave.leaveenddate,
+                      "today",
+                    ),
+                  ).length
+                }
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <CalendarIcon size={13} className="text-orange-500" />
-              <span className="text-xs font-semibold text-gray-500">This Month</span>
+              <span className="text-xs font-semibold text-gray-500">
+                This Month
+              </span>
               <span className="text-xs font-semibold text-gray-900">
-                {leaves.filter((leave) =>
-                  intervalMatchesQuickDateRange(
-                    leave.leavestartdate,
-                    leave.leaveenddate,
-                    "month",
-                  ),
-                ).length}
+                {
+                  leaves.filter((leave) =>
+                    intervalMatchesQuickDateRange(
+                      leave.leavestartdate,
+                      leave.leaveenddate,
+                      "month",
+                    ),
+                  ).length
+                }
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-white border border-gray-200">
               <User size={13} className="text-blue-500" />
-              <span className="text-xs font-semibold text-gray-500">Staff Affected</span>
+              <span className="text-xs font-semibold text-gray-500">
+                Staff Affected
+              </span>
               <span className="text-xs font-semibold text-gray-900">
                 {new Set(leaves.map((leave) => leave.empid)).size}
               </span>
             </div>
           </div>
-        )}
+        }
       />
     ),
     [dateRange, leaves, toolbarTabs],
@@ -255,9 +285,25 @@ const LeaveManagementPage = () => {
                   </select>
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isPartialDay"
+                    checked={isPartialDay}
+                    onChange={(e) => setIsPartialDay(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600 cursor-pointer"
+                  />
+                  <Label
+                    htmlFor="isPartialDay"
+                    className="cursor-pointer text-sm"
+                  >
+                    Partial Day Leave (Specific Hours)
+                  </Label>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Start Date</Label>
+                    <Label>{isPartialDay ? "Date" : "Start Date"}</Label>
                     <Input
                       type="date"
                       className="border-gray-200"
@@ -268,19 +314,53 @@ const LeaveManagementPage = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input
-                      type="date"
-                      className="border-gray-200"
-                      value={formData.endDate}
-                      onChange={(e) =>
-                        setFormData({ ...formData, endDate: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
+                  {!isPartialDay && (
+                    <div className="space-y-2">
+                      <Label>End Date</Label>
+                      <Input
+                        type="date"
+                        className="border-gray-200"
+                        value={formData.endDate}
+                        onChange={(e) =>
+                          setFormData({ ...formData, endDate: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {isPartialDay && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Start Time</Label>
+                      <Input
+                        type="time"
+                        className="border-gray-200"
+                        value={formData.startTime}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            startTime: e.target.value,
+                          })
+                        }
+                        required={isPartialDay}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>End Time</Label>
+                      <Input
+                        type="time"
+                        className="border-gray-200"
+                        value={formData.endTime}
+                        onChange={(e) =>
+                          setFormData({ ...formData, endTime: e.target.value })
+                        }
+                        required={isPartialDay}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label>Reason</Label>

@@ -24,9 +24,9 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) *
-    Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km
   return d;
@@ -54,7 +54,11 @@ const MapEvents = ({ onMapClick }) => {
   return null;
 };
 
-const LocationPicker = ({ onLocationSelect, initialLocation, mapHeight = "h-[400px]" }) => {
+const LocationPicker = ({
+  onLocationSelect,
+  initialLocation,
+  mapHeight = "h-[400px]",
+}) => {
   const [selectedLocation, setSelectedLocation] = useState(
     initialLocation || DEFAULT_CENTER,
   );
@@ -76,8 +80,27 @@ const LocationPicker = ({ onLocationSelect, initialLocation, mapHeight = "h-[400
       const routeMatrix = new RoutesLibrary.RouteMatrixService();
 
       const request = {
-        origins: [{ waypoint: { location: { latLng: { latitude: hqCoords.lat, longitude: hqCoords.lng } } } }],
-        destinations: [{ waypoint: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } } }],
+        origins: [
+          {
+            waypoint: {
+              location: {
+                latLng: { latitude: hqCoords.lat, longitude: hqCoords.lng },
+              },
+            },
+          },
+        ],
+        destinations: [
+          {
+            waypoint: {
+              location: {
+                latLng: {
+                  latitude: destination.lat,
+                  longitude: destination.lng,
+                },
+              },
+            },
+          },
+        ],
         travelMode: google.maps.TravelMode.DRIVING,
       };
 
@@ -105,11 +128,16 @@ const LocationPicker = ({ onLocationSelect, initialLocation, mapHeight = "h-[400
         throw new Error(element?.status || "No route found");
       }
     } catch (err) {
-      console.warn("Routes API failed, falling back to Haversine:", err.message);
+      console.warn(
+        "Routes API failed, falling back to Haversine:",
+        err.message,
+      );
       // Fallback to Haversine formula
       const haversineDist = calculateDistance(
-        hqCoords.lat, hqCoords.lng,
-        destination.lat, destination.lng,
+        hqCoords.lat,
+        hqCoords.lng,
+        destination.lat,
+        destination.lng,
       );
       if (haversineDist > MAX_RADIUS_KM) {
         const msg = `Location is too far (~${haversineDist.toFixed(1)}km). Limit is ${MAX_RADIUS_KM}km.`;
@@ -138,7 +166,9 @@ const LocationPicker = ({ onLocationSelect, initialLocation, mapHeight = "h-[400
 
   return (
     <div className="space-y-4">
-      <div className={`${mapHeight} w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative`}>
+      <div
+        className={`${mapHeight} w-full rounded-xl overflow-hidden border border-gray-200 shadow-inner relative`}
+      >
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
           <Map
             defaultCenter={selectedLocation}

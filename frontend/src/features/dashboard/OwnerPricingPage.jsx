@@ -59,7 +59,7 @@ const OwnerPricingPage = () => {
       setValue("buffer_minutes", rules.buffer_minutes || 30);
     } catch (error) {
       console.error("Failed to fetch settings:", error);
-      toast.error("Could not load pricing rules.");
+      toast.error("Could not load system settings.");
     } finally {
       setLoading(false);
     }
@@ -95,16 +95,15 @@ const OwnerPricingPage = () => {
   };
 
   useSetPageHeader(
-    "Settings",
-    "Travel Pricing Configuration",
-    "Manage how travel costs are calculated for Home Visits.",
+    "System Settings",
+    "Travel Pricing",
+    "Configure base fees, distance rates, and buffer timing for travel costs.",
   );
 
-  if (loading) return <PageLoader message="Loading pricing rules..." />;
+  if (loading) return <PageLoader message="Loading settings..." />;
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6">
-
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">
           <Card className="shadow-sm">

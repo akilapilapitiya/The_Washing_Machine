@@ -1,17 +1,32 @@
 # Backend — Technical Reference
 
+## Version
+**v2.0.0** — Production-ready API server with enterprise-grade features for The Washing Machine vehicle service platform.
+
 ## Overview
 
 The backend is a RESTful API server built with Node.js and Express.js, serving as the core of The Washing Machine vehicle service platform. It handles authentication, booking lifecycle management, scheduling, payments, notifications, and real-time communication across four distinct user roles.
 
-The server exposes 21 route modules, manages 22 database tables initialised at boot via a model-driven schema, processes background email jobs through a Redis-backed queue, and delivers real-time events over an authenticated WebSocket connection.
+The server exposes 21 route modules, manages 22 database tables initialised at boot via a model-driven schema, processes background email jobs through a Redis-backed queue, delivers real-time events over an authenticated WebSocket connection, and implements edge caching for high-performance data delivery.
+
+### What's New in v2.0
+
+- Refined edge caching strategy with intelligent invalidation
+- Enhanced real-time socket communication with role-based namespaces
+- Improved error handling and structured JSON responses
+- Expanded test coverage with Jest integration tests
+- Production-grade PM2 cluster mode configuration
+- Comprehensive OpenAPI/Swagger documentation
+- Telegram bot integration for employee notifications
+- Advanced scheduling and incident management workflows
 
 ---
 
 ## Table of Contents
 
-1. [Architecture](#architecture)
-2. [Technology Stack](#technology-stack)
+1. [Quick Start](#quick-start)
+2. [Architecture](#architecture)
+3. [Technology Stack](#technology-stack)
 3. [Project Structure](#project-structure)
 4. [Database Schema](#database-schema)
 5. [Authentication and Authorisation](#authentication-and-authorisation)
@@ -27,7 +42,55 @@ The server exposes 21 route modules, manages 22 database tables initialised at b
 15. [Testing](#testing)
 
 ---
+Quick Start
 
+### Prerequisites
+- Node.js 18+
+- PostgreSQL 15+
+- Redis 7+
+
+### Installation
+
+```bash
+cd backend
+npm install
+cp .env.example .env.development.local
+```
+
+Edit `.env.development.local` with your local database and Redis credentials.
+
+### Start Development Server
+
+```bash
+npm run docker:up          # Start PostgreSQL + Redis containers
+npm run db:reset:seed      # Initialize schema + seed owner account
+npm run dev                # Start server with auto-reload
+```
+
+Server runs on `http://localhost:5500`. API documentation available at `http://localhost:5500/api-docs`.
+
+### Seed Default Owner Account
+
+```
+Email:    owner@washingmachine.lk
+Password: Owner@123
+
+Action: Change password immediately after first login.
+```
+
+### Verify Installation
+
+```bash
+# Health check
+curl http://localhost:5500/api/test
+
+# View Swagger documentation
+open http://localhost:5500/api-docs
+```
+
+---
+
+## 
 ## Architecture
 
 ```
@@ -158,7 +221,7 @@ Tables are initialised in dependency order on server startup via `initModels()`.
 | `employee_leave` | Leave requests and approval status |
 | `employee_assigned` | Booking-to-employee assignment junction |
 | `vehicle_catalog` | Standardised vehicle type taxonomy |
-| `vehicle` | Customer-registered vehicles |
+| `vehicle` | Customer-registered vehicles (service trackers: mileage, next service date) |
 | `service` | Service definitions with pricing, duration, and active status |
 | `booking` | Core booking record; links customer, vehicle, and location |
 | `services_booked` | Booking line items (service + price snapshot at booking time) |
@@ -219,9 +282,9 @@ All routes are mounted under `/api`. Interactive documentation is available at `
 |---|---|---|---|
 | `/api/authcustomer` | Customer authentication | None (rate limited) | — |
 | `/api/authemployee` | Employee authentication | None (rate limited) | — |
-| `/api/advertisement` | Homepage advertisements | Varies | Public GET |
+| `/api/advertisement` | Marketplace & Ad Requests | Varies | Public GET & POST (requests) |
 | `/api/booking` | Booking lifecycle | Required | Customer, Employee, Owner |
-| `/api/vehicle` | Customer vehicles | Required | Customer, Owner |
+| `/api/vehicle` | Customer vehicles & Service tracking | Required | Customer, Employee, Owner |
 | `/api/vehicle-catalog` | Vehicle type catalog | Required | Owner, public read |
 | `/api/service` | Service catalog | Required | Owner, public read |
 | `/api/employee` | Employee management | Required | Owner |
@@ -251,6 +314,17 @@ POST /api/authemployee/signin     Authenticate employee; sets jwt cookie
 POST /api/authemployee/signout    Clear session cookie
 POST /api/authemployee/forgot-password
 POST /api/authemployee/reset-password
+```
+
+### Advertisement Endpoints
+
+```
+GET /api/advertisement                   Get all live advertisements (Cached)
+POST /api/advertisement/request          Submit an advertisement request
+GET /api/advertisement/admin             Get all advertisements for review (Owner only)
+POST /api/advertisement                  Create an advertisement with banner image (Owner only)
+PUT /api/advertisement/:id               Update status and banner image of an advertisement
+DELETE /api/advertisement/:id            Delete an advertisement
 ```
 
 ---
@@ -320,9 +394,9 @@ Socket.io runs on the same HTTP server as Express. All socket connections requir
 
 On successful authentication:
 1. The decoded user payload is attached to `socket.user`.
-2. The socket automatically joins a private room: `user-<id>`.
+2. The socket automatically joins a strictly isolated, role-based private namespace room: `user-<role>-<id>`.
 
-The server can emit targeted notifications to any connected user using `io.to("user-<id>").emit(event, data)`. This is used by the notification service to push real-time alerts to specific users without broadcasting.
+The server can emit targeted notifications to any connected user using `io.to("user-<role>-<id>").emit(event, data)`. This is highly utilized by the Rescheduling engine to push `INFO`, `JOB_UPDATE`, and `SUCCESS` real-time alerts strictly to respective Customers, assigned Employees, and executing Administrators without cross-contamination.
 
 ---
 
@@ -398,22 +472,34 @@ cd backend
 npm install
 cp .env.example .env.development.local
 # Edit .env.development.local with your local database and Redis credentials
-npm run dev
+npm run docker:up      # Start PostgreSQL + Redis
+npm run db:reset:seed  # Initialize schema + seed owner
+npm run dev            # Start with auto-reload (nodemon)
 ```
 
-The database schema is initialised automatically on first start (`initModels(pool)`).
+The database schema is initialised automatically on first start via `initModels(pool)`. The server will be available at `http://localhost:5500`.
 
 ### Production
 
-The server is containerised and optimized for high availability. In production, it runs as the `washing_machine_backend` container using **PM2 Cluster Mode** to spawn multiple worker processes. Configuration is managed via `.env.prod`.
+The server is containerised and optimized for high availability. In production, it runs as the `washing_machine_backend` container using **PM2 Cluster Mode** to spawn multiple worker processes (one per CPU core). Configuration is managed via environment variables in the deployment environment.
 
 ```bash
-# Build image
-docker build -t backend:latest ./backend
+# Build Docker image
+docker build -t backend:2.0.0 ./backend
 
-# Run in cluster mode (standard for docker-compose.prod.yml)
+# Run in cluster mode via PM2 (see docker-compose.prod.yml)
 # CMD ["pm2-runtime", "app.js", "-i", "max"]
+
+# Or deploy using docker-compose
+docker-compose -f docker-compose.prod.yml up -d
 ```
+
+Performance optimizations enabled in production:
+- PM2 cluster mode (automatic process scaling)
+- Redis edge caching for public endpoints
+- Helmet security headers
+- Pino structured logging
+- gzip compression for all responses
 
 ### Available Scripts
 
@@ -498,3 +584,8 @@ http://localhost:5500/api-docs
 ```
 
 The specification is defined in YAML files under `src/docs/` and served via `swagger-ui-express`. All request/response schemas, authentication requirements, and example payloads are documented there.
+
+## Recent Maintenance
+
+- **March 29, 2026** — Applied Prettier formatting across controllers, middleware, and routes. Every Express router now follows a consistent `// Public routes` / `// Protected routes` comment scheme, Telegram bot text moved into `src/modules/chat/telegram.prompts.js`, and all scripts were consolidated under `src/scripts` (`accounts/`, `maintenance/`, `seed/`). Dependency cleanup removed `debug` and `morgan`, while `@jest/globals` was added to unbreak Jest suites.
+- **March 30, 2026** — Implemented "Next Service Due" reminder engine. Added vehicle odometer tracking and automated email/in-app service reminders triggered by booking completion. Refined the Payment management interface by consolidating "Extras" into the main ledger and renaming the final transaction step to "Complete Payment" for clarity. Relaxed payment validation to allow recording of Rs. 0.00 items when explicitly desired.

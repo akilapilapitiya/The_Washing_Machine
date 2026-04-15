@@ -32,14 +32,10 @@ const PartnerSection = ({ id }) => {
     <section id={id} className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-16 flex flex-col items-center">
+          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
             Our Trusted Partners
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            We partner with industry-leading brands to deliver the highest
-            quality vehicle care and services. Your vehicle deserves the best.
-          </p>
         </div>
 
         {/* Partners Grid */}
@@ -49,7 +45,8 @@ const PartnerSection = ({ id }) => {
               key={index}
               className="flex items-center justify-center p-6 bg-white rounded-lg border border-gray-200 hover:border-red-400 hover:shadow-lg transition-all duration-300 group"
             >
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 src={partner.logo}
                 alt={partner.name}
                 className="max-h-20 max-w-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-300"
@@ -59,21 +56,27 @@ const PartnerSection = ({ id }) => {
         </div>
 
         {/* Partnership Info */}
-        <div className="mt-16 pt-12 border-t border-gray-200">
-          <div className="grid md:grid-cols-3 gap-8">
+        <div className="mt-20 pt-12 border-t border-gray-100">
+          <div className="grid grid-cols-3 gap-4 md:gap-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">12+</div>
-              <div className="text-gray-600">Premium Partners</div>
+              <div className="text-4xl font-black text-red-600 mb-2">12+</div>
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
+                Premium Partners
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">100%</div>
-              <div className="text-gray-600">Quality Assurance</div>
+              <div className="text-4xl font-black text-red-600 mb-2">100%</div>
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
+                Quality Assurance
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">
+              <div className="text-4xl font-black text-red-600 mb-2">
                 Expert
               </div>
-              <div className="text-gray-600">Professional Brands</div>
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
+                Professional Brands
+              </div>
             </div>
           </div>
         </div>

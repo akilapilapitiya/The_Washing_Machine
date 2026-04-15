@@ -1,4 +1,4 @@
-import pool from "../../src/configs/database.js";
+import pool from "../../configs/database.js";
 import seedRoles from "./01_roles.seed.js";
 import seedSystemSettings from "./02_system_settings.seed.js";
 import seedOwnerAccount from "./03_owner_account.seed.js";
@@ -19,7 +19,7 @@ async function runSeeds() {
 
     console.log("\n✅ Database seeding completed successfully!");
     console.log("\n📝 Default Owner Credentials:");
-    console.log("   Email: owner@washingmachine.lk");
+    console.log("   Email: owner@washingmachine.com");
     console.log("   Password: Owner@123");
     console.log("\n⚠️  Please change the password after first login!\n");
 

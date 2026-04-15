@@ -5,9 +5,11 @@ import {
   getAllBookingsService,
   getBookingService,
   resolveBookingEmployeeService,
+  rescheduleBookingService,
 } from "../services/booking.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// GET All Bookings
 export const getAllBookings = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -22,6 +24,7 @@ export const getAllBookings = async (req, res, next) => {
   }
 };
 
+// GET Booking by ID
 export const getBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -37,6 +40,7 @@ export const getBooking = async (req, res, next) => {
   }
 };
 
+// CREATE Booking
 export const createBooking = async (req, res, next) => {
   try {
     const customerId = req.user.id; // from auth middleware
@@ -77,6 +81,7 @@ export const createBooking = async (req, res, next) => {
   }
 };
 
+// Resolve Booking Employee
 export const resolveBookingEmployee = async (req, res, next) => {
   try {
     const customerId = req.user.id;
@@ -97,6 +102,7 @@ export const resolveBookingEmployee = async (req, res, next) => {
   }
 };
 
+// UPDATE Booking
 export const updateBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -119,6 +125,7 @@ export const updateBooking = async (req, res, next) => {
   }
 };
 
+// DELETE Booking
 export const deleteBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -129,6 +136,24 @@ export const deleteBooking = async (req, res, next) => {
     await deleteBookingService(id, userId, userRole, userEmptype);
 
     successResponse(res, 200, "Booking deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Reschedule Booking (admin)
+export const rescheduleBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { newDate, newStartTime } = req.body;
+    const adminId = req.user.id;
+
+    if (!newDate || !newStartTime) {
+      throw new Error("Date and Time are required for rescheduling");
+    }
+
+    await rescheduleBookingService(id, newDate, newStartTime, adminId);
+    successResponse(res, 200, "Service rescheduled successfully");
   } catch (error) {
     next(error);
   }

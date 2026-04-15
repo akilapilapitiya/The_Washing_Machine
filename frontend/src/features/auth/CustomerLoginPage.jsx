@@ -12,7 +12,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signIn } from "@/services/auth.service";
-import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Loader2, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.svg";
 
 const CustomerLoginPage = () => {
@@ -48,7 +48,7 @@ const CustomerLoginPage = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
@@ -60,7 +60,7 @@ const CustomerLoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -106,19 +106,40 @@ const CustomerLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block mb-6">
-            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Welcome Back</h1>
-          <p className="text-gray-500 text-sm">Sign in to your customer account</p>
+    <div className="min-h-screen relative flex items-center justify-center py-12 px-4 overflow-hidden bg-gray-50">
+      {/* Background Watermark Logo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none flex items-center justify-center opacity-[0.15] mix-blend-multiply transition-opacity duration-1000">
+        <img
+          src={logo}
+          alt=""
+          className="w-[600px] lg:w-[1000px] h-auto object-contain grayscale"
+        />
+      </div>
+
+      {/* Back to Home Navigation */}
+      <Link
+        to="/"
+        className="fixed top-8 left-8 hidden md:flex items-center gap-3 text-gray-400 hover:text-red-600 transition-all duration-300 font-black uppercase tracking-[0.2em] text-[10px] group"
+      >
+        <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-red-600 group-hover:shadow-lg transition-all">
+          <ArrowLeft
+            size={16}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
+        </div>
+        <span>Back to Home</span>
+      </Link>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 mb-2 uppercase">
+            Customer Portal
+          </h1>
         </div>
 
         <Card className="shadow-sm border-gray-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Customer Sign In</CardTitle>
+          <CardHeader className="pb-4 text-center">
+            <CardTitle className="text-lg">Sign In</CardTitle>
             <CardDescription>
               Enter your credentials to access your account
             </CardDescription>
@@ -132,7 +153,9 @@ const CustomerLoginPage = () => {
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="flex items-center gap-1">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="email" className="flex items-center gap-1">
+                  Email <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -140,7 +163,11 @@ const CustomerLoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={loading}
-                  className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  className={
+                    errors.email
+                      ? "border-red-500 focus-visible:ring-red-500"
+                      : ""
+                  }
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -151,7 +178,9 @@ const CustomerLoginPage = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="flex items-center gap-1">Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="password" className="flex items-center gap-1">
+                  Password <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -217,13 +246,19 @@ const CustomerLoginPage = () => {
             <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
               <p className="text-center text-sm text-gray-500">
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                <Link
+                  to="/signup"
+                  className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                >
                   Sign up
                 </Link>
               </p>
               <p className="text-center text-sm text-gray-500">
                 Are you an employee?{" "}
-                <Link to="/employee-login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                <Link
+                  to="/employee-login"
+                  className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                >
                   Employee portal →
                 </Link>
               </p>

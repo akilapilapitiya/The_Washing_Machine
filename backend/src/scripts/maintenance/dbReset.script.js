@@ -1,6 +1,6 @@
-import logger from '../configs/logger.js';
-import pool from "../configs/database.js";
-import initModels from "../models/index.js";
+import logger from "../../configs/logger.js";
+import pool from "../../configs/database.js";
+import initModels from "../../models/index.js";
 
 // Reset database: drop all tables and recreate schema
 // Use for local development only. This will DELETE ALL DATA.

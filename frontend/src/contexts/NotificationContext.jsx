@@ -10,7 +10,8 @@ const NotificationContext = createContext();
 export const useNotification = () => useContext(NotificationContext);
 
 export const NotificationProvider = ({ children }) => {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
+  const token = localStorage.getItem("token");
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -52,16 +53,18 @@ export const NotificationProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     if (user && token) {
       fetchNotifications();
       // Poll every 60s as a fallback
       const interval = setInterval(fetchNotifications, 60000);
       return () => clearInterval(interval);
     }
-  }, [user, token]);
+  }, [user]);
 
   useEffect(() => {
     let newSocket;
+    const token = localStorage.getItem("token");
 
     if (user && token) {
       const socketUrl = API_BASE_URL.replace("/api", "");
@@ -101,7 +104,7 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       if (newSocket) newSocket.disconnect();
     };
-  }, [user, token]);
+  }, [user]);
 
   const value = {
     socket,

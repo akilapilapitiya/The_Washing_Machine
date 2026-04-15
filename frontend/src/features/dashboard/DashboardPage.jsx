@@ -57,16 +57,18 @@ const DashboardPage = () => {
   }, [isCustomer, isOwner, isCashier]);
 
   // Memoize action button for stable reference in useSetPageHeader
-  const headerAction = React.useMemo(() => (
-    isCustomer ? (
-      <Link to="/dashboard/book">
-        <Button className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-sm">
-          <Plus className="h-4 w-4 mr-2" />
-          New Booking
-        </Button>
-      </Link>
-    ) : null
-  ), [isCustomer]);
+  const headerAction = React.useMemo(
+    () =>
+      isCustomer ? (
+        <Link to="/dashboard/book">
+          <Button className="h-10 px-6 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Booking
+          </Button>
+        </Link>
+      ) : null,
+    [isCustomer],
+  );
 
   // Set the dashboard header
   useSetPageHeader(
@@ -78,7 +80,7 @@ const DashboardPage = () => {
 
   // Render correct dashboard based on role
   // Owner/Cashier gets Admin dashboard. Customer gets Customer dashboard. Employees get Employee dashboard.
-  let DashboardComponent = EmployeeDashboard; 
+  let DashboardComponent = EmployeeDashboard;
   if (isCustomer) {
     DashboardComponent = CustomerDashboard;
   } else if (isOwner || isCashier) {

@@ -16,6 +16,22 @@ const createSysSettingsTable = async (pool) => {
       'Configuration for travel cost calculation: { base_km, base_fee, additional_rate }'
     )
     ON CONFLICT (key) DO NOTHING;
+
+    INSERT INTO sys_settings (key, value, description) 
+    VALUES (
+      'default_service_frequency_days',
+      '90',
+      'Default service frequency in days for new customers'
+    )
+    ON CONFLICT (key) DO NOTHING;
+
+    INSERT INTO sys_settings (key, value, description) 
+    VALUES (
+      'service_reminder_prior_days',
+      '7',
+      'Number of days prior to next service date to send reminder'
+    )
+    ON CONFLICT (key) DO NOTHING;
   `;
 
   await pool.query(queryText);

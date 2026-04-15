@@ -21,6 +21,40 @@ export const getEmployeeScheduleByDate = async (empid, date) => {
 };
 
 /**
+ * Fetch all active bookings schedule for the entire branch by date
+ */
+export const getBranchBookingsByDate = async (date) => {
+  try {
+    const query = `
+      SELECT 
+        s.scheduleid, 
+        s.schedulestarttime::text, 
+        s.scheduleendtime::text, 
+        s.bookingid, 
+        b.bookingstatus,
+        c.first_name AS customer_firstname,
+        c.last_name AS customer_lastname,
+        c.custel AS customer_phone,
+        e.first_name AS employee_firstname,
+        e.last_name AS employee_lastname
+      FROM schedule s
+      JOIN booking b ON s.bookingid = b.bookingid
+      JOIN vehicle v ON b.vehid = v.id
+      JOIN customer c ON v.cusid = c.cusid
+      LEFT JOIN employeeassigned ea ON b.bookingid = ea.bookingid
+      LEFT JOIN employee e ON ea.empid = e.empid
+      WHERE s.schedulestartdate = $1::date
+      AND b.bookingstatus NOT IN ('cancelled', 'rejected')
+      ORDER BY s.schedulestarttime ASC
+    `;
+    const result = await pool.query(query, [date]);
+    return result.rows;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * Fetch all leave dates for a specific employee
  */
 export const getEmployeeLeaveDates = async (empid) => {

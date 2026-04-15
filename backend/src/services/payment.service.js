@@ -27,7 +27,7 @@ export const getAllPaymentsService = async () => {
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
-      json_agg(s.servicename) FILTER (WHERE s.servicename IS NOT NULL) as services
+      json_agg(DISTINCT jsonb_build_object('name', s.servicename, 'price', COALESCE(sb.service_price_at_booking, s.serviceprice))) FILTER (WHERE s.servicename IS NOT NULL) as services
     FROM payment p
     JOIN booking b ON p.bookingid = b.bookingid
     JOIN vehicle v ON b.vehid = v.id
@@ -102,7 +102,7 @@ export const getCustomerPaymentsService = async (customerId) => {
       v.vehbrand,
       v.vehmodel,
       v.vehplate,
-      json_agg(s.servicename) FILTER (WHERE s.servicename IS NOT NULL) as services
+      json_agg(DISTINCT jsonb_build_object('name', s.servicename, 'price', COALESCE(sb.service_price_at_booking, s.serviceprice))) FILTER (WHERE s.servicename IS NOT NULL) as services
     FROM payment p
     JOIN booking b ON p.bookingid = b.bookingid
     JOIN vehicle v ON b.vehid = v.id

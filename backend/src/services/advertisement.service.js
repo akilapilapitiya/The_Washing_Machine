@@ -5,24 +5,31 @@ export const getAllAdvertisementsService = async (isAdmin = false) => {
   let query = `
     SELECT * FROM advertisement 
   `;
-  
+
   if (!isAdmin) {
     query += ` WHERE is_active = true AND (expiry_date IS NULL OR expiry_date > NOW()) `;
   }
-  
+
   query += ` ORDER BY created_at DESC `;
-  
+
   const result = await pool.query(query);
   return result.rows;
 };
 
 export const createAdvertisementService = async (adData) => {
-  const { title, image_url, client_name, client_contact, expiry_date } = adData;
+  const {
+    title,
+    image_url = "",
+    client_name,
+    client_contact,
+    expiry_date,
+    is_active = false,
+  } = adData;
   const result = await pool.query(
-    `INSERT INTO advertisement (title, image_url, client_name, client_contact, expiry_date)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO advertisement (title, image_url, client_name, client_contact, expiry_date, is_active)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [title, image_url, client_name, client_contact, expiry_date]
+    [title, image_url, client_name, client_contact, expiry_date, is_active],
   );
   return result.rows[0];
 };
@@ -49,14 +56,17 @@ export const updateAdvertisementService = async (id, adData) => {
     WHERE id = $${idx} 
     RETURNING *
   `;
-  
+
   const result = await pool.query(query, values);
   if (result.rowCount === 0) throw new NotFoundError("Advertisement not found");
   return result.rows[0];
 };
 
 export const deleteAdvertisementService = async (id) => {
-  const result = await pool.query("DELETE FROM advertisement WHERE id = $1 RETURNING id", [id]);
+  const result = await pool.query(
+    "DELETE FROM advertisement WHERE id = $1 RETURNING id",
+    [id],
+  );
   if (result.rowCount === 0) throw new NotFoundError("Advertisement not found");
   return result.rows[0];
 };

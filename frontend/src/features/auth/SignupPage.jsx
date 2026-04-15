@@ -12,7 +12,15 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUp } from "@/services/auth.service";
-import { Loader2, MapPin, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+  ArrowLeft,
+} from "lucide-react";
 import LocationPicker from "@/components/common/LocationPicker";
 import logo from "@/assets/logo.svg";
 
@@ -78,7 +86,7 @@ const SignupPage = () => {
     if (!formData.title) newErrors.title = "Title is required";
     if (!formData.firstName) newErrors.firstName = "First name is required";
     if (!formData.lastName) newErrors.lastName = "Last name is required";
-    
+
     if (!formData.email) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -172,21 +180,42 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4">
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block mb-6">
-            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Create an Account</h1>
-          <p className="text-gray-500 text-sm">Join The Washing Machine today</p>
+    <div className="min-h-screen relative flex items-center justify-center py-12 px-4 overflow-hidden bg-gray-50">
+      {/* Background Watermark Logo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none flex items-center justify-center opacity-[0.15] mix-blend-multiply transition-opacity duration-1000">
+        <img
+          src={logo}
+          alt=""
+          className="w-[600px] lg:w-[1000px] h-auto object-contain grayscale"
+        />
+      </div>
+
+      {/* Back to Home Navigation */}
+      <Link
+        to="/"
+        className="fixed top-8 left-8 hidden md:flex items-center gap-3 text-gray-400 hover:text-red-600 transition-all duration-300 font-black uppercase tracking-[0.2em] text-[10px] group"
+      >
+        <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-red-600 group-hover:shadow-lg transition-all">
+          <ArrowLeft
+            size={16}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
+        </div>
+        <span>Back to Home</span>
+      </Link>
+
+      <div className="w-full max-w-4xl relative z-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 mb-2 uppercase">
+            Create Account
+          </h1>
         </div>
 
-        <Card className="shadow-sm border border-slate-200">
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
+        <Card className="shadow-sm border-gray-200">
+          <CardHeader className="pb-4 text-center">
+            <CardTitle className="text-lg">Sign Up</CardTitle>
             <CardDescription>
-              Complete your profile to access laundry services
+              Complete your profile to access our premium services
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -197,18 +226,27 @@ const SignupPage = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left Column: Personal Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                {/* Left Column: All Text Fields */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="flex items-center gap-1">Title <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="title" className="flex items-center gap-1">
+                      Title <span className="text-red-500">*</span>
+                    </Label>
                     <select
                       id="title"
                       value={formData.title}
                       onChange={handleChange}
                       disabled={loading}
                       className={`flex h-10 w-full rounded-md border bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 appearance-none ${errors.title ? "border-red-500" : "border-gray-300"}`}
-                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 0.75rem center", backgroundSize: "1rem", paddingRight: "2.5rem" }}
+                      style={{
+                        backgroundImage:
+                          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 0.75rem center",
+                        backgroundSize: "1rem",
+                        paddingRight: "2.5rem",
+                      }}
                     >
                       <option value="">Select Title</option>
                       <option value="Mr.">Mr.</option>
@@ -227,13 +265,22 @@ const SignupPage = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="flex items-center gap-1">First Name <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="firstName"
+                        className="flex items-center gap-1"
+                      >
+                        First Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         id="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
                         disabled={loading}
-                        className={errors.firstName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                        className={
+                          errors.firstName
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
                       />
                       {errors.firstName && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -243,13 +290,22 @@ const SignupPage = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="flex items-center gap-1">Last Name <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="lastName"
+                        className="flex items-center gap-1"
+                      >
+                        Last Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         id="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
                         disabled={loading}
-                        className={errors.lastName ? "border-red-500 focus-visible:ring-red-500" : ""}
+                        className={
+                          errors.lastName
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
                       />
                       {errors.lastName && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -260,47 +316,71 @@ const SignupPage = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-1">Email Address <span className="text-red-500">*</span></Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="example@email.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={loading}
-                      className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                        <AlertCircle size={14} />
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-1">Phone Number <span className="text-red-500">*</span></Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="07XXXXXXXX"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      disabled={loading}
-                      className={errors.phone ? "border-red-500 focus-visible:ring-red-500" : ""}
-                    />
-                    {errors.phone && (
-                      <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                        <AlertCircle size={14} />
-                        {errors.phone}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="flex items-center gap-1"
+                      >
+                        Email <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@email.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className={
+                          errors.email
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
+                      />
+                      {errors.email && (
+                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                          <AlertCircle size={14} />
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="phone"
+                        className="flex items-center gap-1"
+                      >
+                        Phone <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="07XXXXXXXX"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className={
+                          errors.phone
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }
+                      />
+                      {errors.phone && (
+                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                          <AlertCircle size={14} />
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="flex items-center gap-1">Password <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="password"
+                        className="flex items-center gap-1"
+                      >
+                        Password <span className="text-red-500">*</span>
+                      </Label>
                       <div className="relative">
                         <Input
                           id="password"
@@ -316,7 +396,11 @@ const SignupPage = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </button>
                       </div>
                       {errors.password && (
@@ -327,7 +411,12 @@ const SignupPage = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="flex items-center gap-1">Confirm <span className="text-red-500">*</span></Label>
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="flex items-center gap-1"
+                      >
+                        Confirm <span className="text-red-500">*</span>
+                      </Label>
                       <div className="relative">
                         <Input
                           id="confirmPassword"
@@ -337,45 +426,35 @@ const SignupPage = () => {
                           onChange={handleChange}
                           disabled={loading}
                           className={`pr-10 ${
-                            formData.confirmPassword && formData.password !== formData.confirmPassword 
-                              ? "border-red-500 focus-visible:ring-red-500" 
-                              : formData.confirmPassword && formData.password === formData.confirmPassword
-                              ? "border-green-500 focus-visible:ring-green-500"
-                              : errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
+                            formData.confirmPassword &&
+                            formData.password !== formData.confirmPassword
+                              ? "border-red-500 focus-visible:ring-red-500"
+                              : formData.confirmPassword &&
+                                  formData.password === formData.confirmPassword
+                                ? "border-green-500 focus-visible:ring-green-500"
+                                : errors.confirmPassword
+                                  ? "border-red-500 focus-visible:ring-red-500"
+                                  : ""
                           }`}
                         />
                         <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         >
-                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirmPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </button>
                       </div>
-                      {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                          <AlertCircle size={14} />
-                          Passwords do not match
-                        </p>
-                      )}
-                      {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                        <p className="text-sm text-green-600 flex items-center gap-1 mt-1 font-medium">
-                          <CheckCircle size={14} />
-                          Passwords match
-                        </p>
-                      )}
-                      {errors.confirmPassword && (!formData.confirmPassword) && (
-                        <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                          <AlertCircle size={14} />
-                          {errors.confirmPassword}
-                        </p>
-                      )}
                     </div>
                   </div>
-                </div>
 
-                {/* Right Column: Address & Identity */}
-                <div className="space-y-4">
+                  {/* Move NIC & DOB to Left Column Bottom */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="nic">NIC (Optional)</Label>
@@ -398,23 +477,28 @@ const SignupPage = () => {
                       />
                     </div>
                   </div>
+                </div>
 
-                  <div className="space-y-2">
+                {/* Right Column: Dedicated Map */}
+                <div className="space-y-4 flex flex-col h-full">
+                  <div className="space-y-2 flex-1 flex flex-col">
                     <Label className="flex items-center gap-2 mb-1">
                       <span className="flex items-center gap-1">
                         <MapPin size={16} className="text-red-500" />
                         Home Location <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <div className={`rounded-xl overflow-hidden shadow-inner border ${errors.location ? "border-red-500 ring-1 ring-red-500" : "border-slate-200"}`}>
+                    <div
+                      className={`rounded-xl overflow-hidden shadow-inner border flex-1 min-h-[340px] ${errors.location ? "border-red-500 ring-1 ring-red-500" : "border-slate-200"}`}
+                    >
                       <LocationPicker
                         onLocationSelect={handleLocationSelect}
                         initialLocation={
                           formData.latitude && formData.longitude
                             ? {
-                              lat: parseFloat(formData.latitude),
-                              lng: parseFloat(formData.longitude),
-                            }
+                                lat: parseFloat(formData.latitude),
+                                lng: parseFloat(formData.longitude),
+                              }
                             : undefined
                         }
                       />
@@ -425,11 +509,14 @@ const SignupPage = () => {
                         {errors.location}
                       </p>
                     )}
-                    {formData.latitude && formData.distance && !errors.location && (
-                      <p className="text-xs text-green-600 font-medium mt-2">
-                        Location selected ({formData.distance.toFixed(1)} km from HQ).
-                      </p>
-                    )}
+                    {formData.latitude &&
+                      formData.distance &&
+                      !errors.location && (
+                        <p className="text-xs text-green-600 font-medium mt-2">
+                          Location selected ({formData.distance.toFixed(1)} km
+                          from HQ).
+                        </p>
+                      )}
                   </div>
                 </div>
               </div>
@@ -438,13 +525,19 @@ const SignupPage = () => {
                 <div className="flex flex-col gap-1 order-2 sm:order-1">
                   <p className="text-sm text-gray-600">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                    <Link
+                      to="/login"
+                      className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                    >
                       Log in
                     </Link>
                   </p>
                   <p className="text-sm text-gray-600">
                     Employee?{" "}
-                    <Link to="/employee-login" className="text-red-600 hover:text-red-700 font-medium hover:underline">
+                    <Link
+                      to="/employee-login"
+                      className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                    >
                       Employee portal →
                     </Link>
                   </p>

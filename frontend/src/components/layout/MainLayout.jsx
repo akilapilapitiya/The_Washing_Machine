@@ -1,15 +1,13 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Navbar from "../Navbar";
+import PublicNavbar from "./PublicNavbar";
 import { PageHeaderProvider } from "@/contexts/PageHeaderContext";
-import PageSubHeader from "./PageSubHeader";
 
 const MainLayout = () => {
   return (
     <PageHeaderProvider>
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar />
-        <PageSubHeader />
+      <div className="min-h-screen flex flex-col bg-white">
+        <PublicNavbar />
         <main className="flex-1">
           <Outlet />
         </main>

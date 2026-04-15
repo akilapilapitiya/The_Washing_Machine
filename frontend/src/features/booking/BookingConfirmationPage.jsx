@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Loader2,
-  ArrowRight,
-} from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
 import * as vehicleService from "@/services/vehicle.service";
@@ -26,8 +23,15 @@ const BookingConfirmationPage = () => {
     services: [],
   });
 
-  const { vehicleId, serviceIds, locationData, employeeId, employeeName, date, time } =
-    location.state || {}; // locationData now holds { id, type, lat, lng, distance }
+  const {
+    vehicleId,
+    serviceIds,
+    locationData,
+    employeeId,
+    employeeName,
+    date,
+    time,
+  } = location.state || {}; // locationData now holds { id, type, lat, lng, distance }
 
   useEffect(() => {
     if (!vehicleId || !serviceIds) {
@@ -63,7 +67,9 @@ const BookingConfirmationPage = () => {
   }, [vehicleId, serviceIds, navigate]);
 
   const serviceTotal = data.services.reduce((sum, service) => {
-    const amount = service.has_offer ? service.offer_price : service.serviceprice;
+    const amount = service.has_offer
+      ? service.offer_price
+      : service.serviceprice;
     return sum + parseFloat(amount || 0);
   }, 0);
 
@@ -162,8 +168,8 @@ const BookingConfirmationPage = () => {
   const vehicleSummary =
     data.vehicle?.vehbrand && data.vehicle?.vehmodel
       ? `${data.vehicle.vehbrand} ${data.vehicle.vehmodel}${
-        data.vehicle?.vehplate ? ` • ${data.vehicle.vehplate}` : ""
-      }`
+          data.vehicle?.vehplate ? ` • ${data.vehicle.vehplate}` : ""
+        }`
       : "Vehicle details unavailable";
 
   const goToVehicle = useCallback(() => {
@@ -210,7 +216,7 @@ const BookingConfirmationPage = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         tabsAriaLabel="Confirmation sections"
-        rightSlot={(
+        rightSlot={
           <>
             <BookingToolbarBackButton onClick={handleBack} />
             <BookingToolbarActionButton
@@ -228,7 +234,7 @@ const BookingConfirmationPage = () => {
               )}
             </BookingToolbarActionButton>
           </>
-        )}
+        }
       />
     ),
     [activeTab, handleBack, handleConfirm, submitting],
@@ -239,7 +245,7 @@ const BookingConfirmationPage = () => {
     "Review & Confirm",
     "Review your booking details and confirm your appointment.",
     null,
-    toolbar
+    toolbar,
   );
 
   if (loading) {
@@ -261,15 +267,25 @@ const BookingConfirmationPage = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600 w-52">Field</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600">Detail</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-600 w-28">Change</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-600 w-52">
+                          Field
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                          Detail
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600 w-28">
+                          Change
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Vehicle</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{vehicleSummary}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Vehicle
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">
+                          {vehicleSummary}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
@@ -282,8 +298,12 @@ const BookingConfirmationPage = () => {
                       </tr>
 
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Date</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{formatDate(date)}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Date
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">
+                          {formatDate(date)}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
@@ -296,8 +316,12 @@ const BookingConfirmationPage = () => {
                       </tr>
 
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Start Time</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{formatTime(time)}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Start Time
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">
+                          {formatTime(time)}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
@@ -310,14 +334,24 @@ const BookingConfirmationPage = () => {
                       </tr>
 
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">End Time</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{formatEndTime(time)}</td>
-                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          End Time
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">
+                          {formatEndTime(time)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-400">
+                          —
+                        </td>
                       </tr>
 
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Location</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{locationSummary}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Location
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">
+                          {locationSummary}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
@@ -330,8 +364,12 @@ const BookingConfirmationPage = () => {
                       </tr>
 
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Assigned Employee</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{employeeSummary}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Assigned Employee
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">
+                          {employeeSummary}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
@@ -344,23 +382,39 @@ const BookingConfirmationPage = () => {
                       </tr>
 
                       <tr className="border-b border-gray-200 bg-gray-50">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Price Total</td>
-                        <td className="px-4 py-3 text-gray-900 font-semibold">Rs. {serviceTotal.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Price Total
+                        </td>
+                        <td className="px-4 py-3 text-gray-900 font-semibold">
+                          Rs. {serviceTotal.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-400">
+                          —
+                        </td>
                       </tr>
 
                       <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 font-semibold text-gray-600">Travel Cost</td>
+                        <td className="px-4 py-3 font-semibold text-gray-600">
+                          Travel Cost
+                        </td>
                         <td className="px-4 py-3 text-gray-900 font-semibold">
                           Rs. {(locationData?.travelCost || 0).toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                        <td className="px-4 py-3 text-right text-gray-400">
+                          —
+                        </td>
                       </tr>
 
                       <tr className="bg-red-50">
-                        <td className="px-4 py-3 font-bold text-gray-900">Grand Total</td>
-                        <td className="px-4 py-3 font-bold text-red-600 text-base">Rs. {totalPrice.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-right text-gray-400">—</td>
+                        <td className="px-4 py-3 font-bold text-gray-900">
+                          Grand Total
+                        </td>
+                        <td className="px-4 py-3 font-bold text-red-600 text-base">
+                          Rs. {totalPrice.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-400">
+                          —
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -368,50 +422,67 @@ const BookingConfirmationPage = () => {
               )}
 
               {activeTab === "services" && (
-                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Service</th>
-                          <th className="px-4 py-3 text-left font-semibold text-gray-600">Type</th>
-                          <th className="px-4 py-3 text-right font-semibold text-gray-600">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b border-gray-200 bg-gray-50">
-                          <td className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-500" colSpan={3}>
-                            <div className="flex items-center justify-between gap-2">
-                              <span>Selected Services</span>
-                              <button
-                                type="button"
-                                onClick={goToServices}
-                                className="text-[11px] font-semibold text-red-600 hover:text-red-700 normal-case tracking-normal"
-                              >
-                                Change Services
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        {data.services.map((service) => {
-                          const amount = parseFloat(
-                            service.has_offer ? service.offer_price : service.serviceprice,
-                          );
+                <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                          Service
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                          Type
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                          Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <td
+                          className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-500"
+                          colSpan={3}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span>Selected Services</span>
+                            <button
+                              type="button"
+                              onClick={goToServices}
+                              className="text-[11px] font-semibold text-red-600 hover:text-red-700 normal-case tracking-normal"
+                            >
+                              Change Services
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {data.services.map((service) => {
+                        const amount = parseFloat(
+                          service.has_offer
+                            ? service.offer_price
+                            : service.serviceprice,
+                        );
 
-                          return (
-                            <tr key={service.serviceid} className="border-b border-gray-100 last:border-b-0">
-                              <td className="px-4 py-3 text-gray-900 font-medium">{service.servicename}</td>
-                              <td className="px-4 py-3 text-gray-500 capitalize">{service.servicetype || "package"}</td>
-                              <td className="px-4 py-3 text-right text-gray-900 font-semibold">
-                                Rs. {amount.toLocaleString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                        return (
+                          <tr
+                            key={service.serviceid}
+                            className="border-b border-gray-100 last:border-b-0"
+                          >
+                            <td className="px-4 py-3 text-gray-900 font-medium">
+                              {service.servicename}
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 capitalize">
+                              {service.servicetype || "package"}
+                            </td>
+                            <td className="px-4 py-3 text-right text-gray-900 font-semibold">
+                              Rs. {amount.toLocaleString()}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
-
             </div>
           </CardContent>
         </Card>

@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import {
   requestCustomerPasswordReset,
   resetCustomerPassword,
@@ -18,6 +17,14 @@ import {
   resetEmployeePassword,
 } from "@/services/auth.service";
 import logo from "@/assets/logo.svg";
+import {
+  ArrowLeft,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  Home,
+} from "lucide-react";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -48,10 +55,10 @@ const ForgotPasswordPage = () => {
     setError("");
     setErrors({});
     if (!email) {
-      setErrors({email: "Email is required"});
+      setErrors({ email: "Email is required" });
       return;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrors({email: "Please enter a valid email address"});
+      setErrors({ email: "Please enter a valid email address" });
       return;
     }
     setLoading(true);
@@ -87,7 +94,7 @@ const ForgotPasswordPage = () => {
     if (otp.length === 6) {
       setStep(3);
     } else {
-      setErrors({otp: "Please enter a valid 6-digit OTP"});
+      setErrors({ otp: "Please enter a valid 6-digit OTP" });
     }
   };
 
@@ -164,27 +171,47 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block mb-6">
-            <img src={logo} alt="The Washing Machine" className="h-12 w-auto mx-auto" />
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-1">Reset Password</h1>
-          <p className="text-gray-500 text-sm">We'll send a verification code to your email</p>
+    <div className="min-h-screen relative flex items-center justify-center py-12 px-4 overflow-hidden bg-gray-50">
+      {/* Background Watermark Logo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none flex items-center justify-center opacity-[0.15] mix-blend-multiply transition-opacity duration-1000">
+        <img
+          src={logo}
+          alt=""
+          className="w-[600px] lg:w-[1000px] h-auto object-contain grayscale"
+        />
+      </div>
+
+      {/* Back to Home Navigation */}
+      <Link
+        to="/"
+        className="fixed top-8 left-8 hidden md:flex items-center gap-3 text-gray-400 hover:text-red-600 transition-all duration-300 font-black uppercase tracking-[0.2em] text-[10px] group"
+      >
+        <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-red-600 group-hover:shadow-lg transition-all">
+          <Home size={16} className="transition-transform" />
+        </div>
+        <span>Back to Home</span>
+      </Link>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 mb-2 uppercase">
+            Reset Password
+          </h1>
         </div>
 
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 font-medium text-sm"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 text-gray-400 hover:text-red-700 font-bold uppercase tracking-widest text-[10px] transition-colors"
+          >
+            <ArrowLeft size={14} />
+            {step === 0 ? "Back to Login" : "Back"}
+          </button>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Reset Password</CardTitle>
+        <Card className="shadow-sm border-gray-200">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-lg">Account Recovery</CardTitle>
             <CardDescription>
               {step === 0 && "Select your account type"}
               {step === 1 && "Enter your email to get started"}
@@ -224,15 +251,24 @@ const ForgotPasswordPage = () => {
             {step === 1 && (
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-1">Email Address <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="email" className="flex items-center gap-1">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
-                    onChange={(e) => { setEmail(e.target.value); if(errors.email) setErrors({...errors, email: ""}) }}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errors.email) setErrors({ ...errors, email: "" });
+                    }}
                     disabled={loading}
-                    className={errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    className={
+                      errors.email
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
                   {errors.email && (
                     <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -247,7 +283,11 @@ const ForgotPasswordPage = () => {
                     address.
                   </p>
                 </div>
-                <Button type="submit" className="w-full h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
+                  disabled={loading}
+                >
                   {loading ? "Sending..." : "Send OTP"}
                 </Button>
               </form>
@@ -257,16 +297,26 @@ const ForgotPasswordPage = () => {
             {step === 2 && (
               <form onSubmit={handleOtpSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="otp" className="flex items-center gap-1">One-Time Password (OTP) <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="otp" className="flex items-center gap-1">
+                    One-Time Password (OTP){" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="otp"
                     type="text"
                     placeholder="000000"
                     value={otp}
-                    onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "")); if(errors.otp) setErrors({...errors, otp: ""}); }}
+                    onChange={(e) => {
+                      setOtp(e.target.value.replace(/\D/g, ""));
+                      if (errors.otp) setErrors({ ...errors, otp: "" });
+                    }}
                     maxLength="6"
                     disabled={loading}
-                    className={errors.otp ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    className={
+                      errors.otp
+                        ? "border-red-500 focus-visible:ring-red-500"
+                        : ""
+                    }
                   />
                   {errors.otp && (
                     <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -292,14 +342,23 @@ const ForgotPasswordPage = () => {
             {step === 3 && (
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password" className="flex items-center gap-1">New Password <span className="text-red-500">*</span></Label>
+                  <Label
+                    htmlFor="new-password"
+                    className="flex items-center gap-1"
+                  >
+                    New Password <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative">
                     <Input
                       id="new-password"
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={password}
-                      onChange={(e) => { setPassword(e.target.value); if(errors.password) setErrors({...errors, password: ""}); }}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (errors.password)
+                          setErrors({ ...errors, password: "" });
+                      }}
                       disabled={loading}
                       className={`pr-10 ${errors.password ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                     />
@@ -320,29 +379,46 @@ const ForgotPasswordPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="flex items-center gap-1">Confirm Password <span className="text-red-500">*</span></Label>
+                  <Label
+                    htmlFor="confirm-password"
+                    className="flex items-center gap-1"
+                  >
+                    Confirm Password <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative">
                     <Input
                       id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={confirmPassword}
-                      onChange={(e) => { setConfirmPassword(e.target.value); if(errors.confirmPassword) setErrors({...errors, confirmPassword: ""}); }}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        if (errors.confirmPassword)
+                          setErrors({ ...errors, confirmPassword: "" });
+                      }}
                       disabled={loading}
                       className={`pr-10 ${
-                            confirmPassword && password !== confirmPassword 
-                              ? "border-red-500 focus-visible:ring-red-500" 
-                              : confirmPassword && password === confirmPassword
-                              ? "border-green-500 focus-visible:ring-green-500"
-                              : errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500" : ""
-                          }`}
+                        confirmPassword && password !== confirmPassword
+                          ? "border-red-500 focus-visible:ring-red-500"
+                          : confirmPassword && password === confirmPassword
+                            ? "border-green-500 focus-visible:ring-green-500"
+                            : errors.confirmPassword
+                              ? "border-red-500 focus-visible:ring-red-500"
+                              : ""
+                      }`}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                     >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showConfirmPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                   {confirmPassword && password !== confirmPassword && (
@@ -357,7 +433,7 @@ const ForgotPasswordPage = () => {
                       Passwords match
                     </p>
                   )}
-                  {errors.confirmPassword && (!confirmPassword) && (
+                  {errors.confirmPassword && !confirmPassword && (
                     <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
                       <AlertCircle size={14} />
                       {errors.confirmPassword}
@@ -389,8 +465,9 @@ const ForgotPasswordPage = () => {
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
-                className={`h-2 w-2 rounded-full transition-colors ${s <= step ? "bg-red-600" : "bg-gray-200"
-                  }`}
+                className={`h-2 w-2 rounded-full transition-colors ${
+                  s <= step ? "bg-red-600" : "bg-gray-200"
+                }`}
               />
             ))}
           </div>

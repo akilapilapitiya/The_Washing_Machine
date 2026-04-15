@@ -8,20 +8,23 @@ import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 
 const incidentRouter = Router();
 
-// Employee: Report incident
+// Protected routes
+incidentRouter.use(authMiddleware);
+
 incidentRouter.post(
   "/",
-  authMiddleware,
   restrictTo("employee", "cashier", "owner"),
   createIncident,
 );
 
-// Owner: View/Manage
-incidentRouter.get("/", authMiddleware, restrictTo("owner"), getIncidents);
+incidentRouter.get(
+  "/",
+  restrictTo("owner", "cashier", "manager", "employee"),
+  getIncidents,
+);
 incidentRouter.patch(
   "/:id",
-  authMiddleware,
-  restrictTo("owner"),
+  restrictTo("owner", "cashier", "manager"),
   updateIncidentStatus,
 );
 

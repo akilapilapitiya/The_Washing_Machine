@@ -34,7 +34,7 @@ const ReassignModal = ({ booking, onClose, onConfirm }) => {
         );
         // Filter out the currently assigned employee by name
         const filteredEmployees = employees.filter(
-          (emp) => emp.empname !== booking.assigned_empname
+          (emp) => emp.empname !== booking.assigned_empname,
         );
         setAvailableEmployees(filteredEmployees);
       } catch (err) {
@@ -190,16 +190,19 @@ const BookingReviewPage = () => {
   };
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Button
-      onClick={fetchBookings}
-      variant="outline"
-      size="sm"
-      className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide"
-    >
-      <RefreshCw size={16} /> Refresh
-    </Button>
-  ), [fetchBookings]);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        onClick={fetchBookings}
+        variant="outline"
+        size="sm"
+        className="gap-2 bg-white h-10 px-4 rounded-lg shadow-sm border-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold uppercase tracking-wide"
+      >
+        <RefreshCw size={16} /> Refresh
+      </Button>
+    ),
+    [fetchBookings],
+  );
 
   const filteredBookings = bookings.filter((booking) => {
     const query = searchQuery.trim().toLowerCase();
@@ -213,7 +216,11 @@ const BookingReviewPage = () => {
         booking.vehmodel,
         booking.assigned_empname,
         booking.preferred_empname,
-      ].some((value) => String(value || "").toLowerCase().includes(query));
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      );
 
     return matchesSearch;
   });
@@ -222,23 +229,33 @@ const BookingReviewPage = () => {
     () => (
       <PageToolbar
         stats={[
-          { icon: Calendar, label: "Total", value: bookings.length, iconClassName: "text-gray-500" },
+          {
+            icon: Calendar,
+            label: "Total",
+            value: bookings.length,
+            iconClassName: "text-gray-500",
+          },
           {
             icon: Briefcase,
             label: "Pending",
-            value: bookings.filter((booking) => booking.bookingstatus === "pending").length,
+            value: bookings.filter(
+              (booking) => booking.bookingstatus === "pending",
+            ).length,
             iconClassName: "text-amber-500",
           },
           {
             icon: Clock,
             label: "In Progress",
-            value: bookings.filter((booking) => booking.bookingstatus === "inProgress").length,
+            value: bookings.filter(
+              (booking) => booking.bookingstatus === "inProgress",
+            ).length,
             iconClassName: "text-blue-500",
           },
           {
             icon: CheckCircle,
             label: "Unassigned",
-            value: bookings.filter((booking) => !booking.assigned_empname).length,
+            value: bookings.filter((booking) => !booking.assigned_empname)
+              .length,
             iconClassName: "text-green-500",
           },
         ]}
@@ -362,7 +379,11 @@ const BookingReviewPage = () => {
         keyField="bookingid"
         emptyIcon={CheckCircle}
         emptyTitle="No active bookings to review."
-        emptySubtitle={searchQuery ? "No bookings match your search." : "Pending and in-progress bookings will appear here."}
+        emptySubtitle={
+          searchQuery
+            ? "No bookings match your search."
+            : "Pending and in-progress bookings will appear here."
+        }
       />
 
       {showReassignModal && selectedBooking && (

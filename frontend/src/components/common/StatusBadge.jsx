@@ -1,5 +1,12 @@
 import React from "react";
-import { CheckCircle, XCircle, Clock, Loader2, AlertCircle, Zap } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Loader2,
+  AlertCircle,
+  Zap,
+} from "lucide-react";
 
 /**
  * StatusBadge — single source of truth for all status pills in the portal.

@@ -5,6 +5,9 @@ import {
   getVehicle,
   updateVehicle,
   deleteVehicle,
+  recordServiceSnapshot,
+  getServiceReminders,
+  sendServiceReminder,
 } from "../controllers/vehicle.controller.js";
 import { authMiddleware, restrictTo } from "../middleware/auth.middleware.js";
 import { validateSchema } from "../middleware/validation.middleware.js";
@@ -12,28 +15,45 @@ import { vehicleValidator } from "../validators/index.js";
 
 const vehicleRouter = Router();
 
+// Protected routes
 vehicleRouter.use(authMiddleware);
+
+vehicleRouter.get(
+  "/reminders",
+  restrictTo("owner", "manager"),
+  getServiceReminders,
+);
+
 vehicleRouter.get("/:id", getVehicle);
-//Customer only routes
 vehicleRouter.post(
   "/",
   restrictTo("customer"),
   validateSchema(vehicleValidator.createVehicle),
-  createVehicle
+  createVehicle,
 );
 vehicleRouter.delete("/:id", restrictTo("customer"), deleteVehicle);
-//Employee only routes - Update mileage
+vehicleRouter.put(
+  "/:id/service-snapshot",
+  restrictTo("employee", "cashier", "owner", "manager"),
+  recordServiceSnapshot,
+);
+
+vehicleRouter.post(
+  "/:id/send-reminder",
+  restrictTo("owner", "manager"),
+  sendServiceReminder,
+);
+
 vehicleRouter.put(
   "/:id",
   restrictTo("employee"),
   validateSchema(vehicleValidator.updateVehicle),
-  updateVehicle
+  updateVehicle,
 );
-//Customer owner and Manager Routes
 vehicleRouter.get(
   "/",
   restrictTo("customer", "manager", "owner"),
-  getCustomerVehicles
+  getCustomerVehicles,
 );
 
 export default vehicleRouter;

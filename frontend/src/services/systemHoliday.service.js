@@ -49,3 +49,9 @@ export const deleteHoliday = async (id) => {
   const response = await api.delete(`/holidays/${id}`);
   return response.data;
 };
+
+// Sync daily holidays (owner only)
+export const syncDailyHolidays = async (date, blocks) => {
+  const response = await api.post("/holidays/sync-daily", { date, blocks });
+  return response.data;
+};

@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Calendar,
-  Clock,
-  Car,
-  Wrench,
-  ChevronRight,
-  Hash,
-} from "lucide-react";
+import { Calendar, Clock, Car, Wrench, ChevronRight, Hash } from "lucide-react";
 import { Link } from "react-router-dom";
 import * as bookingService from "@/services/booking.service";
 import { formatDateShortSL } from "@/lib/dateFormat";
@@ -31,7 +24,9 @@ const AssignedServicesPage = () => {
         setServices(data || []);
       } catch (err) {
         console.error("Failed to fetch assigned services:", err);
-        toast.error("Failed to synchronize task queue. Please re-authenticate.");
+        toast.error(
+          "Failed to synchronize task queue. Please re-authenticate.",
+        );
       } finally {
         setLoading(false);
       }
@@ -52,10 +47,17 @@ const AssignedServicesPage = () => {
   const toolbarTabs = useMemo(
     () => [
       { id: "upcoming", label: `Upcoming (${pendingServices.length})` },
-      { id: "in-progress", label: `In Progress (${inProgressServices.length})` },
+      {
+        id: "in-progress",
+        label: `In Progress (${inProgressServices.length})`,
+      },
       { id: "completed", label: `History (${completedServices.length})` },
     ],
-    [pendingServices.length, inProgressServices.length, completedServices.length],
+    [
+      pendingServices.length,
+      inProgressServices.length,
+      completedServices.length,
+    ],
   );
 
   // Toolbar: tab switcher lives in PageSubHeader's second row
@@ -193,7 +195,11 @@ const AssignedServicesPage = () => {
       row.vehbrand,
       row.vehmodel,
       row.vehplate,
-    ].some((value) => String(value || "").toLowerCase().includes(query));
+    ].some((value) =>
+      String(value || "")
+        .toLowerCase()
+        .includes(query),
+    );
   });
 
   const emptyConfigs = {
@@ -224,7 +230,9 @@ const AssignedServicesPage = () => {
         keyField="bookingid"
         emptyIcon={empty.icon}
         emptyTitle={empty.title}
-        emptySubtitle={searchQuery ? "No assignments match your search." : empty.subtitle}
+        emptySubtitle={
+          searchQuery ? "No assignments match your search." : empty.subtitle
+        }
       />
     </div>
   );

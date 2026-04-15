@@ -231,3 +231,30 @@ Feedback:
       type: string
       format: date-time
       example: "2025-01-20T10:00:00Z"
+
+Advertisement:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    title:
+      type: string
+      example: "Summer Sale Banner"
+    image_url:
+      type: string
+      example: "/uploads/ads/banner123.jpg"
+    client_name:
+      type: string
+      example: "John Doe"
+    client_contact:
+      type: string
+      example: "0712345678"
+    status:
+      type: string
+      enum: [requested, live, inactive]
+      example: "live"
+    created_at:
+      type: string
+      format: date-time
+      example: "2025-01-20T10:00:00Z"

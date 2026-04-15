@@ -8,6 +8,7 @@ import {
 import { successResponse } from "../utils/response.util.js";
 import { clearCacheByPattern } from "../configs/redis.js";
 
+// CREATE Service
 export const createService = async (req, res, next) => {
   try {
     const {
@@ -66,6 +67,7 @@ export const createService = async (req, res, next) => {
   }
 };
 
+// GET All Services
 export const getAllServices = async (req, res, next) => {
   try {
     const services = await getAllServicesService();
@@ -76,6 +78,7 @@ export const getAllServices = async (req, res, next) => {
   }
 };
 
+// GET Service by ID
 export const getService = async (req, res, next) => {
   try {
     const { serviceid } = req.params;
@@ -88,6 +91,7 @@ export const getService = async (req, res, next) => {
   }
 };
 
+// UPDATE Service
 export const updateService = async (req, res, next) => {
   try {
     const { serviceid } = req.params;
@@ -118,6 +122,7 @@ export const updateService = async (req, res, next) => {
   }
 };
 
+// DELETE Service
 export const deleteService = async (req, res, next) => {
   try {
     const { serviceid } = req.params;

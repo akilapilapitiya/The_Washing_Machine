@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 

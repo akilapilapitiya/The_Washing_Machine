@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Loader2,
-  Layers,
-  ArrowRight,
-  Zap,
-} from "lucide-react";
+import { Loader2, Layers, ArrowRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as serviceService from "@/services/service.service";
@@ -54,7 +49,7 @@ const AddonsSelectionPage = () => {
 
   const addons = useMemo(
     () => services.filter((s) => s.servicetype === "addon"),
-    [services]
+    [services],
   );
 
   // Filter by search and price
@@ -68,7 +63,7 @@ const AddonsSelectionPage = () => {
         (s) =>
           s.servicename.toLowerCase().includes(query) ||
           (s.short_description || "").toLowerCase().includes(query) ||
-          (s.servicedetails || "").toLowerCase().includes(query)
+          (s.servicedetails || "").toLowerCase().includes(query),
       );
     }
 
@@ -91,7 +86,7 @@ const AddonsSelectionPage = () => {
     setSelectedAddonIds((prev) =>
       prev.includes(addonId)
         ? prev.filter((id) => id !== addonId)
-        : [...prev, addonId]
+        : [...prev, addonId],
     );
   };
 
@@ -139,7 +134,7 @@ const AddonsSelectionPage = () => {
             </span>
           ) : null
         }
-        centerSlot={(
+        centerSlot={
           <>
             <select
               value={priceFilter}
@@ -166,8 +161,8 @@ const AddonsSelectionPage = () => {
               Offers
             </button>
           </>
-        )}
-        rightSlot={(
+        }
+        rightSlot={
           <>
             <BookingToolbarBackButton onClick={handleBack} />
             <BookingToolbarActionButton
@@ -178,7 +173,7 @@ const AddonsSelectionPage = () => {
               <ArrowRight size={14} className="ml-2" />
             </BookingToolbarActionButton>
           </>
-        )}
+        }
       />
     ),
     [
@@ -189,7 +184,7 @@ const AddonsSelectionPage = () => {
       canProceedFromAddons,
       handleBack,
       handleContinue,
-    ]
+    ],
   );
 
   useSetPageHeader(
@@ -197,7 +192,7 @@ const AddonsSelectionPage = () => {
     "Select Add-ons",
     "Enhance your booking with optional add-on services.",
     null,
-    searchToolbar
+    searchToolbar,
   );
 
   if (loading) {
@@ -212,7 +207,9 @@ const AddonsSelectionPage = () => {
   }
 
   const AddonRow = ({ service, isSelected, onSelect }) => {
-    const price = service.has_offer ? service.offer_price : service.serviceprice;
+    const price = service.has_offer
+      ? service.offer_price
+      : service.serviceprice;
     const displayPrice = parseFloat(price).toLocaleString();
     const originalPrice = service.has_offer
       ? parseFloat(service.serviceprice).toLocaleString()
@@ -275,10 +272,18 @@ const AddonsSelectionPage = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left w-8"></th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Add-on</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Duration</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-                      <th className="px-4 py-3 text-right font-semibold text-gray-600">Price</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                        Add-on
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                        Duration
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-600">
+                        Price
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -286,7 +291,9 @@ const AddonsSelectionPage = () => {
                       <AddonRow
                         key={service.serviceid}
                         service={service}
-                        isSelected={selectedAddonIds.includes(service.serviceid)}
+                        isSelected={selectedAddonIds.includes(
+                          service.serviceid,
+                        )}
                         onSelect={handleSelectAddon}
                       />
                     ))}

@@ -1,200 +1,94 @@
-# Terraform — Infrastructure Reference
+# Terraform — AWS Infrastructure
 
 ## Overview
 
-This directory contains the complete Infrastructure as Code (IaC) definition for The Washing Machine's production environment on Microsoft Azure. Terraform provisions all cloud resources required to run the application: the virtual machine, networking layer, firewall rules, and static public IP.
+This directory contains the Infrastructure as Code (IaC) definition for "The Washing Machine" production environment on **Amazon Web Services (AWS)**. It provisions a single-server architecture in the **Singapore (ap-southeast-1)** region.
 
-State is stored remotely in GitLab's managed Terraform backend, enabling safe concurrent operations and full history tracking through the CI/CD pipeline.
+The setup is optimized for the **AWS Free Tier** using a `t3.micro` instance.
 
 ---
 
-## Resources Provisioned
+## Resources Provisioned (AWS ap-southeast-1)
 
-The following Azure resources are created and managed by this configuration:
-
-| Resource | Type | Name Pattern |
+| Resource | Type | Purpose |
 |---|---|---|
-| Resource Group | `azurerm_resource_group` | `{project_name}-rg` |
-| Virtual Network | `azurerm_virtual_network` | `{project_name}-vnet` |
-| Subnet | `azurerm_subnet` | `internal` (10.0.1.0/24) |
-| Public IP | `azurerm_public_ip` | `{project_name}-pip` |
-| Network Security Group | `azurerm_network_security_group` | `{project_name}-nsg` |
-| Network Interface | `azurerm_network_interface` | `{project_name}-nic` |
-| NSG Association | `azurerm_network_interface_security_group_association` | — |
-| Linux VM | `azurerm_linux_virtual_machine` | `{project_name}-vm` |
-
-All names are parameterised through the `project_name` variable (default: `the-washing-machine`).
+| VPC | `aws_vpc` | Isolated network (`10.0.0.0/16`) |
+| Subnet | `aws_subnet` | Public subnet (`10.0.1.0/24`) |
+| Gateway | `aws_internet_gateway` | Internet access for the VPC |
+| Security Group | `aws_security_group` | Firewall (Ports 22, 80, 443, 5500) |
+| EC2 Instance | `aws_instance` | Ubuntu 22.04 LTS (t3.micro) |
+| Elastic IP | `aws_eip` | Static public IP address |
+| Key Pair | `aws_key_pair` | SSH access authentication (v2) |
 
 ---
 
-## Network Security Rules
+## Configuration Variables
 
-The NSG grants the following inbound access:
-
-| Rule Name | Priority | Port | Protocol | Purpose |
-|---|---|---|---|---|
-| SSH | 1001 | 22 | TCP | Remote administration |
-| HTTP | 1002 | 80 | TCP | Web traffic + Let's Encrypt ACME challenge |
-| API | 1003 | 5500 | TCP | Direct backend access (if needed) |
-| HTTPS | 1004 | 443 | TCP | SSL web traffic |
-
-All outbound traffic is permitted by default (Azure default egress rule).
+| Variable | Default | Description |
+|---|---|---|
+| `location` | `ap-southeast-1` | AWS Region (Singapore) |
+| `vm_size` | `t3.micro` | Instance type (Free Tier eligible) |
+| `project_name` | `the-washing-machine` | Prefix used for all resources |
+| `admin_username` | `ubuntu` | Default login user |
+| `ssh_public_key` | (Required) | Your RSA public key string |
 
 ---
 
-## Virtual Machine Specification
+## Security Rules (Inbound)
 
-| Property | Value |
-|---|---|
-| Image | Ubuntu Server 22.04 LTS (Canonical) |
-| Size | Standard_B1s (1 vCPU, 1 GB RAM) |
-| OS Disk | Standard_LRS, ReadWrite cache |
-| Authentication | SSH public key only (password disabled) |
-| Admin user | `azureuser` (configurable) |
-| Public IP | Static, Standard SKU |
-
-### cloud-init (user_data)
-
-The VM runs the following bootstrap script on first boot via `user_data`:
-
-```bash
-# 2GB swap file — critical for B1s to avoid OOM under Docker load
-fallocate -l 2G /swapfile
-chmod 600 /swapfile
-mkswap /swapfile
-swapon /swapfile
-echo '/swapfile none swap sw 0 0' >> /etc/fstab
-
-# Docker installation
-apt-get update
-apt-get install -y docker.io docker-compose-v2
-usermod -aG docker azureuser
-```
-
-The swap allocation is intentional — the B1s SKU has only 1 GB RAM, which is insufficient for running Docker with four containers concurrently. The 2 GB swap file prevents out-of-memory kills during container startup and peak load.
+| Port | Protocol | Purpose |
+|---|---|---|
+| 22 | TCP | SSH Administration |
+| 80 | TCP | HTTP Traffic / Certbot Challenge |
+| 443 | TCP | HTTPS Traffic |
+| 5500 | TCP | API Backend Access |
 
 ---
 
-## File Structure
+## Setup & Configuration
 
-| File | Purpose |
-|---|---|
-| `provider.tf` | Terraform version constraints, AzureRM provider, GitLab HTTP backend |
-| `variables.tf` | Input variable declarations with defaults |
-| `main.tf` | All resource definitions |
-| `outputs.tf` | Exports the VM's public IP address post-apply |
+### 1. Local Variables
+Sensitive variables should be stored in `terraform.tfvars`. This file is **ignored by git** to prevent credential leaks.
 
----
+1. Copy the example file:
+   ```bash
+   cp example.tfvars terraform.tfvars
+   ```
+2. Edit `terraform.tfvars` and paste your RSA public key:
+   ```hcl
+   ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2E..."
+   ```
 
-## Variables
-
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `location` | string | `East US` | Azure region for all resources |
-| `vm_size` | string | `Standard_B1s` | Azure VM SKU |
-| `project_name` | string | `the-washing-machine` | Prefix for all resource names and tags |
-| `admin_username` | string | `azureuser` | Linux admin user created on the VM |
-| `ssh_public_key` | string | — | RSA public key for SSH access. **No default — must be supplied.** |
-
-`ssh_public_key` is provided via the `TF_VAR_ssh_public_key` environment variable set as a GitLab CI/CD variable. It is never stored in the repository.
+### 2. Provider Authentication
+The GitLab CI/CD pipeline authenticates using:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
 
 ---
 
-## Outputs
+## CI/CD Pipeline Integration
 
-| Output | Description |
-|---|---|
-| `instance_public_ip` | The static public IP address assigned to the VM |
+Terraform runs automatically via **GitLab CI**. 
 
-The GitLab CI/CD pipeline writes this value to `server_ip.txt` as a job artifact, which is consumed by the subsequent `build:frontend` and `deploy:prod` stages to set the correct API URL and SSH target.
-
----
-
-## State Management
-
-State is stored in GitLab's managed Terraform HTTP backend, configured in `provider.tf`:
-
-```hcl
-backend "http" {
-  # Configured at runtime via GitLab CI/CD environment variables:
-  # TF_HTTP_ADDRESS, TF_HTTP_LOCK_ADDRESS, TF_HTTP_UNLOCK_ADDRESS
-  # TF_HTTP_USERNAME, TF_HTTP_PASSWORD
-}
-```
-
-GitLab CI/CD injects these variables automatically when using the `gitlab-terraform` image in the pipeline. State locking is handled by GitLab to prevent concurrent applies.
-
-Do not run `terraform apply` locally against the production state without first ensuring no pipeline is running, as this will conflict with the remote lock.
-
----
-
-## Provider
-
-```hcl
-provider "azurerm" {
-  features {}
-}
-```
-
-The AzureRM provider authenticates using service principal credentials injected by the CI/CD pipeline as environment variables:
-
-| Variable | Description |
-|---|---|
-| `ARM_CLIENT_ID` | Service principal application ID |
-| `ARM_CLIENT_SECRET` | Service principal password |
-| `ARM_SUBSCRIPTION_ID` | Target Azure subscription |
-| `ARM_TENANT_ID` | Azure Active Directory tenant |
-
-These are set as protected GitLab CI/CD variables and are never stored in code.
-
----
-
-## CI/CD Integration
-
-Terraform is executed in the `infra` stage of the GitLab pipeline using the `registry.gitlab.com/gitlab-org/terraform-images/stable:latest` image. The pipeline runs on pushes to `main` and `feat/production-automation`.
-
-```
-terraform init   → Initialises the GitLab HTTP backend
-terraform plan   → Shows planned changes (output saved as artifact)
-terraform apply  → Applies changes; outputs instance_public_ip to server_ip.txt
-```
-
-The `server_ip.txt` artifact is passed to:
-- `build:frontend` — sets `VITE_API_BASE_URL` (now a fixed domain URL)
-- `deploy:prod` — sets the SSH target for file transfer and container orchestration
+- **Trigger**: Automated on push to **`main`** branch only.
+- **State**: Remote (GitLab Managed HTTP State).
+- **Provisioning**: The `user_data` script automatically configures a **2GB Swap file** and installs **Docker / Docker Compose** on first boot.
 
 ---
 
 ## Running Manually
 
-For local development or emergency operations, provide credentials as environment variables:
+To run Terraform from your local machine:
 
 ```bash
-export ARM_CLIENT_ID="..."
-export ARM_CLIENT_SECRET="..."
-export ARM_SUBSCRIPTION_ID="..."
-export ARM_TENANT_ID="..."
-export TF_VAR_ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"
+export AWS_ACCESS_KEY_ID="your_key"
+export AWS_SECRET_ACCESS_KEY="your_secret"
 
 terraform init \
-  -backend-config="address=https://gitlab.com/api/v4/projects/<PROJECT_ID>/terraform/state/default" \
-  -backend-config="lock_address=..." \
-  -backend-config="unlock_address=..." \
-  -backend-config="username=<GITLAB_USERNAME>" \
+  -backend-config="address=https://gitlab.com/api/v4/projects/<PROJECT_ID>/terraform/state/aws-migration" \
+  -backend-config="username=<GITLAB_USER>" \
   -backend-config="password=<GITLAB_TOKEN>"
 
 terraform plan
 terraform apply
 ```
-
-Replace backend config values with those from your GitLab project's Terraform state settings page.
-
----
-
-## Destroying Infrastructure
-
-```bash
-terraform destroy
-```
-
-This will permanently delete the resource group and all resources within it, including the VM and its disk. All Docker volumes and application data stored on the VM will be lost. Ensure database backups are taken before destroying.

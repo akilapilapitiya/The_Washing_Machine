@@ -102,7 +102,9 @@ const BookingFlowToolbar = ({
         )}
 
         {showSearch && (
-          <div className={cn("relative flex-1 min-w-[220px]", searchWidthClass)}>
+          <div
+            className={cn("relative flex-1 min-w-[220px]", searchWidthClass)}
+          >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <Input
               type="text"

@@ -100,10 +100,15 @@ const Sidebar = () => {
     { to: "/dashboard/feedback", icon: MessageSquare, label: "Feedback" },
   ];
 
-
   // Non-owner employee links (cashier, employee)
   const employeeLinks = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
+    {
+      to: "/dashboard/admin/daily-schedule",
+      icon: Calendar,
+      label: "Daily Schedule",
+      roles: ["cashier"],
+    },
     {
       to: "/dashboard/employee/assigned",
       icon: Wrench,
@@ -179,6 +184,13 @@ const Sidebar = () => {
           active={location.pathname === "/dashboard/employee/payments"}
           nested
         />
+        <SidebarItem
+          to="/dashboard/admin/daily-schedule"
+          icon={Calendar}
+          label="Daily Schedule"
+          active={location.pathname === "/dashboard/admin/daily-schedule"}
+          nested
+        />
       </SidebarGroup>
 
       <SidebarGroup title="Management" icon={Users}>
@@ -194,6 +206,13 @@ const Sidebar = () => {
           icon={Users}
           label="Customers"
           active={location.pathname === "/dashboard/admin/customers"}
+          nested
+        />
+        <SidebarItem
+          to="/dashboard/admin/reminders"
+          icon={Bell}
+          label="Service Reminders"
+          active={location.pathname === "/dashboard/admin/reminders"}
           nested
         />
         <SidebarItem
@@ -233,8 +252,8 @@ const Sidebar = () => {
         />
         <SidebarItem
           to="/dashboard/admin/attendance"
-          icon={Calendar}
-          label="Attendance"
+          icon={Umbrella}
+          label="Employee Leaves"
           active={location.pathname === "/dashboard/admin/attendance"}
           nested
         />
@@ -262,6 +281,13 @@ const Sidebar = () => {
           active={location.pathname === "/dashboard/admin/settings/pricing"}
           nested
         />
+        <SidebarItem
+          to="/dashboard/admin/settings/reminders"
+          icon={Bell}
+          label="Reminder Settings"
+          active={location.pathname === "/dashboard/admin/settings/reminders"}
+          nested
+        />
       </SidebarGroup>
 
       <SidebarGroup title="Reports" icon={BarChart3}>
@@ -270,6 +296,15 @@ const Sidebar = () => {
           icon={BarChart3}
           label="Daily Income"
           active={location.pathname === "/dashboard/admin/reports/daily-income"}
+          nested
+        />
+        <SidebarItem
+          to="/dashboard/admin/reports/annual-income"
+          icon={BarChart3}
+          label="Annual Income"
+          active={
+            location.pathname === "/dashboard/admin/reports/annual-income"
+          }
           nested
         />
         <SidebarItem

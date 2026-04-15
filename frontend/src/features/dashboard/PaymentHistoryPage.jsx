@@ -35,20 +35,35 @@ const PaymentHistoryPage = () => {
     const matchesSearch =
       !query ||
       [payment.paymenttype, String(payment.paymentamount || "")].some((value) =>
-        String(value || "").toLowerCase().includes(query),
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
       );
 
     return matchesSearch;
   });
 
-  const totalAmount = payments.reduce((sum, p) => sum + (Number(p.paymentamount) || 0), 0);
+  const totalAmount = payments.reduce(
+    (sum, p) => sum + (Number(p.paymentamount) || 0),
+    0,
+  );
 
   const toolbar = React.useMemo(
     () => (
       <PageToolbar
         stats={[
-          { icon: Wallet, label: "Total Paid", value: `Rs. ${totalAmount.toLocaleString()}`, iconClassName: "text-green-500" },
-          { icon: Hash, label: "Transactions", value: payments.length, iconClassName: "text-blue-500" },
+          {
+            icon: Wallet,
+            label: "Total Paid",
+            value: `Rs. ${totalAmount.toLocaleString()}`,
+            iconClassName: "text-green-500",
+          },
+          {
+            icon: Hash,
+            label: "Transactions",
+            value: payments.length,
+            iconClassName: "text-blue-500",
+          },
         ]}
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
@@ -122,7 +137,9 @@ const PaymentHistoryPage = () => {
                   key={idx}
                   className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-600 border border-gray-200 uppercase"
                 >
-                  {s}
+                  {typeof s === "string"
+                    ? s
+                    : s.name || s.serviceName || "Service"}
                 </span>
               ))
             ) : (

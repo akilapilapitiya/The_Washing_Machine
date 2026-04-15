@@ -9,7 +9,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, X, Search, ShieldAlert, FileText, User, Calendar, Loader2, CheckCircle, AlertCircle, ShieldCheck, Clock } from "lucide-react";
+import {
+  Plus,
+  X,
+  Search,
+  ShieldAlert,
+  FileText,
+  User,
+  Calendar,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  ShieldCheck,
+  Clock,
+} from "lucide-react";
 import * as bookingService from "@/services/booking.service";
 import * as incidentService from "@/services/incident.service";
 import { toast } from "sonner";
@@ -114,43 +127,60 @@ const EmployeeIncidentPage = () => {
         incident.status,
         incident.booking_id,
         incident.id,
-      ].some((value) => String(value || "").toLowerCase().includes(query));
+      ].some((value) =>
+        String(value || "")
+          .toLowerCase()
+          .includes(query),
+      );
 
     return matchesSearch;
   });
 
   // Memoize action button for stable reference
-  const headerAction = React.useMemo(() => (
-    <Button
-      onClick={() => setShowReportModal(true)}
-      className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
-    >
-      <Plus size={16} className="mr-2" />
-      Report Incident
-    </Button>
-  ), []);
+  const headerAction = React.useMemo(
+    () => (
+      <Button
+        onClick={() => setShowReportModal(true)}
+        className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wide rounded-lg shadow-sm"
+      >
+        <Plus size={16} className="mr-2" />
+        Report Incident
+      </Button>
+    ),
+    [],
+  );
 
   const toolbar = React.useMemo(
     () => (
       <PageToolbar
         stats={[
-          { icon: ShieldAlert, label: "Total", value: incidents.length, iconClassName: "text-red-500" },
+          {
+            icon: ShieldAlert,
+            label: "Total",
+            value: incidents.length,
+            iconClassName: "text-red-500",
+          },
           {
             icon: AlertCircle,
             label: "Open",
-            value: incidents.filter((incident) => incident.status === "open").length,
+            value: incidents.filter((incident) => incident.status === "open")
+              .length,
             iconClassName: "text-orange-500",
           },
           {
             icon: CheckCircle,
             label: "Resolved",
-            value: incidents.filter((incident) => incident.status === "resolved").length,
+            value: incidents.filter(
+              (incident) => incident.status === "resolved",
+            ).length,
             iconClassName: "text-green-500",
           },
           {
             icon: ShieldCheck,
             label: "Critical",
-            value: incidents.filter((incident) => incident.severity === "critical").length,
+            value: incidents.filter(
+              (incident) => incident.severity === "critical",
+            ).length,
             iconClassName: "text-red-600",
           },
         ]}
@@ -177,7 +207,9 @@ const EmployeeIncidentPage = () => {
       key: "id",
       label: "ID",
       render: (row) => (
-        <span className="font-mono font-bold text-gray-500 text-sm">#{row.id}</span>
+        <span className="font-mono font-bold text-gray-500 text-sm">
+          #{row.id}
+        </span>
       ),
     },
     {
@@ -211,7 +243,10 @@ const EmployeeIncidentPage = () => {
       key: "description",
       label: "Description",
       render: (row) => (
-        <p className="text-sm text-gray-600 line-clamp-1 max-w-[300px]" title={row.description}>
+        <p
+          className="text-sm text-gray-600 line-clamp-1 max-w-[300px]"
+          title={row.description}
+        >
           {row.description}
         </p>
       ),
@@ -221,9 +256,13 @@ const EmployeeIncidentPage = () => {
       label: "Customer/Booking",
       render: (row) => (
         <div className="flex flex-col">
-          <span className="text-sm font-bold text-gray-900">{row.customer_name || "N/A"}</span>
+          <span className="text-sm font-bold text-gray-900">
+            {row.customer_name || "N/A"}
+          </span>
           {row.booking_id && (
-            <span className="text-xs text-blue-600 font-medium">Booking #{row.booking_id}</span>
+            <span className="text-xs text-blue-600 font-medium">
+              Booking #{row.booking_id}
+            </span>
           )}
         </div>
       ),
@@ -234,7 +273,9 @@ const EmployeeIncidentPage = () => {
       render: (row) => (
         <div className="flex items-center gap-2">
           {getStatusIcon(row.status)}
-          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">{row.status}</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+            {row.status}
+          </span>
         </div>
       ),
     },
@@ -254,7 +295,8 @@ const EmployeeIncidentPage = () => {
                     Report Incident
                   </CardTitle>
                   <CardDescription>
-                    Provide details about the safety issue or customer harassment.
+                    Provide details about the safety issue or customer
+                    harassment.
                   </CardDescription>
                 </div>
                 <button
@@ -270,9 +312,14 @@ const EmployeeIncidentPage = () => {
                 {/* Booking Selection */}
                 <div className="p-6 space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">Step 1: Select Related Booking</Label>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                      Step 1: Select Related Booking
+                    </Label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+                      <Search
+                        className="absolute left-3 top-3 text-gray-400"
+                        size={16}
+                      />
                       <Input
                         placeholder="Search by name or plate..."
                         className="pl-9 h-11 border-gray-200"
@@ -286,7 +333,7 @@ const EmployeeIncidentPage = () => {
                     <table className="w-full text-left border-collapse">
                       <tbody className="divide-y divide-gray-100">
                         {filteredBookings.map((booking) => (
-                          <tr 
+                          <tr
                             key={booking.bookingid}
                             onClick={() => setSelectedBooking(booking)}
                             className={`cursor-pointer transition-colors ${
@@ -297,14 +344,24 @@ const EmployeeIncidentPage = () => {
                           >
                             <td className="px-4 py-3">
                               <div className="flex flex-col">
-                                <span className="font-mono font-bold text-gray-500 text-[10px]">#{booking.bookingid}</span>
-                                <span className="font-bold text-gray-900 text-xs">{booking.cusname}</span>
-                                <span className="text-[10px] text-gray-400">{booking.vehplate}</span>
+                                <span className="font-mono font-bold text-gray-500 text-[10px]">
+                                  #{booking.bookingid}
+                                </span>
+                                <span className="font-bold text-gray-900 text-xs">
+                                  {booking.cusname}
+                                </span>
+                                <span className="text-[10px] text-gray-400">
+                                  {booking.vehplate}
+                                </span>
                               </div>
                             </td>
                             <td className="px-4 py-3 text-right">
-                              {selectedBooking?.bookingid === booking.bookingid && (
-                                <CheckCircle className="text-red-600 ml-auto" size={16} />
+                              {selectedBooking?.bookingid ===
+                                booking.bookingid && (
+                                <CheckCircle
+                                  className="text-red-600 ml-auto"
+                                  size={16}
+                                />
                               )}
                             </td>
                           </tr>
@@ -317,16 +374,26 @@ const EmployeeIncidentPage = () => {
                 {/* Form Details */}
                 <div className="p-6 space-y-6 bg-gray-50/30">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">Step 2: Incident Details</Label>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                      Step 2: Incident Details
+                    </Label>
                     {selectedBooking ? (
                       <div className="bg-white p-3 border rounded-xl shadow-sm text-xs space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-gray-500 font-medium">Customer:</span>
-                          <span className="text-gray-900 font-bold">{selectedBooking.cusname}</span>
+                          <span className="text-gray-500 font-medium">
+                            Customer:
+                          </span>
+                          <span className="text-gray-900 font-bold">
+                            {selectedBooking.cusname}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500 font-medium">Vehicle:</span>
-                          <span className="text-gray-900 font-bold">{selectedBooking.vehplate}</span>
+                          <span className="text-gray-500 font-medium">
+                            Vehicle:
+                          </span>
+                          <span className="text-gray-900 font-bold">
+                            {selectedBooking.vehplate}
+                          </span>
                         </div>
                       </div>
                     ) : (
@@ -347,7 +414,9 @@ const EmployeeIncidentPage = () => {
                         required
                       >
                         <option value="low">Low - Minor Concern</option>
-                        <option value="medium">Medium - Harassment/Issue</option>
+                        <option value="medium">
+                          Medium - Harassment/Issue
+                        </option>
                         <option value="high">High - Aggressive Behavior</option>
                         <option value="critical">Critical - Emergency</option>
                       </select>
@@ -402,7 +471,9 @@ const EmployeeIncidentPage = () => {
         {tableLoading ? (
           <div className="py-24 flex flex-col items-center justify-center text-gray-400">
             <Loader2 className="animate-spin mb-4" size={32} />
-            <p className="text-sm font-medium">Synchronizing safety records...</p>
+            <p className="text-sm font-medium">
+              Synchronizing safety records...
+            </p>
           </div>
         ) : (
           <DataTable
@@ -411,7 +482,11 @@ const EmployeeIncidentPage = () => {
             keyField="id"
             emptyIcon={ShieldCheck}
             emptyTitle="Safety Clearance"
-              emptySubtitle={incidentSearchQuery ? "No incidents match your search." : "You haven't reported any safety incidents. Your working environment remains secure."}
+            emptySubtitle={
+              incidentSearchQuery
+                ? "No incidents match your search."
+                : "You haven't reported any safety incidents. Your working environment remains secure."
+            }
           />
         )}
       </div>

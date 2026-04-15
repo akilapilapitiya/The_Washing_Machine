@@ -9,6 +9,7 @@ import {
 } from "../services/employeeAuth.service.js";
 import { successResponse } from "../utils/response.util.js";
 
+// Employee Sign Up
 export const employeeSignUp = async (req, res, next) => {
   try {
     const {
@@ -60,6 +61,7 @@ export const employeeSignUp = async (req, res, next) => {
   }
 };
 
+// Employee Sign In
 export const employeeSignIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -92,6 +94,7 @@ export const employeeSignIn = async (req, res, next) => {
   }
 };
 
+// Employee Sign Out
 export const employeeSignOut = async (req, res, next) => {
   res.cookie("jwt", "", {
     httpOnly: true,
@@ -114,6 +117,7 @@ export const requestEmployeePasswordReset = async (req, res, next) => {
   }
 };
 
+// Reset Employee Password
 export const resetEmployeePassword = async (req, res, next) => {
   try {
     const { email, otp, newPassword } = req.body;
@@ -126,6 +130,7 @@ export const resetEmployeePassword = async (req, res, next) => {
   }
 };
 
+// GET Employee Profile
 export const employeeGetMe = async (req, res, next) => {
   try {
     const employee = await getEmployeeById(req.user.id);
@@ -144,6 +149,7 @@ export const employeeGetMe = async (req, res, next) => {
   }
 };
 
+// UPDATE Employee Roles
 export const employeeGetAllRoles = async (req, res, next) => {
   try {
     const roles = await getAllRoles();

@@ -1,4 +1,4 @@
-import logger from '../configs/logger.js';
+import logger from "../configs/logger.js";
 import pool from "../configs/database.js";
 import bcrypt from "bcryptjs";
 import { SALT_ROUNDS, OTP_EXPIRES_IN_MINUTES } from "../configs/env.js";
@@ -15,6 +15,7 @@ import {
   verifyOTP,
   logOTPToConsole,
 } from "../utils/otp.util.js";
+import { addEmailJob } from "../queue/email.queue.js";
 import { sendOtpEmail } from "./email.service.js";
 
 // Signup function
@@ -25,6 +26,8 @@ export const signUp = async ({
   email,
   password,
   telephone,
+  nic,
+  dob,
   latitude,
   longitude,
 }) => {
@@ -45,9 +48,9 @@ export const signUp = async ({
 
   const result = await pool.query(
     `
-    INSERT INTO customer (title, first_name, last_name, cusemail, custel, password_hash, latitude, longitude)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING cusid, title, first_name, last_name, cusemail, custel, latitude, longitude, profile_picture_url
+    INSERT INTO customer (title, first_name, last_name, cusemail, custel, password_hash, nic, dob, latitude, longitude)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING cusid, title, first_name, last_name, cusemail, custel, nic, dob, latitude, longitude, profile_picture_url
     `,
     [
       title,
@@ -56,6 +59,8 @@ export const signUp = async ({
       email,
       telephone,
       passwordHash,
+      nic,
+      dob,
       latitude,
       longitude,
     ],

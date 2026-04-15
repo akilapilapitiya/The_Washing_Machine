@@ -1,4 +1,4 @@
-import logger from './logger.js';
+import logger from "./logger.js";
 import Redis from "ioredis";
 import dotenv from "dotenv";
 
@@ -30,7 +30,10 @@ export const clearCacheByPattern = async (pattern) => {
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {
       await redis.del(keys);
-      logger.info({ keysCleared: keys.length, pattern }, "Cache invalidated successfully.");
+      logger.info(
+        { keysCleared: keys.length, pattern },
+        "Cache invalidated successfully.",
+      );
     }
   } catch (err) {
     logger.error("Error clearing Redis cache by pattern:", err);
