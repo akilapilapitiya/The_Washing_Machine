@@ -57,7 +57,7 @@ const ServiceRemindersPage = () => {
         ]}
       />
     ),
-    [searchTerm, statusFilter, reminders.length]
+    [searchTerm, statusFilter, reminders.length],
   );
 
   useSetPageHeader(
@@ -65,7 +65,7 @@ const ServiceRemindersPage = () => {
     "Service Reminders",
     "Monitor upcoming vehicle maintenance and dispatch reminder emails manually.",
     null,
-    toolbar
+    toolbar,
   );
 
   useEffect(() => {
@@ -77,7 +77,9 @@ const ServiceRemindersPage = () => {
       setLoading(true);
       const [remindersData, settingsData] = await Promise.all([
         vehicleService.getServiceReminders(),
-        settingsService.getReminderSettings().catch(() => ({ service_reminder_prior_days: 7 }))
+        settingsService
+          .getReminderSettings()
+          .catch(() => ({ service_reminder_prior_days: 7 })),
       ]);
       setReminders(remindersData.reminders || []);
       setSettings(settingsData);
@@ -111,23 +113,34 @@ const ServiceRemindersPage = () => {
 
   const getStatusInfo = (dateStr) => {
     const diffDays = getDiffDays(dateStr);
-    
+
     if (diffDays < 0) {
-      return { id: "overdue", label: `Overdue by ${Math.abs(diffDays)} days`, color: "bg-red-100 text-red-800 border-red-200" };
+      return {
+        id: "overdue",
+        label: `Overdue by ${Math.abs(diffDays)} days`,
+        color: "bg-red-100 text-red-800 border-red-200",
+      };
     } else if (diffDays <= settings.service_reminder_prior_days) {
-      return { id: "due_soon", label: `Due in ${diffDays} days`, color: "bg-amber-100 text-amber-800 border-amber-200" };
+      return {
+        id: "due_soon",
+        label: `Due in ${diffDays} days`,
+        color: "bg-amber-100 text-amber-800 border-amber-200",
+      };
     } else {
-      return { id: "upcoming", label: `Upcoming (${diffDays} days left)`, color: "bg-green-100 text-green-800 border-green-200" };
+      return {
+        id: "upcoming",
+        label: `Upcoming (${diffDays} days left)`,
+        color: "bg-green-100 text-green-800 border-green-200",
+      };
     }
   };
 
   const filteredReminders = reminders.filter((r) => {
-    const searchMatch = (
+    const searchMatch =
       r.vehplate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.vehbrand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.cusname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.cusemail?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+      r.cusemail?.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!searchMatch) return false;
 
@@ -176,11 +189,15 @@ const ServiceRemindersPage = () => {
         <div className="space-y-1 w-40">
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">Current:</span>
-            <span className="font-semibold">{row.vehmileage?.toLocaleString()} km</span>
+            <span className="font-semibold">
+              {row.vehmileage?.toLocaleString()} km
+            </span>
           </div>
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">Target:</span>
-            <span className="font-semibold text-red-600">{row.next_service_mileage?.toLocaleString()} km</span>
+            <span className="font-semibold text-red-600">
+              {row.next_service_mileage?.toLocaleString()} km
+            </span>
           </div>
         </div>
       ),
@@ -196,7 +213,9 @@ const ServiceRemindersPage = () => {
               <Calendar className="h-3.5 w-3.5 text-gray-400" />
               {new Date(row.next_service_date).toLocaleDateString()}
             </div>
-            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${status.color}`}>
+            <span
+              className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${status.color}`}
+            >
               {status.label}
             </span>
           </div>
@@ -218,7 +237,7 @@ const ServiceRemindersPage = () => {
         >
           {sendingId === row.vehicle_id ? (
             <span className="flex items-center gap-2">
-              <span className="h-3 w-3 block rounded-full border-2 border-t-red-600 border-r-transparent border-b-red-600 border-l-transparent animate-spin"/>
+              <span className="h-3 w-3 block rounded-full border-2 border-t-red-600 border-r-transparent border-b-red-600 border-l-transparent animate-spin" />
               Sending...
             </span>
           ) : (

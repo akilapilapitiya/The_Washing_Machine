@@ -1,16 +1,9 @@
 import React, { useState } from "react";
-import {
-  Loader2,
-  ArrowRight,
-  Store,
-} from "lucide-react";
+import { Loader2, ArrowRight, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import advertisementService from "../../services/advertisement.service";
 import Footer from "../home/Footer";
@@ -64,14 +57,13 @@ const MarketplacePage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col pt-12 lg:pt-20">
-      
       {/* Public Header */}
       <div className="text-center flex flex-col items-center mb-16 px-4">
         <h2 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 leading-tight">
           Partner With Us
         </h2>
         <p className="text-lg lg:text-xl text-gray-500 max-w-2xl text-center font-medium">
-          Showcase your automotive brand to thousands of local vehicle owners. 
+          Showcase your automotive brand to thousands of local vehicle owners.
           Fill out the form below to start your advertisement request.
         </p>
       </div>
@@ -91,9 +83,10 @@ const MarketplacePage = () => {
                   </h2>
                 </div>
                 <p className="text-gray-400 text-base leading-relaxed font-medium">
-                  We collaborate with mechanics, retailers, and auto-experts to 
-                  bring the best value to our customers. Once you submit, our 
-                  marketing team will personally reach out to finalize your banner design.
+                  We collaborate with mechanics, retailers, and auto-experts to
+                  bring the best value to our customers. Once you submit, our
+                  marketing team will personally reach out to finalize your
+                  banner design.
                 </p>
               </div>
 
@@ -174,9 +167,10 @@ const MarketplacePage = () => {
                       </div>
                     )}
                   </Button>
-                  
+
                   <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                    Our team will contact you directly via phone within 24 hours.
+                    Our team will contact you directly via phone within 24
+                    hours.
                   </p>
                 </form>
               </CardContent>

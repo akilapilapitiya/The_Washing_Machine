@@ -60,15 +60,23 @@ const PartnerSection = ({ id }) => {
           <div className="grid grid-cols-3 gap-4 md:gap-8">
             <div className="text-center">
               <div className="text-4xl font-black text-red-600 mb-2">12+</div>
-              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Premium Partners</div>
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
+                Premium Partners
+              </div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-black text-red-600 mb-2">100%</div>
-              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Quality Assurance</div>
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
+                Quality Assurance
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-black text-red-600 mb-2">Expert</div>
-              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Professional Brands</div>
+              <div className="text-4xl font-black text-red-600 mb-2">
+                Expert
+              </div>
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
+                Professional Brands
+              </div>
             </div>
           </div>
         </div>

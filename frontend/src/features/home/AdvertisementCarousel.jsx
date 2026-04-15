@@ -178,7 +178,9 @@ const AdvertisementCarousel = () => {
                 <div
                   key={`fg-${ad.id}`}
                   className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                    index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                    index === currentIndex
+                      ? "opacity-100 z-10"
+                      : "opacity-0 z-0"
                   }`}
                 >
                   <img
@@ -187,7 +189,7 @@ const AdvertisementCarousel = () => {
                     alt="Advertisement"
                     className="h-full w-full object-cover"
                   />
-                  
+
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
                   <div className="absolute top-6 left-6 right-6 flex items-start justify-between gap-3">

@@ -130,7 +130,9 @@ const ServicesSection = ({ id }) => {
             Services & Exclusive Offers
           </h2>
           <p className="text-gray-500 font-medium max-w-xl">
-            Explore our meticulously curated service selection. From express maintenance to high-end detailing, were store your vehicle to its peak condition.
+            Explore our meticulously curated service selection. From express
+            maintenance to high-end detailing, were store your vehicle to its
+            peak condition.
           </p>
         </div>
 
@@ -138,7 +140,10 @@ const ServicesSection = ({ id }) => {
         {loading && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl bg-gray-100 animate-pulse h-64 w-full"></div>
+              <div
+                key={i}
+                className="rounded-2xl bg-gray-100 animate-pulse h-64 w-full"
+              ></div>
             ))}
           </div>
         )}
@@ -147,13 +152,15 @@ const ServicesSection = ({ id }) => {
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Failed to load services</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Failed to load services
+            </h3>
             <p className="text-gray-500 mb-6">{error}</p>
-            <Button 
-               onClick={() => window.location.reload()}
-               className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl"
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl"
             >
-               Try Again
+              Try Again
             </Button>
           </div>
         )}
@@ -215,7 +222,8 @@ const ServicesSection = ({ id }) => {
                 No live offers right now.
               </h3>
               <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                We currently don't have any special promotions running, but you can explore the full service catalog for our complete range.
+                We currently don't have any special promotions running, but you
+                can explore the full service catalog for our complete range.
               </p>
               <Link to="/services">
                 <Button

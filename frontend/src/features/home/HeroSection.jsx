@@ -34,7 +34,9 @@ const HeroSection = ({ id }) => {
           <div
             key={index}
             className={`absolute inset-0 transition-all duration-[2000ms] ease-in-out transform ${
-              index === currentImageIndex ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0"
+              index === currentImageIndex
+                ? "opacity-100 scale-100 z-10"
+                : "opacity-0 scale-105 z-0"
             }`}
           >
             <img
@@ -52,7 +54,7 @@ const HeroSection = ({ id }) => {
       <div className="container mx-auto px-6 lg:px-12 relative z-30 flex flex-col items-start pt-20">
         {/* Top Accent Bar */}
         <div className="h-1 w-12 bg-red-600 mb-8 animate-in slide-in-from-left duration-700"></div>
-        
+
         {/* Monolithic Typography */}
         <div className="max-w-5xl">
           <h1 className="text-6xl sm:text-7xl lg:text-9xl font-black text-white leading-[0.85] tracking-tighter mb-8 uppercase animate-in fade-in slide-in-from-bottom-10 duration-700 ease-out">

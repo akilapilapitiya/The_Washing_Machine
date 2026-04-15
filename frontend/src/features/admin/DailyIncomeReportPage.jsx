@@ -145,7 +145,10 @@ const DailyIncomeReportPage = () => {
 
   const handlePrintReport = React.useCallback(async () => {
     try {
-      const detailed = await reportService.getDailyIncomeDetailed(printDate, printDate);
+      const detailed = await reportService.getDailyIncomeDetailed(
+        printDate,
+        printDate,
+      );
       printIncomeReport(detailed, printDate, printDate);
     } catch (err) {
       console.error(err);

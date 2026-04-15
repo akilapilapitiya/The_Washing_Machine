@@ -773,8 +773,8 @@ const ServiceDetailsPage = () => {
                 <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-xs text-amber-800 font-semibold leading-relaxed">
                     Recording the odometer reading is required before marking
-                    this service as complete. This enables automated next-service
-                    reminders for the customer.
+                    this service as complete. This enables automated
+                    next-service reminders for the customer.
                   </p>
                 </div>
                 <form onSubmit={handleMileageSubmit} className="space-y-4">
@@ -810,7 +810,9 @@ const ServiceDetailsPage = () => {
                       Number(nextServiceMileage) > Number(currentMileage) && (
                         <p className="text-[10px] text-green-600 font-bold ml-1 mt-1">
                           ≈{" "}
-                          {(Number(nextServiceMileage) - Number(currentMileage)).toLocaleString()}{" "}
+                          {(
+                            Number(nextServiceMileage) - Number(currentMileage)
+                          ).toLocaleString()}{" "}
                           km until next service
                         </p>
                       )}
@@ -822,7 +824,7 @@ const ServiceDetailsPage = () => {
                         </p>
                       )}
                   </div>
-                  
+
                   <div className="pt-2">
                     <label className="flex items-center gap-2 cursor-pointer p-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
                       <input
@@ -836,7 +838,7 @@ const ServiceDetailsPage = () => {
                       </span>
                     </label>
                   </div>
-                  
+
                   <div className="flex gap-3 pt-4 mt-2">
                     <Button
                       type="button"

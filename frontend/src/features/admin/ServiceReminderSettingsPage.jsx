@@ -51,7 +51,10 @@ const ServiceReminderSettingsPage = () => {
   const fetchSettings = async () => {
     try {
       const data = await settingsService.getReminderSettings();
-      setValue("default_service_frequency_days", data.default_service_frequency_days);
+      setValue(
+        "default_service_frequency_days",
+        data.default_service_frequency_days,
+      );
       setValue("service_reminder_prior_days", data.service_reminder_prior_days);
     } catch (error) {
       console.error("Failed to fetch reminder settings:", error);
@@ -161,9 +164,7 @@ const ServiceReminderSettingsPage = () => {
                   className="w-full h-10 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg"
                   disabled={saving}
                 >
-                  {saving && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {saving ? "Saving..." : "Save Configuration"}
                 </Button>
               </form>
@@ -198,7 +199,9 @@ const ServiceReminderSettingsPage = () => {
                     <p className="text-sm font-semibold text-gray-900">
                       Last Service Completed
                     </p>
-                    <p className="text-xs text-gray-500">Day 0 — Starting Point</p>
+                    <p className="text-xs text-gray-500">
+                      Day 0 — Starting Point
+                    </p>
                   </div>
                 </div>
 
@@ -212,7 +215,8 @@ const ServiceReminderSettingsPage = () => {
                       Reminder Dispatched
                     </p>
                     <p className="text-xs text-gray-500">
-                      Day {freqDays - leadDays} — {leadDays} days before due date
+                      Day {freqDays - leadDays} — {leadDays} days before due
+                      date
                     </p>
                   </div>
                 </div>
@@ -266,15 +270,16 @@ const ServiceReminderSettingsPage = () => {
               <p className="font-semibold mb-1 text-gray-900">How it works:</p>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li>
-                  The <strong>Service Interval</strong> determines the default gap
-                  between services for customers without enough history.
+                  The <strong>Service Interval</strong> determines the default
+                  gap between services for customers without enough history.
                 </li>
                 <li>
                   The <strong>Lead Time</strong> controls when a vehicle appears
                   as "Due Soon" in the Service Reminders dashboard.
                 </li>
                 <li>
-                  Vehicles past their due date are flagged as <strong>Overdue</strong>.
+                  Vehicles past their due date are flagged as{" "}
+                  <strong>Overdue</strong>.
                 </li>
               </ul>
             </CardContent>

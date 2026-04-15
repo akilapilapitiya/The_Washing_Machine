@@ -38,8 +38,6 @@ const OwnerPricingPage = () => {
     },
   });
 
-
-
   const formValues = watch();
 
   useEffect(() => {
@@ -59,8 +57,6 @@ const OwnerPricingPage = () => {
       setValue("base_fee", rules.base_fee);
       setValue("additional_rate", rules.additional_rate);
       setValue("buffer_minutes", rules.buffer_minutes || 30);
-
-
     } catch (error) {
       console.error("Failed to fetch settings:", error);
       toast.error("Could not load system settings.");
@@ -81,8 +77,6 @@ const OwnerPricingPage = () => {
       setSaving(false);
     }
   };
-
-
 
   const calculateTestCost = () => {
     const dist = parseFloat(testDistance) || 0;
@@ -212,8 +206,6 @@ const OwnerPricingPage = () => {
               </form>
             </CardContent>
           </Card>
-
-
         </div>
 
         <div className="space-y-6">

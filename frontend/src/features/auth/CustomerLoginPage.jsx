@@ -117,12 +117,15 @@ const CustomerLoginPage = () => {
       </div>
 
       {/* Back to Home Navigation */}
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="fixed top-8 left-8 hidden md:flex items-center gap-3 text-gray-400 hover:text-red-600 transition-all duration-300 font-black uppercase tracking-[0.2em] text-[10px] group"
       >
         <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-red-600 group-hover:shadow-lg transition-all">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft
+            size={16}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
         </div>
         <span>Back to Home</span>
       </Link>

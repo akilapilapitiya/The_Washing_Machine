@@ -348,15 +348,18 @@ const PaymentManagementPage = () => {
                 <X size={24} />
               </button>
             </CardHeader>
-            
+
             {/* Content Split */}
             <CardContent className="p-0 flex flex-col lg:flex-row flex-1 overflow-hidden bg-gray-50/30">
-              
               {/* LEFT: Full Data Table (Flex 1, scrolls) */}
               <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50/50 border-r border-gray-200">
                 <div className="mb-6">
-                  <h4 className="text-xl font-black text-gray-900">Charges Ledger</h4>
-                  <p className="text-sm text-gray-500">Review and adjust all billable items for this session.</p>
+                  <h4 className="text-xl font-black text-gray-900">
+                    Charges Ledger
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    Review and adjust all billable items for this session.
+                  </p>
                 </div>
 
                 <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
@@ -364,31 +367,52 @@ const PaymentManagementPage = () => {
                     <thead>
                       <tr className="bg-gray-100/80 text-[10px] uppercase tracking-widest text-gray-500 font-black border-b border-gray-200 uppercase">
                         <th className="px-8 py-5">Line Item</th>
-                        <th className="px-8 py-5 text-right">Billed Price (Rs.)</th>
+                        <th className="px-8 py-5 text-right">
+                          Billed Price (Rs.)
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white">
-                      
                       {/* Unified List: Services first, then Extras with a Divider */}
                       {(() => {
-                        const services = (selectedBooking.services || []).map(s => ({ ...s, itemType: 'service' }));
-                        const extras = (selectedBooking.extras || []).map(e => ({ ...e, itemType: 'extra' }));
+                        const services = (selectedBooking.services || []).map(
+                          (s) => ({ ...s, itemType: "service" }),
+                        );
+                        const extras = (selectedBooking.extras || []).map(
+                          (e) => ({ ...e, itemType: "extra" }),
+                        );
                         const items = [...services, ...extras];
-                        
+
                         return items.map((item, idx) => {
-                          const isService = item.itemType === 'service';
-                          const isFirstExtra = !isService && (idx === 0 || items[idx-1].itemType === 'service');
-                          
-                          const itemName = isService ? (item.servicename || item.serviceName) : item.item_name;
-                          const itemPrice = isService ? (item.serviceprice || item.price) : item.price;
-                          const itemId = isService ? (item.serviceid || item.serviceId || item.id) : item.id;
-                          const isPending = !isService && (!item.price || Number(item.price) === 0);
+                          const isService = item.itemType === "service";
+                          const isFirstExtra =
+                            !isService &&
+                            (idx === 0 ||
+                              items[idx - 1].itemType === "service");
+
+                          const itemName = isService
+                            ? item.servicename || item.serviceName
+                            : item.item_name;
+                          const itemPrice = isService
+                            ? item.serviceprice || item.price
+                            : item.price;
+                          const itemId = isService
+                            ? item.serviceid || item.serviceId || item.id
+                            : item.id;
+                          const isPending =
+                            !isService &&
+                            (!item.price || Number(item.price) === 0);
 
                           return (
-                            <React.Fragment key={`${item.itemType}-${itemId}-${idx}`}>
+                            <React.Fragment
+                              key={`${item.itemType}-${itemId}-${idx}`}
+                            >
                               {isFirstExtra && (
                                 <tr className="bg-gray-50/50">
-                                  <td colSpan={2} className="px-8 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-y border-gray-100 uppercase">
+                                  <td
+                                    colSpan={2}
+                                    className="px-8 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-y border-gray-100 uppercase"
+                                  >
                                     Employee Specified Charges (Add-ons)
                                   </td>
                                 </tr>
@@ -396,54 +420,151 @@ const PaymentManagementPage = () => {
                               <tr className="hover:bg-blue-50/20 transition-colors group">
                                 <td className="px-8 py-5 text-sm font-bold text-gray-900">
                                   <div className="flex items-center gap-4">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isService ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}`}>
-                                      {isService ? <CheckCircle size={14} /> : <Plus size={14} />}
+                                    <div
+                                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${isService ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-600"}`}
+                                    >
+                                      {isService ? (
+                                        <CheckCircle size={14} />
+                                      ) : (
+                                        <Plus size={14} />
+                                      )}
                                     </div>
                                     <div className="flex flex-col">
                                       <span>{itemName}</span>
                                       <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
-                                        {isService ? "Initial Booking Service" : "In-session Extra Charge"}
+                                        {isService
+                                          ? "Initial Booking Service"
+                                          : "In-session Extra Charge"}
                                       </span>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="px-8 py-5 text-right">
-                                  <div className={`inline-flex items-center gap-1 bg-white border rounded-xl px-4 py-2 shadow-sm focus-within:ring-2 transition-all ${isPending ? 'border-orange-300 focus-within:ring-orange-500' : 'border-gray-200 focus-within:ring-red-500'}`}>
-                                    <span className="text-xs text-gray-400 font-bold">Rs.</span>
+                                  <div
+                                    className={`inline-flex items-center gap-1 bg-white border rounded-xl px-4 py-2 shadow-sm focus-within:ring-2 transition-all ${isPending ? "border-orange-300 focus-within:ring-orange-500" : "border-gray-200 focus-within:ring-red-500"}`}
+                                  >
+                                    <span className="text-xs text-gray-400 font-bold">
+                                      Rs.
+                                    </span>
                                     <input
                                       type="number"
-                                      defaultValue={itemPrice && Number(itemPrice) > 0 ? Number(itemPrice).toFixed(2) : ""}
-                                      className={`w-28 text-right text-sm font-black bg-transparent outline-none p-0 border-0 focus:ring-0 ${isPending ? 'text-orange-900 placeholder:text-orange-300' : 'text-gray-900 placeholder:text-gray-300'}`}
+                                      defaultValue={
+                                        itemPrice && Number(itemPrice) > 0
+                                          ? Number(itemPrice).toFixed(2)
+                                          : ""
+                                      }
+                                      className={`w-28 text-right text-sm font-black bg-transparent outline-none p-0 border-0 focus:ring-0 ${isPending ? "text-orange-900 placeholder:text-orange-300" : "text-gray-900 placeholder:text-gray-300"}`}
                                       placeholder="0.00"
                                       onBlur={async (e) => {
                                         const val = parseFloat(e.target.value);
-                                        if (!isNaN(val) && val >= 0 && val !== Number(itemPrice) && itemId) {
+                                        if (
+                                          !isNaN(val) &&
+                                          val >= 0 &&
+                                          val !== Number(itemPrice) &&
+                                          itemId
+                                        ) {
                                           try {
                                             if (isService) {
-                                              await chargesService.updateServicePrice(selectedBooking.bookingid, itemId, val);
+                                              await chargesService.updateServicePrice(
+                                                selectedBooking.bookingid,
+                                                itemId,
+                                                val,
+                                              );
                                               setSelectedBooking((prev) => {
-                                                const newServices = prev.services.map((srv) => (srv.serviceid || srv.serviceId || srv.id) === itemId ? { ...srv, serviceprice: val, price: val } : srv);
-                                                const sumServices = newServices.reduce((sum, item) => sum + (Number(item.serviceprice || item.price) || 0), 0);
-                                                const sumExtras = (prev.extras || []).reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-                                                const distanceCost = Number(prev.travel_cost || 0);
-                                                const updatedTotalPrice = sumServices + distanceCost;
-                                                setPaymentData((d) => ({ ...d, paymentamount: (updatedTotalPrice + sumExtras).toFixed(2) }));
-                                                return { ...prev, services: newServices, totalprice: updatedTotalPrice, total_price: updatedTotalPrice };
+                                                const newServices =
+                                                  prev.services.map((srv) =>
+                                                    (srv.serviceid ||
+                                                      srv.serviceId ||
+                                                      srv.id) === itemId
+                                                      ? {
+                                                          ...srv,
+                                                          serviceprice: val,
+                                                          price: val,
+                                                        }
+                                                      : srv,
+                                                  );
+                                                const sumServices =
+                                                  newServices.reduce(
+                                                    (sum, item) =>
+                                                      sum +
+                                                      (Number(
+                                                        item.serviceprice ||
+                                                          item.price,
+                                                      ) || 0),
+                                                    0,
+                                                  );
+                                                const sumExtras = (
+                                                  prev.extras || []
+                                                ).reduce(
+                                                  (sum, item) =>
+                                                    sum +
+                                                    (Number(item.price) || 0),
+                                                  0,
+                                                );
+                                                const distanceCost = Number(
+                                                  prev.travel_cost || 0,
+                                                );
+                                                const updatedTotalPrice =
+                                                  sumServices + distanceCost;
+                                                setPaymentData((d) => ({
+                                                  ...d,
+                                                  paymentamount: (
+                                                    updatedTotalPrice +
+                                                    sumExtras
+                                                  ).toFixed(2),
+                                                }));
+                                                return {
+                                                  ...prev,
+                                                  services: newServices,
+                                                  totalprice: updatedTotalPrice,
+                                                  total_price:
+                                                    updatedTotalPrice,
+                                                };
                                               });
                                             } else {
-                                              await chargesService.updateItemPrice(itemId, val);
+                                              await chargesService.updateItemPrice(
+                                                itemId,
+                                                val,
+                                              );
                                               setSelectedBooking((prev) => {
-                                                const newExtras = prev.extras.map((x) => x.id === itemId ? { ...x, price: val } : x);
-                                                const newExtrasTotal = newExtras.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-                                                const base = Number(prev.totalprice || prev.total_price || 0);
-                                                setPaymentData((d) => ({ ...d, paymentamount: (base + newExtrasTotal).toFixed(2) }));
-                                                return { ...prev, extras: newExtras };
+                                                const newExtras =
+                                                  prev.extras.map((x) =>
+                                                    x.id === itemId
+                                                      ? { ...x, price: val }
+                                                      : x,
+                                                  );
+                                                const newExtrasTotal =
+                                                  newExtras.reduce(
+                                                    (sum, item) =>
+                                                      sum +
+                                                      (Number(item.price) || 0),
+                                                    0,
+                                                  );
+                                                const base = Number(
+                                                  prev.totalprice ||
+                                                    prev.total_price ||
+                                                    0,
+                                                );
+                                                setPaymentData((d) => ({
+                                                  ...d,
+                                                  paymentamount: (
+                                                    base + newExtrasTotal
+                                                  ).toFixed(2),
+                                                }));
+                                                return {
+                                                  ...prev,
+                                                  extras: newExtras,
+                                                };
                                               });
                                             }
-                                            toast.success(`Updated successfully.`);
+                                            toast.success(
+                                              `Updated successfully.`,
+                                            );
                                             fetchData();
                                           } catch (err) {
-                                            toast.error("Failed to update price");
+                                            toast.error(
+                                              "Failed to update price",
+                                            );
                                           }
                                         }
                                       }}
@@ -466,7 +587,9 @@ const PaymentManagementPage = () => {
                               </div>
                               <div className="flex flex-col">
                                 <span>Mobile Unit Surcharge</span>
-                                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">Location Based Overhead Fee</span>
+                                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
+                                  Location Based Overhead Fee
+                                </span>
                               </div>
                             </div>
                           </td>
@@ -482,32 +605,60 @@ const PaymentManagementPage = () => {
 
               {/* RIGHT: Validation & Pay (Sticky Form) */}
               <div className="w-full lg:w-[420px] shrink-0 bg-white p-6 lg:p-10 flex flex-col justify-between overflow-y-auto">
-                <form onSubmit={handleSubmitPayment} className="space-y-8 flex flex-col h-full justify-between">
+                <form
+                  onSubmit={handleSubmitPayment}
+                  className="space-y-8 flex flex-col h-full justify-between"
+                >
                   <div className="space-y-8">
                     <h5 className="text-xs font-black uppercase tracking-widest text-red-600 border-b-2 border-red-600 pb-2 inline-block">
                       Finalized Summary
                     </h5>
-                    
+
                     <div className="bg-gray-50/80 rounded-2xl border border-gray-200 p-6 space-y-2">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Grand Total</p>
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Grand Total
+                      </p>
                       <h2 className="text-4xl font-bold tracking-tight text-gray-900 flex items-baseline gap-1">
-                        <span className="text-xl text-gray-400 font-medium">Rs.</span>
+                        <span className="text-xl text-gray-400 font-medium">
+                          Rs.
+                        </span>
                         {(
-                          Number(selectedBooking.totalprice || selectedBooking.total_price || 0) +
-                          (selectedBooking.extras || []).reduce((sum, e) => sum + (Number(e.price) || 0), 0)
+                          Number(
+                            selectedBooking.totalprice ||
+                              selectedBooking.total_price ||
+                              0,
+                          ) +
+                          (selectedBooking.extras || []).reduce(
+                            (sum, e) => sum + (Number(e.price) || 0),
+                            0,
+                          )
                         ).toFixed(0)}
                         <span className="text-2xl text-gray-400">
-                          .{(
-                            Number(selectedBooking.totalprice || selectedBooking.total_price || 0) +
-                            (selectedBooking.extras || []).reduce((sum, e) => sum + (Number(e.price) || 0), 0)
-                          ).toFixed(2).split('.')[1]}
+                          .
+                          {
+                            (
+                              Number(
+                                selectedBooking.totalprice ||
+                                  selectedBooking.total_price ||
+                                  0,
+                              ) +
+                              (selectedBooking.extras || []).reduce(
+                                (sum, e) => sum + (Number(e.price) || 0),
+                                0,
+                              )
+                            )
+                              .toFixed(2)
+                              .split(".")[1]
+                          }
                         </span>
                       </h2>
                     </div>
 
                     <div className="space-y-5">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Collected Amount *</Label>
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          Collected Amount *
+                        </Label>
                         <Input
                           name="paymentamount"
                           type="number"
@@ -521,7 +672,9 @@ const PaymentManagementPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tender Method *</Label>
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          Tender Method *
+                        </Label>
                         <select
                           name="paymenttype"
                           value={paymentData.paymenttype}
@@ -538,7 +691,9 @@ const PaymentManagementPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Transaction Date *</Label>
+                        <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          Transaction Date *
+                        </Label>
                         <Input
                           name="paymentdate"
                           type="date"

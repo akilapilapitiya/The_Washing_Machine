@@ -57,7 +57,8 @@ const AnnualReportPage = () => {
     100,
   ); // Avoid div by zero
 
-  const formatCurrency = (val) => `Rs. ${val.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatCurrency = (val) =>
+    `Rs. ${val.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const toolbar = React.useMemo(
     () => (
@@ -140,7 +141,8 @@ const AnnualReportPage = () => {
           <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">
             Avg. Rs.{" "}
             {(
-              parseFloat(row.total_income) / parseInt(row.transaction_count) || 0
+              parseFloat(row.total_income) / parseInt(row.transaction_count) ||
+              0
             ).toFixed(0)}{" "}
             / tx
           </span>
@@ -182,7 +184,8 @@ const AnnualReportPage = () => {
                     className="flex flex-col items-center justify-end w-full min-w-[40px] group relative h-full"
                   >
                     <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100 pointer-events-none whitespace-nowrap z-10 shadow-xl">
-                      {item.month_label}: {formatCurrency(parseFloat(item.total_income))}
+                      {item.month_label}:{" "}
+                      {formatCurrency(parseFloat(item.total_income))}
                     </div>
                     <div
                       className="w-full max-w-[20px] bg-red-100 group-hover:bg-red-600 transition-all rounded-t-sm"

@@ -23,7 +23,7 @@ const VideoCard = React.memo(({ src, id }) => (
 const videoSources = [
   "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F1260799399579681%2F&show_text=false&width=267&t=0&mute=1",
   "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F919270604201389%2F&show_text=false&width=267&t=0&mute=1",
-  "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F961691629714952%2F&show_text=false&width=267&t=0&mute=1"
+  "https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2Freel%2F961691629714952%2F&show_text=false&width=267&t=0&mute=1",
 ];
 
 const VideoPlayer = ({ id }) => {
@@ -47,9 +47,9 @@ const VideoPlayer = ({ id }) => {
 
         {/* Follow CTA */}
         <div className="mt-16 flex flex-col items-center gap-6">
-          <a 
-            href="https://www.facebook.com/share/18G7HJWpik/" 
-            target="_blank" 
+          <a
+            href="https://www.facebook.com/share/18G7HJWpik/"
+            target="_blank"
             rel="noopener noreferrer"
             className="group"
           >

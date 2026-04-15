@@ -320,8 +320,8 @@ const ManageAdvertisementsPage = () => {
                 !row.is_active
                   ? "bg-amber-50 text-amber-700 border-amber-200"
                   : isExpired
-                  ? "bg-red-50 text-red-700 border-red-200"
-                  : "bg-green-50 text-green-700 border-green-200"
+                    ? "bg-red-50 text-red-700 border-red-200"
+                    : "bg-green-50 text-green-700 border-green-200"
               }`}
             >
               {!row.is_active ? "Pending" : isExpired ? "Expired" : "Active"}
@@ -350,7 +350,9 @@ const ManageAdvertisementsPage = () => {
                   title: row.title,
                   client_name: row.client_name || "",
                   client_contact: row.client_contact || "",
-                  expiry_date: row.expiry_date ? row.expiry_date.split("T")[0] : "",
+                  expiry_date: row.expiry_date
+                    ? row.expiry_date.split("T")[0]
+                    : "",
                   image: null,
                   is_active: true,
                 });

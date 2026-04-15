@@ -19,7 +19,7 @@ const FloatingAdvertisement = () => {
     const handleScroll = () => {
       const homeSection = document.querySelector("#home");
       const contactSection = document.querySelector("#contact");
-      
+
       if (!homeSection || !contactSection) return;
 
       const homeRect = homeSection.getBoundingClientRect();
@@ -70,7 +70,7 @@ const FloatingAdvertisement = () => {
   if (loading || ads.length === 0 || isDismissed) return null;
 
   const activeAd = ads[currentIndex];
-  
+
   // Logic to determine if we show the ad
   const showAd = !isAutoHidden && !isDismissed;
 
@@ -78,7 +78,7 @@ const FloatingAdvertisement = () => {
     <>
       {/* Fullscreen Popup Modal */}
       {isExpanded && (
-        <div 
+        <div
           className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in duration-300"
           onClick={() => setIsExpanded(false)}
         >
@@ -88,13 +88,17 @@ const FloatingAdvertisement = () => {
           >
             <X size={32} />
           </button>
-          
-          <div 
+
+          <div
             className="relative max-w-5xl max-h-[90vh] flex items-center justify-center animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={activeAd.image_url?.startsWith("http") ? activeAd.image_url : `${IMAGE_BASE_URL}${activeAd.image_url}`}
+              src={
+                activeAd.image_url?.startsWith("http")
+                  ? activeAd.image_url
+                  : `${IMAGE_BASE_URL}${activeAd.image_url}`
+              }
               alt="Full advertisement"
               className="max-h-full max-w-full object-contain rounded-xl shadow-2xl"
             />
@@ -103,13 +107,14 @@ const FloatingAdvertisement = () => {
       )}
 
       {/* Unified Floating Ad Toast */}
-      <div 
+      <div
         className={`fixed bottom-10 right-8 z-[150] w-72 transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) transform ${
-          showAd ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+          showAd
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0 pointer-events-none"
         } hidden md:block`}
       >
         <div className="relative group bg-white/90 backdrop-blur-lg border border-white/20 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5">
-          
           {/* Dismiss Button */}
           <button
             onClick={() => setIsDismissed(true)}
@@ -127,31 +132,35 @@ const FloatingAdvertisement = () => {
           </div>
 
           {/* Ad Content */}
-          <div 
+          <div
             className="cursor-pointer relative overflow-hidden h-44 bg-gray-50"
             onClick={() => setIsExpanded(true)}
           >
-            <div 
+            <div
               className="flex h-full w-full transition-transform duration-1000 ease-in-out"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
               {ads.map((ad) => (
                 <div key={ad.id} className="relative h-full w-full shrink-0">
                   <img
-                    src={ad.image_url?.startsWith("http") ? ad.image_url : `${IMAGE_BASE_URL}${ad.image_url}`}
+                    src={
+                      ad.image_url?.startsWith("http")
+                        ? ad.image_url
+                        : `${IMAGE_BASE_URL}${ad.image_url}`
+                    }
                     alt="Advertisement"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
               ))}
             </div>
-            
+
             {/* Progress Indicators */}
             {ads.length > 1 && (
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                 {ads.map((_, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className={`h-0.5 transition-all duration-300 ${idx === currentIndex ? "w-4 bg-red-600" : "w-1 bg-white/50"}`}
                   />
                 ))}
@@ -161,15 +170,22 @@ const FloatingAdvertisement = () => {
 
           {/* Attached CTA: Post your ad with us */}
           <div className="p-4 bg-white/50 border-t border-gray-100">
-            <Link 
-              to="/marketplace" 
+            <Link
+              to="/marketplace"
               className="flex items-center justify-between group/btn bg-gray-900 hover:bg-red-600 text-white px-4 py-2.5 rounded-2xl transition-all duration-300"
             >
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">Advertise Here</span>
-                <span className="text-[9px] text-gray-400 font-medium leading-none group-hover/btn:text-white/80">Post your ad with us</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-0.5">
+                  Advertise Here
+                </span>
+                <span className="text-[9px] text-gray-400 font-medium leading-none group-hover/btn:text-white/80">
+                  Post your ad with us
+                </span>
               </div>
-              <ArrowRight size={14} className="transition-transform group-hover/btn:translate-x-1" />
+              <ArrowRight
+                size={14}
+                className="transition-transform group-hover/btn:translate-x-1"
+              />
             </Link>
           </div>
         </div>
