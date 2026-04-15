@@ -23,10 +23,11 @@ export const printReceipt = (payment) => {
   const servicesSubtotal = services.reduce((sum, s) => sum + (s.price || 0), 0);
 
   // Build service rows for the table
-  const serviceRows = services.length > 0
-    ? services
-        .map(
-          (svc, idx) => `
+  const serviceRows =
+    services.length > 0
+      ? services
+          .map(
+            (svc, idx) => `
           <tr>
             <td style="padding: 10px 16px; font-size: 13px; color: #374151; border-bottom: 1px solid #f3f4f6;">
               ${idx + 1}
@@ -38,19 +39,22 @@ export const printReceipt = (payment) => {
               ${svc.price != null ? `Rs. ${svc.price.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
             </td>
           </tr>`,
-        )
-        .join("")
-    : `<tr>
+          )
+          .join("")
+      : `<tr>
         <td style="padding: 10px 16px; font-size: 13px; color: #374151; border-bottom: 1px solid #f3f4f6;">1</td>
         <td style="padding: 10px 16px; font-size: 13px; color: #374151; border-bottom: 1px solid #f3f4f6;">General Service</td>
         <td style="padding: 10px 16px; font-size: 13px; color: #374151; text-align: right; border-bottom: 1px solid #f3f4f6; font-weight: 600;">Rs. ${totalAmount.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
        </tr>`;
 
-  const paymentMethodLabel = {
-    cash: "Cash",
-    card: "Credit / Debit Card",
-    online: "Online Transfer",
-  }[payment.paymenttype] || payment.paymenttype || "N/A";
+  const paymentMethodLabel =
+    {
+      cash: "Cash",
+      card: "Credit / Debit Card",
+      online: "Online Transfer",
+    }[payment.paymenttype] ||
+    payment.paymenttype ||
+    "N/A";
 
   const customerName = payment.cusname || null;
   const customerTel = payment.custel || null;
@@ -328,16 +332,24 @@ export const printReceipt = (payment) => {
           <!-- Customer & Vehicle Details -->
           <div class="details-section">
             <div class="details-grid">
-              ${customerName ? `
+              ${
+                customerName
+                  ? `
               <div class="detail-item">
                 <div class="detail-label">Customer</div>
                 <div class="detail-value">${customerName}</div>
-              </div>` : ""}
-              ${customerTel ? `
+              </div>`
+                  : ""
+              }
+              ${
+                customerTel
+                  ? `
               <div class="detail-item">
                 <div class="detail-label">Contact</div>
                 <div class="detail-value">${customerTel}</div>
-              </div>` : ""}
+              </div>`
+                  : ""
+              }
               <div class="detail-item">
                 <div class="detail-label">Vehicle</div>
                 <div class="detail-value">${payment.vehbrand || "—"} ${payment.vehmodel || ""}</div>

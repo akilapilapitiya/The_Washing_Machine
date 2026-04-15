@@ -315,13 +315,16 @@ export const printAnnualReport = (monthlyData) => {
                 </tr>
               </thead>
               <tbody>
-                ${tableRows || `
+                ${
+                  tableRows ||
+                  `
                   <tr>
                     <td colspan="4" style="padding: 40px; text-align: center; color: #9ca3af; font-size: 13px;">
                       No income records found for the last 12 months.
                     </td>
                   </tr>
-                `}
+                `
+                }
               </tbody>
             </table>
           </div>

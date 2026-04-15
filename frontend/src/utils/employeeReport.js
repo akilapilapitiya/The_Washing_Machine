@@ -2,7 +2,11 @@
  * Print a professional employee performance report
  * Matches the style of the payment receipt
  */
-export const printEmployeePerformanceReport = (reportData, startDate, endDate) => {
+export const printEmployeePerformanceReport = (
+  reportData,
+  startDate,
+  endDate,
+) => {
   const totalJobs = reportData.reduce(
     (sum, r) => sum + parseInt(r.completed_jobs || 0),
     0,
@@ -332,13 +336,16 @@ export const printEmployeePerformanceReport = (reportData, startDate, endDate) =
                 </tr>
               </thead>
               <tbody>
-                ${tableRows || `
+                ${
+                  tableRows ||
+                  `
                   <tr>
                     <td colspan="4" style="padding: 40px; text-align: center; color: #9ca3af; font-size: 13px;">
                       No performance records found for the selected period.
                     </td>
                   </tr>
-                `}
+                `
+                }
               </tbody>
             </table>
           </div>

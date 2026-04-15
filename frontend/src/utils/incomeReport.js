@@ -27,7 +27,7 @@ export const printIncomeReport = (payments, startDate, endDate) => {
   });
 
   const paymentMethodLabel = (type) =>
-    ({ cash: "Cash", card: "Card", online: "Online" }[type] || type || "—");
+    ({ cash: "Cash", card: "Card", online: "Online" })[type] || type || "—";
 
   // Group payments by date
   const grouped = {};
@@ -383,13 +383,16 @@ export const printIncomeReport = (payments, startDate, endDate) => {
                 </tr>
               </thead>
               <tbody>
-                ${tableRows || `
+                ${
+                  tableRows ||
+                  `
                   <tr>
                     <td colspan="7" style="padding: 40px; text-align: center; color: #9ca3af; font-size: 13px;">
                       No transactions recorded for this period.
                     </td>
                   </tr>
-                `}
+                `
+                }
               </tbody>
             </table>
           </div>
